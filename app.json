@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Setlist",
+    "slug": "setlist",
+    "version": "0.1.0",
+    "scheme": "setlist",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "platforms": ["android", "ios", "web"],
+    "ios": {
+      "bundleIdentifier": "com.andersonsillos.setlist",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.andersonsillos.setlist",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

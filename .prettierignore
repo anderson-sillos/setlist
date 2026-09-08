@@ -1,0 +1,9 @@
+.agents/
+.codex/
+.expo/
+coverage/
+dist/
+node_modules/
+openspec/
+package-lock.json
+docs/apresentacao.html
