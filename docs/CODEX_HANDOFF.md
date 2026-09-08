@@ -10,8 +10,8 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - Grupo ativo: fundação multiplataforma no PR #5, branch `feat/foundation`.
-- Implementação: tarefas 1.1–1.4 e 1.7 concluídas; aplicação Expo inicial, dependências, ambientes tipados, automação de qualidade e roteiro de desenvolvimento verificados.
-- Próximo passo: executar a tarefa 1.5 de `tasks.md` usando `openspec-apply-change`.
+- Implementação: tarefas 1.1–1.5 e 1.7 concluídas; aplicação Expo, dependências, ambientes tipados, automação de qualidade, base visual responsiva e roteiro de desenvolvimento verificados.
+- Próximo passo: executar a tarefa 1.6 de `tasks.md` usando `openspec-apply-change`.
 
 ## Fontes de verdade
 

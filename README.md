@@ -8,7 +8,7 @@ O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e 
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. A fundação multiplataforma está em implementação e já possui uma aplicação Expo inicial executável em Android, iOS e web.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. A fundação multiplataforma está em implementação e já possui uma aplicação Expo executável em Android, iOS e web, com configuração tipada, automação de qualidade e um catálogo visual responsivo.
 
 O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
@@ -182,6 +182,8 @@ npm run android
 npm run ios
 ```
 
+A rota inicial exibe o catálogo dos tokens e componentes básicos. Ela usa uma coluna em celulares, duas em tablets e três em telas de computador, o que permite conferir rapidamente a configuração responsiva em cada dispositivo.
+
 O comando para iOS requer macOS quando usado com o simulador. Em Linux ou Windows, teste iOS em um aparelho físico com Expo Go ou utilize posteriormente um build remoto apropriado.
 
 ### 7. Verificar a instalação
@@ -268,7 +270,9 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   `-- tasks.md                         # Plano incremental de implementação
 |-- src/
 |   |-- app/                             # Rotas e telas compartilhadas do Expo
-|   `-- config/environment.ts            # Leitura e validação tipada do ambiente
+|   |-- components/ui/                   # Componentes visuais reutilizáveis
+|   |-- config/environment.ts            # Leitura e validação tipada do ambiente
+|   `-- theme/                           # Tokens e breakpoints responsivos
 |-- .env.example                         # Modelo público, sem credenciais reais
 |-- app.json                             # Configuração de Android, iOS e web
 |-- eslint.config.js                     # Regras estáticas do projeto Expo
