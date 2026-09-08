@@ -2,6 +2,8 @@
 
 > Organize o show. Acompanhe a letra. Toque no tempo certo.
 
+[![Qualidade](https://github.com/anderson-sillos/setlist/actions/workflows/ci.yml/badge.svg)](https://github.com/anderson-sillos/setlist/actions/workflows/ci.yml)
+
 O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
 [Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
@@ -213,6 +215,8 @@ npx expo install --check
 npx expo export --platform all --output-dir dist
 ```
 
+O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, formatação, lint, tipos e testes em cada pull request e em cada envio para `main`. O resultado atual também pode ser consultado pelo selo no início deste README.
+
 ### 8. Problemas comuns
 
 - **Cache do Metro inconsistente:** execute `npx expo start --clear`.
@@ -274,6 +278,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
 |   `-- theme/                           # Tokens e breakpoints responsivos
 |-- .env.example                         # Modelo público, sem credenciais reais
+|-- .github/workflows/ci.yml             # Qualidade contínua no GitHub
 |-- app.json                             # Configuração de Android, iOS e web
 |-- eslint.config.js                     # Regras estáticas do projeto Expo
 |-- jest.config.js                       # Testes e cobertura mínima
