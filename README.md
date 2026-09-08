@@ -4,11 +4,13 @@
 
 O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
-[Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
+[Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. A aplicação ainda não foi implementada; o próximo passo é iniciar a fundação multiplataforma.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. A fundação multiplataforma está em implementação e já possui uma aplicação Expo inicial executável em Android, iOS e web.
+
+O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
 ## O problema
 
@@ -80,6 +82,119 @@ flowchart LR
 
 SQLite e armazenamento local de músicas não fazem parte do MVP. O modo palco funciona com os tempos já preparados e não depende da reprodução do vídeo.
 
+## Ambiente de desenvolvimento
+
+Este roteiro descreve a configuração necessária para executar o estado atual do projeto. Ele deve ser atualizado no mesmo commit sempre que uma atividade alterar versões, dependências, variáveis de ambiente, comandos ou serviços externos.
+
+### 1. Pré-requisitos
+
+Obrigatórios em qualquer sistema:
+
+- Git;
+- Node.js 24;
+- npm 11;
+- um navegador moderno para executar a versão web.
+
+O arquivo `.nvmrc` fixa a versão principal do Node.js. O uso do [nvm](https://github.com/nvm-sh/nvm) é recomendado, mas não obrigatório; qualquer instalação compatível do Node.js 24 pode ser usada.
+
+Para executar em dispositivos móveis, escolha uma ou mais opções:
+
+- **aparelho Android ou iPhone/iPad:** instale o Expo Go e mantenha o computador e o aparelho na mesma rede;
+- **emulador Android:** instale o Android Studio, o Android SDK e configure um dispositivo virtual;
+- **simulador iOS:** use um Mac com Xcode e o iOS Simulator instalados.
+
+O navegador e um aparelho físico com Expo Go são suficientes para o desenvolvimento inicial. Android Studio, Xcode, Docker, banco de dados local e Supabase local não são necessários nesta etapa.
+
+### 2. Obter o código
+
+```bash
+git clone https://github.com/anderson-sillos/setlist.git
+cd setlist
+```
+
+Para trabalhar na implementação em andamento, consulte o PR ativo e troque para a branch correspondente. A branch `main` contém apenas os grupos já concluídos.
+
+### 3. Selecionar o Node.js
+
+Com nvm:
+
+```bash
+nvm install
+nvm use
+```
+
+Confirme as versões antes de instalar as dependências:
+
+```bash
+node --version
+npm --version
+```
+
+O resultado esperado é Node.js `v24.x` e npm `11.x`.
+
+### 4. Instalar as dependências
+
+```bash
+npm ci
+```
+
+Use `npm ci` para reproduzir exatamente o `package-lock.json`. O comando substitui uma instalação anterior e não deve modificar o arquivo de lock.
+
+Na versão atual, o npm informa alertas moderados em dependências transitivas do Expo. Não execute `npm audit fix --force`: a correção sugerida troca componentes centrais por versões incompatíveis. Alertas altos ou críticos devem bloquear a evolução até serem analisados.
+
+### 5. Variáveis de ambiente
+
+Nenhuma variável de ambiente ou credencial externa é obrigatória para a fundação atual. A atividade 1.3 adicionará arquivos de exemplo e validação tipada para desenvolvimento e produção; esta seção será atualizada junto com essa implementação.
+
+Nunca adicione credenciais, chaves privadas ou arquivos `.env` reais ao Git. Somente exemplos sem valores sensíveis podem ser versionados.
+
+### 6. Executar a aplicação
+
+Inicie o servidor do Expo:
+
+```bash
+npm start
+```
+
+No terminal interativo do Expo, use `w` para navegador, `a` para Android ou `i` para o simulador iOS. Também é possível abrir diretamente uma plataforma:
+
+```bash
+npm run web
+npm run android
+npm run ios
+```
+
+O comando para iOS requer macOS quando usado com o simulador. Em Linux ou Windows, teste iOS em um aparelho físico com Expo Go ou utilize posteriormente um build remoto apropriado.
+
+### 7. Verificar a instalação
+
+Execute as verificações disponíveis nesta etapa:
+
+```bash
+npm ls --depth=0
+npx expo install --check
+npx tsc --noEmit
+```
+
+Para validar a geração dos pacotes das três plataformas:
+
+```bash
+npx expo export --platform all --output-dir dist
+```
+
+A atividade 1.4 adicionará comandos estáveis para formatação, lint, tipos e testes. Assim que estiverem disponíveis, eles substituirão os comandos provisórios desta seção.
+
+### 8. Problemas comuns
+
+- **Cache do Metro inconsistente:** execute `npx expo start --clear`.
+- **Dependência incompatível com o Expo:** execute `npx expo install --check` e instale pacotes nativos com `npx expo install <pacote>`.
+- **Aparelho não encontra o servidor:** confirme que os dois dispositivos estão na mesma rede e que o firewall permite a porta exibida pelo Expo.
+- **Emulador Android não abre:** inicialize o dispositivo virtual no Android Studio e confirme que `adb devices` o lista.
+- **Atalho de iOS indisponível:** o iOS Simulator e builds locais para iOS exigem macOS e Xcode.
+- **Porta do Expo ocupada:** execute `npx expo start --port 8082` ou escolha outra porta livre.
+
+Se uma solução exigir uma mudança permanente no projeto, registre-a também neste roteiro.
+
 ## Papéis e permissões
 
 | Papel | Responsabilidades |
@@ -113,6 +228,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 
 ```text
 .
+|-- .nvmrc                              # Versão principal do Node.js
 |-- .agents/skills/                      # Skills locais do OpenSpec
 |-- docs/
 |   |-- apresentacao.html                # Apresentação HTML em slides
@@ -123,10 +239,13 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- design.md                        # Decisões e arquitetura
 |   |-- specs/                           # Contratos de comportamento
 |   `-- tasks.md                         # Plano incremental de implementação
+|-- src/app/                             # Rotas e telas compartilhadas do Expo
+|-- app.json                             # Configuração de Android, iOS e web
+|-- package.json                         # Dependências e comandos do projeto
 `-- README.md
 ```
 
-Para consultar o estado do planejamento:
+Para consultar o estado do planejamento pelo OpenSpec instalado no ambiente:
 
 ```bash
 openspec status --change definir-mvp-setlist
@@ -134,7 +253,7 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- iniciar a aplicação Expo e a automação de qualidade do incremento 1;
+- concluir variáveis de ambiente, automação de qualidade, base visual responsiva e integração contínua do incremento 1;
 - disponibilizar a primeira versão navegável com dados demonstrativos no incremento 2;
 - validar antecipadamente YouTube, cronômetro e links de autenticação;
 - adicionar backend e funcionalidades em incrementos revisáveis;

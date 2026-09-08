@@ -6,6 +6,7 @@
 - [ ] 1.4 Configurar formatação, lint, verificação de tipos e testes unitários e verificar todos os comandos em uma instalação limpa
 - [ ] 1.5 Criar tokens visuais, componentes básicos e regras responsivas com áreas seguras e verificar uma tela de catálogo em celular, tablet e computador
 - [ ] 1.6 Configurar integração contínua para tipos, lint e testes e verificar uma execução bem-sucedida no GitHub
+- [x] 1.7 Criar no README um roteiro reproduzível do ambiente de desenvolvimento, vincular o acompanhamento das tarefas e verificar as instruções; manter o roteiro atualizado quando a implementação alterar requisitos, configuração ou comandos
 
 ## 2. Primeira versão navegável para revisão
 
