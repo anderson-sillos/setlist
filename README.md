@@ -10,7 +10,7 @@ O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e 
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. A fundação multiplataforma está em implementação e já possui uma aplicação Expo executável em Android, iOS e web, com configuração tipada, automação de qualidade e um catálogo visual responsivo.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O Incremento 1 da fundação multiplataforma está concluído: a aplicação Expo é executável em Android, iOS e web e possui configuração tipada, automação de qualidade, integração contínua e um catálogo visual responsivo.
 
 O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
@@ -294,7 +294,6 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- concluir variáveis de ambiente, automação de qualidade, base visual responsiva e integração contínua do incremento 1;
 - disponibilizar a primeira versão navegável com dados demonstrativos no incremento 2;
 - validar antecipadamente YouTube, cronômetro e links de autenticação;
 - adicionar backend e funcionalidades em incrementos revisáveis;

@@ -9,9 +9,9 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Último grupo concluído: planejamento incremental do MVP, integrado pelo PR #3 no commit `d7036a7`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- Grupo ativo: fundação multiplataforma no PR #5, branch `feat/foundation`.
-- Implementação: tarefas 1.1–1.5 e 1.7 concluídas; aplicação Expo, dependências, ambientes tipados, automação de qualidade, base visual responsiva e roteiro de desenvolvimento verificados.
-- Próximo passo: executar a tarefa 1.6 de `tasks.md` usando `openspec-apply-change`.
+- Último grupo concluído: fundação multiplataforma no PR #5, branch `feat/foundation`.
+- Implementação: Incremento 1 completo, tarefas 1.1–1.7; aplicação Expo, dependências, ambientes tipados, automação de qualidade, base visual responsiva, CI e roteiro de desenvolvimento verificados.
+- Próximo passo: iniciar o Incremento 2 pela tarefa 2.1 de `tasks.md` usando `openspec-apply-change`.
 
 ## Fontes de verdade
 
@@ -35,6 +35,7 @@ openspec validate definir-mvp-setlist --type change --strict
 4. Os PRs #1 e #2 melhoraram a apresentação móvel e corrigiram sua conformidade HTML.
 5. O PR #3 consolidou proposal, design, seis delta specs e o plano incremental em 11 incrementos.
 6. O PR #4 adicionou este handoff e o PR #5 iniciou a fundação multiplataforma.
+7. O PR #5 entregou a aplicação Expo inicial, configuração tipada, qualidade automatizada, catálogo responsivo, CI e roteiro reproduzível do ambiente.
 
 ## Visão confirmada do produto
 
@@ -163,8 +164,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #2: conformidade HTML da apresentação.
 - PR #3: planejamento incremental completo do MVP.
 - PR #4: handoff do histórico do Codex.
-- PR #5: fundação multiplataforma em andamento.
+- PR #5: fundação multiplataforma concluída.
 
 ## Próxima ação recomendada
 
-Continuar o incremento 1 no PR #5 e executar as tarefas restantes em ordem com `openspec-apply-change`. Ao concluir cada tarefa, marcar sua caixa em `tasks.md`, validar o resultado e criar o commit correspondente sem fechar o PR até terminar o incremento acordado.
+Abrir um novo grupo para o Incremento 2 a partir de `main` e executar as tarefas 2.1–2.6 em ordem com `openspec-apply-change`. Manter a convenção de validar e criar um commit por atividade, conservar o PR aberto durante o grupo e integrá-lo somente ao final.
