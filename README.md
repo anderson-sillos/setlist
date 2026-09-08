@@ -4,7 +4,7 @@
 
 O **Setlist** é um aplicativo móvel para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa, operação simples no palco e disponibilidade offline em celulares e tablets Android e iOS.
 
-[Visualizar apresentação](https://anderson-sillos.github.io/setlist/docs/apresentacao.html) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md)
+[Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md)
 
 ## Status do projeto
 
@@ -139,4 +139,4 @@ openspec status --change definir-mvp-setlist
 
 ## Apresentação
 
-A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://anderson-sillos.github.io/setlist/docs/apresentacao.html). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html). Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.
+A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://anderson-sillos.github.io/setlist/). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html). Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.
