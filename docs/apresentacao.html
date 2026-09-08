@@ -1,0 +1,1036 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Apresentação conceitual e técnica do projeto Setlist.">
+  <meta name="theme-color" content="#0b1020">
+  <title>Setlist — apresentação conceitual e técnica</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #64748b;
+      --paper: #f8f7fc;
+      --white: #ffffff;
+      --navy: #0b1020;
+      --navy-2: #18213f;
+      --violet: #7c3aed;
+      --violet-dark: #5b21b6;
+      --violet-soft: #ede9fe;
+      --cyan: #22d3ee;
+      --cyan-soft: #cffafe;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --line: #e2e3ef;
+      --shadow: 0 24px 64px rgb(2 6 23 / 28%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      background: #030712;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    button { font: inherit; }
+
+    .deck {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      padding: 5.7% 6.4% 4.4%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 95% -10%, rgb(124 58 237 / 12%), transparent 28%),
+        var(--paper);
+    }
+
+    .slide.active { display: flex; }
+
+    .slide.dark {
+      color: var(--white);
+      background:
+        radial-gradient(circle at 86% 18%, rgb(124 58 237 / 34%), transparent 28%),
+        radial-gradient(circle at 18% 110%, rgb(34 211 238 / 17%), transparent 36%),
+        linear-gradient(135deg, var(--navy), #111831 68%);
+    }
+
+    .slide::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 7px;
+      content: "";
+      background: linear-gradient(90deg, var(--violet), var(--cyan));
+    }
+
+    .eyebrow {
+      margin: 0 0 1.1%;
+      color: var(--violet);
+      font-size: clamp(10px, 1.08vw, 19px);
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .dark .eyebrow { color: var(--cyan); }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 82%;
+      margin-bottom: 2.1%;
+      font-size: clamp(36px, 5.35vw, 92px);
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+
+    h2 {
+      max-width: 92%;
+      margin-bottom: 2.8%;
+      color: var(--navy);
+      font-size: clamp(25px, 3.05vw, 54px);
+      line-height: 1.04;
+      letter-spacing: -.035em;
+    }
+
+    .dark h2 { color: var(--white); }
+
+    h3 {
+      margin-bottom: .7em;
+      color: var(--navy);
+      font-size: clamp(13px, 1.35vw, 25px);
+      line-height: 1.16;
+    }
+
+    .dark h3 { color: var(--white); }
+
+    p, li {
+      font-size: clamp(11px, 1.16vw, 21px);
+      line-height: 1.42;
+    }
+
+    .lead {
+      max-width: 81%;
+      color: inherit;
+      font-size: clamp(17px, 2.05vw, 37px);
+      line-height: 1.27;
+      letter-spacing: -.018em;
+    }
+
+    .muted { color: var(--muted); }
+    .dark .muted { color: #b8c2dc; }
+    .accent { color: var(--violet); }
+    .dark .accent { color: var(--cyan); }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 1.6%;
+      width: 100%;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      min-width: 0;
+      padding: 2.2%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgb(255 255 255 / 84%);
+      box-shadow: 0 8px 24px rgb(15 23 42 / 7%);
+    }
+
+    .dark .card {
+      border-color: rgb(255 255 255 / 12%);
+      background: rgb(255 255 255 / 6%);
+      box-shadow: none;
+    }
+
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+
+    .number {
+      display: grid;
+      width: 2.2em;
+      height: 2.2em;
+      margin-bottom: .8em;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--white);
+      background: var(--violet);
+      font-size: clamp(12px, 1.15vw, 21px);
+      font-weight: 800;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 .35em .45em 0;
+      padding: .34em .65em;
+      border: 1px solid rgb(124 58 237 / 28%);
+      border-radius: 999px;
+      color: var(--violet-dark);
+      background: var(--violet-soft);
+      font-size: clamp(8px, .82vw, 14px);
+      font-weight: 750;
+      line-height: 1;
+    }
+
+    .dark .tag {
+      color: var(--cyan);
+      border-color: rgb(34 211 238 / 25%);
+      background: rgb(34 211 238 / 9%);
+    }
+
+    ul, ol {
+      margin: .2em 0 0;
+      padding-left: 1.15em;
+    }
+
+    li { margin: 0 0 .45em; }
+    li::marker { color: var(--violet); }
+    .dark li::marker { color: var(--cyan); }
+
+    .bar {
+      display: flex;
+      align-items: stretch;
+      gap: 1.1%;
+      width: 100%;
+    }
+
+    .step {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      padding: 2.2% 1.7%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--white);
+    }
+
+    .step:not(:last-child)::after {
+      position: absolute;
+      z-index: 3;
+      top: 44%;
+      right: -9%;
+      width: 12%;
+      color: var(--violet);
+      content: "→";
+      font-size: clamp(15px, 1.8vw, 34px);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: .6em;
+      color: var(--navy);
+      font-size: clamp(11px, 1.05vw, 19px);
+    }
+
+    .step span {
+      display: block;
+      color: var(--muted);
+      font-size: clamp(9px, .88vw, 16px);
+      line-height: 1.35;
+    }
+
+    .callout {
+      margin-top: auto;
+      padding: 1.35% 1.7%;
+      border-left: 5px solid var(--violet);
+      border-radius: 0 12px 12px 0;
+      color: var(--navy);
+      background: var(--violet-soft);
+      font-size: clamp(10px, 1.08vw, 19px);
+      line-height: 1.35;
+    }
+
+    .dark .callout {
+      color: var(--white);
+      border-left-color: var(--cyan);
+      background: rgb(34 211 238 / 10%);
+    }
+
+    .key-message {
+      align-self: center;
+      width: 84%;
+      margin: 2.2% auto 0;
+      padding: 1.15% 1.55%;
+      border: 2px solid rgb(124 58 237 / 42%);
+      border-left: 7px solid var(--violet);
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--white), var(--violet-soft));
+      box-shadow: 0 12px 30px rgb(15 23 42 / 13%);
+      font-size: clamp(11px, 1.12vw, 20px);
+      font-weight: 620;
+      line-height: 1.38;
+    }
+
+    .key-message strong { color: var(--violet-dark); }
+
+    .dark .key-message {
+      border-color: rgb(34 211 238 / 48%);
+      border-left-color: var(--cyan);
+      background: linear-gradient(135deg, rgb(34 211 238 / 16%), rgb(255 255 255 / 7%));
+      box-shadow: 0 14px 34px rgb(0 0 0 / 22%);
+    }
+
+    .dark .key-message strong { color: var(--cyan); }
+
+    .module-map {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.15%;
+    }
+
+    .module {
+      min-height: 88px;
+      padding: 11% 8%;
+      border-top: 5px solid var(--violet);
+      border-radius: 12px;
+      color: var(--navy);
+      background: var(--white);
+      box-shadow: 0 7px 20px rgb(15 23 42 / 7%);
+      font-size: clamp(9px, .95vw, 17px);
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .module.cyan-top { border-top-color: var(--cyan); }
+    .module.amber-top { border-top-color: var(--amber); }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 2.4%;
+      width: 100%;
+      margin: 1.2% 0 2%;
+    }
+
+    .architecture-node {
+      display: grid;
+      min-height: 145px;
+      padding: 5%;
+      place-content: center;
+      border: 1px solid var(--line);
+      border-top: 6px solid var(--violet);
+      border-radius: 16px;
+      background: var(--white);
+      box-shadow: 0 8px 24px rgb(15 23 42 / 7%);
+      text-align: center;
+    }
+
+    .architecture-node strong {
+      margin-bottom: .45em;
+      color: var(--navy);
+      font-size: clamp(14px, 1.55vw, 28px);
+    }
+
+    .architecture-node span {
+      color: var(--muted);
+      font-size: clamp(9px, .92vw, 17px);
+    }
+
+    .architecture-arrow {
+      color: var(--violet);
+      font-size: clamp(23px, 3vw, 52px);
+      font-weight: 900;
+    }
+
+    .satellites {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2%;
+    }
+
+    .satellite {
+      padding: 1.3% 1.6%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      background: #f1effc;
+      font-size: clamp(8px, .84vw, 15px);
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .satellite strong { color: var(--navy); }
+
+    table {
+      width: 100%;
+      border-spacing: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--white);
+      font-size: clamp(9px, .92vw, 17px);
+    }
+
+    th, td {
+      padding: .72em .9em;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--navy);
+      background: #eeeaf9;
+      font-size: .9em;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: .45em;
+      font-weight: 800;
+    }
+
+    .status::before {
+      width: .7em;
+      height: .7em;
+      border-radius: 50%;
+      content: "";
+      background: var(--green);
+    }
+
+    .status.future::before { background: var(--amber); }
+
+    .quote {
+      max-width: 88%;
+      margin: auto 0;
+      font-size: clamp(27px, 4.25vw, 74px);
+      font-weight: 780;
+      line-height: 1.04;
+      letter-spacing: -.045em;
+    }
+
+    .footer {
+      position: absolute;
+      right: 6.4%;
+      bottom: 2.3%;
+      left: 6.4%;
+      display: flex;
+      justify-content: space-between;
+      color: #718197;
+      font-size: clamp(7px, .68vw, 12px);
+    }
+
+    .dark .footer { color: #91a0be; }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .45em;
+      font-weight: 900;
+      letter-spacing: -.03em;
+    }
+
+    .brand-dot {
+      width: .72em;
+      height: .72em;
+      border-radius: 2px 8px 2px 8px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      transform: rotate(15deg);
+    }
+
+    .controls {
+      position: fixed;
+      z-index: 20;
+      right: 18px;
+      bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid rgb(255 255 255 / 12%);
+      border-radius: 999px;
+      color: #fff;
+      background: rgb(3 7 18 / 82%);
+      backdrop-filter: blur(12px);
+    }
+
+    .controls button {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      background: rgb(255 255 255 / 9%);
+      cursor: pointer;
+    }
+
+    .controls button:hover,
+    .controls button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+      background: rgb(124 58 237 / 38%);
+    }
+
+    .controls button:disabled { opacity: .35; cursor: default; }
+
+    .counter {
+      min-width: 48px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .progress {
+      position: fixed;
+      z-index: 21;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: rgb(255 255 255 / 8%);
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--violet), var(--cyan));
+      transition: width .2s ease;
+    }
+
+    @media (max-width: 720px) {
+      .controls { right: 8px; bottom: 8px; }
+    }
+
+    @media screen and (orientation: portrait), screen and (max-width: 600px) {
+      html, body { width: 100%; height: 100%; }
+      body { display: block; overflow: hidden; }
+
+      .deck {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        aspect-ratio: auto;
+        overflow: hidden;
+        box-shadow: none;
+      }
+
+      .slide {
+        padding: max(34px, env(safe-area-inset-top)) 18px
+          calc(88px + env(safe-area-inset-bottom));
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .eyebrow { margin-bottom: 12px; font-size: 11px; }
+      h1 { max-width: 100%; margin-bottom: 18px; font-size: clamp(52px, 19vw, 78px); }
+      h2 { max-width: 100%; margin-bottom: 22px; font-size: clamp(27px, 8.2vw, 38px); line-height: 1.08; }
+      h3 { font-size: 20px; }
+      p, li { font-size: 16px; line-height: 1.48; }
+      .lead { max-width: 100%; font-size: 23px; }
+
+      .grid-2, .grid-3, .grid-4, .module-map, .satellites {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .card { padding: 18px; border-radius: 14px; }
+      .number { width: 36px; height: 36px; margin-bottom: 12px; font-size: 15px; }
+
+      .bar { flex-direction: column; gap: 12px; }
+      .step { padding: 18px; }
+      .step:not(:last-child)::after { display: none; }
+      .step strong { font-size: 18px; }
+      .step span { font-size: 15px; }
+
+      .callout { margin-top: 20px; padding: 14px 16px; font-size: 15px; }
+      .key-message { width: 100%; margin: 20px auto 0; padding: 16px; font-size: 17px; }
+      .module { min-height: 66px; padding: 15px 7px; font-size: 14px; }
+
+      .architecture { grid-template-columns: 1fr; gap: 12px; }
+      .architecture-arrow { transform: rotate(90deg); text-align: center; }
+      .architecture-node { min-height: 112px; }
+
+      table { display: block; overflow-x: auto; border-radius: 10px; font-size: 14px; }
+      th, td { min-width: 145px; padding: 10px; }
+      .quote { max-width: 100%; font-size: clamp(38px, 11vw, 54px); }
+
+      .footer {
+        position: static;
+        margin-top: 28px;
+        padding-top: 12px;
+        font-size: 11px;
+      }
+
+      .controls {
+        right: max(10px, env(safe-area-inset-right));
+        bottom: max(10px, env(safe-area-inset-bottom));
+        padding: 6px;
+      }
+
+      .controls button { width: 44px; height: 44px; }
+      .counter { min-width: 54px; font-size: 13px; }
+    }
+
+    @media print {
+      @page { size: 16in 9in; margin: 0; }
+
+      html, body {
+        display: block;
+        overflow: visible;
+        background: #fff;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .deck { width: auto; overflow: visible; box-shadow: none; }
+      .slide {
+        position: relative;
+        display: flex !important;
+        width: 16in;
+        height: 9in;
+        break-after: page;
+        page-break-after: always;
+      }
+      .controls, .progress { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="Apresentação conceitual e técnica do Setlist">
+    <section class="slide dark active" aria-labelledby="s1-title">
+      <p class="eyebrow">Apresentação conceitual e técnica · visão inicial</p>
+      <h1 id="s1-title">Set<span class="accent">list</span></h1>
+      <p class="lead">Organize o show. Acompanhe a letra. Toque no tempo certo.</p>
+      <div style="margin-top:auto">
+        <span class="tag">Android e iOS</span>
+        <span class="tag">Feito para bandas</span>
+        <span class="tag">Modo palco offline</span>
+      </div>
+      <div class="footer"><span class="brand"><span class="brand-dot"></span> Setlist</span><span>01</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s2-title">
+      <p class="eyebrow">A ideia em uma página</p>
+      <h2 id="s2-title">Uma fonte compartilhada para preparar a banda e apoiar o músico no palco</h2>
+      <div class="grid-3" style="flex:1">
+        <article class="card">
+          <div class="number">1</div>
+          <h3>Organizar</h3>
+          <p class="muted">Repertório, shows, blocos, ordem das músicas e duração em uma única setlist.</p>
+        </article>
+        <article class="card">
+          <div class="number">2</div>
+          <h3>Sincronizar</h3>
+          <p class="muted">Letras estruturadas e tempos preparados manualmente com uma referência do YouTube.</p>
+        </article>
+        <article class="card">
+          <div class="number">3</div>
+          <h3>Apresentar</h3>
+          <p class="muted">Modo palco controlado pelo músico e disponível mesmo quando não há conexão.</p>
+        </article>
+      </div>
+      <div class="callout"><strong>Status atual:</strong> visão e arquitetura inicial definidas no OpenSpec. A aplicação ainda não possui implementação.</div>
+      <div class="footer"><span>Visão executiva</span><span>02</span></div>
+    </section>
+
+    <section class="slide dark" aria-labelledby="s3-title">
+      <p class="eyebrow">O desafio</p>
+      <h2 id="s3-title">Informação espalhada se transforma em <span class="accent">atrito no palco</span></h2>
+      <div class="grid-3" style="flex:1">
+        <article class="card">
+          <h3>Preparação fragmentada</h3>
+          <p class="muted">Repertório, letras e ordem das músicas ficam em planilhas, mensagens e anotações diferentes.</p>
+        </article>
+        <article class="card">
+          <h3>Mudanças desencontradas</h3>
+          <p class="muted">Nem todos recebem a letra ou a setlist mais recente antes da apresentação.</p>
+        </article>
+        <article class="card">
+          <h3>Internet imprevisível</h3>
+          <p class="muted">Depender da conexão do local transforma uma ferramenta útil em um risco operacional.</p>
+        </article>
+      </div>
+      <div class="callout"><strong>Oportunidade:</strong> preparar colaborativamente pela internet e executar com confiança a partir do conteúdo baixado.</div>
+      <div class="footer"><span>Problema que queremos resolver</span><span>03</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s4-title">
+      <p class="eyebrow">Objetivos do produto</p>
+      <h2 id="s4-title">Dois objetivos centrais, apoiados por uma base segura e compartilhada</h2>
+      <div class="grid-2">
+        <article class="card" style="border-top:5px solid var(--violet)">
+          <div class="number">1</div>
+          <h3>Organizar as músicas dos shows</h3>
+          <p class="muted">Manter repertório, blocos, ordem, duração e informações do evento acessíveis para toda a banda.</p>
+        </article>
+        <article class="card" style="border-top:5px solid var(--cyan)">
+          <div class="number">2</div>
+          <h3>Apresentar a letra no tempo certo</h3>
+          <p class="muted">Destacar cada linha de acordo com um cronômetro simples, iniciado e ajustado pelo músico.</p>
+        </article>
+      </div>
+      <div class="key-message"><strong>Princípio:</strong> o MVP prioriza uma experiência previsível no palco. Reconhecimento automático e sincronização entre aparelhos serão avaliados depois do fluxo manual.</div>
+      <div class="footer"><span>Valor central do Setlist</span><span>04</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s5-title">
+      <p class="eyebrow">Pessoas e controle de acesso</p>
+      <h2 id="s5-title">O conteúdo pertence à banda; cada integrante participa com um papel claro</h2>
+      <div class="grid-3" style="flex:1">
+        <article class="card">
+          <span class="tag">Owner</span>
+          <h3>Administrar</h3>
+          <p class="muted">Gerencia a banda, integrantes, papéis e todo o conteúdo.</p>
+        </article>
+        <article class="card">
+          <span class="tag">Editor</span>
+          <h3>Preparar</h3>
+          <p class="muted">Edita repertório, letras, sincronizações, shows e setlists.</p>
+        </article>
+        <article class="card">
+          <span class="tag">Member</span>
+          <h3>Utilizar</h3>
+          <p class="muted">Consulta o material, baixa os shows e utiliza o modo palco.</p>
+        </article>
+      </div>
+      <div class="callout"><strong>Acesso:</strong> login social com Google ou Apple, múltiplas bandas por usuário e entrada por convite revogável e com expiração.</div>
+      <div class="footer"><span>Owner · Editor · Member</span><span>05</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s6-title">
+      <p class="eyebrow">Fluxo principal</p>
+      <h2 id="s6-title">Preparar antes para simplificar durante</h2>
+      <div class="bar" style="flex:1">
+        <article class="step"><strong>1 · Banda</strong><span>Criar a banda e convidar os músicos.</span></article>
+        <article class="step"><strong>2 · Repertório</strong><span>Cadastrar as músicas e estruturar as letras.</span></article>
+        <article class="step"><strong>3 · Tempos</strong><span>Marcar o início de cada linha.</span></article>
+        <article class="step"><strong>4 · Setlist</strong><span>Criar o show, os blocos e a ordem.</span></article>
+        <article class="step"><strong>5 · Palco</strong><span>Baixar, iniciar o cronômetro e tocar.</span></article>
+      </div>
+      <div class="callout"><strong>Separação intencional:</strong> preparação e edição acontecem online; o show baixado pode ser executado offline.</div>
+      <div class="footer"><span>Da preparação à apresentação</span><span>06</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s7-title">
+      <p class="eyebrow">Organização musical</p>
+      <h2 id="s7-title">Repertório vivo e shows bem definidos</h2>
+      <div class="grid-2">
+        <article class="card">
+          <h3>Repertório</h3>
+          <ul>
+            <li>uma versão vigente por música e por banda;</li>
+            <li>letra organizada em blocos e linhas;</li>
+            <li>música sem letra, estática ou sincronizada;</li>
+            <li>arquivamento sem quebrar shows antigos;</li>
+            <li>aviso quando o conteúdo é atualizado.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Shows e setlists</h3>
+          <ul>
+            <li>data, horário, local, observações e status;</li>
+            <li>blocos como Primeiro Set, Segundo Set e Bis;</li>
+            <li>ordenação e cálculo da duração total;</li>
+            <li>duplicação de um show anterior;</li>
+            <li>estados Rascunho, Pronto e Cancelado.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout"><strong>Fonte única:</strong> os shows referenciam a música vigente. Alterações geram um aviso de atualização sem criar histórico ou cópias ocultas.</div>
+      <div class="footer"><span>Repertório + shows + setlists</span><span>07</span></div>
+    </section>
+
+    <section class="slide dark" aria-labelledby="s8-title">
+      <p class="eyebrow">Da referência ao palco</p>
+      <h2 id="s8-title">Sincronização manual, visível e sob controle do músico</h2>
+      <div class="grid-2">
+        <article class="card">
+          <span class="tag">Preparação online</span>
+          <h3>Marcar os tempos</h3>
+          <ul>
+            <li>vídeo visível do YouTube como referência;</li>
+            <li>marcação do início de cada linha;</li>
+            <li>correção manual dos tempos;</li>
+            <li>somente URL e marcações armazenadas.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <span class="tag">Modo palco</span>
+          <h3>Acompanhar a letra</h3>
+          <ul>
+            <li>cronômetro iniciado pelo músico;</li>
+            <li>linha atual destacada;</li>
+            <li>pausa, reinício e ajuste de ±5 segundos;</li>
+            <li>troca manual para a próxima música.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="key-message"><strong>Nenhum áudio é armazenado.</strong> No palco, o Setlist usa somente a letra e os tempos preparados. Cada aparelho mantém seu próprio cronômetro.</div>
+      <div class="footer"><span>Sincronização do MVP</span><span>08</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s9-title">
+      <p class="eyebrow">Confiabilidade offline</p>
+      <h2 id="s9-title">O show fica disponível no aparelho antes de a banda subir ao palco</h2>
+      <div class="grid-3" style="flex:1">
+        <article class="card">
+          <div class="number">1</div>
+          <h3>Baixar</h3>
+          <p class="muted">Setlist, letras, tempos e metadados formam um pacote local do show.</p>
+        </article>
+        <article class="card">
+          <div class="number">2</div>
+          <h3>Executar</h3>
+          <p class="muted">O pacote é aberto mesmo quando a conexão do local está indisponível.</p>
+        </article>
+        <article class="card">
+          <div class="number">3</div>
+          <h3>Atualizar</h3>
+          <p class="muted">O aplicativo informa as mudanças; o músico escolhe quando substituir o download.</p>
+        </article>
+      </div>
+      <div class="callout"><strong>Simplicidade do MVP:</strong> arquivos JSON por show, gravação atômica e nenhuma edição offline. SQLite só será reconsiderado se surgir uma necessidade concreta.</div>
+      <div class="footer"><span>Offline por desenho</span><span>09</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s10-title">
+      <p class="eyebrow">Arquitetura do software</p>
+      <h2 id="s10-title">Uma base móvel compartilhada e pouca infraestrutura para operar</h2>
+      <div class="architecture" aria-label="Aplicativo Expo conectado ao Supabase">
+        <div class="architecture-node">
+          <strong>React Native + Expo</strong>
+          <span>Aplicativo para Android, iPhone e iPad</span>
+        </div>
+        <div class="architecture-arrow" aria-hidden="true">⇄</div>
+        <div class="architecture-node" style="border-top-color:var(--cyan)">
+          <strong>Supabase hospedado</strong>
+          <span>Auth + PostgreSQL + Row Level Security</span>
+        </div>
+      </div>
+      <div class="satellites">
+        <div class="satellite"><strong>SecureStore</strong><br>Sessão autenticada no aparelho</div>
+        <div class="satellite"><strong>FileSystem + JSON</strong><br>Shows disponíveis offline</div>
+        <div class="satellite"><strong>YouTube incorporado</strong><br>Referência durante a edição</div>
+      </div>
+      <div class="callout"><strong>Decisão:</strong> não haverá PostgreSQL local, servidor adicional, SQLite ou armazenamento de áudio no MVP.</div>
+      <div class="footer"><span>Arquitetura proposta</span><span>10</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s11-title">
+      <p class="eyebrow">Modelo conceitual</p>
+      <h2 id="s11-title">Dados organizados em torno da banda e do show</h2>
+      <div class="module-map" style="flex:1">
+        <div class="module">Usuário<br><span class="muted">identidade social</span></div>
+        <div class="module">Participação<br><span class="muted">banda + papel</span></div>
+        <div class="module cyan-top">Banda<br><span class="muted">limite dos dados</span></div>
+        <div class="module amber-top">Convite<br><span class="muted">link + validade</span></div>
+        <div class="module">Música<br><span class="muted">versão vigente</span></div>
+        <div class="module">Letra<br><span class="muted">seções + linhas + tempos</span></div>
+        <div class="module cyan-top">Show<br><span class="muted">evento + status</span></div>
+        <div class="module amber-top">Setlist<br><span class="muted">blocos + músicas</span></div>
+      </div>
+      <div class="callout"><strong>Persistência local:</strong> o pacote do show materializa somente os dados necessários para a execução offline; a fonte oficial permanece no Supabase.</div>
+      <div class="footer"><span>Modelo de domínio inicial</span><span>11</span></div>
+    </section>
+
+    <section class="slide dark" aria-labelledby="s12-title">
+      <p class="eyebrow">Segurança e controle</p>
+      <h2 id="s12-title">Acesso simples para o músico; validação forte no backend</h2>
+      <div class="grid-2">
+        <article class="card">
+          <h3>No aparelho</h3>
+          <ul>
+            <li>login social com Google e Apple;</li>
+            <li>tokens protegidos pelo SecureStore;</li>
+            <li>nenhuma chave administrativa no app;</li>
+            <li>logout remove sessão e downloads.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>No backend</h3>
+          <ul>
+            <li>Row Level Security no PostgreSQL;</li>
+            <li>autorização por banda e papel;</li>
+            <li>remoção do integrante bloqueia o acesso online;</li>
+            <li>pacotes da banda são limpos na próxima conexão.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout"><strong>Limitação consciente:</strong> um pacote já baixado não pode ser revogado enquanto o aparelho permanece totalmente offline.</div>
+      <div class="footer"><span>Defesa no aparelho e no backend</span><span>12</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s13-title">
+      <p class="eyebrow">Evolução responsável</p>
+      <h2 id="s13-title">Validar o essencial antes de automatizar</h2>
+      <div class="grid-2">
+        <article class="card" style="border-top:5px solid var(--green)">
+          <h3><span class="status">MVP</span></h3>
+          <ul>
+            <li>cronômetro manual e independente;</li>
+            <li>preparação online e palco offline;</li>
+            <li>uma versão por música;</li>
+            <li>letras sem cifras;</li>
+            <li>YouTube como referência.</li>
+          </ul>
+        </article>
+        <article class="card" style="border-top:5px solid var(--amber)">
+          <h3><span class="status future">Evolução futura</span></h3>
+          <ul>
+            <li>reconhecimento automático da música;</li>
+            <li>sincronização entre músicos;</li>
+            <li>edição offline com conflitos;</li>
+            <li>arranjos, cifras e transposição;</li>
+            <li>outras referências compatíveis.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout"><strong>Estratégia:</strong> aprender com uma banda piloto antes de adicionar complexidade técnica e operacional.</div>
+      <div class="footer"><span>MVP agora · automação depois</span><span>13</span></div>
+    </section>
+
+    <section class="slide" aria-labelledby="s14-title">
+      <p class="eyebrow">Do conceito ao piloto</p>
+      <h2 id="s14-title">Próximos passos para transformar a visão em uma prova executável</h2>
+      <table aria-label="Próximas etapas do projeto Setlist">
+        <thead><tr><th>Etapa</th><th>Resultado esperado</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Fechar regras pendentes</strong></td><td>Escopo funcional consistente e sem decisões bloqueadoras.</td></tr>
+          <tr><td><strong>Especificar capacidades</strong></td><td>Requisitos e cenários OpenSpec verificáveis.</td></tr>
+          <tr><td><strong>Projetar dados e acesso</strong></td><td>PostgreSQL e políticas RLS alinhados aos papéis da banda.</td></tr>
+          <tr><td><strong>Validar a sincronização</strong></td><td>Player do YouTube e captura de tempo comprovados em Android e iOS.</td></tr>
+          <tr><td><strong>Construir e testar</strong></td><td>Fluxo completo de uma setlist preparada até um show offline.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Critério do primeiro ciclo:</strong> uma banda prepara uma setlist, baixa o show e acompanha as letras offline com um cronômetro confiável.</div>
+      <div class="footer"><span>Próximas decisões e validações</span><span>14</span></div>
+    </section>
+
+    <section class="slide dark" aria-labelledby="s15-title">
+      <p class="eyebrow">Setlist</p>
+      <p id="s15-title" class="quote">A banda preparada<br><span class="accent">antes e durante</span><br>o show.</p>
+      <p class="lead" style="font-size:clamp(14px,1.7vw,30px);margin-bottom:8%">Organizar. Compartilhar. Sincronizar. Tocar.</p>
+      <div class="footer"><span class="brand"><span class="brand-dot"></span> Setlist</span><span>15</span></div>
+    </section>
+  </main>
+
+  <nav class="controls" aria-label="Controles da apresentação">
+    <button id="previous" type="button" title="Slide anterior" aria-label="Slide anterior">←</button>
+    <span id="counter" class="counter" aria-live="polite">1 / 15</span>
+    <button id="next" type="button" title="Próximo slide" aria-label="Próximo slide">→</button>
+    <button id="fullscreen" type="button" title="Tela cheia" aria-label="Alternar tela cheia">⛶</button>
+  </nav>
+  <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <script>
+    (() => {
+      const deck = document.querySelector('.deck');
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const counter = document.getElementById('counter');
+      const progress = document.getElementById('progress');
+      const previous = document.getElementById('previous');
+      const next = document.getElementById('next');
+      let current = 0;
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      const indexFromHash = () => {
+        const match = location.hash.match(/^#slide-(\d+)$/);
+        return match
+          ? Math.min(Math.max(Number(match[1]) - 1, 0), slides.length - 1)
+          : 0;
+      };
+
+      const show = (index, updateHash = true) => {
+        current = Math.min(Math.max(index, 0), slides.length - 1);
+        slides.forEach((slide, position) => {
+          const active = position === current;
+          slide.classList.toggle('active', active);
+          slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+        });
+        slides[current].scrollTop = 0;
+        slides[current].scrollLeft = 0;
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        previous.disabled = current === 0;
+        next.disabled = current === slides.length - 1;
+        if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+      };
+
+      const fullscreen = () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen?.();
+      };
+
+      previous.addEventListener('click', () => show(current - 1));
+      next.addEventListener('click', () => show(current + 1));
+      document.getElementById('fullscreen').addEventListener('click', fullscreen);
+      window.addEventListener('hashchange', () => show(indexFromHash(), false));
+
+      deck.addEventListener('touchstart', (event) => {
+        const touch = event.changedTouches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+      }, { passive: true });
+
+      deck.addEventListener('touchend', (event) => {
+        const touch = event.changedTouches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+        if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > Math.abs(deltaY) * 1.35) {
+          show(current + (deltaX < 0 ? 1 : -1));
+        }
+      }, { passive: true });
+
+      window.addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(event.key)) {
+          event.preventDefault();
+          show(current + 1);
+        } else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(event.key)) {
+          event.preventDefault();
+          show(current - 1);
+        } else if (event.key === 'Home') {
+          event.preventDefault();
+          show(0);
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          show(slides.length - 1);
+        } else if (event.key.toLowerCase() === 'f') {
+          fullscreen();
+        }
+      });
+
+      show(indexFromHash(), false);
+    })();
+  </script>
+</body>
+</html>
