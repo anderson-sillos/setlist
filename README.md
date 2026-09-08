@@ -2,13 +2,13 @@
 
 > Organize o show. Acompanhe a letra. Toque no tempo certo.
 
-O **Setlist** é um aplicativo móvel para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa, operação simples no palco e disponibilidade offline em celulares e tablets Android e iOS.
+O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
-[Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md)
+[Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
 
 ## Status do projeto
 
-O projeto está na fase de **definição do MVP**. A visão, o escopo inicial e as principais decisões técnicas já foram registrados com OpenSpec; a aplicação ainda não foi implementada.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. A aplicação ainda não foi implementada; o próximo passo é iniciar a fundação multiplataforma.
 
 ## O problema
 
@@ -57,7 +57,7 @@ O aplicativo também deverá oferecer controle de acesso por banda, login social
 
 ```mermaid
 flowchart LR
-    APP[Aplicativo Expo\nAndroid e iOS]
+    APP[Aplicação Expo\nAndroid, iOS e web]
     API[Supabase hospedado\nAuth + PostgreSQL + RLS]
     AUTH[SecureStore\nSessão autenticada]
     CACHE[Arquivos JSON\nShows baixados]
@@ -71,7 +71,7 @@ flowchart LR
 
 ### Tecnologias previstas
 
-- **React Native com Expo** para compartilhar a base do aplicativo entre Android e iOS.
+- **React Native com Expo** para compartilhar a base da aplicação entre Android, iOS e web.
 - **Supabase hospedado** para autenticação, PostgreSQL e políticas de acesso com Row Level Security.
 - **Google e Apple OAuth** para login social, sem senhas mantidas pelo Setlist.
 - **Expo SecureStore** somente para persistir a sessão autenticada.
@@ -114,11 +114,15 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 ```text
 .
 |-- .agents/skills/                      # Skills locais do OpenSpec
-|-- docs/apresentacao.html               # Apresentação HTML em slides
+|-- docs/
+|   |-- apresentacao.html                # Apresentação HTML em slides
+|   `-- CODEX_HANDOFF.md                 # Continuidade entre sessões do Codex
 |-- openspec/config.yaml                 # Configuração do OpenSpec
 |-- openspec/changes/definir-mvp-setlist/
 |   |-- proposal.md                      # Motivação e escopo
-|   `-- design.md                        # Decisões e pendências
+|   |-- design.md                        # Decisões e arquitetura
+|   |-- specs/                           # Contratos de comportamento
+|   `-- tasks.md                         # Plano incremental de implementação
 `-- README.md
 ```
 
@@ -130,12 +134,11 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- resolver as pendências de produto e experiência registradas no design;
-- detalhar as capacidades em especificações OpenSpec;
-- definir o modelo PostgreSQL e as políticas RLS;
-- criar um protótipo da sincronização com o player do YouTube;
-- decompor a implementação em tarefas;
-- iniciar a aplicação Expo e validar o fluxo com uma banda piloto.
+- iniciar a aplicação Expo e a automação de qualidade do incremento 1;
+- disponibilizar a primeira versão navegável com dados demonstrativos no incremento 2;
+- validar antecipadamente YouTube, cronômetro e links de autenticação;
+- adicionar backend e funcionalidades em incrementos revisáveis;
+- conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 
 ## Apresentação
 
