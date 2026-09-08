@@ -32,18 +32,18 @@ O aplicativo também deverá oferecer controle de acesso por banda, login social
 
 ## Escopo do MVP
 
-| Área | Comportamento inicial |
-| --- | --- |
-| Acesso | Login com Google ou Apple e participação em uma ou mais bandas |
-| Permissões | Papéis de Owner, Editor e Member |
-| Repertório | Uma versão vigente por música, com arquivamento em vez de exclusão destrutiva |
-| Letras | Texto estruturado em blocos e linhas, sem cifras ou transposição |
+| Área          | Comportamento inicial                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| Acesso        | Login com Google ou Apple e participação em uma ou mais bandas                             |
+| Permissões    | Papéis de Owner, Editor e Member                                                           |
+| Repertório    | Uma versão vigente por música, com arquivamento em vez de exclusão destrutiva              |
+| Letras        | Texto estruturado em blocos e linhas, sem cifras ou transposição                           |
 | Sincronização | Marcação manual do início de cada linha usando um vídeo visível do YouTube como referência |
-| Shows | Data, horário, local, observações, status e duplicação de shows anteriores |
-| Setlists | Blocos nomeados, músicas ordenadas e cálculo de duração |
-| Modo palco | Cronômetro manual e independente por aparelho, letra destacada e controles rápidos |
-| Offline | Download de pacotes de shows para leitura e apresentação, sem edição offline |
-| Atualizações | Aviso quando uma música ou um pacote baixado estiver desatualizado |
+| Shows         | Data, horário, local, observações, status e duplicação de shows anteriores                 |
+| Setlists      | Blocos nomeados, músicas ordenadas e cálculo de duração                                    |
+| Modo palco    | Cronômetro manual e independente por aparelho, letra destacada e controles rápidos         |
+| Offline       | Download de pacotes de shows para leitura e apresentação, sem edição offline               |
+| Atualizações  | Aviso quando uma música ou um pacote baixado estiver desatualizado                         |
 
 ## Fluxo principal
 
@@ -152,11 +152,11 @@ cp .env.example .env.local
 
 No PowerShell, use `Copy-Item .env.example .env.local`. Preencha os dados do projeto Supabase hospedado correspondente ao ambiente:
 
-| Variável | Uso |
-| --- | --- |
-| `EXPO_PUBLIC_APP_ENV` | Ambiente explícito: `development` ou `production` |
-| `EXPO_PUBLIC_SUPABASE_URL` | URL HTTPS do projeto Supabase do ambiente |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente |
+| Variável                               | Uso                                               |
+| -------------------------------------- | ------------------------------------------------- |
+| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production` |
+| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente         |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                  |
 
 Use projetos Supabase distintos para desenvolvimento e produção e altere `EXPO_PUBLIC_APP_ENV` no perfil de build. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
 
@@ -186,21 +186,30 @@ O comando para iOS requer macOS quando usado com o simulador. Em Linux ou Window
 
 ### 7. Verificar a instalação
 
-Execute as verificações disponíveis nesta etapa:
+Execute toda a automação de qualidade antes de cada commit:
+
+```bash
+npm run validate
+```
+
+O comando executa, na ordem, as verificações abaixo:
+
+| Comando                | Verificação                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `npm run format:check` | Formatação consistente com Prettier                      |
+| `npm run lint`         | Regras estáticas do ESLint e configuração oficial Expo   |
+| `npm run typecheck`    | Tipos TypeScript sem geração de arquivos                 |
+| `npm run test:ci`      | Testes Jest em modo CI, cobertura e limite global de 80% |
+
+Durante o desenvolvimento, use `npm test` para uma execução simples, `npm run test:watch` para acompanhar alterações e `npm run format` para aplicar a formatação.
+
+Quando dependências ou configuração do Expo forem alteradas, valide também a árvore, a compatibilidade e a geração dos pacotes:
 
 ```bash
 npm ls --depth=0
 npx expo install --check
-npx tsc --noEmit
-```
-
-Para validar a geração dos pacotes das três plataformas:
-
-```bash
 npx expo export --platform all --output-dir dist
 ```
-
-A atividade 1.4 adicionará comandos estáveis para formatação, lint, tipos e testes. Assim que estiverem disponíveis, eles substituirão os comandos provisórios desta seção.
 
 ### 8. Problemas comuns
 
@@ -215,11 +224,11 @@ Se uma solução exigir uma mudança permanente no projeto, registre-a também n
 
 ## Papéis e permissões
 
-| Papel | Responsabilidades |
-| --- | --- |
-| Owner | Administrar a banda, integrantes, papéis e todo o conteúdo |
+| Papel  | Responsabilidades                                           |
+| ------ | ----------------------------------------------------------- |
+| Owner  | Administrar a banda, integrantes, papéis e todo o conteúdo  |
 | Editor | Editar repertório, letras, sincronizações, shows e setlists |
-| Member | Consultar conteúdo, baixar shows e utilizar o modo palco |
+| Member | Consultar conteúdo, baixar shows e utilizar o modo palco    |
 
 Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder o papel até promover outro integrante.
 
@@ -262,6 +271,8 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   `-- config/environment.ts            # Leitura e validação tipada do ambiente
 |-- .env.example                         # Modelo público, sem credenciais reais
 |-- app.json                             # Configuração de Android, iOS e web
+|-- eslint.config.js                     # Regras estáticas do projeto Expo
+|-- jest.config.js                       # Testes e cobertura mínima
 |-- package.json                         # Dependências e comandos do projeto
 `-- README.md
 ```

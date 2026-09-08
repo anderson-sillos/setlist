@@ -31,7 +31,7 @@ export type PublicEnvironment = Readonly<{
 }>;
 
 export type EnvironmentConfigurationIssue = Readonly<{
-  variable: keyof PublicEnvironmentSource | 'ambiente';
+  variable: keyof PublicEnvironmentSource;
   reason: string;
 }>;
 
@@ -55,12 +55,12 @@ export function parsePublicEnvironment(
   const result = publicEnvironmentSchema.safeParse(source);
 
   if (!result.success) {
-    const issues = result.error.issues.map<EnvironmentConfigurationIssue>((issue) => ({
-      variable:
-        (issue.path[0] as keyof PublicEnvironmentSource | undefined) ??
-        'ambiente',
-      reason: issue.message,
-    }));
+    const issues = result.error.issues.map<EnvironmentConfigurationIssue>(
+      (issue) => ({
+        variable: issue.path[0] as keyof PublicEnvironmentSource,
+        reason: issue.message,
+      }),
+    );
 
     throw new EnvironmentConfigurationError(issues);
   }

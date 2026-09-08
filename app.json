@@ -6,11 +6,7 @@
     "scheme": "setlist",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
-    "platforms": [
-      "android",
-      "ios",
-      "web"
-    ],
+    "platforms": ["android", "ios", "web"],
     "ios": {
       "bundleIdentifier": "com.andersonsillos.setlist",
       "supportsTablet": true
@@ -22,10 +18,7 @@
     "web": {
       "output": "static"
     },
-    "plugins": [
-      "expo-router",
-      "expo-secure-store"
-    ],
+    "plugins": ["expo-router", "expo-secure-store"],
     "experiments": {
       "typedRoutes": true
     }

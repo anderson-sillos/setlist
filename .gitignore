@@ -3,6 +3,7 @@ node_modules/
 
 # Expo and build output
 .expo/
+coverage/
 dist/
 web-build/
 expo-env.d.ts

@@ -3,7 +3,7 @@
 - [x] 1.1 Criar a aplicação Expo com TypeScript e Expo Router e verificar a inicialização em web, Android e configuração de build para iOS
 - [x] 1.2 Instalar e fixar versões compatíveis das dependências aprovadas e verificar que a instalação limpa termina sem conflitos
 - [x] 1.3 Configurar variáveis de ambiente tipadas para desenvolvimento e produção e verificar que valores ausentes produzem erro legível sem expor segredos
-- [ ] 1.4 Configurar formatação, lint, verificação de tipos e testes unitários e verificar todos os comandos em uma instalação limpa
+- [x] 1.4 Configurar formatação, lint, verificação de tipos e testes unitários e verificar todos os comandos em uma instalação limpa
 - [ ] 1.5 Criar tokens visuais, componentes básicos e regras responsivas com áreas seguras e verificar uma tela de catálogo em celular, tablet e computador
 - [ ] 1.6 Configurar integração contínua para tipos, lint e testes e verificar uma execução bem-sucedida no GitHub
 - [x] 1.7 Criar no README um roteiro reproduzível do ambiente de desenvolvimento, vincular o acompanhamento das tarefas e verificar as instruções; manter o roteiro atualizado quando a implementação alterar requisitos, configuração ou comandos
