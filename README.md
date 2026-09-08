@@ -144,9 +144,27 @@ Na versão atual, o npm informa alertas moderados em dependências transitivas d
 
 ### 5. Variáveis de ambiente
 
-Nenhuma variável de ambiente ou credencial externa é obrigatória para a fundação atual. A atividade 1.3 adicionará arquivos de exemplo e validação tipada para desenvolvimento e produção; esta seção será atualizada junto com essa implementação.
+Crie a configuração local a partir do modelo versionado:
 
-Nunca adicione credenciais, chaves privadas ou arquivos `.env` reais ao Git. Somente exemplos sem valores sensíveis podem ser versionados.
+```bash
+cp .env.example .env.local
+```
+
+No PowerShell, use `Copy-Item .env.example .env.local`. Preencha os dados do projeto Supabase hospedado correspondente ao ambiente:
+
+| Variável | Uso |
+| --- | --- |
+| `EXPO_PUBLIC_APP_ENV` | Ambiente explícito: `development` ou `production` |
+| `EXPO_PUBLIC_SUPABASE_URL` | URL HTTPS do projeto Supabase do ambiente |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente |
+
+Use projetos Supabase distintos para desenvolvimento e produção e altere `EXPO_PUBLIC_APP_ENV` no perfil de build. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
+
+Consulte a [documentação de variáveis de ambiente do Expo](https://docs.expo.dev/guides/environment-variables/) para detalhes sobre carregamento e perfis de build.
+
+A tela inicial ainda pode ser executada sem essa configuração porque não acessa o backend. Quando uma integração remota solicitar as variáveis, `src/config/environment.ts` valida tipos e valores e informa somente os nomes inválidos, sem incluir chaves ou seus conteúdos na mensagem de erro.
+
+Valores `EXPO_PUBLIC_*` ficam visíveis no aplicativo compilado. A URL e a chave publicável do Supabase foram criadas para uso no cliente, mas segredos administrativos — especialmente uma `service_role` — nunca podem usar esse prefixo nem ser incluídos no aplicativo. Não adicione arquivos `.env` reais ao Git; somente exemplos sem valores sensíveis podem ser versionados.
 
 ### 6. Executar a aplicação
 
@@ -239,7 +257,10 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- design.md                        # Decisões e arquitetura
 |   |-- specs/                           # Contratos de comportamento
 |   `-- tasks.md                         # Plano incremental de implementação
-|-- src/app/                             # Rotas e telas compartilhadas do Expo
+|-- src/
+|   |-- app/                             # Rotas e telas compartilhadas do Expo
+|   `-- config/environment.ts            # Leitura e validação tipada do ambiente
+|-- .env.example                         # Modelo público, sem credenciais reais
 |-- app.json                             # Configuração de Android, iOS e web
 |-- package.json                         # Dependências e comandos do projeto
 `-- README.md
