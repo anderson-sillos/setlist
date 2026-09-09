@@ -16,6 +16,7 @@
 - [x] 2.4 Implementar listas e detalhes básicos de músicas e shows em modo somente leitura e verificar adaptação para celular, tablet e computador
 - [x] 2.5 Implementar uma primeira tela de palco com letra estática, setlist e cronômetro manual local e verificar iniciar, pausar, retomar e reiniciar
 - [ ] 2.6 Publicar uma prévia web e gerar builds internos Android e iOS e registrar a primeira revisão funcional antes do próximo incremento
+- [ ] 2.7 Conduzir uma revisão de UX/UI da primeira versão navegável em celular, tablet e computador e registrar ajustes priorizados de navegação, hierarquia visual, legibilidade, áreas de toque, contraste e estados de interface antes do próximo incremento
 
 ## 3. Validação antecipada dos riscos técnicos
 
