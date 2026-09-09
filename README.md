@@ -137,10 +137,30 @@ O navegador e um aparelho físico com Expo Go são suficientes para o desenvolvi
 
 ### 2. Obter o código
 
+Para uma primeira instalação:
+
 ```bash
 git clone https://github.com/anderson-sillos/setlist.git
 cd setlist
 ```
+
+Para atualizar uma cópia existente com o código já integrado ao GitHub, entre na pasta do projeto e confirme primeiro que não há alterações locais pendentes:
+
+```bash
+cd setlist
+git status --short
+```
+
+O resultado esperado do segundo comando é vazio. Se houver arquivos listados, registre ou preserve essas alterações antes de continuar. Em seguida, atualize a branch principal e reinstale exatamente as dependências do lockfile atualizado:
+
+```bash
+git switch main
+git pull --ff-only origin main
+npm ci
+npm run validate
+```
+
+O uso de `--ff-only` impede que uma atualização rotineira crie um merge local inesperado. O `npm ci` reconstrói `node_modules`, mas não remove o `.env.local`, que permanece ignorado pelo Git. Ao final, `npm run validate` confirma formatação, lint, tipos e testes no código recebido.
 
 Para trabalhar na implementação em andamento, consulte o PR ativo e troque para a branch correspondente. A branch `main` contém apenas os grupos já concluídos.
 
