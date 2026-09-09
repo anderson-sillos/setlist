@@ -38,15 +38,16 @@ jobs:
       - name: Exportar aplicação web
         env:
           EXPO_WEB_BASE_URL: /setlist/app
-        run: npm run export:web -- --output-dir public/app
+        run: npm run export:web -- --output-dir dist/app
 
       - name: Incluir apresentação e fallback de rotas
         run: |
-          mkdir -p public/docs
-          cp index.html public/index.html
-          cp docs/apresentacao.html public/docs/apresentacao.html
-          cp public/app/index.html public/404.html
-          touch public/.nojekyll
+          mkdir -p pages-site/app pages-site/docs
+          cp -R dist/app/. pages-site/app/
+          cp index.html pages-site/index.html
+          cp docs/apresentacao.html pages-site/docs/apresentacao.html
+          cp pages-site/app/index.html pages-site/404.html
+          touch pages-site/.nojekyll
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
@@ -54,7 +55,7 @@ jobs:
       - name: Enviar artefato estático
         uses: actions/upload-pages-artifact@v4
         with:
-          path: public
+          path: pages-site
 
   deploy:
     name: Publicar site
