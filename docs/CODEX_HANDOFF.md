@@ -6,12 +6,12 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Último grupo concluído: planejamento incremental do MVP, integrado pelo PR #3 no commit `d7036a7`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- Último grupo concluído: fundação multiplataforma no PR #5, branch `feat/foundation`.
-- Implementação: Incremento 1 completo, tarefas 1.1–1.7; aplicação Expo, dependências, ambientes tipados, automação de qualidade, base visual responsiva, CI e roteiro de desenvolvimento verificados.
-- Próximo passo: iniciar o Incremento 2 pela tarefa 2.1 de `tasks.md` usando `openspec-apply-change`.
+- PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
+- Implementação: Incremento 1 e tarefas 2.1–2.5 completos; a tarefa 2.6 permanece aberta até a discussão dos ajustes observados na revisão.
+- Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
+- Próximo passo: discutir e registrar os ajustes e melhorias na tarefa 2.7, concluir a revisão somente após confirmação do usuário e manter o PR #8 aberto.
 
 ## Fontes de verdade
 
@@ -36,6 +36,8 @@ openspec validate definir-mvp-setlist --type change --strict
 5. O PR #3 consolidou proposal, design, seis delta specs e o plano incremental em 11 incrementos.
 6. O PR #4 adicionou este handoff e o PR #5 iniciou a fundação multiplataforma.
 7. O PR #5 entregou a aplicação Expo inicial, configuração tipada, qualidade automatizada, catálogo responsivo, CI e roteiro reproduzível do ambiente.
+8. Os PRs #6 e #7 ampliaram o roteiro do ambiente e documentaram a atualização segura do código local.
+9. O PR #8 implementou a primeira versão navegável, publicou a versão web e entregou um build interno Android validado; a validação iOS foi adiada.
 
 ## Visão confirmada do produto
 
@@ -148,13 +150,16 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Testar a matriz RLS e as regras do último Owner, convites, estados do show e timestamps.
 - Obter revisão jurídica do termo e da política de privacidade antes da distribuição pública.
 - Começar no Supabase Free e avaliar Pro ao atingir 80% de uma cota ou antes de depender de disponibilidade e backups de produção.
+- A prévia navegável está em `https://anderson-sillos.github.io/setlist/app/`; a apresentação permanece na raiz do mesmo site.
+- A revisão funcional do Incremento 2, o build Android validado e a pendência do iOS estão registrados em `docs/REVISAO_INCREMENTO_2.md`.
+- Pontos de ajuste e melhoria foram observados e devem ser discutidos e priorizados na tarefa 2.7 antes de concluir a tarefa 2.6.
 
 ## Convenção de trabalho solicitada
 
 - Criar um commit ao final de cada atividade concluída.
 - Manter um PR aberto durante um grupo relacionado de atividades.
 - Acrescentar ao mesmo PR os commits daquele grupo.
-- Fazer merge e fechar o PR somente ao concluir e validar todo o grupo.
+- Fazer merge e fechar o PR somente ao concluir e validar todo o grupo e, quando houver versão para revisão, após a aprovação explícita do usuário.
 - Preferir squash merge, pois o repositório não aceita rebase merge.
 - Atualizar este handoff ao final de cada grupo quando estado, decisões, riscos ou próximos passos mudarem.
 - Não misturar mudanças não relacionadas no mesmo commit ou PR.
@@ -166,7 +171,10 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #3: planejamento incremental completo do MVP.
 - PR #4: handoff do histórico do Codex.
 - PR #5: fundação multiplataforma concluída.
+- PR #6: complementos do ambiente de desenvolvimento.
+- PR #7: roteiro para atualizar o ambiente local.
+- PR #8: primeira versão navegável do Incremento 2, mantida aberta para revisão do usuário.
 
 ## Próxima ação recomendada
 
-Abrir um novo grupo para o Incremento 2 a partir de `main` e executar as tarefas 2.1–2.6 em ordem com `openspec-apply-change`. Manter a convenção de validar e criar um commit por atividade, conservar o PR aberto durante o grupo e integrá-lo somente ao final.
+Discutir os pontos de ajuste e melhoria observados, registrá-los na tarefa 2.7 e manter as tarefas 2.6 e 2.7 abertas até a confirmação explícita do usuário. O PR #8 não deve ser integrado antes dessa revisão. A validação iOS permanece adiada para uma etapa futura.

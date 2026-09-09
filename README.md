@@ -287,7 +287,9 @@ npx expo whoami
 
 4. A pessoa responsável inicia o servidor conforme as seções 8.3 ou 8.4 e envia o QR code ou link ao revisor.
 
-O revisor não precisa usar no Expo Go a mesma conta autenticada no terminal: sua conta individual pode abrir o endereço compartilhado enquanto o servidor estiver em execução. Isso não concede acesso ao código, ao painel EAS, aos builds ou às credenciais do projeto. Um acesso permanente a esses recursos deve ser concedido separadamente por uma Organização Expo, com o papel apropriado.
+No Android, foi validado que uma conta individual integrante da Organização Expo consegue abrir o endereço compartilhado mesmo quando outra conta autorizada iniciou a CLI. No iPhone ou iPad físico, o Expo Go do SDK 57 exige que a conta conectada no aparelho corresponda exatamente à conta da Expo CLI que serve o projeto. Participar da mesma organização não substitui essa verificação.
+
+Para revisar pelo Expo Go no iOS com sua própria conta, o revisor deve executar o projeto em seu computador, autenticar a CLI com essa mesma conta e então abrir o QR code gerado. Não compartilhe senhas ou tokens pessoais para contornar essa restrição. A validação remota do iOS por uma conta diferente da usada na CLI permanece adiada neste incremento.
 
 Não é necessário ter uma conta Apple Developer para executar este roteiro no iPhone ou iPad; ela só é exigida para gerar e distribuir determinados builds iOS assinados.
 
