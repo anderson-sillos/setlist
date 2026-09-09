@@ -272,20 +272,24 @@ O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, fo
 
 O Expo Go permite revisar o aplicativo gratuitamente em um aparelho físico, sem gerar um APK ou um build iOS e sem pagar o Apple Developer Program. Ele abre o projeto servido pelo Metro no computador; portanto, mantenha o terminal do Expo em execução durante todo o teste.
 
-#### 8.1. Criar e conectar uma conta Expo
+#### 8.1. Usar uma conta Expo individual
 
-A conta Expo é gratuita. Embora a leitura direta de um QR code local possa funcionar sem autenticação, use uma conta neste projeto para identificar o ambiente, encontrar o projeto no histórico do Expo Go e acessar futuramente os serviços EAS:
+Cada revisor deve usar sua própria conta Expo; não compartilhe as credenciais da conta responsável pelo projeto. A conta é gratuita e pode ser criada em [expo.dev/signup](https://expo.dev/signup):
 
-1. Acesse [expo.dev/signup](https://expo.dev/signup), informe os dados solicitados e confirme o e-mail.
-2. Abra o Expo Go no Android ou iOS e entre com essa conta.
-3. Na pasta do projeto, autentique a linha de comando e confira o usuário ativo:
+1. O revisor informa seus próprios dados, confirma o e-mail e instala o Expo Go no aparelho.
+2. No Expo Go, o revisor entra com a conta que acabou de criar.
+3. A pessoa responsável pelo ambiente de desenvolvimento autentica separadamente a linha de comando e confere a conta que possui acesso ao projeto:
 
 ```bash
 npx expo login
 npx expo whoami
 ```
 
-Use a mesma conta no aplicativo e no terminal. Não é necessário ter uma conta Apple Developer para executar este roteiro no iPhone ou iPad; ela só é exigida para gerar e distribuir determinados builds iOS assinados.
+4. A pessoa responsável inicia o servidor conforme as seções 8.3 ou 8.4 e envia o QR code ou link ao revisor.
+
+O revisor não precisa usar no Expo Go a mesma conta autenticada no terminal: sua conta individual pode abrir o endereço compartilhado enquanto o servidor estiver em execução. Isso não concede acesso ao código, ao painel EAS, aos builds ou às credenciais do projeto. Um acesso permanente a esses recursos deve ser concedido separadamente por uma Organização Expo, com o papel apropriado.
+
+Não é necessário ter uma conta Apple Developer para executar este roteiro no iPhone ou iPad; ela só é exigida para gerar e distribuir determinados builds iOS assinados.
 
 #### 8.2. Preparar o projeto
 
