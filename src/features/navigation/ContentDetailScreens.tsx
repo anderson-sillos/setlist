@@ -11,7 +11,7 @@ import {
   lyricStatusLabels,
   showStatusLabels,
 } from '@/features/navigation/BandSectionScreens';
-import { getBandSectionHref } from '@/features/navigation/routes';
+import { getBandSectionHref, getStageHref } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
 
@@ -209,6 +209,20 @@ export function ShowDetailScreen({
                 <AppText>{show.notes}</AppText>
               </View>
             ) : null}
+            {show.status !== 'cancelled' ? (
+              <Link href={getStageHref(bandId, show.id)} asChild>
+                <Pressable
+                  accessibilityLabel="Abrir modo palco"
+                  accessibilityRole="link"
+                  style={({ pressed }) => [
+                    styles.stageLink,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppText tone="inverse">Abrir modo palco</AppText>
+                </Pressable>
+              </Link>
+            ) : null}
           </Card>
 
           <View style={styles.setlist}>
@@ -320,5 +334,13 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.72,
+  },
+  stageLink: {
+    alignItems: 'center',
+    backgroundColor: colors.violet,
+    borderRadius: radii.md,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
 });

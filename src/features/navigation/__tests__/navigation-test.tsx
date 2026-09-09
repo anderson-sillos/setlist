@@ -5,6 +5,7 @@ import RepertoireRoute from '@/app/bands/[bandId]/repertoire';
 import SongDetailRoute from '@/app/bands/[bandId]/repertoire/[songId]';
 import ShowsRoute from '@/app/bands/[bandId]/shows';
 import ShowDetailRoute from '@/app/bands/[bandId]/shows/[showId]';
+import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import {
@@ -21,6 +22,7 @@ import {
   getBandSectionHref,
   getShowHref,
   getSongHref,
+  getStageHref,
 } from '@/features/navigation/routes';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
 
@@ -52,6 +54,9 @@ describe('navegação inicial', () => {
     );
     expect(getSongHref(demoIds.primaryBand, demoIds.stageSong)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}`,
+    );
+    expect(getStageHref(demoIds.primaryBand, demoIds.readyShow)).toBe(
+      `/bands/${demoIds.primaryBand}/shows/${demoIds.readyShow}/stage`,
     );
   });
 
@@ -164,6 +169,7 @@ describe('navegação inicial', () => {
     expect(view.getByText('Segundo Set')).toBeTruthy();
     expect(view.getByText('Usar a versão curta no bis.')).toBeTruthy();
     expect(view.getAllByText('Luzes da Cidade')).toHaveLength(2);
+    expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
   });
 
   it('trata música sem letra e conteúdo não encontrado', async () => {
@@ -211,6 +217,7 @@ describe('navegação inicial', () => {
   it.each([
     { Route: ShowDetailRoute, content: 'Festival da Praça' },
     { Route: SongDetailRoute, content: 'A rua acende devagar' },
+    { Route: StageRoute, content: 'A rua acende devagar' },
   ])('carrega uma rota de detalhe', async ({ Route, content }) => {
     const view = await render(
       <AppProviders>

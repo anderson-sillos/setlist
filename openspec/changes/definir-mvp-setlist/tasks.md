@@ -14,7 +14,7 @@
 - [x] 2.2 Criar dados de demonstração coerentes para banda, repertório, show, setlist e letras e verificar que podem ser carregados sem conexão com backend
 - [x] 2.3 Implementar a navegação inicial com `Minhas bandas`, Shows, Repertório e Banda e verificar todos os caminhos usando os dados de demonstração
 - [x] 2.4 Implementar listas e detalhes básicos de músicas e shows em modo somente leitura e verificar adaptação para celular, tablet e computador
-- [ ] 2.5 Implementar uma primeira tela de palco com letra estática, setlist e cronômetro manual local e verificar iniciar, pausar, retomar e reiniciar
+- [x] 2.5 Implementar uma primeira tela de palco com letra estática, setlist e cronômetro manual local e verificar iniciar, pausar, retomar e reiniciar
 - [ ] 2.6 Publicar uma prévia web e gerar builds internos Android e iOS e registrar a primeira revisão funcional antes do próximo incremento
 
 ## 3. Validação antecipada dos riscos técnicos
