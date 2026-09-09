@@ -112,6 +112,7 @@ Obrigatórios em qualquer sistema:
 | Android Studio          | Opcional; necessário para emulador e ferramentas Android             | [Download do Android Studio](https://developer.android.com/studio)                              |
 | Xcode                   | Opcional; necessário para simulador e builds locais de iOS em um Mac | [Xcode no Apple Developer](https://developer.apple.com/xcode/)                                  |
 | WSL                     | Opcional; ambiente Linux usado neste projeto no Windows              | [Instalação oficial do WSL](https://learn.microsoft.com/windows/wsl/install)                    |
+| Conta Expo              | Gratuita; recomendada para o revisor utilizar o Expo Go              | [Criar conta Expo](https://expo.dev/signup)                                                     |
 
 O arquivo `.nvmrc` fixa a versão principal do Node.js. O uso do [nvm](https://github.com/nvm-sh/nvm) é recomendado, mas não obrigatório; qualquer instalação compatível do Node.js 24 pode ser usada.
 
@@ -129,7 +130,7 @@ Na primeira execução, o VS Code instalará seu servidor no WSL. O arquivo `.vs
 
 Para executar em dispositivos móveis, escolha uma ou mais opções:
 
-- **aparelho Android ou iPhone/iPad:** instale o Expo Go e mantenha o computador e o aparelho na mesma rede;
+- **aparelho Android ou iPhone/iPad:** instale o Expo Go e use a mesma rede do computador ou uma conexão por túnel;
 - **emulador Android:** instale o Android Studio, o Android SDK e configure um dispositivo virtual;
 - **simulador iOS:** use um Mac com Xcode e o iOS Simulator instalados.
 
@@ -265,11 +266,92 @@ npx expo export --platform all --output-dir dist
 
 O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, formatação, lint, tipos e testes em cada pull request e em cada envio para `main`. O resultado atual também pode ser consultado pelo selo no início deste README.
 
-### 8. Problemas comuns
+### 8. Testar em Android e iOS com Expo Go
+
+O Expo Go permite revisar o aplicativo gratuitamente em um aparelho físico, sem gerar um APK ou um build iOS e sem pagar o Apple Developer Program. Ele abre o projeto servido pelo Metro no computador; portanto, o responsável pelo ambiente deve manter o terminal do Expo em execução durante todo o teste.
+
+#### 8.1. Usar uma conta Expo individual
+
+Cada revisor deve usar sua própria conta Expo; não compartilhe as credenciais da conta responsável pelo projeto. A conta é gratuita e pode ser criada em [expo.dev/signup](https://expo.dev/signup):
+
+1. O revisor informa seus próprios dados, confirma o e-mail e instala o Expo Go no aparelho.
+2. No Expo Go, o revisor entra com a conta que acabou de criar.
+3. A pessoa responsável pelo ambiente de desenvolvimento autentica separadamente a linha de comando e confere a conta que possui acesso ao projeto:
+
+```bash
+npx expo login
+npx expo whoami
+```
+
+4. A pessoa responsável inicia o servidor conforme as seções 8.3 ou 8.4 e envia o QR code ou link ao revisor.
+
+O revisor não precisa usar no Expo Go a mesma conta autenticada no terminal: sua conta individual pode abrir o endereço compartilhado enquanto o servidor estiver em execução. Isso não concede acesso ao código, ao painel EAS, aos builds ou às credenciais do projeto. Um acesso permanente a esses recursos deve ser concedido separadamente por uma Organização Expo, com o papel apropriado.
+
+Não é necessário ter uma conta Apple Developer para executar este roteiro no iPhone ou iPad; ela só é exigida para gerar e distribuir determinados builds iOS assinados.
+
+#### 8.2. Preparar a versão em revisão
+
+A aplicação do incremento 2 está na branch do [PR #8](https://github.com/anderson-sillos/setlist/pull/8). Depois de clonar o repositório conforme a seção 2, obtenha essa branch e instale suas dependências:
+
+```bash
+git fetch origin feat/reviewable-app
+git switch --track origin/feat/reviewable-app
+npm ci
+npm run validate
+```
+
+Se a branch local já existir, use `git switch feat/reviewable-app` e `git pull --ff-only origin feat/reviewable-app`. Instale no aparelho a edição atual do Expo Go compatível com o SDK 57 usando os links da tabela de pré-requisitos. Computador e aparelho devem estar com data e horário corretos.
+
+#### 8.3. Iniciar pela rede local
+
+Prefira a conexão LAN porque ela é mais rápida. O computador e o aparelho precisam estar na mesma rede Wi-Fi e a rede deve permitir comunicação entre dispositivos:
+
+```bash
+npx expo start --go --lan --clear
+```
+
+Mantenha esse terminal aberto. Quando o QR code aparecer:
+
+- **Android:** abra o Expo Go, toque em **Scan QR code** e leia o código exibido no terminal.
+- **iPhone ou iPad:** abra o aplicativo **Câmera**, leia o QR code e confirme **Abrir no Expo Go**.
+
+Aguarde a transferência inicial do pacote. Na primeira abertura, aceite a permissão de rede local se o iOS a solicitar.
+
+#### 8.4. Iniciar por túnel quando as redes forem diferentes
+
+Não é obrigatório estar na mesma rede quando o modo túnel é usado. Se o celular estiver no 4G/5G, em outro Wi-Fi, ou se LAN/WSL2/firewall impedir a conexão, interrompa o servidor com `Ctrl+C` e execute:
+
+```bash
+npx expo start --go --tunnel --clear
+```
+
+Leia o novo QR code. Nesse modo, computador e aparelho precisam apenas de acesso à internet. O tráfego passa pelo ngrok, por isso a carga e as atualizações são mais lentas e dependem da disponibilidade desse serviço. Consulte também a seção [Android físico e WSL2](#android-físico-e-wsl2) se ocorrer `Failed to download remote update` ou `failed to start tunnel`.
+
+#### 8.5. Executar a revisão nas duas plataformas
+
+Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
+
+- abrir a tela **Minhas bandas** e selecionar cada banda demonstrativa;
+- navegar entre **Shows**, **Repertório** e **Banda**;
+- abrir os detalhes de um show e de uma música;
+- conferir os estados de show em preparação, pronto e cancelado;
+- confirmar que o modo palco abre para um show pronto e permanece bloqueado para um show cancelado;
+- iniciar, pausar, retomar e zerar o cronômetro local no modo palco;
+- navegar pela setlist e conferir a letra estática da música;
+- testar nas orientações vertical e horizontal e observar se textos e controles permanecem legíveis;
+- registrar modelo do aparelho, versão do sistema, resultado e defeitos encontrados no PR.
+
+Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
+
+O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
+
+### 9. Problemas comuns
 
 - **Cache do Metro inconsistente:** execute `npx expo start --clear`.
 - **Dependência incompatível com o Expo:** execute `npx expo install --check` e instale pacotes nativos com `npx expo install <pacote>`.
-- **Aparelho não encontra o servidor:** confirme que os dois dispositivos estão na mesma rede, desative temporariamente VPNs que interfiram na rota e verifique se o firewall permite a porta exibida pelo Expo.
+- **Aparelho não encontra o servidor:** no modo LAN, confirme que os dois dispositivos estão na mesma rede, desative temporariamente VPNs que interfiram na rota e verifique se o firewall permite a porta exibida pelo Expo; em redes diferentes, use `npx expo start --go --tunnel --clear`.
+- **Expo Go informa versão incompatível:** atualize o aplicativo pela loja, confirme que ele suporta o SDK 57 e reinicie o Metro com `npx expo start --go --clear`.
+- **iOS não abre o projeto pela LAN:** em **Ajustes**, autorize o acesso do Expo Go à rede local e leia novamente o QR code com o aplicativo Câmera.
 - **Emulador Android não abre:** inicialize o dispositivo virtual no Android Studio e confirme que `adb devices` o lista.
 - **Atalho de iOS indisponível:** o iOS Simulator e builds locais para iOS exigem macOS e Xcode.
 - **Porta do Expo ocupada:** execute `npx expo start --port 8082` ou escolha outra porta livre.
