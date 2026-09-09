@@ -10,7 +10,7 @@ O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e 
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O Incremento 1 da fundação multiplataforma está concluído. O Incremento 2 está em andamento e já possui entidades de domínio, contratos de repositórios independentes do Supabase, dados demonstrativos carregados em memória e navegação funcional entre `Minhas bandas`, Shows, Repertório e Banda.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O Incremento 1 da fundação multiplataforma está concluído. O Incremento 2 está em andamento e já possui entidades de domínio, dados demonstrativos em memória, navegação funcional e listas e detalhes responsivos de músicas e shows em modo somente leitura.
 
 O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
@@ -365,6 +365,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   `-- tasks.md                         # Plano incremental de implementação
 |-- src/
 |   |-- app/                             # Rotas e telas compartilhadas do Expo
+|   |-- components/layout/               # Estruturas responsivas reutilizáveis
 |   |-- components/ui/                   # Componentes visuais reutilizáveis
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
 |   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos

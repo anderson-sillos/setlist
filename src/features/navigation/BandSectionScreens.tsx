@@ -1,74 +1,169 @@
-import { StyleSheet } from 'react-native';
+import { Link } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { ResponsiveGrid } from '@/components/layout/ResponsiveGrid';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { useBandMembers, useShows, useSongs } from '@/data/queries';
-import type { EntityId } from '@/domain';
+import type { EntityId, Show, ShowStatus, Song } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { spacing } from '@/theme/tokens';
+import { getShowHref, getSongHref } from '@/features/navigation/routes';
+import { colors, radii, spacing } from '@/theme/tokens';
 
 interface BandSectionScreenProps {
   readonly bandId: EntityId;
+  readonly viewportWidth?: number;
 }
 
-interface SummaryCardProps {
-  readonly description: string;
-  readonly isError: boolean;
-  readonly isPending: boolean;
-  readonly title: string;
+const showStatusLabels: Record<ShowStatus, string> = {
+  draft: 'Rascunho',
+  ready: 'Pronto',
+  cancelled: 'Cancelado',
+};
+
+const lyricStatusLabels: Record<Song['lyricStatus'], string> = {
+  missing: 'Sem letra',
+  static: 'Letra estática',
+  incomplete: 'Sincronização incompleta',
+  synchronized: 'Sincronizada',
+};
+
+function formatShowDate(startsAt: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date(startsAt));
 }
 
-function SummaryCard({
-  description,
-  isError,
-  isPending,
+function SectionHeader({
+  children,
   title,
-}: SummaryCardProps) {
+}: {
+  children: string;
+  title: string;
+}) {
   return (
-    <Card style={styles.card}>
+    <View style={styles.sectionHeader}>
       <AppText tone="accent" variant="eyebrow">
-        Primeira navegação
+        Somente leitura
       </AppText>
       <AppText accessibilityRole="header" variant="heading">
         {title}
       </AppText>
-      <AppText tone="muted">
-        {isPending ? 'Carregando conteúdo…' : description}
-      </AppText>
-      {isError ? (
-        <AppText accessibilityRole="alert">
-          Não foi possível carregar esta área.
-        </AppText>
-      ) : null}
-    </Card>
+      <AppText tone="muted">{children}</AppText>
+    </View>
   );
 }
 
-export function ShowsScreen({ bandId }: BandSectionScreenProps) {
+function LoadingState({ isPending }: { isPending: boolean }) {
+  return isPending ? (
+    <AppText accessibilityLiveRegion="polite">Carregando conteúdo…</AppText>
+  ) : null;
+}
+
+function ErrorState({ isError }: { isError: boolean }) {
+  return isError ? (
+    <AppText accessibilityRole="alert">
+      Não foi possível carregar esta área.
+    </AppText>
+  ) : null;
+}
+
+function ShowCard({ bandId, show }: { bandId: EntityId; show: Show }) {
+  const itemCount = show.blocks.reduce(
+    (total, block) => total + block.items.length,
+    0,
+  );
+
+  return (
+    <Link href={getShowHref(bandId, show.id)} asChild>
+      <Pressable
+        accessibilityLabel={`Abrir show ${show.name}`}
+        accessibilityRole="link"
+        style={({ pressed }) => [styles.itemCard, pressed && styles.pressed]}
+      >
+        <View style={styles.cardHeader}>
+          <AppText style={styles.cardTitle} variant="heading">
+            {show.name}
+          </AppText>
+          <View
+            style={[styles.pill, show.status === 'ready' && styles.readyPill]}
+          >
+            <AppText variant="caption">{showStatusLabels[show.status]}</AppText>
+          </View>
+        </View>
+        <AppText tone="muted">{formatShowDate(show.startsAt)}</AppText>
+        <AppText>{show.venue}</AppText>
+        <AppText tone="accent" variant="caption">
+          {show.blocks.length} blocos · {itemCount} músicas
+        </AppText>
+      </Pressable>
+    </Link>
+  );
+}
+
+function SongCard({ bandId, song }: { bandId: EntityId; song: Song }) {
+  return (
+    <Link href={getSongHref(bandId, song.id)} asChild>
+      <Pressable
+        accessibilityLabel={`Abrir música ${song.title}`}
+        accessibilityRole="link"
+        style={({ pressed }) => [styles.itemCard, pressed && styles.pressed]}
+      >
+        <AppText tone="accent" variant="eyebrow">
+          {lyricStatusLabels[song.lyricStatus]}
+        </AppText>
+        <AppText variant="heading">{song.title}</AppText>
+        <AppText tone="muted">
+          {song.originalArtist ?? 'Artista não informado'}
+        </AppText>
+        <AppText variant="caption">
+          Tom {song.musicalKey ?? '—'} · BPM {song.bpm ?? '—'}
+        </AppText>
+      </Pressable>
+    </Link>
+  );
+}
+
+export function ShowsScreen({ bandId, viewportWidth }: BandSectionScreenProps) {
   const showsQuery = useShows(bandId);
 
   return (
     <BandAreaLayout activeSection="shows" bandId={bandId}>
-      <SummaryCard
-        description={`${showsQuery.data?.length ?? 0} shows disponíveis para consulta.`}
-        isError={showsQuery.isError}
-        isPending={showsQuery.isPending}
-        title="Shows"
+      <SectionHeader title="Shows">
+        Consulte eventos, estados e a organização de cada setlist.
+      </SectionHeader>
+      <LoadingState isPending={showsQuery.isPending} />
+      <ErrorState isError={showsQuery.isError} />
+      <ResponsiveGrid
+        items={showsQuery.data ?? []}
+        keyExtractor={({ id }) => id}
+        renderItem={(show) => <ShowCard bandId={bandId} show={show} />}
+        viewportWidth={viewportWidth}
       />
     </BandAreaLayout>
   );
 }
 
-export function RepertoireScreen({ bandId }: BandSectionScreenProps) {
+export function RepertoireScreen({
+  bandId,
+  viewportWidth,
+}: BandSectionScreenProps) {
   const songsQuery = useSongs(bandId);
 
   return (
     <BandAreaLayout activeSection="repertoire" bandId={bandId}>
-      <SummaryCard
-        description={`${songsQuery.data?.length ?? 0} músicas ativas no repertório.`}
-        isError={songsQuery.isError}
-        isPending={songsQuery.isPending}
-        title="Repertório"
+      <SectionHeader title="Repertório">
+        Consulte metadados, preparação e letra vigente de cada música.
+      </SectionHeader>
+      <LoadingState isPending={songsQuery.isPending} />
+      <ErrorState isError={songsQuery.isError} />
+      <ResponsiveGrid
+        items={songsQuery.data ?? []}
+        keyExtractor={({ id }) => id}
+        renderItem={(song) => <SongCard bandId={bandId} song={song} />}
+        viewportWidth={viewportWidth}
       />
     </BandAreaLayout>
   );
@@ -79,18 +174,68 @@ export function BandScreen({ bandId }: BandSectionScreenProps) {
 
   return (
     <BandAreaLayout activeSection="band" bandId={bandId}>
-      <SummaryCard
-        description={`${membersQuery.data?.length ?? 0} integrantes nesta banda.`}
-        isError={membersQuery.isError}
-        isPending={membersQuery.isPending}
-        title="Banda"
-      />
+      <SectionHeader title="Banda">
+        {`${membersQuery.data?.length ?? 0} integrantes nesta banda.`}
+      </SectionHeader>
+      <LoadingState isPending={membersQuery.isPending} />
+      <ErrorState isError={membersQuery.isError} />
+      <Card style={styles.memberCard}>
+        {membersQuery.data?.map((member) => (
+          <View key={member.id} style={styles.memberRow}>
+            <AppText>{member.displayName}</AppText>
+            <AppText tone="muted" variant="caption">
+              {member.role}
+            </AppText>
+          </View>
+        ))}
+      </Card>
     </BandAreaLayout>
   );
 }
 
+export { formatShowDate, lyricStatusLabels, showStatusLabels };
+
 const styles = StyleSheet.create({
-  card: {
+  sectionHeader: {
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  itemCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+    borderRadius: radii.lg,
+    borderWidth: 1,
     gap: spacing.md,
+    height: '100%',
+    padding: spacing.xl,
+  },
+  cardHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  cardTitle: {
+    flex: 1,
+  },
+  pill: {
+    backgroundColor: colors.violetSoft,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  readyPill: {
+    backgroundColor: colors.cyanSoft,
+  },
+  memberCard: {
+    gap: spacing.md,
+  },
+  memberRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  pressed: {
+    opacity: 0.72,
   },
 });
