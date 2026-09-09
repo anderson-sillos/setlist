@@ -20,7 +20,7 @@
 - [x] 2.6.3 Instalar o build interno em um aparelho Android físico e verificar a navegação pelas telas disponíveis
 - [x] 2.6.4 Registrar o adiamento do build e do acesso remoto no iOS, mantendo a plataforma no escopo futuro do produto
 - [x] 2.6.5 Discutir os pontos de ajuste e melhoria observados na revisão e separar os itens funcionais daqueles que devem seguir para a revisão de UX/UI da tarefa 2.7
-- [ ] 2.6.6 Consolidar o relatório da primeira revisão funcional com as decisões tomadas e verificar a aprovação explícita antes de concluir o grupo 2.6
+- [x] 2.6.6 Consolidar o relatório da primeira revisão funcional com as decisões tomadas e verificar a aprovação explícita antes de concluir o grupo 2.6
 - [x] 2.7 Conduzir uma revisão de UX/UI da primeira versão navegável em celular, tablet e computador e registrar ajustes priorizados de navegação, hierarquia visual, legibilidade, áreas de toque, contraste e estados de interface antes do próximo incremento; manter a revisão específica do modo palco adiada para 8.9
 - [ ] 2.8 Implementar a navegação responsiva aprovada com cabeçalhos fixos, barra inferior móvel, menu lateral e preservação do estado de cada seção e verificar rotas principais, detalhes e edição nos três modos de layout
 - [ ] 2.9 Atualizar com dados de demonstração as listas e detalhes de bandas, repertório e shows, incluindo busca, filtros, ordenação, durações e calendário mensal, e verificar rolagem, estados vazios e permissões aparentes

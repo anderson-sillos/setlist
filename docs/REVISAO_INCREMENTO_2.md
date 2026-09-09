@@ -5,7 +5,7 @@
 - Data: 9 de setembro de 2026.
 - Escopo: tarefas 2.1 a 2.6 do change `definir-mvp-setlist`.
 - Branch revisada: `feat/reviewable-app`.
-- Status: discussão e registro dos ajustes concluídos; parecer consolidado aguardando aprovação explícita.
+- Status: parecer consolidado aprovado explicitamente em 9 de setembro de 2026; implementação das melhorias autorizada.
 - Prévia web: [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/).
 - Publicação: [workflow Publicar GitHub Pages](https://github.com/anderson-sillos/setlist/actions/runs/34299605998).
 - Projeto EAS: [@anderson-silloss-team/setlist](https://expo.dev/accounts/anderson-silloss-team/projects/setlist).
@@ -133,10 +133,10 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 - Revisar o modo palco quando sua implementação funcional for iniciada, dentro da tarefa 8.9.
 - Retomar build e validação física no iOS em etapa futura.
 - Implementar as melhorias aprovadas com dados de demonstração nas tarefas 2.8 a 2.12 antes de avançar para os riscos técnicos.
-- Obter aprovação explícita deste parecer para concluir a subtarefa 2.6.6.
+- Implementar e validar as melhorias aprovadas nas tarefas 2.8 a 2.12, mantendo o PR aberto para revisão antes do encerramento do grupo.
 
 ## Parecer
 
 O acesso e a navegação pela versão web foram aprovados. O build interno Android foi gerado, instalado e navegado com sucesso. Build e acesso remoto no iOS permanecem explicitamente adiados para uma etapa futura e continuam como risco conhecido, sem alterar a compatibilidade iOS definida para o produto.
 
-As subtarefas 2.6.1 a 2.6.5 e a revisão de UX/UI 2.7 estão concluídas. A revisão do modo palco foi transferida para 8.9. A subtarefa 2.6.6 permanece aberta somente até a aprovação explícita deste relatório consolidado; a implementação das melhorias está organizada nas tarefas 2.8 a 2.12.
+As subtarefas 2.6.1 a 2.6.6 e a revisão de UX/UI 2.7 estão concluídas. Este relatório foi aprovado explicitamente em 9 de setembro de 2026. A revisão do modo palco foi transferida para 8.9, e a implementação das melhorias está organizada nas tarefas 2.8 a 2.12.

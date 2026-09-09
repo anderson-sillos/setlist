@@ -9,9 +9,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1 e tarefas 2.1–2.5 completos; as subtarefas 2.6.1–2.6.4 estão concluídas, enquanto 2.6.5–2.6.6 permanecem abertas para discussão e consolidação da revisão.
+- Implementação: Incremento 1, tarefas 2.1–2.7 e a revisão funcional 2.6.1–2.6.6 concluídos; as melhorias aprovadas aguardam implementação nas tarefas 2.8–2.12.
 - Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
-- Próximo passo: discutir e registrar os ajustes e melhorias na tarefa 2.7, concluir a revisão somente após confirmação do usuário e manter o PR #8 aberto.
+- Revisão: o relatório funcional e as decisões de UX/UI foram aprovados explicitamente pelo usuário em 9 de setembro de 2026.
+- Próximo passo: implementar a navegação responsiva da tarefa 2.8, validar nos três modos de layout e manter o PR #8 aberto para revisão.
 
 ## Fontes de verdade
 
@@ -38,6 +39,7 @@ openspec validate definir-mvp-setlist --type change --strict
 7. O PR #5 entregou a aplicação Expo inicial, configuração tipada, qualidade automatizada, catálogo responsivo, CI e roteiro reproduzível do ambiente.
 8. Os PRs #6 e #7 ampliaram o roteiro do ambiente e documentaram a atualização segura do código local.
 9. O PR #8 implementou a primeira versão navegável, publicou a versão web e entregou um build interno Android validado; a validação iOS foi adiada.
+10. A revisão funcional e de UX/UI definiu a navegação móvel, listas compactas, calendário, detalhes orientados à letra, planejamento temporal da setlist e o tom de voz informal; o relatório foi aprovado e a implementação foi autorizada.
 
 ## Visão confirmada do produto
 
@@ -94,6 +96,17 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 - Em Android e iOS, o player visível usa IFrame em WebView; na web, usa IFrame diretamente.
 - O editor toca em cada linha durante a reprodução e pode corrigir os tempos manualmente.
 - Não baixar, extrair, ocultar ou reproduzir o áudio do YouTube em segundo plano.
+
+## UX/UI aprovada para implementação
+
+- No celular e tablet em retrato, usar cabeçalho fixo, barra inferior com Shows, Repertório e Banda e menu lateral para opções gerais; em tablet paisagem e computador, usar menu lateral permanente sem barra inferior.
+- Preservar pilha, busca, filtros, ordenação e rolagem ao alternar entre as seções principais.
+- Usar listas compactas e roláveis para repertório, shows e bandas, com controles fixos conforme a tela.
+- Priorizar a letra nos detalhes da música, mantendo todos os blocos expandidos e os tempos ocultos fora do editor de sincronização.
+- Disponibilizar em Shows as visões Lista e Calendário mensal, com diferenciação textual e visual de finais de semana e feriados nacionais.
+- Apresentar carregamento, vazio, erro, indisponibilidade, conexão e mensagens temporárias de forma consistente e acessível.
+- Usar tom informal e bem-humorado em situações gerais e recuperáveis; manter linguagem direta em ações destrutivas, legais, de segurança ou de perda de conteúdo.
+- Adiar a revisão específica do modo palco para a tarefa 8.9.
 
 ## Shows e modo palco
 
@@ -152,7 +165,7 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Começar no Supabase Free e avaliar Pro ao atingir 80% de uma cota ou antes de depender de disponibilidade e backups de produção.
 - A prévia navegável está em `https://anderson-sillos.github.io/setlist/app/`; a apresentação permanece na raiz do mesmo site.
 - A revisão funcional do Incremento 2, o build Android validado e a pendência do iOS estão registrados em `docs/REVISAO_INCREMENTO_2.md`.
-- Pontos de ajuste e melhoria foram observados e devem ser discutidos na subtarefa 2.6.5; os itens de UX/UI seguirão para priorização na tarefa 2.7 antes da consolidação em 2.6.6.
+- O relatório funcional consolidado e a revisão de UX/UI foram aprovados; as decisões estão registradas em `docs/REVISAO_INCREMENTO_2.md`, `docs/GUIA_DE_TOM_E_VOZ.md` e nas tarefas 2.8–2.12.
 
 ## Convenção de trabalho solicitada
 
@@ -177,4 +190,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Executar a discussão da subtarefa 2.6.5, encaminhar os itens de UX/UI para a tarefa 2.7 e consolidar o relatório somente na subtarefa 2.6.6, após confirmação explícita do usuário. O PR #8 não deve ser integrado antes dessa revisão. A validação iOS permanece adiada para uma etapa futura.
+Implementar a tarefa 2.8, começando pela estrutura de navegação responsiva, cabeçalhos fixos, barra inferior móvel e menu lateral, com testes nos três modos de layout. Depois, seguir para 2.9–2.12 e solicitar nova revisão antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.
