@@ -9,7 +9,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1 e tarefas 2.1–2.5 completos; a tarefa 2.6 permanece aberta até a discussão dos ajustes observados na revisão.
+- Implementação: Incremento 1 e tarefas 2.1–2.5 completos; as subtarefas 2.6.1–2.6.4 estão concluídas, enquanto 2.6.5–2.6.6 permanecem abertas para discussão e consolidação da revisão.
 - Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Próximo passo: discutir e registrar os ajustes e melhorias na tarefa 2.7, concluir a revisão somente após confirmação do usuário e manter o PR #8 aberto.
 
@@ -152,7 +152,7 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Começar no Supabase Free e avaliar Pro ao atingir 80% de uma cota ou antes de depender de disponibilidade e backups de produção.
 - A prévia navegável está em `https://anderson-sillos.github.io/setlist/app/`; a apresentação permanece na raiz do mesmo site.
 - A revisão funcional do Incremento 2, o build Android validado e a pendência do iOS estão registrados em `docs/REVISAO_INCREMENTO_2.md`.
-- Pontos de ajuste e melhoria foram observados e devem ser discutidos e priorizados na tarefa 2.7 antes de concluir a tarefa 2.6.
+- Pontos de ajuste e melhoria foram observados e devem ser discutidos na subtarefa 2.6.5; os itens de UX/UI seguirão para priorização na tarefa 2.7 antes da consolidação em 2.6.6.
 
 ## Convenção de trabalho solicitada
 
@@ -177,4 +177,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Discutir os pontos de ajuste e melhoria observados, registrá-los na tarefa 2.7 e manter as tarefas 2.6 e 2.7 abertas até a confirmação explícita do usuário. O PR #8 não deve ser integrado antes dessa revisão. A validação iOS permanece adiada para uma etapa futura.
+Executar a discussão da subtarefa 2.6.5, encaminhar os itens de UX/UI para a tarefa 2.7 e consolidar o relatório somente na subtarefa 2.6.6, após confirmação explícita do usuário. O PR #8 não deve ser integrado antes dessa revisão. A validação iOS permanece adiada para uma etapa futura.

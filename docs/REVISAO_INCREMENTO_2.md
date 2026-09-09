@@ -53,11 +53,11 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 - O build Android foi concluído pelo EAS com status `FINISHED`, instalado em um aparelho físico e validado quanto à navegação entre as telas disponíveis.
 - No iOS físico, o Expo Go exige correspondência exata entre a conta autenticada na Expo CLI e a conta conectada no aparelho. O acesso remoto usando a conta individual do revisor não foi validado.
 - A geração de um build interno iOS também não foi concluída e será retomada futuramente, sem retirar iOS do escopo do produto.
-- Foram observados pontos de ajuste e melhoria durante a revisão. Eles serão discutidos, priorizados e registrados na tarefa 2.7 antes da conclusão da tarefa 2.6.
+- Foram observados pontos de ajuste e melhoria durante a revisão. A discussão está pendente na subtarefa 2.6.5; os itens de UX/UI serão encaminhados para priorização na tarefa 2.7.
 - A revisão não valida ainda player do YouTube, retomada do relógio após interrupções do sistema, OAuth, Supabase ou pacotes offline. Esses riscos continuam planejados a partir do Incremento 3.
 
 ## Parecer
 
 O acesso e a navegação pela versão web foram aprovados. O build interno Android foi gerado, instalado e navegado com sucesso. Build e acesso remoto no iOS permanecem explicitamente adiados para uma etapa futura e continuam como risco conhecido, sem alterar a compatibilidade iOS definida para o produto.
 
-A tarefa 2.6 permanece aberta até que os ajustes e melhorias observados sejam discutidos e registrados. A revisão de UX/UI correspondente está prevista na tarefa 2.7.
+As subtarefas 2.6.1 a 2.6.4 estão concluídas. A discussão das melhorias e a consolidação deste relatório permanecem abertas nas subtarefas 2.6.5 e 2.6.6. A revisão de UX/UI correspondente está prevista na tarefa 2.7.

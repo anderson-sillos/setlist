@@ -15,7 +15,12 @@
 - [x] 2.3 Implementar a navegação inicial com `Minhas bandas`, Shows, Repertório e Banda e verificar todos os caminhos usando os dados de demonstração
 - [x] 2.4 Implementar listas e detalhes básicos de músicas e shows em modo somente leitura e verificar adaptação para celular, tablet e computador
 - [x] 2.5 Implementar uma primeira tela de palco com letra estática, setlist e cronômetro manual local e verificar iniciar, pausar, retomar e reiniciar
-- [ ] 2.6 Publicar e navegar pela prévia web, gerar, instalar e navegar pelo build interno Android e registrar a primeira revisão funcional, incluindo o adiamento da validação iOS e os ajustes e melhorias discutidos antes do próximo incremento
+- [x] 2.6.1 Publicar a prévia web e verificar acesso e navegação pelas telas em um navegador externo
+- [x] 2.6.2 Gerar o build interno Android pelo EAS e verificar que o processamento termina com status `FINISHED`
+- [x] 2.6.3 Instalar o build interno em um aparelho Android físico e verificar a navegação pelas telas disponíveis
+- [x] 2.6.4 Registrar o adiamento do build e do acesso remoto no iOS, mantendo a plataforma no escopo futuro do produto
+- [ ] 2.6.5 Discutir os pontos de ajuste e melhoria observados na revisão e separar os itens funcionais daqueles que devem seguir para a revisão de UX/UI da tarefa 2.7
+- [ ] 2.6.6 Consolidar o relatório da primeira revisão funcional com as decisões tomadas e verificar a aprovação explícita antes de concluir o grupo 2.6
 - [ ] 2.7 Conduzir uma revisão de UX/UI da primeira versão navegável em celular, tablet e computador e registrar ajustes priorizados de navegação, hierarquia visual, legibilidade, áreas de toque, contraste e estados de interface antes do próximo incremento
 
 ## 3. Validação antecipada dos riscos técnicos
