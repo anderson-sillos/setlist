@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/reviewable-app
   workflow_dispatch:
 
 permissions:
