@@ -10,7 +10,7 @@ O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e 
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O Incremento 1 da fundação multiplataforma está concluído: a aplicação Expo é executável em Android, iOS e web e possui configuração tipada, automação de qualidade, integração contínua e um catálogo visual responsivo.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O Incremento 1 da fundação multiplataforma está concluído. O Incremento 2 está em andamento e já possui entidades de domínio, contratos de repositórios independentes do Supabase e implementações em memória verificadas por testes unitários.
 
 O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
@@ -367,6 +367,8 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- app/                             # Rotas e telas compartilhadas do Expo
 |   |-- components/ui/                   # Componentes visuais reutilizáveis
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
+|   |-- data/in-memory/                   # Repositórios locais para testes e demonstração
+|   |-- domain/                          # Entidades e contratos independentes da infraestrutura
 |   `-- theme/                           # Tokens e breakpoints responsivos
 |-- .env.example                         # Modelo público, sem credenciais reais
 |-- .github/workflows/ci.yml             # Qualidade contínua no GitHub
@@ -385,7 +387,7 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- disponibilizar a primeira versão navegável com dados demonstrativos no incremento 2;
+- completar a primeira versão navegável com dados demonstrativos no incremento 2;
 - validar antecipadamente YouTube, cronômetro e links de autenticação;
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
