@@ -68,10 +68,36 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 ### Navegação e contexto da banda
 
 - A autenticação e o perfil existirão independentemente da participação em uma banda.
-- O usuário sem banda selecionada verá o espaço neutro `Minhas bandas`, no qual poderá criar uma banda, aguardar um convite ou abrir um convite recebido.
+- O usuário sem banda selecionada verá o espaço neutro `Minhas bandas`, no qual poderá criar uma banda, aguardar um convite ou abrir externamente o link de um convite recebido. Não haverá colagem manual nem leitura de QR Code para convites no MVP.
 - Ao reabrir a aplicação, a última banda selecionada será restaurada se a participação continuar ativa; caso contrário, será exibido `Minhas bandas`.
-- A navegação principal da banda terá Shows, Repertório e Banda. A troca de banda e o perfil ficarão no cabeçalho; os downloads ficarão dentro de Shows.
+- No celular e no tablet em modo retrato, a navegação frequente da banda usará uma barra inferior fixa com Shows, Repertório e Banda, enquanto um menu lateral deslizante reunirá identificação do usuário, acesso a `Minhas bandas`, perfil e conta, termos gerais e privacidade, informações sobre o Setlist e saída.
+- No tablet em modo paisagem e no computador, o menu lateral ficará permanente e substituirá a barra inferior. A versão web voltará automaticamente ao padrão mobile quando a largura disponível diminuir.
+- Cada tela terá cabeçalho fixo. Telas principais mostrarão menu, título, banda ativa e no máximo uma ação contextual; detalhes substituirão o menu pelo botão voltar; criação e edição mostrarão somente as ações necessárias para cancelar e salvar.
+- A barra inferior permanecerá visível nas telas principais e nos detalhes em consulta, preservando a pilha, os filtros, a ordenação e a posição da rolagem de cada seção. Ela ficará oculta em criação, edição, autenticação, confirmação de convite e modo palco.
+- Nas telas principais móveis, o menu poderá ser aberto pelo controle do cabeçalho ou pelo gesto iniciado na borda esquerda. Nos detalhes, esse gesto ficará reservado ao retorno.
+- Os downloads continuarão dentro de Shows, e o termo de responsabilidade pelas letras permanecerá nas configurações da banda.
 - O modo palco ocupará a tela inteira e não usará a navegação administrativa durante a apresentação.
+
+### Experiência responsiva e estados de interface
+
+- Cabeçalhos, barras de busca e filtros permanecerão fixos quando definidos para a tela; somente a região principal de conteúdo terá rolagem.
+- Listas extensas serão verticais e virtualizadas. No celular, usarão linhas compactas; em telas maiores, poderão revelar mais colunas sem retornar a cartões excessivamente grandes.
+- O primeiro carregamento usará esqueletos com a forma aproximada do conteúdo, mantendo navegação e cabeçalho. Atualizações em segundo plano preservarão os dados visíveis e usarão um indicador discreto.
+- Estados vazios distinguirão ausência real de conteúdo de ausência de resultado para filtros. Cada estado oferecerá no máximo uma ação contextual, somente quando o papel do usuário permitir.
+- Quando o primeiro carregamento falhar, a tela oferecerá `Tentar novamente`. Se uma atualização falhar após dados já terem sido mostrados, o conteúdo permanecerá disponível com um aviso discreto.
+- Falhas de salvamento preservarão todas as alterações locais e aparecerão próximas à ação de salvar. Conteúdo removido ou sem autorização será apresentado como indisponível; perda de participação levará a `Minhas bandas`.
+- Sem conexão, uma faixa compacta ficará abaixo do cabeçalho. Conteúdo já carregado permanecerá somente para leitura, criação e edição indicarão que exigem conexão e os aplicativos móveis continuarão oferecendo os shows previamente baixados.
+- Ao recuperar a conexão, o cliente atualizará os dados automaticamente e informará brevemente o restabelecimento.
+- Sucessos e ações reversíveis usarão mensagens temporárias não bloqueantes acima da barra inferior, com `Desfazer` quando aplicável. Validações ficarão junto aos campos; diálogos serão reservados para confirmações destrutivas.
+- Toda informação de estado será comunicada por texto, sem depender apenas de cor. Leitores de tela receberão o mesmo significado das mensagens visuais quando o estado mudar.
+
+### Tom de voz da interface
+
+- Mensagens gerais, carregamentos, estados vazios, sucessos e erros recuperáveis usarão linguagem informal, breve e bem-humorada, preferencialmente ligada a ensaio, palco e bastidores.
+- Cada situação poderá ter duas ou três variações controladas, sem trocar o texto enquanto o mesmo estado permanecer visível. O significado e a ação recomendada serão estáveis em todas as variações.
+- Rótulos de botões permanecerão objetivos, como `Salvar`, `Tentar novamente`, `Limpar filtros` e `Cancelar`.
+- Exclusão de conta ou banda, remoção de integrante, termos legais, privacidade, perda ou corrupção de conteúdo, permissões e segurança usarão linguagem direta e sem humor.
+- A referência editorial detalhada ficará em `docs/GUIA_DE_TOM_E_VOZ.md`.
 
 ### Autenticação, papéis e convites
 
@@ -84,7 +110,8 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Editor poderá criar e editar repertório, letras, sincronização, shows e setlists e poderá consultar integrantes e papéis. Não poderá convidar, remover, alterar papéis, promover Owners, administrar ou excluir a banda.
 - Member terá acesso de leitura, download nos aplicativos móveis e modo palco.
 - Uma banda poderá ter vários Owners. O último Owner não poderá sair, excluir a conta nem perder o papel até promover outro integrante, exceto quando for o único integrante e excluir antes a própria banda com confirmação reforçada.
-- O convite será um link HTTPS de uso único, revogável, não vinculado a um e-mail e com validade padrão de sete dias. Um novo link poderá ser gerado após expiração ou revogação.
+- A área Banda agrupará Proprietários, Editores e Integrantes, ordenará cada grupo alfabeticamente e não terá busca ou filtros no MVP. Somente Owners verão controles de administração e de convite.
+- O convite será um link HTTPS de uso único, revogável, não vinculado a um e-mail e com validade padrão de sete dias. A banda poderá manter vários convites ativos, identificados opcionalmente por um rótulo que não vincula nem restringe o destinatário.
 - O token bruto do convite não será armazenado; o banco manterá seu hash. A aceitação ocorrerá por uma função protegida e adicionará o usuário inicialmente como Member.
 - O link abrirá o aplicativo instalado quando houver associação válida e, nos demais casos, a versão web. O token será preservado durante o login, mas a entrada na banda exigirá confirmação após a autenticação.
 - URLs de desenvolvimento e produção serão configuradas separadamente. Um esquema como `setlist://` será o retorno alternativo nativo, e o endereço HTTPS definitivo será configurável.
@@ -95,6 +122,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Referências históricas ao autor ficarão sem dados pessoais e serão apresentadas como `Usuário removido`.
 - A exclusão será bloqueada enquanto o usuário for o último Owner de uma banda com outros integrantes.
 - Se for o único integrante, o usuário poderá excluir a banda e seu conteúdo mediante confirmação reforçada antes de excluir a própria conta.
+- A exclusão direta de uma banda também será permitida somente ao seu único integrante e Owner, sempre com confirmação reforçada.
 
 ### Responsabilidade pelo conteúdo das letras
 
@@ -110,11 +138,16 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 - Cada banda manterá seu próprio repertório e uma única versão vigente de cada música.
 - Os campos previstos são título, artista original, tonalidade, BPM, duração estimada, referência do YouTube, letra estruturada, observações, estado da sincronização e `updated_at`.
+- O repertório usará lista vertical rolável com busca por título ou artista, filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas e ordenação por título, artista, atualização ou duração. O padrão será músicas ativas por título.
+- Cada linha priorizará título, artista, duração e estado da letra; tonalidade e BPM ficarão no detalhe.
 - A letra será um documento JSONB dentro da música, composto por blocos e linhas ordenados. Blocos e linhas terão identificadores estáveis; cada linha poderá ter seu início em milissegundos.
 - Não haverá tabelas por linha, histórico de versões ou consulta textual avançada no MVP. A gravação de toda a letra será atômica.
 - Os estados serão Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
 - Serão mantidas somente letras, sem cifras ou transposição.
 - Uma música utilizada em shows será arquivada em vez de excluída. Ela deixará de aparecer para novas inclusões, continuará nos shows existentes e poderá ser restaurada.
+- No detalhe, a letra aparecerá logo após um cabeçalho compacto, com todos os blocos expandidos em uma única rolagem. Os timestamps das linhas ficarão restritos ao editor de sincronização.
+- A última atualização será apresentada em formato relativo. Tonalidade, BPM e observações serão secundários; arquivamento e restauração ficarão no menu de ações conforme o papel.
+- A consulta abrirá a referência no aplicativo ou navegador do YouTube. O player incorporado ficará reservado à edição e à sincronização.
 
 ### Sincronização manual com YouTube
 
@@ -130,8 +163,17 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - O show terá nome, data, horário, local, observações, estado e `updated_at`.
 - Cada show terá setlist própria e poderá ser criado pela duplicação de outro show.
 - A setlist aceitará blocos nomeados, como Primeiro Set, Segundo Set e Bis. Um bloco Principal será criado como padrão.
-- Blocos e músicas poderão ser reordenados, e suas durações totais serão calculadas.
+- Além de músicas, cada bloco aceitará anotações de planejamento independentes com descrição e duração opcional e separadores puramente visuais. Esses itens poderão ser reordenados dentro do bloco ou entre blocos e não serão etapas do modo palco.
+- A edição terá uma única ação `Adicionar`, seguida da escolha entre bloco, música, anotação ou separador. A inclusão de músicas aceitará seleção múltipla e repetições da mesma música no show.
+- Blocos terão alças de reordenação; itens terão alças que permitirão também a troca de bloco. Um menu compacto oferecerá edição, remoção e alternativas acessíveis ao arraste.
+- As mudanças permanecerão locais durante a edição e serão persistidas por um único salvamento explícito. A saída com mudanças pendentes exigirá confirmação.
+- A duração total somará os valores informados nas músicas e anotações, sem aviso de total parcial. O detalhe apresentará a composição entre músicas e planejamento e cada bloco mostrará seu total; quando nenhum tempo existir, exibirá `Duração não informada`.
 - Cada item poderá ter uma observação opcional específica do show, sem alterar a música do repertório. Ela aparecerá na setlist e no modo palco.
+- Shows usarão lista vertical rolável com busca por nome ou local, filtros por período e estado e ordenação por data, nome ou duração. A consulta padrão mostrará próximos Rascunhos e Prontos pela data mais próxima e ocultará Cancelados.
+- A lista exibirá a duração estimada de cada show. Busca e filtros permanecerão fixos durante a rolagem.
+- A área Shows terá as visões Lista e Calendário. O calendário mensal abrirá no mês atual com hoje selecionado, iniciará a semana no domingo e listará abaixo os shows da data escolhida.
+- No celular, os dias usarão marcadores ou quantidade; em telas maiores, poderão mostrar nomes quando houver espaço. Finais de semana terão diferenciação visual e feriados nacionais do Brasil serão calculados localmente e identificados também por texto.
+- O calendário não terá visão semanal ou anual nem integração com calendários externos no MVP.
 - Os estados compartilhados serão Rascunho, Pronto e Cancelado. Não haverá Em andamento ou Finalizado; shows passados serão identificados pela data.
 - Rascunho aceitará edição e prévia online do modo palco, mas não poderá ser baixado.
 - Pronto ficará somente para leitura e aceitará modo palco online ou offline. Owner ou Editor deverá retorná-lo a Rascunho para editar.
@@ -183,14 +225,17 @@ Usuario --< Participacao >-- Banda --< Convite
                               |
                               +-- Musica (letra JSONB)
                               |
-                              +-- Show --< Bloco --< Item >-- Musica
+                              +-- Show --< Bloco --< Item
+                                                    |-- Musica
+                                                    |-- Planejamento
+                                                    +-- Separador
                               |
                               +-- Aceite de termo
 
 Dispositivo movel --< Pacote JSON de show
 ```
 
-O modelo usará as tabelas `profiles`, `bands`, `band_members`, `invitations`, `songs`, `shows`, `show_blocks`, `show_items` e `legal_acceptances`. Não haverá tabelas de linhas da letra, histórico, áudio ou downloads do dispositivo.
+O modelo usará as tabelas `profiles`, `bands`, `band_members`, `invitations`, `songs`, `shows`, `show_blocks`, `show_items` e `legal_acceptances`. `invitations` aceitará rótulo opcional. `show_items` distinguirá música, anotação de planejamento e separador, exigirá `song_id` somente para música, descrição para planejamento e duração opcional apenas para planejamento. Não haverá tabelas de linhas da letra, histórico, áudio ou downloads do dispositivo.
 
 Todas as tabelas de negócio usarão RLS com negação por padrão e escopo por participação ativa na banda. Owner terá administração completa; Editor terá escrita apenas de conteúdo e leitura de integrantes; Member terá somente leitura. Usuários sem banda acessarão apenas o próprio perfil, convites válidos apresentados por token e a criação de uma banda.
 
@@ -223,6 +268,7 @@ Regras que envolvem mais de uma linha serão protegidas por funções ou gatilho
 - [O aceite do termo não elimina risco de infração autoral] -> Restringir fontes, oferecer remoção e obter revisão jurídica e licenças necessárias antes do lançamento público.
 - [Uma atualização pode afetar vários shows Prontos] -> Sinalizar pacotes desatualizados e exigir atualização explícita, evitando mudança silenciosa durante a apresentação.
 - [Comparações por timestamp dependem de atualização correta no banco] -> Gerar todos os valores no servidor e cobrir gatilhos de blocos, itens e músicas com testes de integração.
+- [Humor pode esconder a ação necessária ou soar inadequado em situações sensíveis] -> Manter botões objetivos, controlar as variações e excluir humor de mensagens legais, destrutivas, de segurança ou de perda de conteúdo.
 
 ## Migration Plan
 

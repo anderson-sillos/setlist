@@ -20,7 +20,7 @@ O sistema SHALL permitir que uma pessoa autenticada permaneça sem participar de
 
 #### Scenario: Usuário ainda não participa de bandas
 - **WHEN** uma pessoa autenticada não possui participação ativa em nenhuma banda
-- **THEN** o sistema exibe `Minhas bandas` com opções para criar uma banda ou abrir um convite
+- **THEN** o sistema exibe `Minhas bandas` com uma opção para criar uma banda e orientação para abrir o link de convite recebido
 
 #### Scenario: Última banda não está mais disponível
 - **WHEN** a pessoa retorna à aplicação e sua última banda selecionada não está mais acessível
@@ -36,6 +36,21 @@ O sistema SHALL permitir que uma pessoa participe de várias bandas e SHALL limi
 #### Scenario: Restaurar a última banda
 - **WHEN** uma pessoa retorna à aplicação e ainda participa da última banda selecionada
 - **THEN** o sistema restaura essa banda como contexto ativo
+
+### Requirement: Consulta de Minhas bandas
+O sistema SHALL apresentar as participações em uma lista rolável, SHALL destacar primeiro a última banda acessada e SHALL permitir busca por nome sem oferecer filtros adicionais.
+
+#### Scenario: Consultar várias bandas
+- **WHEN** uma pessoa abre `Minhas bandas`
+- **THEN** o sistema mostra primeiro a última banda acessada e ordena as demais alfabeticamente, informando em cada item seu papel e o próximo show
+
+#### Scenario: Banda sem próximo show
+- **WHEN** uma banda da lista não possui evento futuro
+- **THEN** o sistema informa `Nenhum próximo show`
+
+#### Scenario: Criar uma banda
+- **WHEN** uma pessoa solicita a única ação de inclusão disponível em `Minhas bandas`
+- **THEN** o sistema inicia a criação de banda sem oferecer colagem manual ou leitura de QR Code para convites
 
 ### Requirement: Papéis e permissões
 O sistema SHALL aplicar os papéis Owner, Editor e Member tanto na interface quanto nas operações do backend.
@@ -61,7 +76,7 @@ O sistema SHALL aplicar os papéis Owner, Editor e Member tanto na interface qua
 - **THEN** o backend nega a leitura e a alteração dos dados
 
 ### Requirement: Convites seguros para a banda
-O sistema SHALL permitir que Owners criem links de convite de uso único, revogáveis, não vinculados a e-mail e com validade padrão de sete dias.
+O sistema SHALL permitir que Owners mantenham vários links de convite ativos simultaneamente, de uso único, revogáveis, não vinculados a e-mail, com validade padrão de sete dias e rótulo organizacional opcional.
 
 #### Scenario: Aceitar convite válido após autenticação
 - **WHEN** uma pessoa abre um convite válido, conclui a autenticação e confirma a entrada
@@ -83,6 +98,33 @@ O sistema SHALL permitir que Owners criem links de convite de uso único, revog�
 - **WHEN** um Owner solicita outro convite depois de expiração ou revogação
 - **THEN** o sistema gera um novo link independente do anterior
 
+#### Scenario: Criar vários convites
+- **WHEN** um Owner cria convites para mais de uma pessoa
+- **THEN** o sistema mantém os links simultaneamente ativos e permite distingui-los por rótulo, criação e validade
+
+#### Scenario: Usar um convite rotulado
+- **WHEN** uma pessoa abre um convite que possui rótulo organizacional
+- **THEN** o sistema não usa o rótulo como identidade nem restringe quem pode consumir o link
+
+#### Scenario: Tentar colar convite manualmente
+- **WHEN** uma pessoa procura uma entrada manual de convite em `Minhas bandas`
+- **THEN** o sistema orienta o uso do link recebido e não oferece campo de colagem
+
+### Requirement: Consulta e administração de integrantes
+O sistema SHALL agrupar os integrantes por papel e ordená-los alfabeticamente dentro de cada grupo e SHALL mostrar controles administrativos somente a Owners.
+
+#### Scenario: Consultar integrantes
+- **WHEN** um integrante abre a área Banda
+- **THEN** o sistema apresenta Proprietários, Editores e Integrantes em grupos, identifica a própria pessoa e não oferece busca ou filtros
+
+#### Scenario: Promover para Proprietário
+- **WHEN** um Owner solicita promover outra pessoa para Owner
+- **THEN** o sistema exige confirmação explícita antes de conceder administração completa
+
+#### Scenario: Remover integrante
+- **WHEN** um Owner solicita remover outra pessoa
+- **THEN** o sistema exige confirmação identificando a pessoa que perderá o acesso
+
 ### Requirement: Proteção do último Owner
 O sistema MUST impedir que uma banda com outros integrantes fique sem Owner.
 
@@ -93,6 +135,17 @@ O sistema MUST impedir que uma banda com outros integrantes fique sem Owner.
 #### Scenario: Banda possui outro Owner
 - **WHEN** um Owner sai, exclui a conta ou perde o papel e pelo menos outro Owner permanece
 - **THEN** o sistema conclui a operação sem alterar o conteúdo da banda
+
+### Requirement: Exclusão restrita da banda
+O sistema MUST permitir a exclusão de uma banda somente quando o Owner solicitante for seu único integrante e SHALL exigir confirmação reforçada.
+
+#### Scenario: Excluir banda sem outros integrantes
+- **WHEN** o único integrante e Owner confirma de forma reforçada a exclusão
+- **THEN** o sistema exclui a banda e todo o seu conteúdo
+
+#### Scenario: Tentar excluir banda com outros integrantes
+- **WHEN** um Owner tenta excluir uma banda que ainda possui outros integrantes
+- **THEN** o sistema bloqueia a operação e orienta a transferência de responsabilidades ou a remoção prévia dos demais integrantes
 
 ### Requirement: Exclusão de conta e preservação do conteúdo
 O sistema SHALL oferecer exclusão de conta dentro da aplicação, remover os dados pessoais e as sessões da pessoa e preservar o conteúdo pertencente às bandas remanescentes.
