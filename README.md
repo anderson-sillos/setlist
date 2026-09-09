@@ -97,7 +97,35 @@ Obrigatórios em qualquer sistema:
 - npm 11;
 - um navegador moderno para executar a versão web.
 
+#### Onde obter os componentes
+
+| Componente              | Necessidade                                                          | Download ou instalação oficial                                                                  |
+| ----------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Git                     | Obrigatório                                                          | [Downloads do Git](https://git-scm.com/downloads/)                                              |
+| Node.js 24 LTS          | Obrigatório                                                          | [Downloads do Node.js](https://nodejs.org/en/download)                                          |
+| npm 11                  | Obrigatório                                                          | Já acompanha a instalação do Node.js; não precisa ser instalado separadamente                   |
+| nvm                     | Recomendado em Linux, macOS e WSL                                    | [Instalação do nvm](https://github.com/nvm-sh/nvm#installing-and-updating)                      |
+| Navegador               | Obrigatório para web                                                 | [Chrome](https://www.google.com/chrome/) ou [Firefox](https://www.mozilla.org/firefox/new/)     |
+| Visual Studio Code      | Editor recomendado                                                   | [Download do VS Code](https://code.visualstudio.com/Download)                                   |
+| Expo Go para Android    | Necessário para testar em aparelho Android                           | [Expo Go para Android e SDK 57](https://expo.dev/go?device=true&platform=android&sdkVersion=57) |
+| Expo Go para iOS/iPadOS | Necessário para testar em iPhone ou iPad                             | [Expo Go para iOS e SDK 57](https://expo.dev/go?device=true&platform=ios&sdkVersion=57)         |
+| Android Studio          | Opcional; necessário para emulador e ferramentas Android             | [Download do Android Studio](https://developer.android.com/studio)                              |
+| Xcode                   | Opcional; necessário para simulador e builds locais de iOS em um Mac | [Xcode no Apple Developer](https://developer.apple.com/xcode/)                                  |
+| WSL                     | Opcional; ambiente Linux usado neste projeto no Windows              | [Instalação oficial do WSL](https://learn.microsoft.com/windows/wsl/install)                    |
+
 O arquivo `.nvmrc` fixa a versão principal do Node.js. O uso do [nvm](https://github.com/nvm-sh/nvm) é recomendado, mas não obrigatório; qualquer instalação compatível do Node.js 24 pode ser usada.
+
+Para usar o VS Code com o projeto no WSL:
+
+1. Instale o VS Code no Windows e marque a opção **Add to PATH** durante a instalação.
+2. Instale a extensão oficial [WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl).
+3. No terminal WSL, entre na pasta do projeto e execute:
+
+```bash
+code .
+```
+
+Na primeira execução, o VS Code instalará seu servidor no WSL. O arquivo `.vscode/extensions.json` recomenda também as extensões ESLint e Prettier usadas pela automação do projeto. Mais detalhes estão no [guia oficial do VS Code para WSL](https://code.visualstudio.com/docs/remote/wsl).
 
 Para executar em dispositivos móveis, escolha uma ou mais opções:
 
@@ -221,10 +249,52 @@ O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, fo
 
 - **Cache do Metro inconsistente:** execute `npx expo start --clear`.
 - **Dependência incompatível com o Expo:** execute `npx expo install --check` e instale pacotes nativos com `npx expo install <pacote>`.
-- **Aparelho não encontra o servidor:** confirme que os dois dispositivos estão na mesma rede e que o firewall permite a porta exibida pelo Expo.
+- **Aparelho não encontra o servidor:** confirme que os dois dispositivos estão na mesma rede, desative temporariamente VPNs que interfiram na rota e verifique se o firewall permite a porta exibida pelo Expo.
 - **Emulador Android não abre:** inicialize o dispositivo virtual no Android Studio e confirme que `adb devices` o lista.
 - **Atalho de iOS indisponível:** o iOS Simulator e builds locais para iOS exigem macOS e Xcode.
 - **Porta do Expo ocupada:** execute `npx expo start --port 8082` ou escolha outra porta livre.
+
+#### Android físico e WSL2
+
+No modo NAT padrão do WSL2, o navegador do Windows consegue abrir o servidor do WSL por `localhost`, mas um celular na rede não alcança diretamente o endereço privado da máquina virtual. O sintoma no Expo Go pode ser `Failed to download remote update`, mesmo quando a versão web funciona.
+
+A solução rápida é usar um túnel:
+
+```bash
+npx expo start --tunnel --clear
+```
+
+Na primeira execução, o Expo pode instalar `@expo/ngrok`. O túnel depende de um serviço externo, é mais lento e gera uma URL pública aleatória; use-o somente durante o desenvolvimento e encerre o processo ao terminar. Se aparecer `failed to start tunnel` ou `remote gone away`, consulte o [estado do ngrok](https://status.ngrok.com/) e tente novamente quando a conectividade estiver operacional.
+
+No Windows 11 22H2 ou mais recente, a alternativa permanente recomendada é a rede espelhada do WSL2. Adicione estas opções ao arquivo `%USERPROFILE%\.wslconfig`, preservando outras configurações existentes:
+
+```ini
+[wsl2]
+networkingMode=mirrored
+hostAddressLoopback=true
+```
+
+Depois, execute no PowerShell como administrador:
+
+```powershell
+wsl --shutdown
+
+New-NetFirewallHyperVRule `
+  -Name "ExpoMetro8081" `
+  -DisplayName "Expo Metro 8081" `
+  -Direction Inbound `
+  -VMCreatorId "{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}" `
+  -Protocol TCP `
+  -LocalPorts 8081
+```
+
+Reabra o WSL, confirme que o computador e o celular estão na mesma rede e inicie o Expo pela LAN:
+
+```bash
+npx expo start --lan --clear
+```
+
+Consulte a [documentação de rede do WSL](https://learn.microsoft.com/windows/wsl/networking#mirrored-mode-networking) para requisitos, firewall e limitações do modo espelhado.
 
 Se uma solução exigir uma mudança permanente no projeto, registre-a também neste roteiro.
 
@@ -263,6 +333,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 .
 |-- .nvmrc                              # Versão principal do Node.js
 |-- .agents/skills/                      # Skills locais do OpenSpec
+|-- .vscode/extensions.json              # Extensões recomendadas do editor
 |-- docs/
 |   |-- apresentacao.html                # Apresentação HTML em slides
 |   `-- CODEX_HANDOFF.md                 # Continuidade entre sessões do Codex

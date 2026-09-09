@@ -139,6 +139,7 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Validações e dependências externas
 
+- O desenvolvimento ocorre no WSL2; para testar em Android físico, usar o túnel do Expo ou a rede espelhada e a regra restrita à porta 8081 documentadas no README.
 - Validar YouTube IFrame, WebView, leitura do tempo e origem/referer nas três plataformas.
 - Validar cronômetro após bloqueio, chamada, perda de foco e encerramento do processo.
 - Criar e configurar projetos Supabase de desenvolvimento e produção.
