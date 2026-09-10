@@ -42,6 +42,7 @@ import {
   useNavigationMemory,
 } from '@/features/navigation/NavigationMemory';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
+import { spacing } from '@/theme/tokens';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -196,6 +197,9 @@ describe('navegação inicial', () => {
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
         expect(view.getByLabelText('Ir para Palco')).toBeTruthy();
+        expect(
+          StyleSheet.flatten(view.getByTestId('bottom-navigation').props.style),
+        ).toMatchObject({ marginHorizontal: spacing.sm });
         const navigationTabs = view.getAllByRole('tab');
         expect(navigationTabs).toHaveLength(4);
         navigationTabs.forEach((tab) => {

@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderLeftColor: colors.violet,
     borderLeftWidth: 2,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     borderRightColor: colors.violet,
     borderRightWidth: 2,
     borderTopColor: colors.violet,

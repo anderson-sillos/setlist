@@ -25,7 +25,7 @@ describe('calendário mensal de shows', () => {
         view.getByTestId('calendar-day-2026-02-10').props.style,
       ),
     ).toMatchObject({
-      borderRadius: radii.sm,
+      borderRadius: radii.md,
       borderTopColor: colors.violet,
       borderTopWidth: 2,
     });
