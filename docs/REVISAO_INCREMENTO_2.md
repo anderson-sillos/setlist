@@ -2,14 +2,14 @@
 
 ## Identificação
 
-- Data: 9 de setembro de 2026.
-- Escopo: tarefas 2.1 a 2.6 do change `definir-mvp-setlist`.
+- Data: 9 a 10 de setembro de 2026.
+- Escopo: tarefas 2.1 a 2.12 do change `definir-mvp-setlist`.
 - Branch revisada: `feat/reviewable-app`.
-- Status: parecer consolidado aprovado explicitamente em 9 de setembro de 2026; implementação das melhorias autorizada.
+- Status: Incremento 2 e revisão de UX/UI aprovados e concluídos explicitamente em 10 de setembro de 2026.
 - Prévia web: [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/).
-- Publicação: [workflow Publicar GitHub Pages](https://github.com/anderson-sillos/setlist/actions/runs/34299605998).
+- Publicação: [workflow Publicar GitHub Pages](https://github.com/anderson-sillos/setlist/actions/runs/34532414020).
 - Projeto EAS: [@anderson-silloss-team/setlist](https://expo.dev/accounts/anderson-silloss-team/projects/setlist).
-- Android: [build interno `5b090592`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/5b090592-0a81-4118-827a-23e9216d3fa7) concluído, instalado e navegado com sucesso.
+- Android: [build funcional `5b090592`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/5b090592-0a81-4118-827a-23e9216d3fa7) instalado e navegado; [build final da revisão `76bdb0d2`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/76bdb0d2-dc0f-4e1d-ac1d-a3598e92b53d) concluído com status `FINISHED`.
 - iOS: build e acesso remoto pelo Expo Go com a conta do revisor adiados para uma etapa futura.
 
 ## Objetivo da revisão
@@ -36,8 +36,8 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 
 ## Evidências automatizadas
 
-- `npm run validate`: formatação, lint e tipos aprovados; 8 suítes e 53 testes aprovados.
-- Cobertura: 99,6% de statements, 99,58% de linhas, 100% de funções e 83,24% de branches.
+- `npm run validate`: formatação, lint e tipos aprovados; 13 suítes e 99 testes aprovados.
+- Cobertura: 90,49% de statements, 90,36% de linhas, 87,33% de funções e 82,11% de branches.
 - `npx expo export --platform all --output-dir dist`: configuração de Android, iOS e web exportada sem erro.
 - `npm run export:web -- --output-dir dist`: nove rotas estáticas geradas, incluindo detalhes e modo palco.
 - `openspec validate definir-mvp-setlist --type change --strict`: artefatos OpenSpec válidos.
@@ -134,8 +134,7 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 
 - Revisar o modo palco quando sua implementação funcional for iniciada, dentro da tarefa 8.9.
 - Retomar build e validação física no iOS em etapa futura.
-- Implementar as melhorias aprovadas com dados de demonstração nas tarefas 2.8 a 2.12 antes de avançar para os riscos técnicos.
-- Implementar e validar as melhorias aprovadas nas tarefas 2.8 a 2.12, mantendo o PR aberto para revisão antes do encerramento do grupo.
+- Avançar para a validação antecipada dos riscos técnicos a partir da tarefa 3.1.
 
 ## Parecer
 
@@ -143,4 +142,4 @@ O acesso e a navegação pela versão web foram aprovados. O build interno Andro
 
 As subtarefas 2.6.1 a 2.6.6 e a revisão de UX/UI 2.7 estão concluídas. Este relatório foi aprovado explicitamente em 9 de setembro de 2026. A revisão do modo palco foi transferida para 8.9, e a implementação das melhorias está organizada nas tarefas 2.8 a 2.12.
 
-Durante a tarefa 2.12, a navegação inferior, os filtros, as linhas das listas e o calendário receberam uma nova rodada de ajustes. A tarefa permanece aberta e essas alterações exigem nova revisão explícita antes de serem consideradas concluídas.
+Durante a tarefa 2.12, a navegação inferior, os filtros, as linhas das listas, o calendário, a largura e o alinhamento do conteúdo e as transições de rota receberam uma nova rodada de ajustes. A prévia web foi publicada, o build Android final terminou com status `FINISHED` e o conjunto foi aprovado explicitamente em 10 de setembro de 2026, encerrando o Incremento 2.

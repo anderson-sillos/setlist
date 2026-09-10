@@ -8,11 +8,11 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Branch principal: `main`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1 e tarefas 2.1–2.11 concluídos; a tarefa 2.12 está aberta e recebeu refinamentos adicionais ainda sujeitos a nova revisão.
-- Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
-- Revisão: o relatório funcional e as decisões de UX/UI foram aprovados explicitamente pelo usuário em 9 de setembro de 2026.
-- Próximo passo: revisar com o usuário os novos refinamentos responsivos da tarefa 2.12 antes de publicar a prévia ou preparar outro build interno Android; manter o PR #8 aberto.
+- PR #8: Incremento 2 concluído e aprovado para integração em 10 de setembro de 2026.
+- Implementação: Incrementos 1 e 2 concluídos, incluindo as tarefas 2.1–2.12.
+- Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
+- Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
+- Próximo passo: iniciar a validação antecipada dos riscos técnicos pela tarefa 3.1, com o protótipo mínimo do YouTube IFrame no navegador.
 
 ## Fontes de verdade
 
@@ -44,7 +44,7 @@ openspec validate definir-mvp-setlist --type change --strict
 12. A tarefa 2.9 transformou bandas, repertório e shows em listas compactas e roláveis com busca, filtros, ordenação, durações e permissões aparentes; os detalhes foram reorganizados e Shows ganhou um calendário mensal com fins de semana, feriados nacionais e os destaques solicitados para a terça-feira de Carnaval e Corpus Christi.
 13. A tarefa 2.10 evoluiu a setlist para uma união discriminada de músicas, anotações de planejamento e separadores, adicionou movimentação imutável de blocos e itens, incluiu a composição do tempo entre música e planejamento e garantiu que itens não musicais não cheguem ao modo palco.
 14. A tarefa 2.11 centralizou esqueletos de carregamento, erros recuperáveis, indisponibilidade, faixas de conexão e mensagens temporárias; o catálogo mantém variações determinísticas, ações objetivas, semântica acessível e textos neutros para situações sensíveis.
-15. Durante a tarefa 2.12, a barra inferior ganhou proporção revisada e o destino Palco, o menu passou a entrar horizontalmente, os filtros de Shows e Repertório foram compactados, as linhas foram realinhadas e o calendário passou a usar células menores e nomes de feriado sob seleção. A tarefa continua aberta até uma nova revisão explícita.
+15. A tarefa 2.12 refinou a barra inferior e o destino Palco, a animação horizontal do menu, os filtros compactos, o alinhamento e a largura do conteúdo, as linhas das listas, o calendário e as transições de rota. A prévia web e o build Android final foram publicados e o Incremento 2 recebeu aprovação explícita.
 
 ## Visão confirmada do produto
 
@@ -192,8 +192,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #5: fundação multiplataforma concluída.
 - PR #6: complementos do ambiente de desenvolvimento.
 - PR #7: roteiro para atualizar o ambiente local.
-- PR #8: primeira versão navegável do Incremento 2, mantida aberta para revisão do usuário.
+- PR #8: primeira versão navegável e revisão de UX/UI do Incremento 2, concluídas e aprovadas.
 
 ## Próxima ação recomendada
 
-Apresentar os refinamentos da tarefa 2.12 para nova revisão explícita. Somente após essa revisão, validar a publicação da prévia web e decidir sobre um novo build interno Android. Não marcar a tarefa 2.12 como concluída nem integrar o PR #8 antes da aprovação. A validação iOS permanece adiada para uma etapa futura.
+Iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, validando player visível, reprodução, pausa, busca e leitura do tempo atual. A validação iOS permanece adiada para uma etapa futura.
