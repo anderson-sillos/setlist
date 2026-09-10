@@ -33,10 +33,18 @@ interface ChoiceChipsProps<Value extends string> {
 
 interface OptionMenuProps<Value extends string> {
   readonly accessibilityLabel: string;
+  readonly compact?: boolean;
   readonly label: string;
   readonly onChange: (value: Value) => void;
   readonly options: readonly ChoiceOption<Value>[];
   readonly value: Value;
+}
+
+interface FilterMenuProps {
+  readonly accessibilityLabel: string;
+  readonly children: ReactNode;
+  readonly label: string;
+  readonly summary?: string;
 }
 
 export function ListControls({ children }: { readonly children: ReactNode }) {
@@ -107,8 +115,66 @@ export function ChoiceChips<Value extends string>({
   );
 }
 
+export function FilterMenu({
+  accessibilityLabel,
+  children,
+  label,
+  summary,
+}: FilterMenuProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Pressable
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        onPress={() => setOpen(true)}
+        style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
+      >
+        <AppText numberOfLines={1} tone="accent" variant="caption">
+          {label}
+          {summary ? `: ${summary}` : ''}⌄
+        </AppText>
+      </Pressable>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+        transparent
+        visible={open}
+      >
+        <Pressable
+          accessibilityLabel="Fechar filtros"
+          accessibilityRole="button"
+          onPress={() => setOpen(false)}
+          style={styles.modalScrim}
+        >
+          <View style={styles.optionSheet}>
+            <AppText accessibilityRole="header" variant="heading">
+              {label}
+            </AppText>
+            <View style={styles.filterContent}>{children}</View>
+            <Pressable
+              accessibilityLabel="Aplicar filtros"
+              accessibilityRole="button"
+              onPress={() => setOpen(false)}
+              style={({ pressed }) => [
+                styles.applyButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <AppText tone="inverse">Concluir</AppText>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
 export function OptionMenu<Value extends string>({
   accessibilityLabel,
+  compact = false,
   label,
   onChange,
   options,
@@ -123,11 +189,12 @@ export function OptionMenu<Value extends string>({
       <Pressable
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
+        accessibilityValue={{ text: selectedLabel }}
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
       >
         <AppText numberOfLines={1} tone="accent" variant="caption">
-          {label}: {selectedLabel}⌄
+          {compact ? label : `${label}: ${selectedLabel}`}⌄
         </AppText>
       </Pressable>
 
@@ -258,6 +325,18 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     flex: 1,
+  },
+  filterContent: {
+    gap: spacing.lg,
+  },
+  applyButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: colors.violet,
+    borderRadius: radii.md,
+    justifyContent: 'center',
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.xl,
   },
   pressed: {
     opacity: 0.72,

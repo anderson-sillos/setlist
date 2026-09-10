@@ -16,6 +16,7 @@ import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
   ChoiceChips,
+  FilterMenu,
   ListControls,
   OptionMenu,
   SearchField,
@@ -48,6 +49,7 @@ import {
   getBandSectionHref,
   getShowHref,
   getSongHref,
+  getStageHref,
 } from '@/features/navigation/routes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -86,17 +88,17 @@ const showViews = [
 ] as const;
 
 const showPeriods = [
+  { label: 'Todos', value: 'all' },
   { label: 'Próximos', value: 'upcoming' },
   { label: 'Passados', value: 'past' },
-  { label: 'Todos', value: 'all' },
 ] as const;
 
 const showStatuses = [
+  { label: 'Todos', value: 'all' },
   { label: 'Ativos', value: 'active' },
   { label: 'Rascunho', value: 'draft' },
   { label: 'Pronto', value: 'ready' },
   { label: 'Cancelado', value: 'cancelled' },
-  { label: 'Todos', value: 'all' },
 ] as const;
 
 const showSorts = [
@@ -147,7 +149,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
           accessibilityRole="link"
           style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}
         >
-          <View style={styles.rowCopy}>
+          <View style={styles.rowHeader}>
             <View style={styles.rowTitleLine}>
               <AppText style={styles.rowTitle} variant="heading">
                 {song.title}
@@ -164,19 +166,32 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
                 {lyricStatusLabels[song.lyricStatus]}
               </StatusPill>
             </View>
-            <AppText tone="muted">
+            <AppText tone="accent">›</AppText>
+          </View>
+          <View style={styles.rowDetails}>
+            <AppText
+              numberOfLines={1}
+              style={styles.rowDetailCopy}
+              tone="muted"
+            >
               {song.originalArtist ?? 'Artista/Banda não informado'}
             </AppText>
+            <View
+              accessibilityLabel={`Duração ${
+                song.estimatedDurationMs === null
+                  ? 'não informada'
+                  : formatDuration(song.estimatedDurationMs)
+              }`}
+              style={styles.durationMeta}
+            >
+              <AppText tone="accent">◷</AppText>
+              <AppText style={styles.durationValue} tone="accent">
+                {song.estimatedDurationMs === null
+                  ? '—'
+                  : formatDuration(song.estimatedDurationMs)}
+              </AppText>
+            </View>
           </View>
-          <View style={styles.rowMeta}>
-            <AppText variant="caption">Duração</AppText>
-            <AppText tone="accent">
-              {song.estimatedDurationMs === null
-                ? '—'
-                : formatDuration(song.estimatedDurationMs)}
-            </AppText>
-          </View>
-          <AppText tone="accent">›</AppText>
         </Pressable>
       </Link>
     </View>
@@ -204,7 +219,7 @@ function ShowRow({
             pressed && styles.pressed,
           ]}
         >
-          <View style={styles.rowCopy}>
+          <View style={styles.rowHeader}>
             <View style={styles.rowTitleLine}>
               <AppText style={styles.rowTitle} variant="heading">
                 {show.name}
@@ -213,16 +228,31 @@ function ShowRow({
                 {showStatusLabels[show.status]}
               </StatusPill>
             </View>
-            <AppText tone="muted">{formatShowDate(show.startsAt)}</AppText>
-            <AppText variant="caption">{show.venue}</AppText>
+            <AppText tone="accent">›</AppText>
           </View>
-          <View style={styles.rowMeta}>
-            <AppText variant="caption">Tempo total</AppText>
-            <AppText tone="accent">
-              {durationMs === null ? '—' : formatDuration(durationMs)}
+          <AppText tone="muted">{formatShowDate(show.startsAt)}</AppText>
+          <View style={styles.rowDetails}>
+            <AppText
+              numberOfLines={1}
+              style={styles.rowDetailCopy}
+              variant="caption"
+            >
+              {show.venue}
             </AppText>
+            <View
+              accessibilityLabel={`Duração ${
+                durationMs === null
+                  ? 'não informada'
+                  : formatDuration(durationMs)
+              }`}
+              style={styles.durationMeta}
+            >
+              <AppText tone="accent">◷</AppText>
+              <AppText style={styles.durationValue} tone="accent">
+                {durationMs === null ? '—' : formatDuration(durationMs)}
+              </AppText>
+            </View>
           </View>
-          <AppText tone="accent">›</AppText>
         </Pressable>
       </Link>
     </View>
@@ -264,13 +294,16 @@ export function ShowsScreen({
       ).includes(normalizedSearch);
       const startsAt = new Date(show.startsAt);
       const matchesPeriod =
+        state.view === 'calendar' ||
         state.period === 'all' ||
         (state.period === 'upcoming' ? startsAt >= now : startsAt < now);
       const matchesStatus =
-        state.status === 'all' ||
-        (state.status === 'active'
+        state.view === 'calendar'
           ? show.status === 'draft' || show.status === 'ready'
-          : show.status === state.status);
+          : state.status === 'all' ||
+            (state.status === 'active'
+              ? show.status === 'draft' || show.status === 'ready'
+              : show.status === state.status);
 
       return matchesSearch && matchesPeriod && matchesStatus;
     });
@@ -296,6 +329,8 @@ export function ShowsScreen({
     update('status', 'active');
     update('sort', 'date-asc');
   };
+  const activeFilterCount =
+    Number(state.period !== 'upcoming') + Number(state.status !== 'active');
 
   const controls = (
     <ListControls>
@@ -305,32 +340,51 @@ export function ShowsScreen({
         placeholder="Buscar show ou local"
         value={state.search}
       />
-      <ChoiceChips
-        accessibilityLabel="Visualização dos shows"
-        onChange={(value) => update('view', value)}
-        options={showViews}
-        value={state.view}
-      />
-      <ChoiceChips
-        accessibilityLabel="Período dos shows"
-        onChange={(value) => update('period', value)}
-        options={showPeriods}
-        value={state.period}
-      />
-      <View style={styles.controlFooter}>
+      <View style={styles.controlToolbar}>
         <ChoiceChips
-          accessibilityLabel="Estado dos shows"
-          onChange={(value) => update('status', value)}
-          options={showStatuses}
-          value={state.status}
+          accessibilityLabel="Visualização dos shows"
+          onChange={(value) => update('view', value)}
+          options={showViews}
+          value={state.view}
         />
-        <OptionMenu
-          accessibilityLabel="Alterar ordenação dos shows"
-          label="Ordenar"
-          onChange={(value) => update('sort', value)}
-          options={showSorts}
-          value={state.sort}
-        />
+        {state.view === 'list' ? (
+          <>
+            <FilterMenu
+              accessibilityLabel="Abrir filtros dos shows"
+              label="Filtros"
+              summary={
+                activeFilterCount > 0 ? String(activeFilterCount) : undefined
+              }
+            >
+              <View style={styles.filterGroup}>
+                <AppText variant="eyebrow">Período</AppText>
+                <ChoiceChips
+                  accessibilityLabel="Período dos shows"
+                  onChange={(value) => update('period', value)}
+                  options={showPeriods}
+                  value={state.period}
+                />
+              </View>
+              <View style={styles.filterGroup}>
+                <AppText variant="eyebrow">Status</AppText>
+                <ChoiceChips
+                  accessibilityLabel="Estado dos shows"
+                  onChange={(value) => update('status', value)}
+                  options={showStatuses}
+                  value={state.status}
+                />
+              </View>
+            </FilterMenu>
+            <OptionMenu
+              accessibilityLabel="Alterar ordenação dos shows"
+              compact
+              label="Ordenar"
+              onChange={(value) => update('sort', value)}
+              options={showSorts}
+              value={state.sort}
+            />
+          </>
+        ) : null}
       </View>
     </ListControls>
   );
@@ -489,15 +543,18 @@ export function RepertoireScreen({
             placeholder="Buscar música ou artista/banda"
             value={state.search}
           />
-          <View style={styles.controlFooter}>
-            <ChoiceChips
-              accessibilityLabel="Estado das músicas"
+          <View style={styles.controlToolbarEnd}>
+            <OptionMenu
+              accessibilityLabel="Alterar filtros do repertório"
+              compact
+              label="Filtrar"
               onChange={(value) => update('filter', value)}
               options={repertoireFilters}
               value={state.filter}
             />
             <OptionMenu
               accessibilityLabel="Alterar ordenação do repertório"
+              compact
               label="Ordenar"
               onChange={(value) => update('sort', value)}
               options={repertoireSorts}
@@ -541,6 +598,92 @@ export function RepertoireScreen({
         scrollEventThrottle={120}
         showsVerticalScrollIndicator={false}
         testID="repertoire-list"
+      />
+    </BandAreaLayout>
+  );
+}
+
+export function StageHubScreen({
+  bandId,
+  viewportHeight,
+  viewportWidth,
+}: BandSectionScreenProps) {
+  const showsQuery = useShows(bandId);
+  const shows = useMemo(
+    () =>
+      [...(showsQuery.data ?? [])]
+        .filter((show) => show.status !== 'cancelled')
+        .sort((left, right) => left.startsAt.localeCompare(right.startsAt)),
+    [showsQuery.data],
+  );
+
+  return (
+    <BandAreaLayout
+      activeSection="stage"
+      bandId={bandId}
+      currentRoute={getBandSectionHref(bandId, 'stage') as string}
+      scrollable={false}
+      title="Modo palco"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
+      {showsQuery.isPending ? <LoadingFeedback /> : null}
+      {showsQuery.isError ? (
+        <ErrorFeedback onRetry={() => void showsQuery.refetch()} />
+      ) : null}
+      <FlatList
+        contentContainerStyle={styles.listContent}
+        data={shows}
+        keyExtractor={({ id }) => id}
+        ListEmptyComponent={
+          !showsQuery.isPending && !showsQuery.isError ? (
+            <ListEmptyState
+              message="Ainda não há show disponível para abrir no palco."
+              title="Palco aguardando o bis"
+            />
+          ) : null
+        }
+        ListHeaderComponent={
+          <View style={styles.stageIntro}>
+            <AppText variant="heading">Escolha um show</AppText>
+            <AppText tone="muted">
+              Esta é a entrada para a prévia atual. A experiência completa do
+              modo palco será refinada em uma etapa futura.
+            </AppText>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.rowFrame}>
+            <Link href={getStageHref(bandId, item.id)} asChild>
+              <Pressable
+                accessibilityLabel={`Abrir ${item.name} no modo palco`}
+                accessibilityRole="link"
+                style={({ pressed }) => [
+                  styles.listRow,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.rowHeader}>
+                  <View style={styles.rowTitleLine}>
+                    <AppText style={styles.rowTitle} variant="heading">
+                      {item.name}
+                    </AppText>
+                    <StatusPill
+                      tone={item.status === 'ready' ? 'ready' : 'default'}
+                    >
+                      {showStatusLabels[item.status]}
+                    </StatusPill>
+                  </View>
+                  <AppText tone="accent">›</AppText>
+                </View>
+                <AppText tone="muted">{formatShowDate(item.startsAt)}</AppText>
+                <AppText variant="caption">{item.venue}</AppText>
+              </Pressable>
+            </Link>
+          </View>
+        )}
+        showsVerticalScrollIndicator={false}
+        testID="stage-shows-list"
       />
     </BandAreaLayout>
   );
@@ -714,12 +857,20 @@ function MemberRow({
 export { formatShowDate, lyricStatusLabels, showStatusLabels };
 
 const styles = StyleSheet.create({
-  controlFooter: {
-    alignItems: 'flex-start',
+  controlToolbar: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
     justifyContent: 'space-between',
+  },
+  controlToolbarEnd: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'flex-end',
+  },
+  filterGroup: {
+    gap: spacing.sm,
   },
   listContent: {
     flexGrow: 1,
@@ -730,6 +881,10 @@ const styles = StyleSheet.create({
   calendarContent: {
     padding: spacing.xl,
   },
+  stageIntro: {
+    gap: spacing.sm,
+    paddingBottom: spacing.lg,
+  },
   rowFrame: {
     alignSelf: 'center',
     maxWidth: layout.contentMaxWidth,
@@ -737,14 +892,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   listRow: {
-    alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.md,
-    minHeight: 78,
+    gap: spacing.sm,
+    minHeight: 82,
     padding: spacing.md,
   },
   cancelledRow: {
@@ -755,8 +908,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minWidth: 0,
   },
+  rowHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   rowTitleLine: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
@@ -764,10 +923,24 @@ const styles = StyleSheet.create({
   rowTitle: {
     flexShrink: 1,
   },
-  rowMeta: {
-    alignItems: 'flex-end',
+  rowDetails: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  rowDetailCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  durationValue: {
+    fontVariant: ['tabular-nums'],
+  },
+  durationMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 0,
     gap: spacing.xs,
-    minWidth: 76,
   },
   pill: {
     backgroundColor: colors.violetSoft,

@@ -15,6 +15,7 @@ const sectionLabels: Record<BandSection, string> = {
   band: 'Banda',
   repertoire: 'Repertório',
   shows: 'Shows',
+  stage: 'Modo palco',
 };
 
 interface BandAreaLayoutProps extends PropsWithChildren {

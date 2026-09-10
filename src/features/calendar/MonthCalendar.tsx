@@ -79,10 +79,6 @@ export function MonthCalendar({
   const holidaysByDate = new Map(
     holidays.map((holiday) => [holiday.dateKey, holiday]),
   );
-  const monthHolidays = holidays.filter((holiday) => {
-    const parts = getDateParts(holiday.dateKey);
-    return parts.month === visibleMonth.month;
-  });
   const showsByDate = new Map<string, Show[]>();
 
   shows.forEach((show) => {
@@ -96,7 +92,12 @@ export function MonthCalendar({
     (left, right) => left.startsAt.localeCompare(right.startsAt),
   );
   const selectedHoliday = holidaysByDate.get(selectedDateKey);
-  const monthLabel = new Intl.DateTimeFormat('pt-BR', {
+  const monthName = new Intl.DateTimeFormat('pt-BR', {
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(visibleMonth.year, visibleMonth.month, 1)));
+  const monthLabel = `${monthName} / ${visibleMonth.year}`;
+  const accessibleMonthLabel = new Intl.DateTimeFormat('pt-BR', {
     month: 'long',
     timeZone: 'UTC',
     year: 'numeric',
@@ -195,29 +196,27 @@ export function MonthCalendar({
 
           return (
             <Pressable
-              accessibilityLabel={`${day} de ${monthLabel}, ${
+              accessibilityLabel={`${isToday ? 'Hoje, ' : ''}${day} de ${accessibleMonthLabel}, ${
                 holiday ? `${holiday.name}, ` : ''
               }${showDescription}`}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
               key={dateKey}
               onPress={() => setSelectedDateKey(dateKey)}
+              testID={`calendar-day-${dateKey}`}
               style={({ pressed }) => [
                 styles.dayCell,
                 weekend && styles.weekend,
+                dayShows.length > 0 && styles.eventDay,
                 holiday && styles.holiday,
+                isToday && styles.today,
                 isSelected && styles.selectedDay,
                 pressed && styles.pressed,
               ]}
             >
-              <View style={styles.dayTopLine}>
-                <AppText variant="caption">{day}</AppText>
-                {isToday ? (
-                  <AppText tone="accent" variant="caption">
-                    Hoje
-                  </AppText>
-                ) : null}
-              </View>
+              <AppText style={styles.dayNumber} variant="caption">
+                {day}
+              </AppText>
               {dayShows.length > 0 ? (
                 <View style={styles.showMarker}>
                   <AppText tone="inverse" variant="caption">
@@ -225,33 +224,17 @@ export function MonthCalendar({
                   </AppText>
                 </View>
               ) : null}
-              {holiday ? (
-                <AppText tone="accent" variant="caption">
-                  Feriado
-                </AppText>
-              ) : null}
             </Pressable>
           );
         })}
       </View>
-
-      {monthHolidays.length > 0 ? (
-        <View style={styles.holidayLegend}>
-          <AppText variant="caption">Feriados do mês:</AppText>
-          {monthHolidays.map((holiday) => (
-            <AppText key={holiday.dateKey} tone="muted" variant="caption">
-              {Number(holiday.dateKey.slice(-2))} · {holiday.name}
-            </AppText>
-          ))}
-        </View>
-      ) : null}
 
       <View style={styles.selectedDayShows}>
         <AppText accessibilityRole="header" variant="heading">
           {formatSelectedDate(selectedDateKey)}
         </AppText>
         {selectedHoliday ? (
-          <AppText tone="accent">Feriado · {selectedHoliday.name}</AppText>
+          <AppText tone="accent">{selectedHoliday.name}</AppText>
         ) : null}
         {selectedShows.length === 0 ? (
           <AppText tone="muted">
@@ -305,56 +288,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     justifyContent: 'center',
-    minHeight: 36,
+    minHeight: 30,
     width: '14.2857%',
   },
   weekdayLabel: {
     fontWeight: '700',
   },
   dayCell: {
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderTopColor: colors.line,
     borderTopWidth: 1,
-    gap: spacing.xs,
-    minHeight: 76,
-    padding: spacing.sm,
+    justifyContent: 'center',
+    minHeight: layout.minimumTouchTarget,
+    padding: spacing.xs,
+    position: 'relative',
     width: '14.2857%',
   },
   weekend: {
     backgroundColor: colors.violetSoft,
   },
+  eventDay: {
+    backgroundColor: colors.greenSoft,
+  },
   holiday: {
-    borderTopColor: colors.amber,
-    borderTopWidth: 3,
+    backgroundColor: '#fff2cc',
+  },
+  today: {
+    backgroundColor: colors.cyanSoft,
   },
   selectedDay: {
     borderColor: colors.violet,
     borderWidth: 2,
   },
-  dayTopLine: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    justifyContent: 'space-between',
+  dayNumber: {
+    fontWeight: '700',
+    textAlign: 'center',
   },
   showMarker: {
     alignItems: 'center',
-    alignSelf: 'flex-start',
     backgroundColor: colors.violet,
+    bottom: 2,
     borderRadius: radii.pill,
     justifyContent: 'center',
-    minHeight: 20,
-    minWidth: 20,
-    paddingHorizontal: spacing.xs,
-  },
-  holidayLegend: {
-    backgroundColor: '#fff7ed',
-    borderColor: colors.amber,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    gap: spacing.xs,
-    padding: spacing.md,
+    minHeight: 16,
+    minWidth: 16,
+    paddingHorizontal: 2,
+    position: 'absolute',
+    right: 2,
   },
   selectedDayShows: {
     gap: spacing.md,

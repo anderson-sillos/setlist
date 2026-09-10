@@ -1,8 +1,10 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { demoRepositoryData } from '@/data/demo';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
+import { colors } from '@/theme/tokens';
 
 describe('calendário mensal de shows', () => {
   it('começa no domingo, destaca Carnaval e permite trocar de mês', async () => {
@@ -15,17 +17,19 @@ describe('calendário mensal de shows', () => {
     );
 
     expect(view.getAllByText('Dom')).toHaveLength(1);
-    expect(view.getByText('17 · Carnaval (terça-feira)')).toBeTruthy();
+    expect(view.queryByText('Carnaval (terça-feira)')).toBeNull();
+    expect(view.queryByText('Feriado')).toBeNull();
+    expect(view.queryByText('Hoje')).toBeNull();
 
     await fireEvent.press(
       view.getByLabelText(/17 de fevereiro de 2026, Carnaval/),
     );
-    expect(view.getByText('Feriado · Carnaval (terça-feira)')).toBeTruthy();
+    expect(view.getByText('Carnaval (terça-feira)')).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Próximo mês'));
-    expect(view.getByText('março de 2026')).toBeTruthy();
+    expect(view.getByText('março / 2026')).toBeTruthy();
     await fireEvent.press(view.getByLabelText('Mês anterior'));
-    expect(view.getByText('fevereiro de 2026')).toBeTruthy();
+    expect(view.getByText('fevereiro / 2026')).toBeTruthy();
   });
 
   it('destaca Corpus Christi no calendário do produto', async () => {
@@ -37,12 +41,12 @@ describe('calendário mensal de shows', () => {
       />,
     );
 
-    expect(view.getByText('4 · Corpus Christi')).toBeTruthy();
+    expect(view.queryByText('Corpus Christi')).toBeNull();
 
     await fireEvent.press(
       view.getByLabelText(/4 de junho de 2026, Corpus Christi/),
     );
-    expect(view.getByText('Feriado · Corpus Christi')).toBeTruthy();
+    expect(view.getByText('Corpus Christi')).toBeTruthy();
   });
 
   it('marca a quantidade de shows e apresenta a agenda do dia', async () => {
@@ -56,6 +60,12 @@ describe('calendário mensal de shows', () => {
         shows={shows}
       />,
     );
+
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('calendar-day-2026-09-19').props.style,
+      ).backgroundColor,
+    ).toBe(colors.greenSoft);
 
     await fireEvent.press(
       view.getByLabelText(/19 de setembro de 2026, 2 shows/),

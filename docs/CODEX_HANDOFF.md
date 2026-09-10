@@ -9,10 +9,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1 e tarefas 2.1–2.11 concluídos; resta validar e publicar o grupo de melhorias na tarefa 2.12.
+- Implementação: Incremento 1 e tarefas 2.1–2.11 concluídos; a tarefa 2.12 está aberta e recebeu refinamentos adicionais ainda sujeitos a nova revisão.
 - Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional e as decisões de UX/UI foram aprovados explicitamente pelo usuário em 9 de setembro de 2026.
-- Próximo passo: validar as melhorias nos modos responsivos, publicar a nova prévia web e preparar o build interno Android da tarefa 2.12, mantendo o PR #8 aberto até a revisão do usuário.
+- Próximo passo: revisar com o usuário os novos refinamentos responsivos da tarefa 2.12 antes de publicar a prévia ou preparar outro build interno Android; manter o PR #8 aberto.
 
 ## Fontes de verdade
 
@@ -44,6 +44,7 @@ openspec validate definir-mvp-setlist --type change --strict
 12. A tarefa 2.9 transformou bandas, repertório e shows em listas compactas e roláveis com busca, filtros, ordenação, durações e permissões aparentes; os detalhes foram reorganizados e Shows ganhou um calendário mensal com fins de semana, feriados nacionais e os destaques solicitados para a terça-feira de Carnaval e Corpus Christi.
 13. A tarefa 2.10 evoluiu a setlist para uma união discriminada de músicas, anotações de planejamento e separadores, adicionou movimentação imutável de blocos e itens, incluiu a composição do tempo entre música e planejamento e garantiu que itens não musicais não cheguem ao modo palco.
 14. A tarefa 2.11 centralizou esqueletos de carregamento, erros recuperáveis, indisponibilidade, faixas de conexão e mensagens temporárias; o catálogo mantém variações determinísticas, ações objetivas, semântica acessível e textos neutros para situações sensíveis.
+15. Durante a tarefa 2.12, a barra inferior ganhou proporção revisada e o destino Palco, o menu passou a entrar horizontalmente, os filtros de Shows e Repertório foram compactados, as linhas foram realinhadas e o calendário passou a usar células menores e nomes de feriado sob seleção. A tarefa continua aberta até uma nova revisão explícita.
 
 ## Visão confirmada do produto
 
@@ -103,11 +104,11 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 
 ## UX/UI aprovada para implementação
 
-- No celular e tablet em retrato, usar cabeçalho fixo, barra inferior com Shows, Repertório e Banda e menu lateral para opções gerais; em tablet paisagem e computador, usar menu lateral permanente sem barra inferior.
+- No celular e tablet em retrato, usar cabeçalho fixo, barra inferior compacta com Shows, Repertório, Palco e Banda e menu entrando horizontalmente pela esquerda; em tablet paisagem e computador, usar menu lateral permanente sem barra inferior.
 - Preservar pilha, busca, filtros, ordenação e rolagem ao alternar entre as seções principais.
 - Usar listas compactas e roláveis para repertório, shows e bandas, com controles fixos conforme a tela.
 - Priorizar a letra nos detalhes da música, mantendo todos os blocos expandidos e os tempos ocultos fora do editor de sincronização.
-- Disponibilizar em Shows as visões Lista e Calendário mensal, com diferenciação textual e visual de finais de semana e feriados nacionais.
+- Disponibilizar em Shows as visões Lista e Calendário mensal, com filtros e ordenação exclusivos da lista; usar fundos próprios para datas com eventos, finais de semana, hoje e feriados e mostrar o nome do feriado quando a data for selecionada.
 - Apresentar carregamento, vazio, erro, indisponibilidade, conexão e mensagens temporárias de forma consistente e acessível.
 - Usar tom informal e bem-humorado em situações gerais e recuperáveis; manter linguagem direta em ações destrutivas, legais, de segurança ou de perda de conteúdo.
 - Adiar a revisão específica do modo palco para a tarefa 8.9.
@@ -194,4 +195,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Executar a tarefa 2.12: validar as melhorias em celular, tablet e computador, publicar a nova prévia web e preparar um build interno Android. Depois, solicitar a revisão explícita antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.
+Apresentar os refinamentos da tarefa 2.12 para nova revisão explícita. Somente após essa revisão, validar a publicação da prévia web e decidir sobre um novo build interno Android. Não marcar a tarefa 2.12 como concluída nem integrar o PR #8 antes da aprovação. A validação iOS permanece adiada para uma etapa futura.

@@ -1,5 +1,6 @@
 import { Link, type Href } from 'expo-router';
 import {
+  Animated,
   Modal,
   PanResponder,
   Pressable,
@@ -14,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PropsWithChildren, ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ConnectionBanner, type ConnectionStatus } from '@/components/feedback';
 import { AppText } from '@/components/ui/AppText';
@@ -67,8 +68,9 @@ const navigationItems: readonly {
   readonly marker: string;
   readonly section: BandSection;
 }[] = [
-  { label: 'Shows', marker: '●', section: 'shows' },
-  { label: 'Repertório', marker: '♪', section: 'repertoire' },
+  { label: 'Shows', marker: '▣', section: 'shows' },
+  { label: 'Repertório', marker: '♫', section: 'repertoire' },
+  { label: 'Palco', marker: '▶', section: 'stage' },
   { label: 'Banda', marker: '♬', section: 'band' },
 ];
 
@@ -124,17 +126,28 @@ function NavigationLink({
           pressed && styles.pressed,
         ]}
       >
-        <AppText
-          style={presentation === 'bottom' && styles.bottomMarker}
-          tone={
-            presentation === 'sidebar' ? 'inverse' : active ? 'accent' : 'muted'
-          }
-          variant={presentation === 'bottom' ? 'caption' : 'body'}
-        >
-          {presentation === 'bottom'
-            ? `${marker}\n${label}`
-            : `${marker}  ${label}`}
-        </AppText>
+        {presentation === 'bottom' ? (
+          <>
+            <AppText
+              style={styles.bottomMarker}
+              tone={active ? 'accent' : 'muted'}
+            >
+              {marker}
+            </AppText>
+            <AppText
+              numberOfLines={1}
+              style={styles.bottomLabel}
+              tone={active ? 'accent' : 'muted'}
+              variant="caption"
+            >
+              {label}
+            </AppText>
+          </>
+        ) : (
+          <AppText tone="inverse">
+            {marker} {label}
+          </AppText>
+        )}
       </Pressable>
     </Link>
   );
@@ -389,7 +402,40 @@ export function AppNavigationShell({
   const navigationPresentation = getNavigationPresentation(width, height);
   const persistentSidebar = navigationPresentation === 'sidebar';
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerTranslateX] = useState(() => new Animated.Value(-360));
   const navigationMemory = useNavigationMemory();
+
+  const openDrawer = useCallback(() => {
+    drawerTranslateX.setValue(-Math.min(width * 0.86, 360));
+    setDrawerOpen(true);
+  }, [drawerTranslateX, width]);
+
+  const closeDrawer = useCallback(() => {
+    Animated.timing(drawerTranslateX, {
+      duration: 180,
+      toValue: -Math.min(width * 0.86, 360),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        setDrawerOpen(false);
+      }
+    });
+  }, [drawerTranslateX, width]);
+
+  useEffect(() => {
+    if (!drawerOpen) {
+      return;
+    }
+
+    const animation = Animated.timing(drawerTranslateX, {
+      duration: 240,
+      toValue: 0,
+      useNativeDriver: true,
+    });
+
+    animation.start();
+    return () => animation.stop();
+  }, [drawerOpen, drawerTranslateX]);
 
   useEffect(() => {
     if (bandId && activeSection && currentRoute && screenKind !== 'edit') {
@@ -432,11 +478,11 @@ export function AppNavigationShell({
           Math.abs(gesture.dx) > Math.abs(gesture.dy),
         onPanResponderRelease: (_, gesture) => {
           if (gesture.dx >= 40) {
-            setDrawerOpen(true);
+            openDrawer();
           }
         },
       }),
-    [persistentSidebar, screenKind],
+    [openDrawer, persistentSidebar, screenKind],
   );
 
   const showBottomNavigation =
@@ -467,7 +513,7 @@ export function AppNavigationShell({
             bandName={bandName}
             editActions={editActions}
             headerAction={headerAction}
-            onOpenMenu={() => setDrawerOpen(true)}
+            onOpenMenu={openDrawer}
             persistentSidebar={persistentSidebar}
             screenKind={screenKind}
             subtitle={subtitle}
@@ -541,36 +587,43 @@ export function AppNavigationShell({
 
       {!persistentSidebar ? (
         <Modal
-          animationType="slide"
-          onRequestClose={() => setDrawerOpen(false)}
+          animationType="none"
+          onRequestClose={closeDrawer}
           transparent
           visible={drawerOpen}
         >
           <View style={styles.drawerLayer}>
-            <SafeAreaView style={styles.drawer} testID="navigation-drawer">
-              <View style={styles.drawerHeader}>
-                <AppText tone="inverse" variant="eyebrow">
-                  Menu geral
-                </AppText>
-                <IconButton
-                  accessibilityLabel="Fechar menu geral"
-                  onPress={() => setDrawerOpen(false)}
-                >
-                  ×
-                </IconButton>
-              </View>
-              <NavigationPanel
-                activeSection={activeSection}
-                bandId={bandId}
-                bandName={bandName}
-                getSectionHref={getSectionHref}
-                onNavigate={() => setDrawerOpen(false)}
-              />
-            </SafeAreaView>
+            <Animated.View
+              style={[
+                styles.drawerFrame,
+                { transform: [{ translateX: drawerTranslateX }] },
+              ]}
+            >
+              <SafeAreaView style={styles.drawer} testID="navigation-drawer">
+                <View style={styles.drawerHeader}>
+                  <AppText tone="inverse" variant="eyebrow">
+                    Menu geral
+                  </AppText>
+                  <IconButton
+                    accessibilityLabel="Fechar menu geral"
+                    onPress={closeDrawer}
+                  >
+                    ×
+                  </IconButton>
+                </View>
+                <NavigationPanel
+                  activeSection={activeSection}
+                  bandId={bandId}
+                  bandName={bandName}
+                  getSectionHref={getSectionHref}
+                  onNavigate={closeDrawer}
+                />
+              </SafeAreaView>
+            </Animated.View>
             <Pressable
               accessibilityLabel="Fechar menu geral"
               accessibilityRole="button"
-              onPress={() => setDrawerOpen(false)}
+              onPress={closeDrawer}
               style={styles.drawerScrim}
             />
           </View>
@@ -661,25 +714,34 @@ const styles = StyleSheet.create({
     borderTopColor: colors.line,
     borderTopWidth: 1,
     flexDirection: 'row',
-    minHeight: 68,
+    minHeight: 58,
+    width: '100%',
   },
   bottomNavigationItem: {
     alignItems: 'center',
     flex: 1,
+    gap: 1,
     justifyContent: 'center',
-    minHeight: 64,
+    minHeight: 56,
     paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   bottomNavigationItemActive: {
     backgroundColor: colors.violetSoft,
   },
   bottomMarker: {
+    fontSize: 22,
     fontWeight: '700',
+    lineHeight: 23,
+    textAlign: 'center',
+  },
+  bottomLabel: {
+    fontSize: 11,
+    lineHeight: 14,
     textAlign: 'center',
   },
   edgeGesture: {
-    bottom: 68,
+    bottom: 58,
     left: 0,
     position: 'absolute',
     top: 64,
@@ -755,10 +817,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
-  drawer: {
-    backgroundColor: colors.navy,
+  drawerFrame: {
     maxWidth: 360,
     width: '86%',
+  },
+  drawer: {
+    backgroundColor: colors.navy,
+    flex: 1,
+    width: '100%',
   },
   drawerScrim: {
     backgroundColor: 'rgba(11, 16, 32, 0.52)',

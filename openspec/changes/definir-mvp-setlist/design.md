@@ -70,17 +70,17 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - A autenticação e o perfil existirão independentemente da participação em uma banda.
 - O usuário sem banda selecionada verá o espaço neutro `Minhas bandas`, no qual poderá criar uma banda, aguardar um convite ou abrir externamente o link de um convite recebido. Não haverá colagem manual nem leitura de QR Code para convites no MVP.
 - Ao reabrir a aplicação, a última banda selecionada será restaurada se a participação continuar ativa; caso contrário, será exibido `Minhas bandas`.
-- No celular e no tablet em modo retrato, a navegação frequente da banda usará uma barra inferior fixa com Shows, Repertório e Banda, enquanto um menu lateral deslizante reunirá identificação do usuário, acesso a `Minhas bandas`, perfil e conta, termos gerais e privacidade, informações sobre o Setlist e saída.
+- No celular e no tablet em modo retrato, a navegação frequente da banda usará uma barra inferior fixa e compacta com Shows, Repertório, Palco e Banda, com ícones legíveis e destinos distribuídos por toda a largura. Palco abrirá uma seleção de shows antes da experiência de execução. Um menu lateral reunirá identificação do usuário, acesso a `Minhas bandas`, perfil e conta, termos gerais e privacidade, informações sobre o Setlist e saída.
 - No tablet em modo paisagem e no computador, o menu lateral ficará permanente e substituirá a barra inferior. A versão web voltará automaticamente ao padrão mobile quando a largura disponível diminuir.
 - Cada tela terá cabeçalho fixo. Telas principais mostrarão menu, título, banda ativa e no máximo uma ação contextual; detalhes substituirão o menu pelo botão voltar; criação e edição mostrarão somente as ações necessárias para cancelar e salvar.
-- A barra inferior permanecerá visível nas telas principais e nos detalhes em consulta, preservando a pilha, os filtros, a ordenação e a posição da rolagem de cada seção. Ela ficará oculta em criação, edição, autenticação, confirmação de convite e modo palco.
-- Nas telas principais móveis, o menu poderá ser aberto pelo controle do cabeçalho ou pelo gesto iniciado na borda esquerda. Nos detalhes, esse gesto ficará reservado ao retorno.
+- A barra inferior permanecerá visível nas telas principais, na seleção de shows para o Palco e nos detalhes em consulta, preservando a pilha, os filtros, a ordenação e a posição da rolagem de cada seção. Ela ficará oculta em criação, edição, autenticação, confirmação de convite e durante a execução em modo palco.
+- Nas telas principais móveis, o menu entrará horizontalmente pela esquerda e poderá ser aberto pelo controle do cabeçalho ou pelo gesto iniciado nessa borda. Nos detalhes, esse gesto ficará reservado ao retorno.
 - Os downloads continuarão dentro de Shows, e o termo de responsabilidade pelas letras permanecerá nas configurações da banda.
 - O modo palco ocupará a tela inteira e não usará a navegação administrativa durante a apresentação.
 
 ### Experiência responsiva e estados de interface
 
-- Cabeçalhos, barras de busca e filtros permanecerão fixos quando definidos para a tela; somente a região principal de conteúdo terá rolagem.
+- Cabeçalhos, barras de busca e filtros permanecerão fixos quando definidos para a tela; somente a região principal de conteúdo terá rolagem. Filtros com várias dimensões serão agrupados em uma única ação compacta e não ocuparão a maior parte da área útil.
 - Listas extensas serão verticais e virtualizadas. No celular, usarão linhas compactas; em telas maiores, poderão revelar mais colunas sem retornar a cartões excessivamente grandes.
 - O primeiro carregamento usará esqueletos com a forma aproximada do conteúdo, mantendo navegação e cabeçalho. Atualizações em segundo plano preservarão os dados visíveis e usarão um indicador discreto.
 - Estados vazios distinguirão ausência real de conteúdo de ausência de resultado para filtros. Cada estado oferecerá no máximo uma ação contextual, somente quando o papel do usuário permitir.
@@ -138,7 +138,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 - Cada banda manterá seu próprio repertório e uma única versão vigente de cada música.
 - Os campos previstos são título, artista original, tonalidade, BPM, duração estimada, referência do YouTube, letra estruturada, observações, estado da sincronização e `updated_at`.
-- O repertório usará lista vertical rolável com busca por título ou artista, filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas e ordenação por título, artista, atualização ou duração. O padrão será músicas ativas por título.
+- O repertório usará lista vertical rolável com busca por título ou artista, um seletor compacto para os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas e ordenação por título, artista, atualização ou duração. O padrão será músicas ativas por título.
 - Cada linha priorizará título, artista, duração e estado da letra; tonalidade e BPM ficarão no detalhe.
 - A letra será um documento JSONB dentro da música, composto por blocos e linhas ordenados. Blocos e linhas terão identificadores estáveis; cada linha poderá ter seu início em milissegundos.
 - Não haverá tabelas por linha, histórico de versões ou consulta textual avançada no MVP. A gravação de toda a letra será atômica.
@@ -169,10 +169,11 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - As mudanças permanecerão locais durante a edição e serão persistidas por um único salvamento explícito. A saída com mudanças pendentes exigirá confirmação.
 - A duração total somará os valores informados nas músicas e anotações, sem aviso de total parcial. O detalhe apresentará a composição entre músicas e planejamento e cada bloco mostrará seu total; quando nenhum tempo existir, exibirá `Duração não informada`.
 - Cada item poderá ter uma observação opcional específica do show, sem alterar a música do repertório. Ela aparecerá na setlist e no modo palco.
-- Shows usarão lista vertical rolável com busca por nome ou local, filtros por período e estado e ordenação por data, nome ou duração. A consulta padrão mostrará próximos Rascunhos e Prontos pela data mais próxima e ocultará Cancelados.
-- A lista exibirá a duração estimada de cada show. Busca e filtros permanecerão fixos durante a rolagem.
+- Shows usarão lista vertical rolável com busca por nome ou local, uma ação compacta que agrupa filtros por período e estado, apresentando `Todos` primeiro em cada grupo, e ordenação por data, nome ou duração. A consulta padrão mostrará próximos Rascunhos e Prontos pela data mais próxima e ocultará Cancelados.
+- A lista exibirá a duração estimada alinhada aos demais metadados, sem o rótulo redundante `Tempo total`. Busca e controles compactos permanecerão fixos durante a rolagem.
 - A área Shows terá as visões Lista e Calendário. O calendário mensal abrirá no mês atual com hoje selecionado, iniciará a semana no domingo e listará abaixo os shows da data escolhida.
-- No celular, os dias usarão marcadores ou quantidade; em telas maiores, poderão mostrar nomes quando houver espaço. Finais de semana terão diferenciação visual, e os feriados nacionais do Brasil serão calculados localmente e identificados também por texto. Por decisão do produto, a terça-feira de Carnaval e Corpus Christi receberão o mesmo destaque, embora sejam classificados como pontos facultativos no calendário federal.
+- Os dias terão altura compacta e números centralizados. Datas com shows usarão fundo próprio e marcador ou quantidade; finais de semana, hoje e feriados também terão fundos distintos. Quando classificações coincidirem, hoje e feriado terão prioridade de fundo e o marcador continuará identificando o evento. Os feriados nacionais do Brasil serão calculados localmente; o nome ficará disponível para tecnologias assistivas e será mostrado visualmente somente quando a data for selecionada. Por decisão do produto, a terça-feira de Carnaval e Corpus Christi receberão o mesmo destaque, embora sejam classificados como pontos facultativos no calendário federal.
+- Filtros por período e estado e a ordenação serão controles exclusivos da visão Lista. O Calendário ocultará essas ações e mostrará todos os shows ativos do mês, sem herdar os filtros ocultos da lista.
 - O calendário não terá visão semanal ou anual nem integração com calendários externos no MVP.
 - Os estados compartilhados serão Rascunho, Pronto e Cancelado. Não haverá Em andamento ou Finalizado; shows passados serão identificados pela data.
 - Rascunho aceitará edição e prévia online do modo palco, mas não poderá ser baixado.

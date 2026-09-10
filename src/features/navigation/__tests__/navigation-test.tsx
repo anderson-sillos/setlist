@@ -1,8 +1,14 @@
-import { fireEvent, render, renderHook } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  renderHook,
+  waitFor,
+} from '@testing-library/react-native';
 
 import BandRoute from '@/app/bands/[bandId]/band';
 import RepertoireRoute from '@/app/bands/[bandId]/repertoire';
 import SongDetailRoute from '@/app/bands/[bandId]/repertoire/[songId]';
+import StageHubRoute from '@/app/bands/[bandId]/stage';
 import ShowsRoute from '@/app/bands/[bandId]/shows';
 import ShowDetailRoute from '@/app/bands/[bandId]/shows/[showId]';
 import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
@@ -46,7 +52,7 @@ jest.mock('expo-router', () => ({
 }));
 
 describe('navegação inicial', () => {
-  it('define os caminhos de Shows, Repertório e Banda', () => {
+  it('define os caminhos de Shows, Repertório, Palco e Banda', () => {
     expect(getBandSectionHref(demoIds.primaryBand, 'shows')).toBe(
       `/bands/${demoIds.primaryBand}/shows`,
     );
@@ -55,6 +61,9 @@ describe('navegação inicial', () => {
     );
     expect(getBandSectionHref(demoIds.primaryBand, 'band')).toBe(
       `/bands/${demoIds.primaryBand}/band`,
+    );
+    expect(getBandSectionHref(demoIds.primaryBand, 'stage')).toBe(
+      `/bands/${demoIds.primaryBand}/stage`,
     );
     expect(getBandSectionHref('banda com espaço', 'shows')).toBe(
       '/bands/banda%20com%20espa%C3%A7o/shows',
@@ -116,6 +125,11 @@ describe('navegação inicial', () => {
       content: 'Luzes da Cidade',
     },
     {
+      Route: StageHubRoute,
+      navigationLabel: 'Ir para Palco',
+      content: 'Escolha um show',
+    },
+    {
       Route: BandRoute,
       navigationLabel: 'Ir para Banda',
       content: 'Ana Martins',
@@ -130,7 +144,9 @@ describe('navegação inicial', () => {
       );
 
       expect(await view.findByText(content)).toBeTruthy();
-      expect(view.getAllByText('Banda Horizonte').length).toBeGreaterThan(0);
+      expect(
+        (await view.findAllByText('Banda Horizonte')).length,
+      ).toBeGreaterThan(0);
       expect(view.getByLabelText(navigationLabel)).toBeTruthy();
       expect(view.getByLabelText('Abrir menu geral')).toBeTruthy();
     },
@@ -178,6 +194,7 @@ describe('navegação inicial', () => {
 
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
+        expect(view.getByLabelText('Ir para Palco')).toBeTruthy();
       } else {
         expect(view.queryByTestId('bottom-navigation')).toBeNull();
       }
@@ -203,7 +220,9 @@ describe('navegação inicial', () => {
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
-    expect(view.queryByTestId('navigation-drawer')).toBeNull();
+    await waitFor(() =>
+      expect(view.queryByTestId('navigation-drawer')).toBeNull(),
+    );
   });
 
   it('mantém o aviso de conexão compacto abaixo do cabeçalho', async () => {
@@ -257,6 +276,7 @@ describe('navegação inicial', () => {
     expect(view.getByText('Letra estática')).toBeTruthy();
     expect(view.getByText('Sincronização incompleta')).toBeTruthy();
     expect(view.getByText('3:38')).toBeTruthy();
+    expect(view.queryByText('Duração')).toBeNull();
     expect(view.queryByText(/Tom G · BPM/)).toBeNull();
   });
 
@@ -280,7 +300,8 @@ describe('navegação inicial', () => {
       view.getByLabelText('Buscar música por título ou artista'),
       '',
     );
-    await fireEvent.press(view.getByLabelText('Arquivadas'));
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByText('Arquivadas'));
 
     expect(view.getByText('Rota Antiga')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
@@ -319,8 +340,10 @@ describe('navegação inicial', () => {
       view.getByLabelText('Buscar show por nome ou local'),
       '',
     );
+    await fireEvent.press(view.getByLabelText('Abrir filtros dos shows'));
     await fireEvent.press(view.getAllByLabelText('Todos')[0]);
     await fireEvent.press(view.getByLabelText('Cancelado'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
 
     expect(await view.findByText('Encontro de Inverno')).toBeTruthy();
   });
@@ -340,7 +363,14 @@ describe('navegação inicial', () => {
     await fireEvent.press(view.getByLabelText('Calendário'));
 
     expect(view.getByTestId('shows-month-calendar')).toBeTruthy();
-    expect(view.getByText('7 · Independência do Brasil')).toBeTruthy();
+    expect(view.queryByLabelText('Abrir filtros dos shows')).toBeNull();
+    expect(view.queryByLabelText('Alterar ordenação dos shows')).toBeNull();
+    expect(view.queryByText('Independência do Brasil')).toBeNull();
+
+    await fireEvent.press(
+      view.getByLabelText(/7 de setembro de 2026, Independência do Brasil/),
+    );
+    expect(view.getByText('Independência do Brasil')).toBeTruthy();
 
     await fireEvent.press(
       view.getByLabelText(/19 de setembro de 2026, 2 shows/),

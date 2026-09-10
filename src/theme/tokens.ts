@@ -11,6 +11,7 @@ export const colors = {
   cyan: '#22d3ee',
   cyanSoft: '#cffafe',
   green: '#22c55e',
+  greenSoft: '#dcfce7',
   amber: '#f59e0b',
   line: '#e2e3ef',
 } as const;

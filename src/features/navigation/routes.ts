@@ -2,7 +2,7 @@ import type { Href } from 'expo-router';
 
 import type { EntityId } from '@/domain';
 
-export type BandSection = 'shows' | 'repertoire' | 'band';
+export type BandSection = 'shows' | 'repertoire' | 'stage' | 'band';
 
 export function getBandSectionHref(
   bandId: EntityId,

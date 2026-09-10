@@ -61,9 +61,9 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 ### Repertório e música
 
 - Mostrar o repertório em lista vertical rolável com busca por título ou artista.
-- Usar os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas. Pendentes reúne Sem letra, Letra estática e Sincronização incompleta.
+- Usar um seletor compacto para os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas. Pendentes reúne Sem letra, Letra estática e Sincronização incompleta.
 - Ordenar por Título, padrão A–Z, Artista/Banda, atualização mais recente ou maior duração.
-- Mostrar título, artista, duração e estado na lista; manter tonalidade e BPM nos detalhes.
+- Mostrar título, artista, duração e estado em linhas alinhadas, sem o rótulo redundante de duração; manter tonalidade e BPM nos detalhes.
 - Priorizar a letra nos detalhes, apresentar todos os blocos expandidos e ocultar tempos por linha fora do editor de sincronização.
 - Exibir a última atualização em formato relativo e abrir externamente a referência do YouTube na consulta.
 
@@ -80,12 +80,13 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 
 ### Consulta e calendário de shows
 
-- Mostrar Shows em lista rolável com busca por nome ou local, filtros por período e estado e ordenação por data, nome ou duração.
+- Mostrar Shows em lista rolável com busca por nome ou local, uma ação compacta agrupando filtros por período e estado, com `Todos` como primeira opção de cada grupo, e ordenação por data, nome ou duração.
 - Abrir por padrão os próximos shows em Rascunho ou Pronto, pela data mais próxima, deixando Cancelados acessíveis pelos filtros.
 - Oferecer as visões Lista e Calendário dentro de Shows, sem criar outra opção na barra inferior.
 - Usar calendário mensal, abrir no mês atual com hoje selecionado e iniciar a semana no domingo.
-- Marcar datas com shows, indicar quantidade quando houver mais de um e listar os eventos do dia abaixo do mês.
-- Diferenciar finais de semana e feriados nacionais do Brasil por recursos que não dependam apenas de cor.
+- Marcar datas com shows por fundo próprio, manter um marcador, indicar quantidade quando houver mais de um e listar os eventos do dia abaixo do mês.
+- Exibir filtros e ordenação somente na visão Lista; no Calendário, mostrar todos os shows ativos do mês sem herdar filtros ocultos.
+- Usar fundos distintos para finais de semana, hoje e feriados; centralizar os números e mostrar o nome do feriado somente após selecionar a data, mantendo essa informação disponível para tecnologias assistivas.
 - Calcular os feriados localmente, sem API, visão semanal ou anual e sem integração com calendários externos no MVP.
 
 ### Bandas, integrantes e convites
@@ -103,12 +104,12 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 ### Navegação responsiva
 
 - Usar cabeçalho fixo em todas as telas administrativas e limitar cada cabeçalho a uma ação contextual principal.
-- No celular e no tablet em retrato, usar barra inferior com Shows, Repertório e Banda e menu lateral deslizante para opções gerais.
+- No celular e no tablet em retrato, usar uma barra inferior compacta e proporcional à largura com Shows, Repertório, Palco e Banda; Palco abre a seleção de shows antes da execução.
 - No tablet em paisagem e no computador, manter o menu lateral visível e ocultar a barra inferior.
 - Mostrar o menu nas telas principais e substituí-lo por voltar nos detalhes.
 - Manter a barra inferior nos detalhes em consulta e ocultá-la em criação, edição, autenticação, convite e modo palco.
 - Preservar a pilha, os filtros, a ordenação e a rolagem de cada seção.
-- Permitir o gesto lateral para abrir o menu somente nas telas principais; nos detalhes, reservar o gesto para voltar.
+- Fazer o menu entrar horizontalmente pela esquerda e permitir o gesto lateral para abri-lo somente nas telas principais; nos detalhes, reservar o gesto para voltar.
 
 ### Estados de interface
 
@@ -140,3 +141,5 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 O acesso e a navegação pela versão web foram aprovados. O build interno Android foi gerado, instalado e navegado com sucesso. Build e acesso remoto no iOS permanecem explicitamente adiados para uma etapa futura e continuam como risco conhecido, sem alterar a compatibilidade iOS definida para o produto.
 
 As subtarefas 2.6.1 a 2.6.6 e a revisão de UX/UI 2.7 estão concluídas. Este relatório foi aprovado explicitamente em 9 de setembro de 2026. A revisão do modo palco foi transferida para 8.9, e a implementação das melhorias está organizada nas tarefas 2.8 a 2.12.
+
+Durante a tarefa 2.12, a navegação inferior, os filtros, as linhas das listas e o calendário receberam uma nova rodada de ajustes. A tarefa permanece aberta e essas alterações exigem nova revisão explícita antes de serem consideradas concluídas.

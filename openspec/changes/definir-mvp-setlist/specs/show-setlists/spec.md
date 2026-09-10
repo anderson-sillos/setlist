@@ -83,7 +83,7 @@ O sistema SHALL permitir uma observação opcional para cada ocorrência de uma 
 - **THEN** o sistema mostra a observação na setlist e no modo palco apenas para aquela ocorrência
 
 ### Requirement: Consulta organizada de shows
-O sistema SHALL apresentar os shows em uma lista vertical rolável com busca por nome ou local, filtros por período e estado e ordenação por data, nome ou duração.
+O sistema SHALL apresentar os shows em uma lista vertical rolável com busca por nome ou local, filtros compactos por período e estado e ordenação por data, nome ou duração.
 
 #### Scenario: Abrir a lista de shows
 - **WHEN** um integrante abre Shows sem alterar os controles de consulta
@@ -110,19 +110,23 @@ O sistema SHALL oferecer dentro de Shows uma visualização mensal das datas com
 
 #### Scenario: Dia com vários shows
 - **WHEN** uma data possui mais de um show visível
-- **THEN** o sistema apresenta no calendário um marcador com a quantidade de shows
+- **THEN** o sistema aplica o fundo de data com evento e apresenta um marcador com a quantidade de shows
+
+#### Scenario: Dia com um show
+- **WHEN** uma data possui um show visível
+- **THEN** o sistema diferencia seu fundo e mantém um marcador de evento na célula
 
 #### Scenario: Consultar estados no calendário
-- **WHEN** o calendário é aberto sem filtro adicional
-- **THEN** o sistema mostra Rascunhos e Prontos do mês e mantém Cancelados ocultos até que sejam incluídos pelo filtro
+- **WHEN** o integrante alterna da lista para o calendário
+- **THEN** o sistema oculta filtros e ordenação, mostra todos os Rascunhos e Prontos do mês e mantém Cancelados fora do calendário
 
 #### Scenario: Diferenciar dias especiais
 - **WHEN** o calendário apresenta sábados, domingos ou um feriado nacional
-- **THEN** o sistema diferencia os finais de semana visualmente e identifica o feriado por marcador e nome sem depender apenas de cor
+- **THEN** o sistema usa fundos distintos para finais de semana e feriados, comunica o nome do feriado às tecnologias assistivas e o mostra visualmente quando a data é selecionada
 
 #### Scenario: Apresentar Carnaval e Corpus Christi
 - **WHEN** o calendário apresenta a terça-feira de Carnaval ou Corpus Christi calculados a partir da Páscoa
-- **THEN** o sistema identifica a data como feriado do calendário do produto por marcador e nome
+- **THEN** o sistema aplica o fundo de feriado e apresenta seu nome quando a data é selecionada
 
 ### Requirement: Estados do show
 O sistema SHALL limitar os estados compartilhados a Rascunho, Pronto e Cancelado e MUST NOT alterar o estado ao entrar ou navegar no modo palco.
