@@ -2,6 +2,11 @@ import { Link, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import {
+  ErrorFeedback,
+  LoadingFeedback,
+  UnavailableFeedback,
+} from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
@@ -104,15 +109,18 @@ export function SongDetailScreen({
       viewportWidth={viewportWidth}
     >
       {songQuery.isPending || userBandsQuery.isPending ? (
-        <AppText accessibilityLiveRegion="polite">Afinando a letra…</AppText>
+        <LoadingFeedback />
       ) : null}
       {songQuery.isError || userBandsQuery.isError ? (
-        <AppText accessibilityRole="alert">
-          Essa música saiu do tom. Não foi possível carregar os detalhes.
-        </AppText>
+        <ErrorFeedback
+          onRetry={() => {
+            void songQuery.refetch();
+            void userBandsQuery.refetch();
+          }}
+        />
       ) : null}
-      {!songQuery.isPending && !song ? (
-        <AppText accessibilityRole="alert">Música não encontrada.</AppText>
+      {!songQuery.isPending && !songQuery.isError && !song ? (
+        <UnavailableFeedback title="Música indisponível" />
       ) : null}
 
       <DemoActionNotice
@@ -291,15 +299,19 @@ export function ShowDetailScreen({
       {showQuery.isPending ||
       songsQuery.isPending ||
       userBandsQuery.isPending ? (
-        <AppText accessibilityLiveRegion="polite">Montando a setlist…</AppText>
+        <LoadingFeedback variation={1} />
       ) : null}
       {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
-        <AppText accessibilityRole="alert">
-          Esse show perdeu a entrada. Não foi possível carregar os detalhes.
-        </AppText>
+        <ErrorFeedback
+          onRetry={() => {
+            void showQuery.refetch();
+            void songsQuery.refetch();
+            void userBandsQuery.refetch();
+          }}
+        />
       ) : null}
-      {!showQuery.isPending && !show ? (
-        <AppText accessibilityRole="alert">Show não encontrado.</AppText>
+      {!showQuery.isPending && !showQuery.isError && !show ? (
+        <UnavailableFeedback title="Show indisponível" />
       ) : null}
 
       <DemoActionNotice

@@ -9,10 +9,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1 e tarefas 2.1–2.10 concluídos; as demais melhorias aprovadas aguardam implementação nas tarefas 2.11–2.12.
+- Implementação: Incremento 1 e tarefas 2.1–2.11 concluídos; resta validar e publicar o grupo de melhorias na tarefa 2.12.
 - Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional e as decisões de UX/UI foram aprovados explicitamente pelo usuário em 9 de setembro de 2026.
-- Próximo passo: implementar componentes compartilhados de estados e mensagens na tarefa 2.11, mantendo o PR #8 aberto para revisão.
+- Próximo passo: validar as melhorias nos modos responsivos, publicar a nova prévia web e preparar o build interno Android da tarefa 2.12, mantendo o PR #8 aberto até a revisão do usuário.
 
 ## Fontes de verdade
 
@@ -43,6 +43,7 @@ openspec validate definir-mvp-setlist --type change --strict
 11. A tarefa 2.8 substituiu a navegação superior por um shell responsivo com cabeçalho fixo, barra inferior móvel, menu lateral, retorno nos detalhes, cabeçalho de edição e memória de rota e estado por seção.
 12. A tarefa 2.9 transformou bandas, repertório e shows em listas compactas e roláveis com busca, filtros, ordenação, durações e permissões aparentes; os detalhes foram reorganizados e Shows ganhou um calendário mensal com fins de semana, feriados nacionais e os destaques solicitados para a terça-feira de Carnaval e Corpus Christi.
 13. A tarefa 2.10 evoluiu a setlist para uma união discriminada de músicas, anotações de planejamento e separadores, adicionou movimentação imutável de blocos e itens, incluiu a composição do tempo entre música e planejamento e garantiu que itens não musicais não cheguem ao modo palco.
+14. A tarefa 2.11 centralizou esqueletos de carregamento, erros recuperáveis, indisponibilidade, faixas de conexão e mensagens temporárias; o catálogo mantém variações determinísticas, ações objetivas, semântica acessível e textos neutros para situações sensíveis.
 
 ## Visão confirmada do produto
 
@@ -193,4 +194,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 2.11 com componentes compartilhados de carregamento, erro, indisponibilidade, conexão e mensagens temporárias, seguindo o guia de tom e voz e os requisitos de acessibilidade. Depois, concluir a validação e publicação da tarefa 2.12 e solicitar nova revisão antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.
+Executar a tarefa 2.12: validar as melhorias em celular, tablet e computador, publicar a nova prévia web e preparar um build interno Android. Depois, solicitar a revisão explícita antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.

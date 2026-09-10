@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
   ChoiceChips,
@@ -116,26 +117,6 @@ const roleGroupLabels: Record<BandRole, string> = {
   member: 'Integrantes',
   owner: 'Proprietários',
 };
-
-function LoadingState({ isPending }: { readonly isPending: boolean }) {
-  return isPending ? (
-    <AppText
-      accessibilityLiveRegion="polite"
-      style={styles.feedback}
-      tone="muted"
-    >
-      Preparando o palco…
-    </AppText>
-  ) : null;
-}
-
-function ErrorState({ isError }: { readonly isError: boolean }) {
-  return isError ? (
-    <AppText accessibilityRole="alert" style={styles.feedback}>
-      Essa lista saiu do tom. Não foi possível carregar o conteúdo.
-    </AppText>
-  ) : null;
-}
 
 function StatusPill({
   children,
@@ -369,8 +350,17 @@ export function ShowsScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      <LoadingState isPending={showsQuery.isPending || songsQuery.isPending} />
-      <ErrorState isError={showsQuery.isError || songsQuery.isError} />
+      {showsQuery.isPending || songsQuery.isPending ? (
+        <LoadingFeedback variation={1} />
+      ) : null}
+      {showsQuery.isError || songsQuery.isError ? (
+        <ErrorFeedback
+          onRetry={() => {
+            void showsQuery.refetch();
+            void songsQuery.refetch();
+          }}
+        />
+      ) : null}
 
       {state.view === 'list' ? (
         <FlatList
@@ -379,7 +369,10 @@ export function ShowsScreen({
           data={shows}
           keyExtractor={({ id }) => id}
           ListEmptyComponent={
-            !showsQuery.isPending && !songsQuery.isPending ? (
+            !showsQuery.isPending &&
+            !songsQuery.isPending &&
+            !showsQuery.isError &&
+            !songsQuery.isError ? (
               <ListEmptyState
                 actionLabel={hasQuery ? 'Limpar filtros' : undefined}
                 message={
@@ -518,15 +511,17 @@ export function RepertoireScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      <LoadingState isPending={songsQuery.isPending} />
-      <ErrorState isError={songsQuery.isError} />
+      {songsQuery.isPending ? <LoadingFeedback /> : null}
+      {songsQuery.isError ? (
+        <ErrorFeedback onRetry={() => void songsQuery.refetch()} />
+      ) : null}
       <FlatList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={songs}
         keyExtractor={({ id }) => id}
         ListEmptyComponent={
-          !songsQuery.isPending ? (
+          !songsQuery.isPending && !songsQuery.isError ? (
             <ListEmptyState
               actionLabel={hasQuery ? 'Limpar filtros' : undefined}
               message={
@@ -604,8 +599,17 @@ export function BandScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      <LoadingState isPending={membersQuery.isPending} />
-      <ErrorState isError={membersQuery.isError || userBandsQuery.isError} />
+      {membersQuery.isPending || userBandsQuery.isPending ? (
+        <LoadingFeedback />
+      ) : null}
+      {membersQuery.isError || userBandsQuery.isError ? (
+        <ErrorFeedback
+          onRetry={() => {
+            void membersQuery.refetch();
+            void userBandsQuery.refetch();
+          }}
+        />
+      ) : null}
       <SectionList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
@@ -710,10 +714,6 @@ function MemberRow({
 export { formatShowDate, lyricStatusLabels, showStatusLabels };
 
 const styles = StyleSheet.create({
-  feedback: {
-    margin: spacing.xl,
-    textAlign: 'center',
-  },
   controlFooter: {
     alignItems: 'flex-start',
     flexDirection: 'row',

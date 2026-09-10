@@ -206,6 +206,30 @@ describe('navegação inicial', () => {
     expect(view.queryByTestId('navigation-drawer')).toBeNull();
   });
 
+  it('mantém o aviso de conexão compacto abaixo do cabeçalho', async () => {
+    const onRetry = jest.fn();
+    const view = await render(
+      <AppProviders>
+        <AppNavigationShell
+          connectionStatus="required"
+          currentRoute="/"
+          onConnectionRetry={onRetry}
+          title="Minhas bandas"
+          viewportWidth={390}
+        >
+          <></>
+        </AppNavigationShell>
+      </AppProviders>,
+    );
+
+    expect(view.getByTestId('connection-required')).toBeTruthy();
+    expect(view.getByText(/Reconecte para continuar/)).toBeTruthy();
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Tentar novamente' }),
+    );
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
   it.each([{ width: 390 }, { width: 820 }, { width: 1440 }])(
     'mantém a lista compacta e rolável em $width px',
     async ({ width }) => {
@@ -558,7 +582,7 @@ describe('navegação inicial', () => {
     );
 
     expect(
-      await missingSongView.findByText('Música não encontrada.'),
+      await missingSongView.findByText('Música indisponível'),
     ).toBeTruthy();
     await missingSongView.unmount();
 
@@ -568,9 +592,7 @@ describe('navegação inicial', () => {
       </AppProviders>,
     );
 
-    expect(
-      await missingShowView.findByText('Show não encontrado.'),
-    ).toBeTruthy();
+    expect(await missingShowView.findByText('Show indisponível')).toBeTruthy();
   });
 
   it('apresenta estados vazios e permite limpar uma busca sem resultado', async () => {

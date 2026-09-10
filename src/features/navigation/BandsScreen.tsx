@@ -2,6 +2,7 @@ import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
+import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
@@ -86,20 +87,10 @@ export default function BandsScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {bandsQuery.isPending ? (
-        <AppText
-          accessibilityLiveRegion="polite"
-          style={styles.feedback}
-          tone="muted"
-        >
-          Afinando os instrumentos…
-        </AppText>
-      ) : null}
+      {bandsQuery.isPending ? <LoadingFeedback /> : null}
 
       {bandsQuery.isError ? (
-        <AppText accessibilityRole="alert" style={styles.feedback}>
-          Essa lista perdeu o compasso. Não foi possível carregar as bandas.
-        </AppText>
+        <ErrorFeedback onRetry={() => void bandsQuery.refetch()} />
       ) : null}
 
       {creationNoticeVisible ? (
@@ -197,10 +188,6 @@ export default function BandsScreen({
 }
 
 const styles = StyleSheet.create({
-  feedback: {
-    margin: spacing.xl,
-    textAlign: 'center',
-  },
   demoNotice: {
     alignItems: 'center',
     alignSelf: 'center',

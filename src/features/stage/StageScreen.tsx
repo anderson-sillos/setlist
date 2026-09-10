@@ -1,6 +1,11 @@
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import {
+  ErrorFeedback,
+  LoadingFeedback,
+  UnavailableFeedback,
+} from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
@@ -96,19 +101,25 @@ export function StageScreen({
         </Link>
       </View>
 
+      {showQuery.isPending || songsQuery.isPending ? (
+        <LoadingFeedback variation={1} />
+      ) : null}
+
       {showQuery.isError || songsQuery.isError ? (
-        <AppText accessibilityRole="alert">
-          Não foi possível carregar o modo palco.
-        </AppText>
+        <ErrorFeedback
+          onRetry={() => {
+            void showQuery.refetch();
+            void songsQuery.refetch();
+          }}
+          title="Modo palco indisponível"
+        />
       ) : null}
 
       {show?.status === 'cancelled' ? (
-        <Card style={styles.unavailableCard} tone="accent">
-          <AppText accessibilityRole="alert" variant="heading">
-            Show cancelado
-          </AppText>
-          <AppText>O modo palco não está disponível para este show.</AppText>
-        </Card>
+        <UnavailableFeedback
+          messageKey="show-cancelled"
+          title="Show cancelado"
+        />
       ) : null}
 
       {show && show.status !== 'cancelled' && currentItem ? (
@@ -243,9 +254,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-  },
-  unavailableCard: {
-    gap: spacing.md,
   },
   stageContent: {
     gap: spacing.lg,

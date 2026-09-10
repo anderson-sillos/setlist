@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ConnectionBanner, type ConnectionStatus } from '@/components/feedback';
 import { AppText } from '@/components/ui/AppText';
 import type { EntityId } from '@/domain';
 import { useNavigationMemory } from '@/features/navigation/NavigationMemory';
@@ -46,10 +47,12 @@ interface AppNavigationShellProps extends PropsWithChildren {
   readonly bandId?: EntityId;
   readonly bandName?: string;
   readonly contentStyle?: StyleProp<ViewStyle>;
+  readonly connectionStatus?: ConnectionStatus;
   readonly currentRoute?: string;
   readonly editActions?: EditActions;
   readonly fixedContent?: ReactNode;
   readonly headerAction?: HeaderAction;
+  readonly onConnectionRetry?: () => void;
   readonly scrollable?: boolean;
   readonly screenKind?: NavigationScreenKind;
   readonly subtitle?: string;
@@ -365,10 +368,12 @@ export function AppNavigationShell({
   bandName,
   children,
   contentStyle,
+  connectionStatus,
   currentRoute,
   editActions,
   fixedContent,
   headerAction,
+  onConnectionRetry,
   screenKind = 'main',
   scrollable = true,
   subtitle,
@@ -468,6 +473,13 @@ export function AppNavigationShell({
             subtitle={subtitle}
             title={title}
           />
+
+          {connectionStatus ? (
+            <ConnectionBanner
+              onRetry={onConnectionRetry}
+              status={connectionStatus}
+            />
+          ) : null}
 
           {fixedContent ? (
             <View style={styles.fixedContentFrame}>
