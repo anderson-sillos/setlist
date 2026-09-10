@@ -6,11 +6,11 @@
 
 O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
-[Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
+[Abrir prévia do aplicativo](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O Incremento 1 da fundação multiplataforma está concluído: a aplicação Expo é executável em Android, iOS e web e possui configuração tipada, automação de qualidade, integração contínua e um catálogo visual responsivo.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O incremento 1 está concluído e o incremento 2 está em revisão funcional. A primeira versão demonstrativa está publicada na web e oferece dados em memória, listas e detalhes responsivos e uma tela de palco com setlist, letra estática e cronômetro manual local.
 
 O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
@@ -112,7 +112,8 @@ Obrigatórios em qualquer sistema:
 | Android Studio          | Opcional; necessário para emulador e ferramentas Android             | [Download do Android Studio](https://developer.android.com/studio)                              |
 | Xcode                   | Opcional; necessário para simulador e builds locais de iOS em um Mac | [Xcode no Apple Developer](https://developer.apple.com/xcode/)                                  |
 | WSL                     | Opcional; ambiente Linux usado neste projeto no Windows              | [Instalação oficial do WSL](https://learn.microsoft.com/windows/wsl/install)                    |
-| Conta Expo              | Gratuita; recomendada para o revisor utilizar o Expo Go              | [Criar conta Expo](https://expo.dev/signup)                                                     |
+| Conta Expo              | Gratuita; recomendada para o Expo Go e necessária para usar o EAS    | [Criar conta Expo](https://expo.dev/signup)                                                     |
+| Apple Developer Program | Necessário para instalar builds Ad Hoc em iPhone ou iPad             | [Apple Developer Program](https://developer.apple.com/programs/)                                |
 
 O arquivo `.nvmrc` fixa a versão principal do Node.js. O uso do [nvm](https://github.com/nvm-sh/nvm) é recomendado, mas não obrigatório; qualquer instalação compatível do Node.js 24 pode ser usada.
 
@@ -233,7 +234,7 @@ npm run android
 npm run ios
 ```
 
-A rota inicial exibe o catálogo dos tokens e componentes básicos. Ela usa uma coluna em celulares, duas em tablets e três em telas de computador, o que permite conferir rapidamente a configuração responsiva em cada dispositivo.
+A rota inicial exibe `Minhas bandas` e permite navegar por Shows, Repertório e Banda usando conteúdo demonstrativo local. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
 
 O comando para iOS requer macOS quando usado com o simulador. Em Linux ou Windows, teste iOS em um aparelho físico com Expo Go ou utilize posteriormente um build remoto apropriado.
 
@@ -262,13 +263,14 @@ Quando dependências ou configuração do Expo forem alteradas, valide também a
 npm ls --depth=0
 npx expo install --check
 npx expo export --platform all --output-dir dist
+npm run export:web -- --output-dir dist
 ```
 
 O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, formatação, lint, tipos e testes em cada pull request e em cada envio para `main`. O resultado atual também pode ser consultado pelo selo no início deste README.
 
 ### 8. Testar em Android e iOS com Expo Go
 
-O Expo Go permite revisar o aplicativo gratuitamente em um aparelho físico, sem gerar um APK ou um build iOS e sem pagar o Apple Developer Program. Ele abre o projeto servido pelo Metro no computador; portanto, o responsável pelo ambiente deve manter o terminal do Expo em execução durante todo o teste.
+O Expo Go permite revisar o aplicativo gratuitamente em um aparelho físico, sem gerar um APK ou um build iOS e sem pagar o Apple Developer Program. Ele abre o projeto servido pelo Metro no computador; portanto, mantenha o terminal do Expo em execução durante todo o teste.
 
 #### 8.1. Usar uma conta Expo individual
 
@@ -285,22 +287,21 @@ npx expo whoami
 
 4. A pessoa responsável inicia o servidor conforme as seções 8.3 ou 8.4 e envia o QR code ou link ao revisor.
 
-O revisor não precisa usar no Expo Go a mesma conta autenticada no terminal: sua conta individual pode abrir o endereço compartilhado enquanto o servidor estiver em execução. Isso não concede acesso ao código, ao painel EAS, aos builds ou às credenciais do projeto. Um acesso permanente a esses recursos deve ser concedido separadamente por uma Organização Expo, com o papel apropriado.
+No Android, foi validado que uma conta individual integrante da Organização Expo consegue abrir o endereço compartilhado mesmo quando outra conta autorizada iniciou a CLI. No iPhone ou iPad físico, o Expo Go do SDK 57 exige que a conta conectada no aparelho corresponda exatamente à conta da Expo CLI que serve o projeto. Participar da mesma organização não substitui essa verificação.
+
+Para revisar pelo Expo Go no iOS com sua própria conta, o revisor deve executar o projeto em seu computador, autenticar a CLI com essa mesma conta e então abrir o QR code gerado. Não compartilhe senhas ou tokens pessoais para contornar essa restrição. A validação remota do iOS por uma conta diferente da usada na CLI permanece adiada neste incremento.
 
 Não é necessário ter uma conta Apple Developer para executar este roteiro no iPhone ou iPad; ela só é exigida para gerar e distribuir determinados builds iOS assinados.
 
-#### 8.2. Preparar a versão em revisão
+#### 8.2. Preparar o projeto
 
-A aplicação do incremento 2 está na branch do [PR #8](https://github.com/anderson-sillos/setlist/pull/8). Depois de clonar o repositório conforme a seção 2, obtenha essa branch e instale suas dependências:
+Atualize o código e instale as dependências conforme as seções 2 a 5. Depois confirme a integridade da cópia local:
 
 ```bash
-git fetch origin feat/reviewable-app
-git switch --track origin/feat/reviewable-app
-npm ci
 npm run validate
 ```
 
-Se a branch local já existir, use `git switch feat/reviewable-app` e `git pull --ff-only origin feat/reviewable-app`. Instale no aparelho a edição atual do Expo Go compatível com o SDK 57 usando os links da tabela de pré-requisitos. Computador e aparelho devem estar com data e horário corretos.
+Instale no aparelho a edição atual do Expo Go compatível com o SDK 57 usando os links da tabela de pré-requisitos. Computador e aparelho devem estar com data e horário corretos.
 
 #### 8.3. Iniciar pela rede local
 
@@ -345,7 +346,34 @@ Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
 
-### 9. Problemas comuns
+### 9. Publicar a prévia e gerar builds internos
+
+A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.
+
+Para gerar builds internos, autentique a CLI pelo navegador e confirme a conta ativa:
+
+```bash
+npx --yes eas-cli@latest login --browser
+npx --yes eas-cli@latest whoami
+```
+
+A configuração versionada em `eas.json` usa o perfil `preview` com distribuição interna. No Android, o resultado é um APK instalável diretamente. Gere uma plataforma ou as duas:
+
+```bash
+npm run build:preview:android
+npm run build:preview:ios
+npm run build:preview:all
+```
+
+Na primeira execução, o EAS solicita a vinculação a um projeto Expo e pode criar as credenciais de assinatura. O build Ad Hoc de iOS requer uma assinatura ativa no Apple Developer Program e pelo menos um iPhone ou iPad registrado. Antes de gerar esse build, registre o dispositivo seguindo o link ou QR code fornecido por:
+
+```bash
+npx --yes eas-cli@latest device:create
+```
+
+A autenticação fica no perfil local do usuário e as credenciais são administradas pelo EAS; não adicione tokens, certificados, perfis ou chaves ao repositório. Consulte a [documentação de distribuição interna do Expo](https://docs.expo.dev/build/internal-distribution/) para instalar e compartilhar os artefatos.
+
+### 10. Problemas comuns
 
 - **Cache do Metro inconsistente:** execute `npx expo start --clear`.
 - **Dependência incompatível com o Expo:** execute `npx expo install --check` e instale pacotes nativos com `npx expo install <pacote>`.
@@ -447,12 +475,22 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   `-- tasks.md                         # Plano incremental de implementação
 |-- src/
 |   |-- app/                             # Rotas e telas compartilhadas do Expo
+|   |-- components/layout/               # Estruturas responsivas reutilizáveis
 |   |-- components/ui/                   # Componentes visuais reutilizáveis
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
+|   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos
+|   |-- data/in-memory/                   # Repositórios locais para testes e demonstração
+|   |-- domain/                          # Entidades e contratos independentes da infraestrutura
+|   |-- features/navigation/             # Fluxo inicial e áreas da banda
+|   |-- features/stage/                  # Tela de palco e cronômetro manual local
+|   |-- providers/                       # Contexto de dados e cache de consultas
 |   `-- theme/                           # Tokens e breakpoints responsivos
 |-- .env.example                         # Modelo público, sem credenciais reais
 |-- .github/workflows/ci.yml             # Qualidade contínua no GitHub
+|-- .github/workflows/pages.yml          # Exportação e publicação do site e da prévia
+|-- app.config.ts                        # Base web variável para publicação em subdiretório
 |-- app.json                             # Configuração de Android, iOS e web
+|-- eas.json                             # Perfil de builds internos Android e iOS
 |-- eslint.config.js                     # Regras estáticas do projeto Expo
 |-- jest.config.js                       # Testes e cobertura mínima
 |-- package.json                         # Dependências e comandos do projeto
@@ -467,8 +505,7 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- disponibilizar a primeira versão navegável com dados demonstrativos no incremento 2;
-- validar antecipadamente YouTube, cronômetro e links de autenticação;
+- validar antecipadamente YouTube, cronômetro e links de autenticação no incremento 3;
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 

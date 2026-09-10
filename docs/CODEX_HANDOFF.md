@@ -6,12 +6,13 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Último grupo concluído: planejamento incremental do MVP, integrado pelo PR #3 no commit `d7036a7`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- Último grupo concluído: fundação multiplataforma no PR #5, branch `feat/foundation`.
-- Implementação: Incremento 1 completo, tarefas 1.1–1.7; aplicação Expo, dependências, ambientes tipados, automação de qualidade, base visual responsiva, CI e roteiro de desenvolvimento verificados.
-- Próximo passo: iniciar o Incremento 2 pela tarefa 2.1 de `tasks.md` usando `openspec-apply-change`.
+- PR #8: Incremento 2 concluído e aprovado para integração em 10 de setembro de 2026.
+- Implementação: Incrementos 1 e 2 concluídos, incluindo as tarefas 2.1–2.12.
+- Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
+- Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
+- Próximo passo: iniciar a validação antecipada dos riscos técnicos pela tarefa 3.1, com o protótipo mínimo do YouTube IFrame no navegador.
 
 ## Fontes de verdade
 
@@ -36,6 +37,14 @@ openspec validate definir-mvp-setlist --type change --strict
 5. O PR #3 consolidou proposal, design, seis delta specs e o plano incremental em 11 incrementos.
 6. O PR #4 adicionou este handoff e o PR #5 iniciou a fundação multiplataforma.
 7. O PR #5 entregou a aplicação Expo inicial, configuração tipada, qualidade automatizada, catálogo responsivo, CI e roteiro reproduzível do ambiente.
+8. Os PRs #6 e #7 ampliaram o roteiro do ambiente e documentaram a atualização segura do código local.
+9. O PR #8 implementou a primeira versão navegável, publicou a versão web e entregou um build interno Android validado; a validação iOS foi adiada.
+10. A revisão funcional e de UX/UI definiu a navegação móvel, listas compactas, calendário, detalhes orientados à letra, planejamento temporal da setlist e o tom de voz informal; o relatório foi aprovado e a implementação foi autorizada.
+11. A tarefa 2.8 substituiu a navegação superior por um shell responsivo com cabeçalho fixo, barra inferior móvel, menu lateral, retorno nos detalhes, cabeçalho de edição e memória de rota e estado por seção.
+12. A tarefa 2.9 transformou bandas, repertório e shows em listas compactas e roláveis com busca, filtros, ordenação, durações e permissões aparentes; os detalhes foram reorganizados e Shows ganhou um calendário mensal com fins de semana, feriados nacionais e os destaques solicitados para a terça-feira de Carnaval e Corpus Christi.
+13. A tarefa 2.10 evoluiu a setlist para uma união discriminada de músicas, anotações de planejamento e separadores, adicionou movimentação imutável de blocos e itens, incluiu a composição do tempo entre música e planejamento e garantiu que itens não musicais não cheguem ao modo palco.
+14. A tarefa 2.11 centralizou esqueletos de carregamento, erros recuperáveis, indisponibilidade, faixas de conexão e mensagens temporárias; o catálogo mantém variações determinísticas, ações objetivas, semântica acessível e textos neutros para situações sensíveis.
+15. A tarefa 2.12 refinou a barra inferior e o destino Palco, a animação horizontal do menu, os filtros compactos, o alinhamento e a largura do conteúdo, as linhas das listas, o calendário e as transições de rota. A prévia web e o build Android final foram publicados e o Incremento 2 recebeu aprovação explícita.
 
 ## Visão confirmada do produto
 
@@ -93,6 +102,18 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 - O editor toca em cada linha durante a reprodução e pode corrigir os tempos manualmente.
 - Não baixar, extrair, ocultar ou reproduzir o áudio do YouTube em segundo plano.
 
+## UX/UI aprovada para implementação
+
+- No celular e tablet em retrato, usar cabeçalho fixo, barra inferior compacta com Shows, Repertório, Palco e Banda e menu entrando horizontalmente pela esquerda; em tablet paisagem e computador, usar menu lateral permanente sem barra inferior.
+- Fazer as mudanças de rota sem animação automática e manter a animação horizontal de abertura e fechamento do menu lateral móvel.
+- Preservar pilha, busca, filtros, ordenação e rolagem ao alternar entre as seções principais.
+- Usar listas compactas e roláveis para repertório, shows e bandas, com controles fixos conforme a tela.
+- Priorizar a letra nos detalhes da música, mantendo todos os blocos expandidos e os tempos ocultos fora do editor de sincronização.
+- Disponibilizar em Shows as visões Lista e Calendário mensal, com filtros e ordenação exclusivos da lista; usar fundos próprios para datas com eventos, finais de semana, hoje e feriados e mostrar o nome do feriado quando a data for selecionada.
+- Apresentar carregamento, vazio, erro, indisponibilidade, conexão e mensagens temporárias de forma consistente e acessível.
+- Usar tom informal e bem-humorado em situações gerais e recuperáveis; manter linguagem direta em ações destrutivas, legais, de segurança ou de perda de conteúdo.
+- Adiar a revisão específica do modo palco para a tarefa 8.9.
+
 ## Shows e modo palco
 
 - Show: nome, data, horário, local, observações, blocos e setlist ordenada.
@@ -148,13 +169,16 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Testar a matriz RLS e as regras do último Owner, convites, estados do show e timestamps.
 - Obter revisão jurídica do termo e da política de privacidade antes da distribuição pública.
 - Começar no Supabase Free e avaliar Pro ao atingir 80% de uma cota ou antes de depender de disponibilidade e backups de produção.
+- A prévia navegável está em `https://anderson-sillos.github.io/setlist/app/`; a apresentação permanece na raiz do mesmo site.
+- A revisão funcional do Incremento 2, o build Android validado e a pendência do iOS estão registrados em `docs/REVISAO_INCREMENTO_2.md`.
+- O relatório funcional consolidado e a revisão de UX/UI foram aprovados; as decisões estão registradas em `docs/REVISAO_INCREMENTO_2.md`, `docs/GUIA_DE_TOM_E_VOZ.md` e nas tarefas 2.8–2.12.
 
 ## Convenção de trabalho solicitada
 
 - Criar um commit ao final de cada atividade concluída.
 - Manter um PR aberto durante um grupo relacionado de atividades.
 - Acrescentar ao mesmo PR os commits daquele grupo.
-- Fazer merge e fechar o PR somente ao concluir e validar todo o grupo.
+- Fazer merge e fechar o PR somente ao concluir e validar todo o grupo e, quando houver versão para revisão, após a aprovação explícita do usuário.
 - Preferir squash merge, pois o repositório não aceita rebase merge.
 - Atualizar este handoff ao final de cada grupo quando estado, decisões, riscos ou próximos passos mudarem.
 - Não misturar mudanças não relacionadas no mesmo commit ou PR.
@@ -166,7 +190,10 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #3: planejamento incremental completo do MVP.
 - PR #4: handoff do histórico do Codex.
 - PR #5: fundação multiplataforma concluída.
+- PR #6: complementos do ambiente de desenvolvimento.
+- PR #7: roteiro para atualizar o ambiente local.
+- PR #8: primeira versão navegável e revisão de UX/UI do Incremento 2, concluídas e aprovadas.
 
 ## Próxima ação recomendada
 
-Abrir um novo grupo para o Incremento 2 a partir de `main` e executar as tarefas 2.1–2.6 em ordem com `openspec-apply-change`. Manter a convenção de validar e criar um commit por atividade, conservar o PR aberto durante o grupo e integrá-lo somente ao final.
+Iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, validando player visível, reprodução, pausa, busca e leitura do tempo atual. A validação iOS permanece adiada para uma etapa futura.
