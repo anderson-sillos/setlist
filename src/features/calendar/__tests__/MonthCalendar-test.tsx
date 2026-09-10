@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { AppText } from '@/components/ui/AppText';
 import { demoRepositoryData } from '@/data/demo';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
-import { colors } from '@/theme/tokens';
+import { colors, radii } from '@/theme/tokens';
 
 describe('calendário mensal de shows', () => {
   it('começa no domingo, destaca Carnaval e permite trocar de mês', async () => {
@@ -20,6 +20,15 @@ describe('calendário mensal de shows', () => {
     expect(view.queryByText('Carnaval (terça-feira)')).toBeNull();
     expect(view.queryByText('Feriado')).toBeNull();
     expect(view.queryByText('Hoje')).toBeNull();
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('calendar-day-2026-02-10').props.style,
+      ),
+    ).toMatchObject({
+      borderRadius: radii.sm,
+      borderTopColor: colors.violet,
+      borderTopWidth: 2,
+    });
 
     await fireEvent.press(
       view.getByLabelText(/17 de fevereiro de 2026, Carnaval/),

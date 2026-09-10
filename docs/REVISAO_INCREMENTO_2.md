@@ -83,7 +83,7 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 - Mostrar Shows em lista rolável com busca por nome ou local, uma ação compacta agrupando filtros por período e estado, com `Todos` como primeira opção de cada grupo, e ordenação por data, nome ou duração.
 - Abrir por padrão os próximos shows em Rascunho ou Pronto, pela data mais próxima, deixando Cancelados acessíveis pelos filtros.
 - Oferecer as visões Lista e Calendário dentro de Shows, sem criar outra opção na barra inferior.
-- Usar calendário mensal, abrir no mês atual com hoje selecionado e iniciar a semana no domingo.
+- Usar calendário mensal, abrir no mês atual com hoje selecionado por um contorno completo e arredondado e iniciar a semana no domingo.
 - Marcar datas com shows por fundo próprio, manter um marcador, indicar quantidade quando houver mais de um e listar os eventos do dia abaixo do mês.
 - Exibir filtros e ordenação somente na visão Lista; no Calendário, mostrar todos os shows ativos do mês sem herdar filtros ocultos.
 - Usar fundos distintos para finais de semana, hoje e feriados; centralizar os números e mostrar o nome do feriado somente após selecionar a data, mantendo essa informação disponível para tecnologias assistivas.
