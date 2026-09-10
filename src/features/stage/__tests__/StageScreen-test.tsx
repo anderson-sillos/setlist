@@ -28,6 +28,9 @@ describe('<StageScreen />', () => {
     expect(view.getByTestId('stage-layout-phone')).toBeTruthy();
     expect(view.getByText('Instrumental de Abertura')).toBeTruthy();
     expect(view.getByLabelText('Sair do modo palco')).toBeTruthy();
+    expect(view.queryByText('Entrada e apresentação da banda')).toBeNull();
+    expect(view.queryByText('Troca de violão e afinação')).toBeNull();
+    expect(view.queryByLabelText('Separador visual')).toBeNull();
 
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-09-08T20:00:00.000Z'));
@@ -73,7 +76,21 @@ describe('<StageScreen />', () => {
       blocks: [
         {
           id: 'block',
-          items: [{ id: 'item', notes: null, songId: 'unknown' }],
+          items: [
+            {
+              id: 'planning',
+              type: 'planning' as const,
+              description: 'Pausa',
+              estimatedDurationMs: 60_000,
+            },
+            { id: 'separator', type: 'separator' as const },
+            {
+              id: 'item',
+              type: 'song' as const,
+              notes: null,
+              songId: 'unknown',
+            },
+          ],
           name: 'Principal',
         },
       ],
@@ -87,6 +104,10 @@ describe('<StageScreen />', () => {
       venue: 'Local',
     };
 
-    expect(buildStageItems(show, [])[0]?.song).toBeNull();
+    const items = buildStageItems(show, []);
+
+    expect(items).toHaveLength(1);
+    expect(items[0]?.item.id).toBe('item');
+    expect(items[0]?.song).toBeNull();
   });
 });

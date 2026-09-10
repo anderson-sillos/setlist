@@ -387,8 +387,13 @@ describe('navegação inicial', () => {
     expect(view.getByText('Segundo Set')).toBeTruthy();
     expect(view.getByText('Usar a versão curta no bis.')).toBeTruthy();
     expect(view.getAllByText('Luzes da Cidade')).toHaveLength(2);
-    expect(view.getByText('16:07')).toBeTruthy();
-    expect(view.getByText('Músicas 16:07 · Planejamento 0:00')).toBeTruthy();
+    expect(view.getByText('19:37')).toBeTruthy();
+    expect(view.getByText('Músicas 16:07 · Planejamento 3:30')).toBeTruthy();
+    expect(view.getByText('Entrada e apresentação da banda')).toBeTruthy();
+    expect(view.getByText('Troca de violão e afinação')).toBeTruthy();
+    expect(view.getByText('Interação com o público')).toBeTruthy();
+    expect(view.getAllByText('Planejamento')).toHaveLength(3);
+    expect(view.getByLabelText('Separador visual')).toBeTruthy();
     expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
   });
 

@@ -6,7 +6,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { useShow, useSongs } from '@/data/queries';
-import type { EntityId, Show, ShowSetlistItem, Song } from '@/domain';
+import type { EntityId, Show, ShowSongSetlistItem, Song } from '@/domain';
 import { getShowHref } from '@/features/navigation/routes';
 import {
   formatElapsedTime,
@@ -23,7 +23,7 @@ interface StageScreenProps {
 
 interface StageItem {
   readonly blockName: string;
-  readonly item: ShowSetlistItem;
+  readonly item: ShowSongSetlistItem;
   readonly song: Song | null;
 }
 
@@ -34,11 +34,17 @@ export function buildStageItems(
   const songsById = new Map(songs.map((song) => [song.id, song]));
 
   return show.blocks.flatMap((block) =>
-    block.items.map((item) => ({
-      blockName: block.name,
-      item,
-      song: songsById.get(item.songId) ?? null,
-    })),
+    block.items.flatMap((item) =>
+      item.type === 'song'
+        ? [
+            {
+              blockName: block.name,
+              item,
+              song: songsById.get(item.songId) ?? null,
+            },
+          ]
+        : [],
+    ),
   );
 }
 

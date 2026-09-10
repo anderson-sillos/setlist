@@ -314,11 +314,13 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-ensaio-luzes',
+              type: 'song',
               songId: demoIds.stageSong,
               notes: null,
             },
             {
               id: 'show-item-ensaio-pontes',
+              type: 'song',
               songId: 'song-demo-pontes',
               notes: 'Testar a passagem direta para o refrão.',
             },
@@ -343,11 +345,17 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-bairro-instrumental',
+              type: 'song',
               songId: 'song-demo-instrumental',
               notes: null,
             },
             {
+              id: 'show-item-bairro-separator',
+              type: 'separator',
+            },
+            {
               id: 'show-item-bairro-chuva',
+              type: 'song',
               songId: 'song-demo-chuva',
               notes: null,
             },
@@ -372,11 +380,19 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-festival-instrumental',
+              type: 'song',
               songId: 'song-demo-instrumental',
               notes: 'Começar com luz baixa.',
             },
             {
+              id: 'show-item-festival-apresentacao',
+              type: 'planning',
+              description: 'Entrada e apresentação da banda',
+              estimatedDurationMs: 90_000,
+            },
+            {
               id: 'show-item-festival-luzes',
+              type: 'song',
               songId: demoIds.stageSong,
               notes: null,
             },
@@ -388,11 +404,29 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-festival-pontes',
+              type: 'song',
               songId: 'song-demo-pontes',
               notes: 'Emendar diretamente da fala do vocalista.',
             },
             {
+              id: 'show-item-festival-afinacao',
+              type: 'planning',
+              description: 'Troca de violão e afinação',
+              estimatedDurationMs: 120_000,
+            },
+            {
+              id: 'show-item-festival-interacao',
+              type: 'planning',
+              description: 'Interação com o público',
+              estimatedDurationMs: null,
+            },
+            {
+              id: 'show-item-festival-separator',
+              type: 'separator',
+            },
+            {
               id: 'show-item-festival-chuva',
+              type: 'song',
               songId: 'song-demo-chuva',
               notes: null,
             },
@@ -404,6 +438,7 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-festival-luzes-bis',
+              type: 'song',
               songId: demoIds.stageSong,
               notes: 'Usar a versão curta no bis.',
             },
@@ -428,11 +463,13 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-clube-pontes',
+              type: 'song',
               songId: 'song-demo-pontes',
               notes: null,
             },
             {
               id: 'show-item-clube-luzes',
+              type: 'song',
               songId: demoIds.stageSong,
               notes: null,
             },
@@ -457,6 +494,7 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-arquivo-rota',
+              type: 'song',
               songId: 'song-demo-rota-antiga',
               notes: 'Registro histórico da setlist.',
             },
@@ -481,6 +519,7 @@ export const demoRepositoryData = {
           items: [
             {
               id: 'show-item-aurora-mare',
+              type: 'song',
               songId: 'song-demo-mare',
               notes: 'Início somente com voz e violão.',
             },

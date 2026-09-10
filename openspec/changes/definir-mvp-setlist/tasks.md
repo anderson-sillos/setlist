@@ -24,7 +24,7 @@
 - [x] 2.7 Conduzir uma revisão de UX/UI da primeira versão navegável em celular, tablet e computador e registrar ajustes priorizados de navegação, hierarquia visual, legibilidade, áreas de toque, contraste e estados de interface antes do próximo incremento; manter a revisão específica do modo palco adiada para 8.9
 - [x] 2.8 Implementar a navegação responsiva aprovada com cabeçalhos fixos, barra inferior móvel, menu lateral e preservação do estado de cada seção e verificar rotas principais, detalhes e edição nos três modos de layout
 - [x] 2.9 Atualizar com dados de demonstração as listas e detalhes de bandas, repertório e shows, incluindo busca, filtros, ordenação, durações e calendário mensal, e verificar rolagem, estados vazios e permissões aparentes
-- [ ] 2.10 Evoluir os contratos e dados demonstrativos da setlist para anotações de planejamento, separadores e cálculo de duração e verificar reordenação conceitual, totais e ausência desses itens no modo palco
+- [x] 2.10 Evoluir os contratos e dados demonstrativos da setlist para anotações de planejamento, separadores e cálculo de duração e verificar reordenação conceitual, totais e ausência desses itens no modo palco
 - [ ] 2.11 Implementar os componentes compartilhados de carregamento, erro, indisponibilidade, conexão e mensagens temporárias e aplicar o guia de tom e voz com testes de acessibilidade e variações controladas
 - [ ] 2.12 Validar as melhorias em celular, tablet e computador, publicar nova prévia web e build interno Android e aguardar aprovação antes de encerrar o grupo de UX/UI
 

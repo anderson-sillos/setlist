@@ -3,6 +3,7 @@ import {
   demoIds,
   demoRepositoryData,
 } from '@/data/demo';
+import type { Show } from '@/domain';
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -48,7 +49,9 @@ describe('dados de demonstração', () => {
 
       for (const block of show.blocks) {
         for (const item of block.items) {
-          expect(songIds).toContain(item.songId);
+          if (item.type === 'song') {
+            expect(songIds).toContain(item.songId);
+          }
         }
       }
     }
@@ -72,7 +75,23 @@ describe('dados de demonstração', () => {
       'song-demo-rota-antiga',
     );
     expect(archivedSong?.archivedAt).not.toBeNull();
-    expect(cancelledShow?.blocks[0]?.items[0]?.songId).toBe(archivedSong?.id);
+    const archivedItem = cancelledShow?.blocks[0]?.items[0];
+    expect(archivedItem?.type).toBe('song');
+    expect(archivedItem?.type === 'song' ? archivedItem.songId : null).toBe(
+      archivedSong?.id,
+    );
+  });
+
+  it('inclui várias anotações e separadores nos dados de planejamento', () => {
+    const festival = demoRepositoryData.shows.find(
+      ({ id }) => id === demoIds.readyShow,
+    ) as Show | undefined;
+    const items = festival?.blocks.flatMap(
+      ({ items: blockItems }) => blockItems,
+    );
+
+    expect(items?.filter(({ type }) => type === 'planning')).toHaveLength(3);
+    expect(items?.some(({ type }) => type === 'separator')).toBe(true);
   });
 
   it('fornece letras fictícias em blocos e linhas com ids estáveis', () => {

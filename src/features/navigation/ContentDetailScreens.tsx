@@ -12,7 +12,8 @@ import {
   formatDuration,
   formatRelativeUpdate,
   formatShowDate,
-  getShowDurationMs,
+  getBlockDurationBreakdown,
+  getShowDurationBreakdown,
   lyricStatusLabels,
   showStatusLabels,
 } from '@/features/navigation/display';
@@ -262,7 +263,7 @@ export function ShowDetailScreen({
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
-  const totalDurationMs = show ? getShowDurationMs(show, songsById) : null;
+  const duration = show ? getShowDurationBreakdown(show, songsById) : null;
 
   return (
     <BandAreaLayout
@@ -330,13 +331,14 @@ export function ShowDetailScreen({
                 Tempo total estimado
               </AppText>
               <AppText variant="heading">
-                {totalDurationMs === null
+                {duration?.totalMs == null
                   ? 'Duração não informada'
-                  : formatDuration(totalDurationMs)}
+                  : formatDuration(duration.totalMs)}
               </AppText>
-              {totalDurationMs !== null ? (
+              {duration?.totalMs != null ? (
                 <AppText tone="muted" variant="caption">
-                  Músicas {formatDuration(totalDurationMs)} · Planejamento 0:00
+                  Músicas {formatDuration(duration.musicMs)} · Planejamento{' '}
+                  {formatDuration(duration.planningMs)}
                 </AppText>
               ) : null}
             </View>
@@ -380,15 +382,7 @@ export function ShowDetailScreen({
               Setlist
             </AppText>
             {show.blocks.map((block) => {
-              const blockDuration = block.items.reduce((total, item) => {
-                return (
-                  total + (songsById.get(item.songId)?.estimatedDurationMs ?? 0)
-                );
-              }, 0);
-              const blockHasDuration = block.items.some(
-                (item) =>
-                  songsById.get(item.songId)?.estimatedDurationMs != null,
-              );
+              const blockDuration = getBlockDurationBreakdown(block, songsById);
 
               return (
                 <Card key={block.id} style={styles.blockCard}>
@@ -397,10 +391,43 @@ export function ShowDetailScreen({
                       {block.name}
                     </AppText>
                     <AppText tone="muted" variant="caption">
-                      {blockHasDuration ? formatDuration(blockDuration) : '—'}
+                      {blockDuration.totalMs === null
+                        ? '—'
+                        : formatDuration(blockDuration.totalMs)}
                     </AppText>
                   </View>
                   {block.items.map((item, index) => {
+                    if (item.type === 'separator') {
+                      return (
+                        <View
+                          accessibilityLabel="Separador visual"
+                          key={item.id}
+                          style={styles.separatorItem}
+                        />
+                      );
+                    }
+
+                    if (item.type === 'planning') {
+                      return (
+                        <View key={item.id} style={styles.planningItem}>
+                          <View style={styles.planningIcon}>
+                            <AppText tone="accent">⌛</AppText>
+                          </View>
+                          <View style={styles.itemCopy}>
+                            <AppText tone="accent" variant="caption">
+                              Planejamento
+                            </AppText>
+                            <AppText>{item.description}</AppText>
+                          </View>
+                          <AppText tone="muted" variant="caption">
+                            {item.estimatedDurationMs === null
+                              ? '—'
+                              : formatDuration(item.estimatedDurationMs)}
+                          </AppText>
+                        </View>
+                      );
+                    }
+
                     const song = songsById.get(item.songId);
 
                     return (
@@ -559,6 +586,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     paddingTop: spacing.md,
+  },
+  planningItem: {
+    alignItems: 'center',
+    backgroundColor: colors.cyanSoft,
+    borderRadius: radii.md,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  planningIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radii.pill,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  separatorItem: {
+    borderTopColor: colors.violet,
+    borderTopWidth: 2,
+    marginVertical: spacing.sm,
+    opacity: 0.42,
   },
   itemNumber: {
     width: 24,

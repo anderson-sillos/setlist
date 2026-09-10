@@ -61,11 +61,27 @@ export interface Song {
 
 export type ShowStatus = 'draft' | 'ready' | 'cancelled';
 
-export interface ShowSetlistItem {
+export interface ShowSongSetlistItem {
   readonly id: EntityId;
+  readonly type: 'song';
   readonly songId: EntityId;
   readonly notes: string | null;
 }
+
+export interface ShowPlanningSetlistItem {
+  readonly id: EntityId;
+  readonly type: 'planning';
+  readonly description: string;
+  readonly estimatedDurationMs: number | null;
+}
+
+export interface ShowSeparatorSetlistItem {
+  readonly id: EntityId;
+  readonly type: 'separator';
+}
+
+export type ShowSetlistItem =
+  ShowPlanningSetlistItem | ShowSeparatorSetlistItem | ShowSongSetlistItem;
 
 export interface ShowSetlistBlock {
   readonly id: EntityId;
