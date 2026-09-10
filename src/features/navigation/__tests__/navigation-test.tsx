@@ -4,6 +4,7 @@ import {
   renderHook,
   waitFor,
 } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import BandRoute from '@/app/bands/[bandId]/band';
 import RepertoireRoute from '@/app/bands/[bandId]/repertoire';
@@ -195,6 +196,16 @@ describe('navegação inicial', () => {
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
         expect(view.getByLabelText('Ir para Palco')).toBeTruthy();
+        const navigationTabs = view.getAllByRole('tab');
+        expect(navigationTabs).toHaveLength(4);
+        navigationTabs.forEach((tab) => {
+          expect(StyleSheet.flatten(tab.props.style)).toMatchObject({
+            flexBasis: 0,
+            flexGrow: 1,
+            maxWidth: '25%',
+            width: '25%',
+          });
+        });
       } else {
         expect(view.queryByTestId('bottom-navigation')).toBeNull();
       }
