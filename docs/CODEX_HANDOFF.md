@@ -9,10 +9,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1 e tarefas 2.1–2.8 concluídos; as demais melhorias aprovadas aguardam implementação nas tarefas 2.9–2.12.
+- Implementação: Incremento 1 e tarefas 2.1–2.9 concluídos; as demais melhorias aprovadas aguardam implementação nas tarefas 2.10–2.12.
 - Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional e as decisões de UX/UI foram aprovados explicitamente pelo usuário em 9 de setembro de 2026.
-- Próximo passo: atualizar as listas e detalhes demonstrativos e criar o calendário mensal da tarefa 2.9, mantendo o PR #8 aberto para revisão.
+- Próximo passo: evoluir a setlist com anotações de planejamento, separadores e cálculo completo de duração na tarefa 2.10, mantendo o PR #8 aberto para revisão.
 
 ## Fontes de verdade
 
@@ -41,6 +41,7 @@ openspec validate definir-mvp-setlist --type change --strict
 9. O PR #8 implementou a primeira versão navegável, publicou a versão web e entregou um build interno Android validado; a validação iOS foi adiada.
 10. A revisão funcional e de UX/UI definiu a navegação móvel, listas compactas, calendário, detalhes orientados à letra, planejamento temporal da setlist e o tom de voz informal; o relatório foi aprovado e a implementação foi autorizada.
 11. A tarefa 2.8 substituiu a navegação superior por um shell responsivo com cabeçalho fixo, barra inferior móvel, menu lateral, retorno nos detalhes, cabeçalho de edição e memória de rota e estado por seção.
+12. A tarefa 2.9 transformou bandas, repertório e shows em listas compactas e roláveis com busca, filtros, ordenação, durações e permissões aparentes; os detalhes foram reorganizados e Shows ganhou um calendário mensal com fins de semana, feriados nacionais e os destaques solicitados para a terça-feira de Carnaval e Corpus Christi.
 
 ## Visão confirmada do produto
 
@@ -191,4 +192,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 2.9 com dados demonstrativos, listas compactas, busca, filtros, ordenação, durações, detalhes revisados e calendário mensal. Depois, seguir para 2.10–2.12 e solicitar nova revisão antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.
+Implementar a tarefa 2.10 com anotações de planejamento, separadores, reordenação conceitual e cálculo completo de duração da setlist, sem levar esses itens ao modo palco. Depois, seguir para 2.11–2.12 e solicitar nova revisão antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.

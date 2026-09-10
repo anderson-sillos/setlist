@@ -12,6 +12,24 @@ export function useUserBands() {
   });
 }
 
+export function useUserBandSummaries() {
+  const { currentUserId, repositories } = useAppData();
+
+  return useQuery({
+    queryKey: ['bands', 'user', currentUserId, 'summaries'],
+    queryFn: async () => {
+      const userBands = await repositories.bands.listForUser(currentUserId);
+
+      return Promise.all(
+        userBands.map(async (userBand) => ({
+          ...userBand,
+          shows: await repositories.shows.listByBandId(userBand.band.id),
+        })),
+      );
+    },
+  });
+}
+
 export function useBand(bandId: EntityId) {
   const { repositories } = useAppData();
 

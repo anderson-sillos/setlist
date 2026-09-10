@@ -8,6 +8,7 @@ const createdAt = '2026-08-10T14:00:00.000Z';
 const updatedAt = '2026-09-05T18:30:00.000Z';
 
 export const demoIds = {
+  calendarShow: 'show-demo-ensaio-aberto',
   currentUser: 'user-demo-ana',
   primaryBand: 'band-demo-horizonte',
   secondaryBand: 'band-demo-aurora',
@@ -81,7 +82,7 @@ export const demoRepositoryData = {
       musicalKey: 'G',
       bpm: 118,
       estimatedDurationMs: 218_000,
-      youtubeReference: null,
+      youtubeReference: 'https://www.youtube.com/watch?v=M7lc1UVf-VE',
       lyrics: {
         blocks: [
           {
@@ -298,6 +299,64 @@ export const demoRepositoryData = {
     },
   ],
   shows: [
+    {
+      id: demoIds.calendarShow,
+      bandId: demoIds.primaryBand,
+      name: 'Ensaio Aberto',
+      startsAt: '2026-09-19T16:00:00-03:00',
+      venue: 'Estúdio Central',
+      notes: 'Revisar as entradas antes de abrir as portas.',
+      status: 'draft',
+      blocks: [
+        {
+          id: 'show-block-ensaio-principal',
+          name: 'Principal',
+          items: [
+            {
+              id: 'show-item-ensaio-luzes',
+              songId: demoIds.stageSong,
+              notes: null,
+            },
+            {
+              id: 'show-item-ensaio-pontes',
+              songId: 'song-demo-pontes',
+              notes: 'Testar a passagem direta para o refrão.',
+            },
+          ],
+        },
+      ],
+      createdAt: '2026-09-06T14:00:00.000Z',
+      updatedAt: '2026-09-08T20:00:00.000Z',
+    },
+    {
+      id: 'show-demo-bairro',
+      bandId: demoIds.primaryBand,
+      name: 'Show do Bairro',
+      startsAt: '2026-09-19T21:30:00-03:00',
+      venue: 'Centro Comunitário',
+      notes: 'Montagem a partir das 18h.',
+      status: 'ready',
+      blocks: [
+        {
+          id: 'show-block-bairro-principal',
+          name: 'Principal',
+          items: [
+            {
+              id: 'show-item-bairro-instrumental',
+              songId: 'song-demo-instrumental',
+              notes: null,
+            },
+            {
+              id: 'show-item-bairro-chuva',
+              songId: 'song-demo-chuva',
+              notes: null,
+            },
+          ],
+        },
+      ],
+      createdAt: '2026-09-06T15:00:00.000Z',
+      updatedAt: '2026-09-08T21:00:00.000Z',
+    },
     {
       id: demoIds.readyShow,
       bandId: demoIds.primaryBand,

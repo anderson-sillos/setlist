@@ -22,7 +22,7 @@ describe('dados de demonstração', () => {
       'Trio Aurora',
     ]);
     expect(songs).toHaveLength(4);
-    expect(shows).toHaveLength(3);
+    expect(shows).toHaveLength(5);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 

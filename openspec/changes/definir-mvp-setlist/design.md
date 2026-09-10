@@ -172,7 +172,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Shows usarão lista vertical rolável com busca por nome ou local, filtros por período e estado e ordenação por data, nome ou duração. A consulta padrão mostrará próximos Rascunhos e Prontos pela data mais próxima e ocultará Cancelados.
 - A lista exibirá a duração estimada de cada show. Busca e filtros permanecerão fixos durante a rolagem.
 - A área Shows terá as visões Lista e Calendário. O calendário mensal abrirá no mês atual com hoje selecionado, iniciará a semana no domingo e listará abaixo os shows da data escolhida.
-- No celular, os dias usarão marcadores ou quantidade; em telas maiores, poderão mostrar nomes quando houver espaço. Finais de semana terão diferenciação visual e feriados nacionais do Brasil serão calculados localmente e identificados também por texto.
+- No celular, os dias usarão marcadores ou quantidade; em telas maiores, poderão mostrar nomes quando houver espaço. Finais de semana terão diferenciação visual, e os feriados nacionais do Brasil serão calculados localmente e identificados também por texto. Por decisão do produto, a terça-feira de Carnaval e Corpus Christi receberão o mesmo destaque, embora sejam classificados como pontos facultativos no calendário federal.
 - O calendário não terá visão semanal ou anual nem integração com calendários externos no MVP.
 - Os estados compartilhados serão Rascunho, Pronto e Cancelado. Não haverá Em andamento ou Finalizado; shows passados serão identificados pela data.
 - Rascunho aceitará edição e prévia online do modo palco, mas não poderá ser baixado.

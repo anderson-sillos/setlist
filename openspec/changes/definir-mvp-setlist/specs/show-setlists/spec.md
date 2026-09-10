@@ -98,7 +98,7 @@ O sistema SHALL apresentar os shows em uma lista vertical rolável com busca por
 - **THEN** o sistema mantém na lista somente os shows correspondentes
 
 ### Requirement: Calendário mensal de shows
-O sistema SHALL oferecer dentro de Shows uma visualização mensal das datas com eventos, sem integração com calendários externos, e SHALL calcular localmente os feriados nacionais do Brasil.
+O sistema SHALL oferecer dentro de Shows uma visualização mensal das datas com eventos, sem integração com calendários externos, SHALL calcular localmente os feriados nacionais do Brasil e SHALL destacar também a terça-feira de Carnaval e Corpus Christi como feriados do calendário do produto.
 
 #### Scenario: Abrir o calendário
 - **WHEN** um integrante alterna de Lista para Calendário
@@ -119,6 +119,10 @@ O sistema SHALL oferecer dentro de Shows uma visualização mensal das datas com
 #### Scenario: Diferenciar dias especiais
 - **WHEN** o calendário apresenta sábados, domingos ou um feriado nacional
 - **THEN** o sistema diferencia os finais de semana visualmente e identifica o feriado por marcador e nome sem depender apenas de cor
+
+#### Scenario: Apresentar Carnaval e Corpus Christi
+- **WHEN** o calendário apresenta a terça-feira de Carnaval ou Corpus Christi calculados a partir da Páscoa
+- **THEN** o sistema identifica a data como feriado do calendário do produto por marcador e nome
 
 ### Requirement: Estados do show
 O sistema SHALL limitar os estados compartilhados a Rascunho, Pronto e Cancelado e MUST NOT alterar o estado ao entrar ou navegar no modo palco.

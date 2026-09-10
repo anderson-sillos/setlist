@@ -9,6 +9,7 @@ import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import {
+  BandScreen,
   RepertoireScreen,
   ShowsScreen,
 } from '@/features/navigation/BandSectionScreens';
@@ -19,6 +20,10 @@ import {
   ShowDetailScreen,
   SongDetailScreen,
 } from '@/features/navigation/ContentDetailScreens';
+import {
+  formatRelativeUpdate,
+  normalizeForSearch,
+} from '@/features/navigation/display';
 import {
   getBandSectionHref,
   getShowHref,
@@ -68,13 +73,35 @@ describe('navegação inicial', () => {
   it('carrega Minhas bandas com os destinos demonstrativos', async () => {
     const view = await render(
       <AppProviders>
-        <BandsScreen />
+        <BandsScreen now={new Date('2026-09-09T12:00:00-03:00')} />
       </AppProviders>,
     );
 
     expect(await view.findByText('Banda Horizonte')).toBeTruthy();
     expect(view.getByText('Trio Aurora')).toBeTruthy();
     expect(view.getByLabelText('Abrir Banda Horizonte')).toBeTruthy();
+    expect(view.getByTestId('bands-list')).toBeTruthy();
+    expect(view.getByText('Última acessada')).toBeTruthy();
+    expect(view.getByText('Proprietário')).toBeTruthy();
+    expect(view.getByText('Integrante')).toBeTruthy();
+    expect(view.getAllByText(/Próximo show/)).toHaveLength(2);
+  });
+
+  it('busca bandas pelo nome', async () => {
+    const view = await render(
+      <AppProviders>
+        <BandsScreen />
+      </AppProviders>,
+    );
+
+    await view.findByText('Banda Horizonte');
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar banda pelo nome'),
+      'aurora',
+    );
+
+    expect(view.getByText('Trio Aurora')).toBeTruthy();
+    expect(view.queryByText('Banda Horizonte')).toBeNull();
   });
 
   it.each([
@@ -146,7 +173,8 @@ describe('navegação inicial', () => {
       expect(await view.findByText('Festival da Praça')).toBeTruthy();
       expect(view.getByTestId(presentation)).toBeTruthy();
       expect(view.getByTestId('app-header')).toBeTruthy();
-      expect(view.getByTestId('screen-scroll-area')).toBeTruthy();
+      expect(view.getByTestId('screen-static-area')).toBeTruthy();
+      expect(view.getByTestId('shows-list')).toBeTruthy();
 
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
@@ -178,20 +206,20 @@ describe('navegação inicial', () => {
     expect(view.queryByTestId('navigation-drawer')).toBeNull();
   });
 
-  it.each([
-    { mode: 'phone', width: 390 },
-    { mode: 'tablet', width: 820 },
-    { mode: 'desktop', width: 1440 },
-  ])('adapta as listas ao modo $mode', async ({ mode, width }) => {
-    const view = await render(
-      <AppProviders>
-        <ShowsScreen bandId={demoIds.primaryBand} viewportWidth={width} />
-      </AppProviders>,
-    );
+  it.each([{ width: 390 }, { width: 820 }, { width: 1440 }])(
+    'mantém a lista compacta e rolável em $width px',
+    async ({ width }) => {
+      const view = await render(
+        <AppProviders>
+          <ShowsScreen bandId={demoIds.primaryBand} viewportWidth={width} />
+        </AppProviders>,
+      );
 
-    expect(await view.findByText('Festival da Praça')).toBeTruthy();
-    expect(view.getByTestId(`responsive-grid-${mode}`)).toBeTruthy();
-  });
+      expect(await view.findByText('Festival da Praça')).toBeTruthy();
+      expect(view.getByTestId('shows-list')).toBeTruthy();
+      expect(view.getByLabelText('Buscar show por nome ou local')).toBeTruthy();
+    },
+  );
 
   it('apresenta o repertório e os metadados em modo somente leitura', async () => {
     const view = await render(
@@ -201,9 +229,101 @@ describe('navegação inicial', () => {
     );
 
     expect(await view.findByText('Luzes da Cidade')).toBeTruthy();
-    expect(view.getByTestId('responsive-grid-tablet')).toBeTruthy();
+    expect(view.getByTestId('repertoire-list')).toBeTruthy();
     expect(view.getByText('Letra estática')).toBeTruthy();
     expect(view.getByText('Sincronização incompleta')).toBeTruthy();
+    expect(view.getByText('3:38')).toBeTruthy();
+    expect(view.queryByText(/Tom G · BPM/)).toBeNull();
+  });
+
+  it('busca, filtra e ordena o repertório sem tirar os controles da tela', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} viewportWidth={390} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'pontes',
+    );
+
+    expect(view.getByText('Entre Pontes')).toBeTruthy();
+    expect(view.queryByText('Luzes da Cidade')).toBeNull();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      '',
+    );
+    await fireEvent.press(view.getByLabelText('Arquivadas'));
+
+    expect(view.getByText('Rota Antiga')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+
+    await fireEvent.press(
+      view.getByLabelText('Alterar ordenação do repertório'),
+    );
+    await fireEvent.press(view.getByText('Maior duração'));
+
+    expect(view.getByLabelText('Alterar ordenação do repertório')).toBeTruthy();
+  });
+
+  it('busca shows e mantém cancelados fora da agenda ativa', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowsScreen
+          bandId={demoIds.primaryBand}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Ensaio Aberto');
+    expect(view.queryByText('Encontro de Inverno')).toBeNull();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar show por nome ou local'),
+      'praça',
+    );
+
+    expect(view.getByText('Festival da Praça')).toBeTruthy();
+    expect(view.queryByText('Ensaio Aberto')).toBeNull();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar show por nome ou local'),
+      '',
+    );
+    await fireEvent.press(view.getAllByLabelText('Todos')[0]);
+    await fireEvent.press(view.getByLabelText('Cancelado'));
+
+    expect(await view.findByText('Encontro de Inverno')).toBeTruthy();
+  });
+
+  it('mostra o calendário mensal, feriados e vários shows no mesmo dia', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowsScreen
+          bandId={demoIds.primaryBand}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Ensaio Aberto');
+    await fireEvent.press(view.getByLabelText('Calendário'));
+
+    expect(view.getByTestId('shows-month-calendar')).toBeTruthy();
+    expect(view.getByText('7 · Independência do Brasil')).toBeTruthy();
+
+    await fireEvent.press(
+      view.getByLabelText(/19 de setembro de 2026, 2 shows/),
+    );
+
+    expect(view.getByText('Ensaio Aberto')).toBeTruthy();
+    expect(view.getByText('Show do Bairro')).toBeTruthy();
   });
 
   it.each([
@@ -232,6 +352,7 @@ describe('navegação inicial', () => {
         <AppProviders>
           <SongDetailScreen
             bandId={demoIds.primaryBand}
+            now={new Date('2026-09-09T12:00:00-03:00')}
             songId={demoIds.stageSong}
             viewportHeight={height}
             viewportWidth={width}
@@ -243,6 +364,9 @@ describe('navegação inicial', () => {
       expect(view.getByTestId(`song-detail-${mode}`)).toBeTruthy();
       expect(view.getByTestId(navigation)).toBeTruthy();
       expect(view.getByLabelText('Voltar para Repertório')).toBeTruthy();
+      expect(view.getByText('Duração · 3:38')).toBeTruthy();
+      expect(view.getByText('Atualizada há 3 dias')).toBeTruthy();
+      expect(view.getByLabelText('Abrir referência no YouTube')).toBeTruthy();
     },
   );
 
@@ -263,7 +387,50 @@ describe('navegação inicial', () => {
     expect(view.getByText('Segundo Set')).toBeTruthy();
     expect(view.getByText('Usar a versão curta no bis.')).toBeTruthy();
     expect(view.getAllByText('Luzes da Cidade')).toHaveLength(2);
+    expect(view.getByText('16:07')).toBeTruthy();
+    expect(view.getByText('Músicas 16:07 · Planejamento 0:00')).toBeTruthy();
     expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
+  });
+
+  it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
+    const ownerView = await render(
+      <AppProviders>
+        <BandScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    expect(await ownerView.findByText('Proprietários · 1')).toBeTruthy();
+    expect(ownerView.getByText('Editores · 1')).toBeTruthy();
+    expect(ownerView.getByText('Integrantes · 1')).toBeTruthy();
+    expect(ownerView.getByText('Você')).toBeTruthy();
+    expect(ownerView.getByLabelText('Convidar integrante')).toBeTruthy();
+    expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
+    await ownerView.unmount();
+
+    const memberView = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <BandScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    expect(await memberView.findByText('Você')).toBeTruthy();
+    expect(memberView.queryByLabelText('Convidar integrante')).toBeNull();
+    expect(memberView.queryByLabelText('Administrar Bruno Lima')).toBeNull();
+  });
+
+  it('oculta ações de edição dos detalhes para integrante', async () => {
+    const view = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(view.queryByText('Editar')).toBeNull();
+    expect(view.queryByLabelText('Mais opções da música')).toBeNull();
   });
 
   it('mantém a navegação inferior no detalhe e usa retorno no cabeçalho', async () => {
@@ -401,6 +568,38 @@ describe('navegação inicial', () => {
     ).toBeTruthy();
   });
 
+  it('apresenta estados vazios e permite limpar uma busca sem resultado', async () => {
+    const emptyRepositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      shows: [],
+      songs: [],
+    });
+    const emptyView = await render(
+      <AppProviders repositories={emptyRepositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    expect(await emptyView.findByText('Repertório vazio')).toBeTruthy();
+    await emptyView.unmount();
+
+    const searchView = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await searchView.findByText('Luzes da Cidade');
+    await fireEvent.changeText(
+      searchView.getByLabelText('Buscar música por título ou artista'),
+      'música que não existe',
+    );
+    expect(searchView.getByText('Nenhuma música encontrada')).toBeTruthy();
+
+    await fireEvent.press(searchView.getByText('Limpar filtros'));
+    expect(await searchView.findByText('Luzes da Cidade')).toBeTruthy();
+  });
+
   it.each([
     { Route: ShowDetailRoute, content: 'Festival da Praça' },
     { Route: SongDetailRoute, content: 'A rua acende devagar' },
@@ -417,7 +616,30 @@ describe('navegação inicial', () => {
 
   it('formata duração para exibição', () => {
     expect(formatDuration(218_000)).toBe('3:38');
+    expect(formatDuration(3_661_000)).toBe('1:01:01');
     expect(formatDuration(null)).toBe('Não informada');
+  });
+
+  it('formata atualização relativa e normaliza buscas', () => {
+    const now = new Date('2026-09-09T12:00:00.000Z');
+
+    expect(formatRelativeUpdate('2026-09-09T11:59:45.000Z', now)).toBe('agora');
+    expect(formatRelativeUpdate('2026-09-09T11:45:00.000Z', now)).toBe(
+      'há 15 min',
+    );
+    expect(formatRelativeUpdate('2026-09-09T09:00:00.000Z', now)).toBe(
+      'há 3 h',
+    );
+    expect(formatRelativeUpdate('2026-09-08T12:00:00.000Z', now)).toBe(
+      'há 1 dia',
+    );
+    expect(formatRelativeUpdate('2026-09-06T12:00:00.000Z', now)).toBe(
+      'há 3 dias',
+    );
+    expect(formatRelativeUpdate('2026-08-01T12:00:00.000Z', now)).toMatch(
+      /1 de ago\. de 2026/,
+    );
+    expect(normalizeForSearch('  Praça Áurea  ')).toBe('praca aurea');
   });
 
   it('exige o provedor para acessar os repositórios', async () => {

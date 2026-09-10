@@ -48,7 +48,9 @@ interface AppNavigationShellProps extends PropsWithChildren {
   readonly contentStyle?: StyleProp<ViewStyle>;
   readonly currentRoute?: string;
   readonly editActions?: EditActions;
+  readonly fixedContent?: ReactNode;
   readonly headerAction?: HeaderAction;
+  readonly scrollable?: boolean;
   readonly screenKind?: NavigationScreenKind;
   readonly subtitle?: string;
   readonly testID?: string;
@@ -365,8 +367,10 @@ export function AppNavigationShell({
   contentStyle,
   currentRoute,
   editActions,
+  fixedContent,
   headerAction,
   screenKind = 'main',
+  scrollable = true,
   subtitle,
   testID,
   title,
@@ -465,16 +469,31 @@ export function AppNavigationShell({
             title={title}
           />
 
-          <ScrollView
-            contentContainerStyle={[styles.scrollContent, contentStyle]}
-            contentOffset={{ x: 0, y: initialScrollOffset }}
-            keyboardShouldPersistTaps="handled"
-            onScroll={handleScroll}
-            scrollEventThrottle={120}
-            testID="screen-scroll-area"
-          >
-            <View style={styles.content}>{children}</View>
-          </ScrollView>
+          {fixedContent ? (
+            <View style={styles.fixedContentFrame}>
+              <View style={styles.fixedContent}>{fixedContent}</View>
+            </View>
+          ) : null}
+
+          {scrollable ? (
+            <ScrollView
+              contentContainerStyle={[styles.scrollContent, contentStyle]}
+              contentOffset={{ x: 0, y: initialScrollOffset }}
+              keyboardShouldPersistTaps="handled"
+              onScroll={handleScroll}
+              scrollEventThrottle={120}
+              testID="screen-scroll-area"
+            >
+              <View style={styles.content}>{children}</View>
+            </ScrollView>
+          ) : (
+            <View
+              style={[styles.unscrolledContent, contentStyle]}
+              testID="screen-static-area"
+            >
+              {children}
+            </View>
+          )}
 
           {showBottomNavigation ? (
             <View
@@ -602,11 +621,28 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
+  fixedContentFrame: {
+    backgroundColor: colors.paper,
+    borderBottomColor: colors.line,
+    borderBottomWidth: 1,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    zIndex: 2,
+  },
+  fixedContent: {
+    alignSelf: 'center',
+    maxWidth: layout.contentMaxWidth,
+    width: '100%',
+  },
   content: {
     alignSelf: 'center',
     maxWidth: layout.contentMaxWidth,
     padding: spacing.xl,
     width: '100%',
+  },
+  unscrolledContent: {
+    flex: 1,
+    minHeight: 0,
   },
   bottomNavigation: {
     backgroundColor: colors.surface,
