@@ -3,9 +3,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
-import { Screen } from '@/components/ui/Screen';
 import { useUserBands } from '@/data/queries';
 import type { BandRole } from '@/domain';
+import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, radii, spacing } from '@/theme/tokens';
 
@@ -19,7 +19,11 @@ export default function BandsScreen() {
   const bandsQuery = useUserBands();
 
   return (
-    <Screen testID="bands-screen">
+    <AppNavigationShell
+      currentRoute="/"
+      testID="bands-screen"
+      title="Minhas bandas"
+    >
       <Card style={styles.hero} tone="dark">
         <AppText tone="inverse" variant="eyebrow">
           SETLIST · DEMONSTRAÇÃO
@@ -85,7 +89,7 @@ export default function BandsScreen() {
           </Link>
         ))}
       </View>
-    </Screen>
+    </AppNavigationShell>
   );
 }
 

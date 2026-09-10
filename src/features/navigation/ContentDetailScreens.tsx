@@ -11,19 +11,26 @@ import {
   lyricStatusLabels,
   showStatusLabels,
 } from '@/features/navigation/BandSectionScreens';
-import { getBandSectionHref, getStageHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getShowHref,
+  getSongHref,
+  getStageHref,
+} from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface SongDetailScreenProps {
   readonly bandId: EntityId;
   readonly songId: EntityId;
+  readonly viewportHeight?: number;
   readonly viewportWidth?: number;
 }
 
 interface ShowDetailScreenProps {
   readonly bandId: EntityId;
   readonly showId: EntityId;
+  readonly viewportHeight?: number;
   readonly viewportWidth?: number;
 }
 
@@ -39,32 +46,10 @@ function formatDuration(durationMs: number | null): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function BackLink({
-  bandId,
-  section,
-}: {
-  bandId: EntityId;
-  section: 'shows' | 'repertoire';
-}) {
-  const label =
-    section === 'shows' ? 'Voltar para Shows' : 'Voltar para Repertório';
-
-  return (
-    <Link href={getBandSectionHref(bandId, section)} asChild>
-      <Pressable
-        accessibilityLabel={label}
-        accessibilityRole="link"
-        style={({ pressed }) => [styles.backLink, pressed && styles.pressed]}
-      >
-        <AppText tone="accent">← {label}</AppText>
-      </Pressable>
-    </Link>
-  );
-}
-
 export function SongDetailScreen({
   bandId,
   songId,
+  viewportHeight,
   viewportWidth,
 }: SongDetailScreenProps) {
   const window = useWindowDimensions();
@@ -73,9 +58,16 @@ export function SongDetailScreen({
   const song = songQuery.data;
 
   return (
-    <BandAreaLayout activeSection="repertoire" bandId={bandId}>
-      <BackLink bandId={bandId} section="repertoire" />
-
+    <BandAreaLayout
+      activeSection="repertoire"
+      backHref={getBandSectionHref(bandId, 'repertoire')}
+      bandId={bandId}
+      currentRoute={getSongHref(bandId, songId) as string}
+      screenKind="detail"
+      title="Detalhes da música"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
       {songQuery.isPending ? (
         <AppText accessibilityLiveRegion="polite">Carregando música…</AppText>
       ) : null}
@@ -164,6 +156,7 @@ export function SongDetailScreen({
 export function ShowDetailScreen({
   bandId,
   showId,
+  viewportHeight,
   viewportWidth,
 }: ShowDetailScreenProps) {
   const window = useWindowDimensions();
@@ -174,9 +167,16 @@ export function ShowDetailScreen({
   const songsById = new Map(songsQuery.data?.map((song) => [song.id, song]));
 
   return (
-    <BandAreaLayout activeSection="shows" bandId={bandId}>
-      <BackLink bandId={bandId} section="shows" />
-
+    <BandAreaLayout
+      activeSection="shows"
+      backHref={getBandSectionHref(bandId, 'shows')}
+      bandId={bandId}
+      currentRoute={getShowHref(bandId, showId) as string}
+      screenKind="detail"
+      title="Detalhes do show"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
       {showQuery.isPending ? (
         <AppText accessibilityLiveRegion="polite">Carregando show…</AppText>
       ) : null}
@@ -267,11 +267,6 @@ export function ShowDetailScreen({
 export { formatDuration };
 
 const styles = StyleSheet.create({
-  backLink: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.xl,
-    paddingVertical: spacing.sm,
-  },
   detail: {
     gap: spacing.lg,
   },

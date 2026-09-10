@@ -7,11 +7,16 @@ import { Card } from '@/components/ui/Card';
 import { useBandMembers, useShows, useSongs } from '@/data/queries';
 import type { EntityId, Show, ShowStatus, Song } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { getShowHref, getSongHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getShowHref,
+  getSongHref,
+} from '@/features/navigation/routes';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface BandSectionScreenProps {
   readonly bandId: EntityId;
+  readonly viewportHeight?: number;
   readonly viewportWidth?: number;
 }
 
@@ -36,20 +41,11 @@ function formatShowDate(startsAt: string): string {
   }).format(new Date(startsAt));
 }
 
-function SectionHeader({
-  children,
-  title,
-}: {
-  children: string;
-  title: string;
-}) {
+function SectionIntro({ children }: { children: string }) {
   return (
     <View style={styles.sectionHeader}>
       <AppText tone="accent" variant="eyebrow">
-        Somente leitura
-      </AppText>
-      <AppText accessibilityRole="header" variant="heading">
-        {title}
+        Demonstração
       </AppText>
       <AppText tone="muted">{children}</AppText>
     </View>
@@ -126,14 +122,25 @@ function SongCard({ bandId, song }: { bandId: EntityId; song: Song }) {
   );
 }
 
-export function ShowsScreen({ bandId, viewportWidth }: BandSectionScreenProps) {
+export function ShowsScreen({
+  bandId,
+  viewportHeight,
+  viewportWidth,
+}: BandSectionScreenProps) {
   const showsQuery = useShows(bandId);
 
   return (
-    <BandAreaLayout activeSection="shows" bandId={bandId}>
-      <SectionHeader title="Shows">
+    <BandAreaLayout
+      activeSection="shows"
+      bandId={bandId}
+      currentRoute={getBandSectionHref(bandId, 'shows') as string}
+      title="Shows"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
+      <SectionIntro>
         Consulte eventos, estados e a organização de cada setlist.
-      </SectionHeader>
+      </SectionIntro>
       <LoadingState isPending={showsQuery.isPending} />
       <ErrorState isError={showsQuery.isError} />
       <ResponsiveGrid
@@ -148,15 +155,23 @@ export function ShowsScreen({ bandId, viewportWidth }: BandSectionScreenProps) {
 
 export function RepertoireScreen({
   bandId,
+  viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
   const songsQuery = useSongs(bandId);
 
   return (
-    <BandAreaLayout activeSection="repertoire" bandId={bandId}>
-      <SectionHeader title="Repertório">
+    <BandAreaLayout
+      activeSection="repertoire"
+      bandId={bandId}
+      currentRoute={getBandSectionHref(bandId, 'repertoire') as string}
+      title="Repertório"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
+      <SectionIntro>
         Consulte metadados, preparação e letra vigente de cada música.
-      </SectionHeader>
+      </SectionIntro>
       <LoadingState isPending={songsQuery.isPending} />
       <ErrorState isError={songsQuery.isError} />
       <ResponsiveGrid
@@ -169,14 +184,25 @@ export function RepertoireScreen({
   );
 }
 
-export function BandScreen({ bandId }: BandSectionScreenProps) {
+export function BandScreen({
+  bandId,
+  viewportHeight,
+  viewportWidth,
+}: BandSectionScreenProps) {
   const membersQuery = useBandMembers(bandId);
 
   return (
-    <BandAreaLayout activeSection="band" bandId={bandId}>
-      <SectionHeader title="Banda">
+    <BandAreaLayout
+      activeSection="band"
+      bandId={bandId}
+      currentRoute={getBandSectionHref(bandId, 'band') as string}
+      title="Banda"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
+      <SectionIntro>
         {`${membersQuery.data?.length ?? 0} integrantes nesta banda.`}
-      </SectionHeader>
+      </SectionIntro>
       <LoadingState isPending={membersQuery.isPending} />
       <ErrorState isError={membersQuery.isError} />
       <Card style={styles.memberCard}>

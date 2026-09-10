@@ -9,10 +9,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR ativo: #8, branch `feat/reviewable-app`, mantido aberto para revisão do usuário.
-- Implementação: Incremento 1, tarefas 2.1–2.7 e a revisão funcional 2.6.1–2.6.6 concluídos; as melhorias aprovadas aguardam implementação nas tarefas 2.8–2.12.
+- Implementação: Incremento 1 e tarefas 2.1–2.8 concluídos; as demais melhorias aprovadas aguardam implementação nas tarefas 2.9–2.12.
 - Entrega atual: prévia web e build interno Android validados; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional e as decisões de UX/UI foram aprovados explicitamente pelo usuário em 9 de setembro de 2026.
-- Próximo passo: implementar a navegação responsiva da tarefa 2.8, validar nos três modos de layout e manter o PR #8 aberto para revisão.
+- Próximo passo: atualizar as listas e detalhes demonstrativos e criar o calendário mensal da tarefa 2.9, mantendo o PR #8 aberto para revisão.
 
 ## Fontes de verdade
 
@@ -40,6 +40,7 @@ openspec validate definir-mvp-setlist --type change --strict
 8. Os PRs #6 e #7 ampliaram o roteiro do ambiente e documentaram a atualização segura do código local.
 9. O PR #8 implementou a primeira versão navegável, publicou a versão web e entregou um build interno Android validado; a validação iOS foi adiada.
 10. A revisão funcional e de UX/UI definiu a navegação móvel, listas compactas, calendário, detalhes orientados à letra, planejamento temporal da setlist e o tom de voz informal; o relatório foi aprovado e a implementação foi autorizada.
+11. A tarefa 2.8 substituiu a navegação superior por um shell responsivo com cabeçalho fixo, barra inferior móvel, menu lateral, retorno nos detalhes, cabeçalho de edição e memória de rota e estado por seção.
 
 ## Visão confirmada do produto
 
@@ -190,4 +191,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 2.8, começando pela estrutura de navegação responsiva, cabeçalhos fixos, barra inferior móvel e menu lateral, com testes nos três modos de layout. Depois, seguir para 2.9–2.12 e solicitar nova revisão antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.
+Implementar a tarefa 2.9 com dados demonstrativos, listas compactas, busca, filtros, ordenação, durações, detalhes revisados e calendário mensal. Depois, seguir para 2.10–2.12 e solicitar nova revisão antes de integrar o PR #8. A validação iOS permanece adiada para uma etapa futura.

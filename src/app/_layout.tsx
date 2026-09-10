@@ -8,7 +8,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AppProviders>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack
+          screenOptions={{
+            animation: 'slide_from_right',
+            fullScreenGestureEnabled: true,
+            gestureEnabled: true,
+            headerShown: false,
+          }}
+        />
         <StatusBar style="auto" />
       </AppProviders>
     </SafeAreaProvider>

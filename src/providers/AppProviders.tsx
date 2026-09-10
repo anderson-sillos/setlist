@@ -8,6 +8,7 @@ import {
 
 import { createDemoRepositories, demoIds } from '@/data/demo';
 import type { AppRepositories, EntityId } from '@/domain';
+import { NavigationMemoryProvider } from '@/features/navigation/NavigationMemory';
 
 interface AppDataContextValue {
   readonly currentUserId: EntityId;
@@ -41,7 +42,9 @@ export function AppProviders({
 
   return (
     <AppDataContext.Provider value={{ currentUserId, repositories }}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
+      </QueryClientProvider>
     </AppDataContext.Provider>
   );
 }

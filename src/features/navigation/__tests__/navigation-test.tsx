@@ -1,4 +1,4 @@
-import { render, renderHook } from '@testing-library/react-native';
+import { fireEvent, render, renderHook } from '@testing-library/react-native';
 
 import BandRoute from '@/app/bands/[bandId]/band';
 import RepertoireRoute from '@/app/bands/[bandId]/repertoire';
@@ -12,6 +12,7 @@ import {
   RepertoireScreen,
   ShowsScreen,
 } from '@/features/navigation/BandSectionScreens';
+import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import BandsScreen from '@/features/navigation/BandsScreen';
 import {
   formatDuration,
@@ -24,6 +25,10 @@ import {
   getSongHref,
   getStageHref,
 } from '@/features/navigation/routes';
+import {
+  NavigationMemoryProvider,
+  useNavigationMemory,
+} from '@/features/navigation/NavigationMemory';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
 
 jest.mock('expo-router', () => ({
@@ -100,9 +105,78 @@ describe('navegação inicial', () => {
       expect(await view.findByText(content)).toBeTruthy();
       expect(view.getAllByText('Banda Horizonte').length).toBeGreaterThan(0);
       expect(view.getByLabelText(navigationLabel)).toBeTruthy();
-      expect(view.getByLabelText('Voltar para Minhas bandas')).toBeTruthy();
+      expect(view.getByLabelText('Abrir menu geral')).toBeTruthy();
     },
   );
+
+  it.each([
+    {
+      height: 844,
+      presentation: 'bottom-navigation',
+      width: 390,
+    },
+    {
+      height: 1180,
+      presentation: 'bottom-navigation',
+      width: 820,
+    },
+    {
+      height: 768,
+      presentation: 'navigation-sidebar',
+      width: 1024,
+    },
+    {
+      height: 900,
+      presentation: 'navigation-sidebar',
+      width: 1440,
+    },
+  ])(
+    'usa $presentation em ${width}x${height}',
+    async ({ height, presentation, width }) => {
+      const view = await render(
+        <AppProviders>
+          <ShowsScreen
+            bandId={demoIds.primaryBand}
+            viewportHeight={height}
+            viewportWidth={width}
+          />
+        </AppProviders>,
+      );
+
+      expect(await view.findByText('Festival da Praça')).toBeTruthy();
+      expect(view.getByTestId(presentation)).toBeTruthy();
+      expect(view.getByTestId('app-header')).toBeTruthy();
+      expect(view.getByTestId('screen-scroll-area')).toBeTruthy();
+
+      if (presentation === 'bottom-navigation') {
+        expect(view.queryByTestId('navigation-sidebar')).toBeNull();
+      } else {
+        expect(view.queryByTestId('bottom-navigation')).toBeNull();
+      }
+    },
+  );
+
+  it('abre e fecha o menu geral no celular', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowsScreen
+          bandId={demoIds.primaryBand}
+          viewportHeight={844}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Festival da Praça');
+    await fireEvent.press(view.getByLabelText('Abrir menu geral'));
+
+    expect(view.getByTestId('navigation-drawer')).toBeTruthy();
+    expect(view.getByLabelText('Minhas bandas')).toBeTruthy();
+    expect(view.getByText('Conta de demonstração')).toBeTruthy();
+
+    await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
+    expect(view.queryByTestId('navigation-drawer')).toBeNull();
+  });
 
   it.each([
     { mode: 'phone', width: 390 },
@@ -133,24 +207,44 @@ describe('navegação inicial', () => {
   });
 
   it.each([
-    { mode: 'phone', width: 390 },
-    { mode: 'tablet', width: 820 },
-    { mode: 'desktop', width: 1440 },
-  ])('adapta os detalhes ao modo $mode', async ({ mode, width }) => {
-    const view = await render(
-      <AppProviders>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-          viewportWidth={width}
-        />
-      </AppProviders>,
-    );
+    {
+      height: 844,
+      mode: 'phone',
+      navigation: 'bottom-navigation',
+      width: 390,
+    },
+    {
+      height: 1180,
+      mode: 'tablet',
+      navigation: 'bottom-navigation',
+      width: 820,
+    },
+    {
+      height: 900,
+      mode: 'desktop',
+      navigation: 'navigation-sidebar',
+      width: 1440,
+    },
+  ])(
+    'adapta os detalhes ao modo $mode',
+    async ({ height, mode, navigation, width }) => {
+      const view = await render(
+        <AppProviders>
+          <SongDetailScreen
+            bandId={demoIds.primaryBand}
+            songId={demoIds.stageSong}
+            viewportHeight={height}
+            viewportWidth={width}
+          />
+        </AppProviders>,
+      );
 
-    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
-    expect(view.getByTestId(`song-detail-${mode}`)).toBeTruthy();
-    expect(view.getByLabelText('Voltar para Repertório')).toBeTruthy();
-  });
+      expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+      expect(view.getByTestId(`song-detail-${mode}`)).toBeTruthy();
+      expect(view.getByTestId(navigation)).toBeTruthy();
+      expect(view.getByLabelText('Voltar para Repertório')).toBeTruthy();
+    },
+  );
 
   it('mostra dados, blocos, ordem e observações do show', async () => {
     const view = await render(
@@ -170,6 +264,99 @@ describe('navegação inicial', () => {
     expect(view.getByText('Usar a versão curta no bis.')).toBeTruthy();
     expect(view.getAllByText('Luzes da Cidade')).toHaveLength(2);
     expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
+  });
+
+  it('mantém a navegação inferior no detalhe e usa retorno no cabeçalho', async () => {
+    const view = await render(
+      <AppProviders>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+          viewportHeight={844}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(view.getByLabelText('Voltar para Repertório')).toBeTruthy();
+    expect(view.getByTestId('bottom-navigation')).toBeTruthy();
+    expect(view.queryByLabelText('Abrir menu geral')).toBeNull();
+  });
+
+  it.each([
+    { height: 844, sidebar: false, width: 390 },
+    { height: 1180, sidebar: false, width: 820 },
+    { height: 900, sidebar: true, width: 1440 },
+  ])(
+    'reduz o cabeçalho de edição em ${width}x${height}',
+    async ({ height, sidebar, width }) => {
+      const onCancel = jest.fn();
+      const onSave = jest.fn();
+      const view = await render(
+        <AppProviders>
+          <AppNavigationShell
+            activeSection="repertoire"
+            bandId={demoIds.primaryBand}
+            bandName="Banda Horizonte"
+            currentRoute={`/bands/${demoIds.primaryBand}/repertoire/demo/edit`}
+            editActions={{ onCancel, onSave }}
+            screenKind="edit"
+            title="Editar música"
+            viewportHeight={height}
+            viewportWidth={width}
+          >
+            <></>
+          </AppNavigationShell>
+        </AppProviders>,
+      );
+
+      await fireEvent.press(view.getByLabelText('Cancelar edição'));
+      await fireEvent.press(view.getByLabelText('Salvar edição'));
+
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onSave).toHaveBeenCalledTimes(1);
+      expect(view.queryByTestId('bottom-navigation')).toBeNull();
+      expect(view.queryByLabelText('Abrir menu geral')).toBeNull();
+      expect(Boolean(view.queryByTestId('navigation-sidebar'))).toBe(sidebar);
+    },
+  );
+
+  it('preserva a última rota e rolagem de cada seção', async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
+    );
+    const { result } = await renderHook(() => useNavigationMemory(), {
+      wrapper,
+    });
+
+    result.current.rememberRoute(
+      demoIds.primaryBand,
+      'repertoire',
+      '/bands/demo/repertoire/song-1',
+    );
+    result.current.rememberScrollOffset(demoIds.primaryBand, 'repertoire', 248);
+    result.current.rememberScrollOffset(demoIds.primaryBand, 'shows', -20);
+    result.current.rememberViewState(demoIds.primaryBand, 'repertoire', {
+      filter: 'pending',
+      search: 'luzes',
+      sort: 'title',
+    });
+
+    expect(
+      result.current.getSectionMemory(demoIds.primaryBand, 'repertoire'),
+    ).toEqual({
+      route: '/bands/demo/repertoire/song-1',
+      scrollOffset: 248,
+      viewState: {
+        filter: 'pending',
+        search: 'luzes',
+        sort: 'title',
+      },
+    });
+    expect(
+      result.current.getSectionMemory(demoIds.primaryBand, 'shows'),
+    ).toEqual({ scrollOffset: 0 });
   });
 
   it('trata música sem letra e conteúdo não encontrado', async () => {

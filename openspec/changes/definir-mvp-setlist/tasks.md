@@ -22,7 +22,7 @@
 - [x] 2.6.5 Discutir os pontos de ajuste e melhoria observados na revisão e separar os itens funcionais daqueles que devem seguir para a revisão de UX/UI da tarefa 2.7
 - [x] 2.6.6 Consolidar o relatório da primeira revisão funcional com as decisões tomadas e verificar a aprovação explícita antes de concluir o grupo 2.6
 - [x] 2.7 Conduzir uma revisão de UX/UI da primeira versão navegável em celular, tablet e computador e registrar ajustes priorizados de navegação, hierarquia visual, legibilidade, áreas de toque, contraste e estados de interface antes do próximo incremento; manter a revisão específica do modo palco adiada para 8.9
-- [ ] 2.8 Implementar a navegação responsiva aprovada com cabeçalhos fixos, barra inferior móvel, menu lateral e preservação do estado de cada seção e verificar rotas principais, detalhes e edição nos três modos de layout
+- [x] 2.8 Implementar a navegação responsiva aprovada com cabeçalhos fixos, barra inferior móvel, menu lateral e preservação do estado de cada seção e verificar rotas principais, detalhes e edição nos três modos de layout
 - [ ] 2.9 Atualizar com dados de demonstração as listas e detalhes de bandas, repertório e shows, incluindo busca, filtros, ordenação, durações e calendário mensal, e verificar rolagem, estados vazios e permissões aparentes
 - [ ] 2.10 Evoluir os contratos e dados demonstrativos da setlist para anotações de planejamento, separadores e cálculo de duração e verificar reordenação conceitual, totais e ausência desses itens no modo palco
 - [ ] 2.11 Implementar os componentes compartilhados de carregamento, erro, indisponibilidade, conexão e mensagens temporárias e aplicar o guia de tom e voz com testes de acessibilidade e variações controladas

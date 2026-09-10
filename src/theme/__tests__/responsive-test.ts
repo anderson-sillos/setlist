@@ -1,6 +1,7 @@
 import {
   getCatalogColumnCount,
   getLayoutMode,
+  getNavigationPresentation,
   type LayoutMode,
 } from '@/theme/responsive';
 
@@ -25,4 +26,19 @@ describe('getCatalogColumnCount', () => {
   ] as const)('define $expected coluna(s) para $mode', ({ mode, expected }) => {
     expect(getCatalogColumnCount(mode as LayoutMode)).toBe(expected);
   });
+});
+
+describe('getNavigationPresentation', () => {
+  it.each([
+    { expected: 'bottom-tabs', height: 844, width: 390 },
+    { expected: 'bottom-tabs', height: 390, width: 844 },
+    { expected: 'bottom-tabs', height: 1180, width: 820 },
+    { expected: 'sidebar', height: 768, width: 1024 },
+    { expected: 'sidebar', height: 900, width: 1440 },
+  ] as const)(
+    'usa $expected em ${width}x${height}',
+    ({ expected, height, width }) => {
+      expect(getNavigationPresentation(width, height)).toBe(expected);
+    },
+  );
 });
