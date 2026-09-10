@@ -42,7 +42,7 @@ export const fontSizes = {
 } as const;
 
 export const layout = {
-  contentMaxWidth: 1200,
+  contentMaxWidth: 600,
   tabletBreakpoint: 768,
   desktopBreakpoint: 1180,
   minimumTouchTarget: 48,

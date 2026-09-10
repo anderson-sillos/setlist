@@ -13,6 +13,7 @@ import StageHubRoute from '@/app/bands/[bandId]/stage';
 import ShowsRoute from '@/app/bands/[bandId]/shows';
 import ShowDetailRoute from '@/app/bands/[bandId]/shows/[showId]';
 import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
+import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import {
@@ -42,7 +43,6 @@ import {
   useNavigationMemory,
 } from '@/features/navigation/NavigationMemory';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
-import { spacing } from '@/theme/tokens';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -54,6 +54,14 @@ jest.mock('expo-router', () => ({
 }));
 
 describe('navegação inicial', () => {
+  it('troca de tela sem animação e mantém os gestos de navegação', () => {
+    expect(rootStackScreenOptions).toMatchObject({
+      animation: 'none',
+      fullScreenGestureEnabled: true,
+      gestureEnabled: true,
+    });
+  });
+
   it('define os caminhos de Shows, Repertório, Palco e Banda', () => {
     expect(getBandSectionHref(demoIds.primaryBand, 'shows')).toBe(
       `/bands/${demoIds.primaryBand}/shows`,
@@ -197,18 +205,27 @@ describe('navegação inicial', () => {
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
         expect(view.getByLabelText('Ir para Palco')).toBeTruthy();
-        expect(
-          StyleSheet.flatten(view.getByTestId('bottom-navigation').props.style),
-        ).toMatchObject({ marginHorizontal: spacing.sm });
+        const bottomNavigationStyle = StyleSheet.flatten(
+          view.getByTestId('bottom-navigation').props.style,
+        );
+        expect(bottomNavigationStyle).toMatchObject({
+          alignItems: 'center',
+          justifyContent: 'space-evenly',
+          minHeight: 52,
+        });
+        expect(bottomNavigationStyle.gap).toBeUndefined();
+        expect(bottomNavigationStyle.marginHorizontal).toBeUndefined();
+        expect(bottomNavigationStyle.paddingHorizontal).toBeUndefined();
         const navigationTabs = view.getAllByRole('tab');
         expect(navigationTabs).toHaveLength(4);
         navigationTabs.forEach((tab) => {
-          expect(StyleSheet.flatten(tab.props.style)).toMatchObject({
-            flexBasis: 0,
-            flexGrow: 1,
-            maxWidth: '25%',
-            width: '25%',
+          const tabStyle = StyleSheet.flatten(tab.props.style);
+          expect(tabStyle).toMatchObject({
+            height: 48,
+            width: 72,
           });
+          expect(tabStyle.flexGrow).toBeUndefined();
+          expect(tabStyle.marginHorizontal).toBeUndefined();
         });
       } else {
         expect(view.queryByTestId('bottom-navigation')).toBeNull();

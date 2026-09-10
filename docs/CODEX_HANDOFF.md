@@ -105,6 +105,7 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 ## UX/UI aprovada para implementação
 
 - No celular e tablet em retrato, usar cabeçalho fixo, barra inferior compacta com Shows, Repertório, Palco e Banda e menu entrando horizontalmente pela esquerda; em tablet paisagem e computador, usar menu lateral permanente sem barra inferior.
+- Fazer as mudanças de rota sem animação automática e manter a animação horizontal de abertura e fechamento do menu lateral móvel.
 - Preservar pilha, busca, filtros, ordenação e rolagem ao alternar entre as seções principais.
 - Usar listas compactas e roláveis para repertório, shows e bandas, com controles fixos conforme a tela.
 - Priorizar a letra nos detalhes da música, mantendo todos os blocos expandidos e os tempos ocultos fora do editor de sincronização.

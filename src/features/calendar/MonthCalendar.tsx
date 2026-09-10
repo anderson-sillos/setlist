@@ -252,7 +252,7 @@ export function MonthCalendar({
 
 const styles = StyleSheet.create({
   container: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     gap: spacing.lg,
     maxWidth: 920,
     width: '100%',

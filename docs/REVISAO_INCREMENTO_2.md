@@ -104,11 +104,12 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 ### Navegação responsiva
 
 - Usar cabeçalho fixo em todas as telas administrativas e limitar cada cabeçalho a uma ação contextual principal.
-- No celular e no tablet em retrato, usar uma barra inferior compacta, com pequena margem lateral e destinos proporcionais à largura para Shows, Repertório, Palco e Banda; Palco abre a seleção de shows antes da execução.
+- No celular e no tablet em retrato, usar uma barra inferior compacta e com largura total para Shows, Repertório, Palco e Banda. Manter os botões com largura compacta uniforme, centralizados nos dois eixos e distribuídos horizontalmente com o mesmo espaço livre entre eles e nas duas extremidades, evitando contato com as bordas; Palco abre a seleção de shows antes da execução.
 - No tablet em paisagem e no computador, manter o menu lateral visível e ocultar a barra inferior.
 - Mostrar o menu nas telas principais e substituí-lo por voltar nos detalhes.
 - Manter a barra inferior nos detalhes em consulta e ocultá-la em criação, edição, autenticação, convite e modo palco.
 - Preservar a pilha, os filtros, a ordenação e a rolagem de cada seção.
+- Fazer as mudanças de rota sem animação automática, mantendo a animação horizontal somente na abertura e no fechamento do menu lateral.
 - Fazer o menu entrar horizontalmente pela esquerda e permitir o gesto lateral para abri-lo somente nas telas principais; nos detalhes, reservar o gesto para voltar.
 
 ### Estados de interface

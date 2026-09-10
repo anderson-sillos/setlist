@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   rowFrame: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     maxWidth: layout.contentMaxWidth,
     paddingVertical: spacing.xs,
     width: '100%',

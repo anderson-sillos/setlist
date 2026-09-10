@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   rowFrame: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     maxWidth: layout.contentMaxWidth,
     paddingVertical: spacing.xs,
     width: '100%',
