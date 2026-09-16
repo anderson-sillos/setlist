@@ -131,7 +131,10 @@ function NavigationLink({
         ]}
       >
         {presentation === 'bottom' ? (
-          <>
+          <View
+            style={styles.bottomNavigationContent}
+            testID="bottom-navigation-item-content"
+          >
             <AppIcon
               color={active ? colors.violet : colors.muted}
               name={icon}
@@ -146,7 +149,7 @@ function NavigationLink({
             >
               {label}
             </AppText>
-          </>
+          </View>
         ) : (
           <View style={styles.sidebarNavigationContent}>
             <AppIcon color={colors.surface} name={icon} size={20} />
@@ -727,13 +730,18 @@ const styles = StyleSheet.create({
   bottomNavigationItem: {
     alignItems: 'center',
     flexShrink: 1,
-    gap: 1,
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     minWidth: 0,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
     width: 72,
+  },
+  bottomNavigationContent: {
+    alignItems: 'center',
+    gap: 1,
+    justifyContent: 'center',
+    width: '100%',
   },
   bottomNavigationItemActive: {
     backgroundColor: colors.violetSoft,
@@ -743,6 +751,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     textAlign: 'center',
+    width: '100%',
   },
   edgeGesture: {
     bottom: 52,

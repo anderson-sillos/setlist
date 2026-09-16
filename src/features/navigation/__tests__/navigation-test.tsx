@@ -227,6 +227,17 @@ describe('navegação inicial', () => {
           expect(tabStyle.flexGrow).toBeUndefined();
           expect(tabStyle.marginHorizontal).toBeUndefined();
         });
+        const navigationItemContents = view.getAllByTestId(
+          'bottom-navigation-item-content',
+        );
+        expect(navigationItemContents).toHaveLength(4);
+        navigationItemContents.forEach((content) => {
+          expect(StyleSheet.flatten(content.props.style)).toMatchObject({
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+          });
+        });
       } else {
         expect(view.queryByTestId('bottom-navigation')).toBeNull();
       }
