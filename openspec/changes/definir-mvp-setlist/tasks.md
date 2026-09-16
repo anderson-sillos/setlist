@@ -27,6 +27,7 @@
 - [x] 2.10 Evoluir os contratos e dados demonstrativos da setlist para anotações de planejamento, separadores e cálculo de duração e verificar reordenação conceitual, totais e ausência desses itens no modo palco
 - [x] 2.11 Implementar os componentes compartilhados de carregamento, erro, indisponibilidade, conexão e mensagens temporárias e aplicar o guia de tom e voz com testes de acessibilidade e variações controladas
 - [x] 2.12 Validar as melhorias em celular, tablet e computador, publicar nova prévia web e build interno Android e aguardar aprovação antes de encerrar o grupo de UX/UI
+- [ ] 2.13 Discutir, registrar, implementar e validar uma nova rodada de melhorias de UI em celular, tablet e computador, mantendo o PR aberto até a revisão e a aprovação explícitas antes de iniciar a tarefa 3.1
 
 ## 3. Validação antecipada dos riscos técnicos
 
