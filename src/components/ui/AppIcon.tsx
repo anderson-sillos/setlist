@@ -1,11 +1,13 @@
 import {
-  ArrowLeft,
-  ArrowRight,
   CalendarCheck,
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
   Ellipsis,
+  Hourglass,
   Menu,
   Music,
   Music2,
@@ -19,16 +21,18 @@ import {
 import { colors } from '@/theme/tokens';
 
 const iconComponents = {
-  back: ArrowLeft,
+  back: ChevronLeft,
   band: Users,
   check: Check,
   chevronDown: ChevronDown,
   close: X,
+  duration: Clock3,
   event: CalendarCheck,
-  forward: ArrowRight,
+  forward: ChevronRight,
   menu: Menu,
   more: Ellipsis,
   music: Music2,
+  planning: Hourglass,
   repertoire: Music,
   search: Search,
   shows: CalendarDays,
@@ -54,12 +58,8 @@ export function AppIcon({
 
   return (
     <Icon
-      accessibilityElementsHidden
-      accessible={false}
       color={color}
       height={size}
-      importantForAccessibility="no"
-      pointerEvents="none"
       size={size}
       strokeWidth={strokeWidth}
       width={size}

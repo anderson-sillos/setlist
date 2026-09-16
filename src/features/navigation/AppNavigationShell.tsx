@@ -588,7 +588,6 @@ export function AppNavigationShell({
               {...edgeGesture.panHandlers}
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
-              pointerEvents="box-only"
               style={styles.edgeGesture}
               testID="drawer-edge-gesture"
             />
@@ -748,6 +747,7 @@ const styles = StyleSheet.create({
   edgeGesture: {
     bottom: 52,
     left: 0,
+    pointerEvents: 'box-only',
     position: 'absolute',
     top: 64,
     width: 16,

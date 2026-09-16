@@ -167,7 +167,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
                 {lyricStatusLabels[song.lyricStatus]}
               </StatusPill>
             </View>
-            <AppText tone="accent">›</AppText>
+            <AppIcon color={colors.violet} name="forward" size={20} />
           </View>
           <View style={styles.rowDetails}>
             <AppText
@@ -185,7 +185,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
               }`}
               style={styles.durationMeta}
             >
-              <AppText tone="accent">◷</AppText>
+              <AppIcon color={colors.violet} name="duration" size={16} />
               <AppText style={styles.durationValue} tone="accent">
                 {song.estimatedDurationMs === null
                   ? '—'
@@ -229,7 +229,7 @@ function ShowRow({
                 {showStatusLabels[show.status]}
               </StatusPill>
             </View>
-            <AppText tone="accent">›</AppText>
+            <AppIcon color={colors.violet} name="forward" size={20} />
           </View>
           <AppText tone="muted">{formatShowDate(show.startsAt)}</AppText>
           <View style={styles.rowDetails}>
@@ -248,7 +248,7 @@ function ShowRow({
               }`}
               style={styles.durationMeta}
             >
-              <AppText tone="accent">◷</AppText>
+              <AppIcon color={colors.violet} name="duration" size={16} />
               <AppText style={styles.durationValue} tone="accent">
                 {durationMs === null ? '—' : formatDuration(durationMs)}
               </AppText>
@@ -675,7 +675,7 @@ export function StageHubScreen({
                       {showStatusLabels[item.status]}
                     </StatusPill>
                   </View>
-                  <AppText tone="accent">›</AppText>
+                  <AppIcon color={colors.violet} name="forward" size={20} />
                 </View>
                 <AppText tone="muted">{formatShowDate(item.startsAt)}</AppText>
                 <AppText variant="caption">{item.venue}</AppText>

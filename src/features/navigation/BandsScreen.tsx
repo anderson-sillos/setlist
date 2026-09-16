@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
@@ -174,7 +175,7 @@ export default function BandsScreen({
                         : 'Nenhum próximo show'}
                     </AppText>
                   </View>
-                  <AppText tone="accent">›</AppText>
+                  <AppIcon color={colors.violet} name="forward" size={20} />
                 </Pressable>
               </Link>
             </View>

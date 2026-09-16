@@ -8,6 +8,7 @@ import {
   UnavailableFeedback,
 } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { useShow, useSong, useSongs, useUserBands } from '@/data/queries';
@@ -425,7 +426,11 @@ export function ShowDetailScreen({
                       return (
                         <View key={item.id} style={styles.planningItem}>
                           <View style={styles.planningIcon}>
-                            <AppText tone="accent">⌛</AppText>
+                            <AppIcon
+                              color={colors.violet}
+                              name="planning"
+                              size={18}
+                            />
                           </View>
                           <View style={styles.itemCopy}>
                             <AppText tone="accent" variant="caption">
