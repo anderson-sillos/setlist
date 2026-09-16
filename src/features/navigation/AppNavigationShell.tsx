@@ -18,6 +18,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ConnectionBanner, type ConnectionStatus } from '@/components/feedback';
+import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { EntityId } from '@/domain';
 import { useNavigationMemory } from '@/features/navigation/NavigationMemory';
@@ -32,6 +33,7 @@ export type NavigationScreenKind = 'main' | 'detail' | 'edit';
 
 export interface HeaderAction {
   readonly accessibilityLabel: string;
+  readonly icon?: AppIconName;
   readonly label: string;
   readonly onPress: () => void;
 }
@@ -64,23 +66,25 @@ interface AppNavigationShellProps extends PropsWithChildren {
 }
 
 const navigationItems: readonly {
+  readonly icon: AppIconName;
   readonly label: string;
-  readonly marker: string;
   readonly section: BandSection;
 }[] = [
-  { label: 'Shows', marker: '▣', section: 'shows' },
-  { label: 'Repertório', marker: '♫', section: 'repertoire' },
-  { label: 'Palco', marker: '▶', section: 'stage' },
-  { label: 'Banda', marker: '♬', section: 'band' },
+  { icon: 'shows', label: 'Shows', section: 'shows' },
+  { icon: 'repertoire', label: 'Repertório', section: 'repertoire' },
+  { icon: 'stage', label: 'Palco', section: 'stage' },
+  { icon: 'band', label: 'Banda', section: 'band' },
 ];
 
 function IconButton({
   accessibilityLabel,
-  children,
+  color = colors.ink,
+  icon,
   onPress,
 }: {
   readonly accessibilityLabel: string;
-  readonly children: ReactNode;
+  readonly color?: string;
+  readonly icon: AppIconName;
   readonly onPress: () => void;
 }) {
   return (
@@ -91,7 +95,7 @@ function IconButton({
       onPress={onPress}
       style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
     >
-      <AppText style={styles.iconLabel}>{children}</AppText>
+      <AppIcon color={color} name={icon} />
     </Pressable>
   );
 }
@@ -99,14 +103,14 @@ function IconButton({
 function NavigationLink({
   active = false,
   href,
+  icon,
   label,
-  marker,
   presentation,
 }: {
   readonly active?: boolean;
   readonly href: Href;
+  readonly icon: AppIconName;
   readonly label: string;
-  readonly marker: string;
   readonly presentation: 'bottom' | 'sidebar';
 }) {
   return (
@@ -128,12 +132,12 @@ function NavigationLink({
       >
         {presentation === 'bottom' ? (
           <>
-            <AppText
-              style={styles.bottomMarker}
-              tone={active ? 'accent' : 'muted'}
-            >
-              {marker}
-            </AppText>
+            <AppIcon
+              color={active ? colors.violet : colors.muted}
+              name={icon}
+              size={22}
+              strokeWidth={active ? 2.5 : 2}
+            />
             <AppText
               numberOfLines={1}
               style={styles.bottomLabel}
@@ -144,9 +148,10 @@ function NavigationLink({
             </AppText>
           </>
         ) : (
-          <AppText tone="inverse">
-            {marker} {label}
-          </AppText>
+          <View style={styles.sidebarNavigationContent}>
+            <AppIcon color={colors.surface} name={icon} size={20} />
+            <AppText tone="inverse">{label}</AppText>
+          </View>
         )}
       </Pressable>
     </Link>
@@ -209,9 +214,9 @@ function NavigationPanel({
   return (
     <ScrollView contentContainerStyle={styles.navigationPanel}>
       <View style={styles.brand}>
-        <AppText style={styles.brandMark} tone="inverse" variant="heading">
-          ♪
-        </AppText>
+        <View style={styles.brandMark}>
+          <AppIcon color={colors.surface} name="music" />
+        </View>
         <View>
           <AppText tone="inverse" variant="heading">
             Setlist
@@ -241,9 +246,9 @@ function NavigationPanel({
               <NavigationLink
                 active={activeSection === item.section}
                 href={getSectionHref(item.section)}
+                icon={item.icon}
                 key={item.section}
                 label={item.label}
-                marker={item.marker}
                 presentation="sidebar"
               />
             ))}
@@ -295,9 +300,11 @@ function AppHeader({
   return (
     <View style={styles.header} testID="app-header">
       {kind === 'main' && !persistentSidebar ? (
-        <IconButton accessibilityLabel="Abrir menu geral" onPress={onOpenMenu}>
-          ☰
-        </IconButton>
+        <IconButton
+          accessibilityLabel="Abrir menu geral"
+          icon="menu"
+          onPress={onOpenMenu}
+        />
       ) : null}
 
       {kind === 'detail' && backHref ? (
@@ -310,7 +317,7 @@ function AppHeader({
               pressed && styles.pressed,
             ]}
           >
-            <AppText style={styles.iconLabel}>←</AppText>
+            <AppIcon name="back" />
           </Pressable>
         </Link>
       ) : null}
@@ -363,11 +370,15 @@ function AppHeader({
           accessibilityRole="button"
           onPress={headerAction.onPress}
           style={({ pressed }) => [
-            styles.headerTextButton,
+            headerAction.icon ? styles.iconButton : styles.headerTextButton,
             pressed && styles.pressed,
           ]}
         >
-          <AppText tone="accent">{headerAction.label}</AppText>
+          {headerAction.icon ? (
+            <AppIcon color={colors.violet} name={headerAction.icon} />
+          ) : (
+            <AppText tone="accent">{headerAction.label}</AppText>
+          )}
         </Pressable>
       ) : null}
     </View>
@@ -563,9 +574,9 @@ export function AppNavigationShell({
                 <NavigationLink
                   active={activeSection === item.section}
                   href={getSectionHref(item.section)}
+                  icon={item.icon}
                   key={item.section}
                   label={item.label}
-                  marker={item.marker}
                   presentation="bottom"
                 />
               ))}
@@ -606,10 +617,10 @@ export function AppNavigationShell({
                   </AppText>
                   <IconButton
                     accessibilityLabel="Fechar menu geral"
+                    color={colors.surface}
+                    icon="close"
                     onPress={closeDrawer}
-                  >
-                    ×
-                  </IconButton>
+                  />
                 </View>
                 <NavigationPanel
                   activeSection={activeSection}
@@ -668,11 +679,6 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
-  },
-  iconLabel: {
-    fontSize: 24,
-    fontWeight: '700',
-    lineHeight: 28,
   },
   headerTextButton: {
     alignItems: 'center',
@@ -734,12 +740,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.violetSoft,
     borderRadius: radii.sm,
   },
-  bottomMarker: {
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 23,
-    textAlign: 'center',
-  },
   bottomLabel: {
     fontSize: 11,
     lineHeight: 14,
@@ -800,6 +800,11 @@ const styles = StyleSheet.create({
   },
   sidebarNavigationItemActive: {
     backgroundColor: colors.navyRaised,
+  },
+  sidebarNavigationContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
   },
   generalNavigation: {
     borderTopColor: colors.navyRaised,

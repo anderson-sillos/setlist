@@ -6,13 +6,14 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
+- Branch de trabalho: `feat/ui-improvements-round-2`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- PR #8: Incremento 2 concluído e aprovado para integração em 10 de setembro de 2026.
-- Implementação: Incrementos 1 e 2 concluídos, incluindo as tarefas 2.1–2.12.
+- PR #9: correções de vulnerabilidades integradas à `main`; a rodada atual de UI ainda não possui PR por solicitação do usuário.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.12; a tarefa 2.13 está em andamento e aguardará nova revisão visual antes de ser concluída.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a validação antecipada dos riscos técnicos pela tarefa 3.1, com o protótipo mínimo do YouTube IFrame no navegador.
+- Próximo passo: revisar os ícones vetoriais e os demais ajustes da tarefa 2.13 em celular, tablet e computador; somente após aprovação explícita iniciar a tarefa 3.1.
 
 ## Fontes de verdade
 
@@ -45,6 +46,7 @@ openspec validate definir-mvp-setlist --type change --strict
 13. A tarefa 2.10 evoluiu a setlist para uma união discriminada de músicas, anotações de planejamento e separadores, adicionou movimentação imutável de blocos e itens, incluiu a composição do tempo entre música e planejamento e garantiu que itens não musicais não cheguem ao modo palco.
 14. A tarefa 2.11 centralizou esqueletos de carregamento, erros recuperáveis, indisponibilidade, faixas de conexão e mensagens temporárias; o catálogo mantém variações determinísticas, ações objetivas, semântica acessível e textos neutros para situações sensíveis.
 15. A tarefa 2.12 refinou a barra inferior e o destino Palco, a animação horizontal do menu, os filtros compactos, o alinhamento e a largura do conteúdo, as linhas das listas, o calendário e as transições de rota. A prévia web e o build Android final foram publicados e o Incremento 2 recebeu aprovação explícita.
+16. A tarefa 2.13 abriu uma segunda rodada de refinamentos de UI. A iconografia deixou de usar caracteres tipográficos e passou a ser centralizada pelo componente semântico `AppIcon`, com Lucide React Native e `react-native-svg`, mantendo o mesmo desenho em Android, iOS e web.
 
 ## Visão confirmada do produto
 
@@ -63,6 +65,7 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 - Supabase hospedado para Auth, PostgreSQL e RLS; nenhum banco local ou Docker é necessário para executar o projeto.
 - SecureStore somente para sessão nos aplicativos móveis; armazenamento de sessão próprio do navegador na web.
 - TanStack Query para estado remoto, React Hook Form e Zod para formulários e validação.
+- Lucide React Native sobre `react-native-svg` para ícones vetoriais consistentes nas três plataformas, expostos internamente por `AppIcon`.
 - Estado nativo do React inicialmente; Zustand somente se surgir necessidade concreta.
 - Jest e React Native Testing Library, com Maestro para fluxos móveis e Playwright para web.
 
@@ -111,6 +114,7 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 - Priorizar a letra nos detalhes da música, mantendo todos os blocos expandidos e os tempos ocultos fora do editor de sincronização.
 - Disponibilizar em Shows as visões Lista e Calendário mensal, com filtros e ordenação exclusivos da lista; usar fundos próprios para datas com eventos, finais de semana, hoje e feriados e mostrar o nome do feriado quando a data for selecionada.
 - Apresentar carregamento, vazio, erro, indisponibilidade, conexão e mensagens temporárias de forma consistente e acessível.
+- Usar ícones vetoriais Lucide para navegação, busca, setas, seletores, indicadores e menus; manter rótulos nos controles e tratar o desenho como elemento decorativo para tecnologias assistivas.
 - Usar tom informal e bem-humorado em situações gerais e recuperáveis; manter linguagem direta em ações destrutivas, legais, de segurança ou de perda de conteúdo.
 - Adiar a revisão específica do modo palco para a tarefa 8.9.
 
@@ -193,7 +197,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #6: complementos do ambiente de desenvolvimento.
 - PR #7: roteiro para atualizar o ambiente local.
 - PR #8: primeira versão navegável e revisão de UX/UI do Incremento 2, concluídas e aprovadas.
+- PR #9: correção das vulnerabilidades de dependências apontadas pelo GitHub e pelo `npm audit`.
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, validando player visível, reprodução, pausa, busca e leitura do tempo atual. A validação iOS permanece adiada para uma etapa futura.
+Concluir a revisão visual da tarefa 2.13 em celular, tablet e computador, mantendo-a aberta até a aprovação explícita. Depois disso, iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador. A validação iOS permanece adiada para uma etapa futura.

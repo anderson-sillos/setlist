@@ -11,8 +11,9 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 
-import { AppText } from '@/components/ui/AppText';
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { AppIcon } from '@/components/ui/AppIcon';
+import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
   ChoiceChips,
@@ -846,7 +847,7 @@ function MemberRow({
               pressed && styles.pressed,
             ]}
           >
-            <AppText tone="accent">•••</AppText>
+            <AppIcon color={colors.violet} name="more" />
           </Pressable>
         ) : null}
       </View>

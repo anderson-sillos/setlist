@@ -62,6 +62,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - `@supabase/supabase-js` será o cliente de autenticação e dados.
 - TanStack Query cuidará do estado remoto, invalidação, nova tentativa e reconexão. Seu cache será temporário e não substituirá os pacotes offline.
 - React Hook Form e Zod cuidarão de formulários e validação.
+- `lucide-react-native`, apoiado por `react-native-svg`, fornecerá os ícones vetoriais compartilhados em Android, iOS e web. Um componente semântico `AppIcon` centralizará o catálogo, tamanhos, cores e ocultação de elementos decorativos para tecnologias assistivas; os rótulos e áreas de toque continuarão pertencendo aos controles que contêm os ícones.
 - Estado local e Context do React serão usados inicialmente. Zustand só será adicionado se surgir estado global complexo que não seja remoto nem pertencente à rota.
 - Jest e React Native Testing Library cobrirão unidades e componentes; Maestro cobrirá fluxos móveis e Playwright os fluxos web.
 

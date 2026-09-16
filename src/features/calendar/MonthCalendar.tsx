@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { Show } from '@/domain';
 import {
@@ -126,7 +127,7 @@ export function MonthCalendar({
             pressed && styles.pressed,
           ]}
         >
-          <AppText tone="accent">←</AppText>
+          <AppIcon color={colors.violet} name="back" />
         </Pressable>
         <AppText
           accessibilityRole="header"
@@ -144,7 +145,7 @@ export function MonthCalendar({
             pressed && styles.pressed,
           ]}
         >
-          <AppText tone="accent">→</AppText>
+          <AppIcon color={colors.violet} name="forward" />
         </Pressable>
       </View>
 
@@ -219,9 +220,18 @@ export function MonthCalendar({
               </AppText>
               {dayShows.length > 0 ? (
                 <View style={styles.showMarker}>
-                  <AppText tone="inverse" variant="caption">
-                    {dayShows.length === 1 ? '•' : dayShows.length}
-                  </AppText>
+                  {dayShows.length === 1 ? (
+                    <AppIcon
+                      color={colors.surface}
+                      name="event"
+                      size={11}
+                      strokeWidth={2.5}
+                    />
+                  ) : (
+                    <AppText tone="inverse" variant="caption">
+                      {dayShows.length}
+                    </AppText>
+                  )}
                 </View>
               ) : null}
             </Pressable>

@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
@@ -59,7 +60,7 @@ export function SearchField({
 }: SearchFieldProps) {
   return (
     <View style={styles.searchField}>
-      <AppText tone="muted">⌕</AppText>
+      <AppIcon color={colors.muted} name="search" size={20} />
       <TextInput
         accessibilityLabel={accessibilityLabel}
         autoCapitalize="none"
@@ -131,10 +132,16 @@ export function FilterMenu({
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
       >
-        <AppText numberOfLines={1} tone="accent" variant="caption">
+        <AppText
+          numberOfLines={1}
+          style={styles.menuButtonLabel}
+          tone="accent"
+          variant="caption"
+        >
           {label}
-          {summary ? `: ${summary}` : ''}⌄
+          {summary ? `: ${summary}` : ''}
         </AppText>
+        <AppIcon color={colors.violet} name="chevronDown" size={16} />
       </Pressable>
 
       <Modal
@@ -193,9 +200,15 @@ export function OptionMenu<Value extends string>({
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
       >
-        <AppText numberOfLines={1} tone="accent" variant="caption">
-          {compact ? label : `${label}: ${selectedLabel}`}⌄
+        <AppText
+          numberOfLines={1}
+          style={styles.menuButtonLabel}
+          tone="accent"
+          variant="caption"
+        >
+          {compact ? label : `${label}: ${selectedLabel}`}
         </AppText>
+        <AppIcon color={colors.violet} name="chevronDown" size={16} />
       </Pressable>
 
       <Modal
@@ -233,7 +246,16 @@ export function OptionMenu<Value extends string>({
                       pressed && styles.pressed,
                     ]}
                   >
-                    <AppText>{selected ? '✓  ' : ''}</AppText>
+                    <View style={styles.optionIndicator}>
+                      {selected ? (
+                        <AppIcon
+                          color={colors.violet}
+                          name="check"
+                          size={18}
+                          strokeWidth={2.5}
+                        />
+                      ) : null}
+                    </View>
                     <AppText style={styles.optionLabel}>{option.label}</AppText>
                   </Pressable>
                 );
@@ -290,9 +312,14 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.xs,
     justifyContent: 'center',
     minHeight: 40,
     paddingHorizontal: spacing.md,
+  },
+  menuButtonLabel: {
+    flexShrink: 1,
   },
   modalScrim: {
     alignItems: 'center',
@@ -322,6 +349,11 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     backgroundColor: colors.violetSoft,
+  },
+  optionIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 20,
   },
   optionLabel: {
     flex: 1,

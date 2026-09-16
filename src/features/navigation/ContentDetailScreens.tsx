@@ -95,7 +95,8 @@ export function SongDetailScreen({
         canEdit
           ? {
               accessibilityLabel: 'Mais opções da música',
-              label: '•••',
+              icon: 'more',
+              label: 'Mais opções',
               onPress: () =>
                 setDemoNotice(
                   'Arquivar e restaurar entram no incremento do repertório.',
@@ -283,7 +284,8 @@ export function ShowDetailScreen({
         canEdit
           ? {
               accessibilityLabel: 'Mais opções do show',
-              label: '•••',
+              icon: 'more',
+              label: 'Mais opções',
               onPress: () =>
                 setDemoNotice(
                   'Duplicar e alterar o estado entram no incremento de shows.',
