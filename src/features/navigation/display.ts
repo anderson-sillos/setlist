@@ -41,6 +41,7 @@ export function formatShowListDate(startsAt: string): string {
     .replace(/\.$/, '');
   const calendarDate = new Intl.DateTimeFormat(DISPLAY_LOCALE, {
     dateStyle: 'medium',
+    timeZone: DISPLAY_TIME_ZONE,
   }).format(date);
 
   return `${weekday}, ${calendarDate} · ${formatShowTime(startsAt)}`;
