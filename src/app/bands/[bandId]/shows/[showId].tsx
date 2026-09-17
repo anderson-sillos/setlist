@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import { ShowDetailScreen } from '@/features/navigation/ContentDetailScreens';
+import { ShowDetailScreen } from '@/features/shows/ShowDetailScreen';
 
 export default function ShowDetailRoute() {
   const { bandId, showId } = useLocalSearchParams<{

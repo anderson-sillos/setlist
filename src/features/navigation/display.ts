@@ -1,5 +1,8 @@
 import type { Show, ShowSetlistBlock, ShowStatus, Song } from '@/domain';
 
+const DISPLAY_LOCALE = 'pt-BR';
+const DISPLAY_TIME_ZONE = 'America/Sao_Paulo';
+
 export interface SetlistDurationBreakdown {
   readonly hasDuration: boolean;
   readonly musicMs: number;
@@ -21,19 +24,39 @@ export const lyricStatusLabels: Record<Song['lyricStatus'], string> = {
 };
 
 export function formatShowDate(startsAt: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
+  return new Intl.DateTimeFormat(DISPLAY_LOCALE, {
     dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'America/Sao_Paulo',
+    timeStyle: 'medium',
+    timeZone: DISPLAY_TIME_ZONE,
   }).format(new Date(startsAt));
 }
 
+export function formatShowListDate(startsAt: string): string {
+  const date = new Date(startsAt);
+  const weekday = new Intl.DateTimeFormat(DISPLAY_LOCALE, {
+    timeZone: DISPLAY_TIME_ZONE,
+    weekday: 'short',
+  })
+    .format(date)
+    .replace(/\.$/, '');
+  const calendarDate = new Intl.DateTimeFormat(DISPLAY_LOCALE, {
+    dateStyle: 'medium',
+  }).format(date);
+
+  return `${weekday}, ${calendarDate} · ${formatShowTime(startsAt)}`;
+}
+
 export function formatShowTime(startsAt: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
+  const parts = new Intl.DateTimeFormat(DISPLAY_LOCALE, {
     hour: '2-digit',
+    hourCycle: 'h23',
     minute: '2-digit',
-    timeZone: 'America/Sao_Paulo',
-  }).format(new Date(startsAt));
+    timeZone: DISPLAY_TIME_ZONE,
+  }).formatToParts(new Date(startsAt));
+  const hour = parts.find(({ type }) => type === 'hour')?.value ?? '';
+  const minute = parts.find(({ type }) => type === 'minute')?.value ?? '';
+
+  return minute === '00' ? `${hour}h` : `${hour}h${minute}`;
 }
 
 export function formatDuration(durationMs: number | null): string {
@@ -53,6 +76,47 @@ export function formatDuration(durationMs: number | null): string {
   }
 
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export function formatShowDuration(durationMs: number | null): string {
+  if (durationMs === null) {
+    return 'Não informada';
+  }
+
+  const totalMinutes = Math.floor(durationMs / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes}min`;
+  }
+
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}min`;
+}
+
+export function formatSongDuration(durationMs: number | null): string {
+  if (durationMs === null) {
+    return 'Não informada';
+  }
+
+  const totalSeconds = Math.floor(durationMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h${minutes}min${seconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}min${seconds}s`;
+  }
+
+  return `${seconds}s`;
 }
 
 export function formatRelativeUpdate(
@@ -83,9 +147,9 @@ export function formatRelativeUpdate(
     return `há ${days} ${days === 1 ? 'dia' : 'dias'}`;
   }
 
-  return new Intl.DateTimeFormat('pt-BR', {
+  return new Intl.DateTimeFormat(DISPLAY_LOCALE, {
     dateStyle: 'medium',
-    timeZone: 'America/Sao_Paulo',
+    timeZone: DISPLAY_TIME_ZONE,
   }).format(new Date(updatedAt));
 }
 
@@ -93,7 +157,7 @@ export function normalizeForSearch(value: string): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase('pt-BR')
+    .toLocaleLowerCase(DISPLAY_LOCALE)
     .trim();
 }
 

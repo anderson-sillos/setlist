@@ -12,7 +12,7 @@ import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import {
-  formatShowDate,
+  formatShowListDate,
   normalizeForSearch,
 } from '@/features/navigation/display';
 import { getBandSectionHref } from '@/features/navigation/routes';
@@ -41,7 +41,7 @@ function getNextShow(shows: readonly Show[], now: Date): Show | null {
   );
 }
 
-export default function BandsScreen({
+export function BandsScreen({
   now = new Date(),
   viewportHeight,
   viewportWidth,
@@ -150,32 +150,38 @@ export default function BandsScreen({
                     pressed && styles.pressed,
                   ]}
                 >
-                  <View style={styles.bandAvatar}>
-                    <AppText tone="inverse" variant="heading">
-                      {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
-                    </AppText>
-                  </View>
-                  <View style={styles.bandCopy}>
-                    <View style={styles.titleLine}>
-                      <AppText variant="heading">{band.name}</AppText>
-                      {isLastAccessed ? (
-                        <View style={styles.lastAccessedBadge}>
-                          <AppText tone="accent" variant="caption">
-                            Última acessada
-                          </AppText>
+                  <View style={styles.bandRowLayout}>
+                    <View style={styles.bandRowContent}>
+                      <View style={styles.bandAvatar}>
+                        <AppText tone="inverse" variant="heading">
+                          {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
+                        </AppText>
+                      </View>
+                      <View style={styles.bandCopy}>
+                        <View style={styles.titleLine}>
+                          <AppText variant="heading">{band.name}</AppText>
+                          {isLastAccessed ? (
+                            <View style={styles.lastAccessedBadge}>
+                              <AppText tone="accent" variant="caption">
+                                Última acessada
+                              </AppText>
+                            </View>
+                          ) : null}
                         </View>
-                      ) : null}
+                        <AppText tone="muted" variant="caption">
+                          {roleLabels[membership.role]}
+                        </AppText>
+                        <AppText variant="caption">
+                          {nextShow
+                            ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
+                            : 'Nenhum próximo show'}
+                        </AppText>
+                      </View>
                     </View>
-                    <AppText tone="muted" variant="caption">
-                      {roleLabels[membership.role]}
-                    </AppText>
-                    <AppText variant="caption">
-                      {nextShow
-                        ? `Próximo show · ${formatShowDate(nextShow.startsAt)}`
-                        : 'Nenhum próximo show'}
-                    </AppText>
+                    <View style={styles.bandRowNavigation}>
+                      <AppIcon color={colors.violet} name="forward" size={20} />
+                    </View>
                   </View>
-                  <AppIcon color={colors.violet} name="forward" size={20} />
                 </Pressable>
               </Link>
             </View>
@@ -216,15 +222,31 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bandRow: {
-    alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.md,
     minHeight: 84,
     padding: spacing.md,
+  },
+  bandRowLayout: {
+    alignItems: 'stretch',
+    flexDirection: 'row',
+    gap: spacing.lg,
+    width: '100%',
+  },
+  bandRowContent: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minWidth: 0,
+  },
+  bandRowNavigation: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    minWidth: 20,
   },
   lastAccessedRow: {
     borderColor: colors.violet,
@@ -259,3 +281,5 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
 });
+
+export default BandsScreen;

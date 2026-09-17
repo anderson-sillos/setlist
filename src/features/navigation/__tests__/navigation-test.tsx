@@ -16,19 +16,11 @@ import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
 import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
-import {
-  BandScreen,
-  RepertoireScreen,
-  ShowsScreen,
-} from '@/features/navigation/BandSectionScreens';
+import { BandScreen } from '@/features/bands/BandScreen';
+import { BandsScreen } from '@/features/bands/BandsScreen';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
-import BandsScreen from '@/features/navigation/BandsScreen';
 import {
   formatDuration,
-  ShowDetailScreen,
-  SongDetailScreen,
-} from '@/features/navigation/ContentDetailScreens';
-import {
   formatRelativeUpdate,
   normalizeForSearch,
 } from '@/features/navigation/display';
@@ -42,6 +34,11 @@ import {
   NavigationMemoryProvider,
   useNavigationMemory,
 } from '@/features/navigation/NavigationMemory';
+import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
+import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
+import { ShowDetailScreen } from '@/features/shows/ShowDetailScreen';
+import { ShowsScreen } from '@/features/shows/ShowsScreen';
+import { StageHubScreen } from '@/features/stage/StageHubScreen';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
 
 jest.mock('expo-router', () => ({
@@ -92,7 +89,11 @@ describe('navegação inicial', () => {
   it('carrega Minhas bandas com os destinos demonstrativos', async () => {
     const view = await render(
       <AppProviders>
-        <BandsScreen now={new Date('2026-09-09T12:00:00-03:00')} />
+        <BandsScreen
+          now={new Date('2026-09-09T12:00:00-03:00')}
+          viewportHeight={900}
+          viewportWidth={1440}
+        />
       </AppProviders>,
     );
 
@@ -103,7 +104,13 @@ describe('navegação inicial', () => {
     expect(view.getByText('Última acessada')).toBeTruthy();
     expect(view.getByText('Proprietário')).toBeTruthy();
     expect(view.getByText('Integrante')).toBeTruthy();
+    expect(
+      view.getByLabelText('Ir para Minhas bandas').props.accessibilityState,
+    ).toEqual({ selected: true });
     expect(view.getAllByText(/Próximo show/)).toHaveLength(2);
+    expect(
+      view.getByText('Próximo show · sáb, 19 de set. de 2026 · 16h'),
+    ).toBeTruthy();
   });
 
   it('busca bandas pelo nome', async () => {
@@ -161,6 +168,21 @@ describe('navegação inicial', () => {
       expect(view.getByLabelText('Abrir menu geral')).toBeTruthy();
     },
   );
+
+  it('apresenta os shows do palco com os mesmos metadados da lista de shows', async () => {
+    const view = await render(
+      <AppProviders>
+        <StageHubScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    expect(
+      await view.findByLabelText('Abrir Ensaio Aberto no modo palco'),
+    ).toBeTruthy();
+    expect(view.getByText('sáb, 19 de set. de 2026 · 16h')).toBeTruthy();
+    expect(view.getAllByLabelText('Duração 7min').length).toBeGreaterThan(0);
+    expect(view.getByText('Estúdio Central')).toBeTruthy();
+  });
 
   it.each([
     {
@@ -259,7 +281,10 @@ describe('navegação inicial', () => {
     await fireEvent.press(view.getByLabelText('Abrir menu geral'));
 
     expect(view.getByTestId('navigation-drawer')).toBeTruthy();
-    expect(view.getByLabelText('Minhas bandas')).toBeTruthy();
+    const myBandsLink = view.getByLabelText('Ir para Minhas bandas');
+
+    expect(myBandsLink.props.accessibilityRole).toBe('tab');
+    expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
@@ -318,7 +343,7 @@ describe('navegação inicial', () => {
     expect(view.getByTestId('repertoire-list')).toBeTruthy();
     expect(view.getByText('Letra estática')).toBeTruthy();
     expect(view.getByText('Sincronização incompleta')).toBeTruthy();
-    expect(view.getByText('3:38')).toBeTruthy();
+    expect(view.getByText('3min38s')).toBeTruthy();
     expect(view.queryByText('Duração')).toBeNull();
     expect(view.queryByText(/Tom G · BPM/)).toBeNull();
   });

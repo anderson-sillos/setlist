@@ -9,11 +9,11 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Branch de trabalho: `feat/ui-improvements-round-2`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- PR #9: correções de vulnerabilidades integradas à `main`; a rodada atual de UI ainda não possui PR por solicitação do usuário.
+- PR #10: segunda rodada de melhorias de UI aberta a partir de `feat/ui-improvements-round-2` e mantida disponível para revisão.
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.12; a tarefa 2.13 está em andamento e aguardará nova revisão visual antes de ser concluída.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: revisar os ícones vetoriais e os demais ajustes da tarefa 2.13 em celular, tablet e computador; somente após aprovação explícita iniciar a tarefa 3.1.
+- Próximo passo: revisar a reorganização visual, os ícones, o favicon e a splash da tarefa 2.13 em celular, tablet e computador; somente após aprovação explícita integrar o PR e iniciar a tarefa 3.1.
 
 ## Fontes de verdade
 
@@ -47,6 +47,8 @@ openspec validate definir-mvp-setlist --type change --strict
 14. A tarefa 2.11 centralizou esqueletos de carregamento, erros recuperáveis, indisponibilidade, faixas de conexão e mensagens temporárias; o catálogo mantém variações determinísticas, ações objetivas, semântica acessível e textos neutros para situações sensíveis.
 15. A tarefa 2.12 refinou a barra inferior e o destino Palco, a animação horizontal do menu, os filtros compactos, o alinhamento e a largura do conteúdo, as linhas das listas, o calendário e as transições de rota. A prévia web e o build Android final foram publicados e o Incremento 2 recebeu aprovação explícita.
 16. A tarefa 2.13 abriu uma segunda rodada de refinamentos de UI. A iconografia deixou de usar caracteres tipográficos e passou a ser centralizada pelo componente semântico `AppIcon`, com Lucide React Native e `react-native-svg`, mantendo o mesmo desenho em Android, iOS e web.
+17. As entradas de `src/app` passaram a somente encaminhar as rotas, enquanto as telas foram separadas por domínio em `features/bands`, `features/repertoire`, `features/shows` e `features/stage`. O shell de navegação, o menu lateral e os controles de lista também foram divididos em componentes e hooks menores, documentados em `docs/ARQUITETURA_DE_TELAS.md`.
+18. As linhas de bandas, músicas e shows foram padronizadas, as datas e durações receberam formatadores compartilhados e os campos de busca ganharam uma ação acessível para limpar o texto. A identidade visual passou a incluir ícones nativos, foreground adaptativo do Android, favicon multirresolução e splash violeta com a nota branca do `brandMark`.
 
 ## Visão confirmada do produto
 
@@ -66,6 +68,7 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 - SecureStore somente para sessão nos aplicativos móveis; armazenamento de sessão próprio do navegador na web.
 - TanStack Query para estado remoto, React Hook Form e Zod para formulários e validação.
 - Lucide React Native sobre `react-native-svg` para ícones vetoriais consistentes nas três plataformas, expostos internamente por `AppIcon`.
+- Expo Splash Screen para a abertura nativa com o mesmo ícone e violeta da marca.
 - Estado nativo do React inicialmente; Zustand somente se surgir necessidade concreta.
 - Jest e React Native Testing Library, com Maestro para fluxos móveis e Playwright para web.
 
@@ -174,6 +177,7 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Obter revisão jurídica do termo e da política de privacidade antes da distribuição pública.
 - Começar no Supabase Free e avaliar Pro ao atingir 80% de uma cota ou antes de depender de disponibilidade e backups de produção.
 - A prévia navegável está em `https://anderson-sillos.github.io/setlist/app/`; a apresentação permanece na raiz do mesmo site.
+- A aparência exata dos novos ícones e da splash exige um novo build nativo; o Expo Go não recompila esses recursos de Android e iOS.
 - A revisão funcional do Incremento 2, o build Android validado e a pendência do iOS estão registrados em `docs/REVISAO_INCREMENTO_2.md`.
 - O relatório funcional consolidado e a revisão de UX/UI foram aprovados; as decisões estão registradas em `docs/REVISAO_INCREMENTO_2.md`, `docs/GUIA_DE_TOM_E_VOZ.md` e nas tarefas 2.8–2.12.
 
@@ -198,6 +202,7 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #7: roteiro para atualizar o ambiente local.
 - PR #8: primeira versão navegável e revisão de UX/UI do Incremento 2, concluídas e aprovadas.
 - PR #9: correção das vulnerabilidades de dependências apontadas pelo GitHub e pelo `npm audit`.
+- PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon e splash; aberto para revisão.
 
 ## Próxima ação recomendada
 
