@@ -662,7 +662,6 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- features/stage/                  # Seleção, palco e cronômetro manual
 |   |-- providers/                       # Contexto de dados e cache de consultas
 |   `-- theme/                           # Tokens e breakpoints responsivos
-|-- .env.example                         # Modelo público genérico, sem credenciais reais
 |-- .env.development.example             # Modelo do projeto Supabase de desenvolvimento
 |-- .env.production.example              # Modelo do projeto Supabase de produção
 |-- .github/workflows/ci.yml             # Qualidade contínua no GitHub
