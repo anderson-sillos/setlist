@@ -11,10 +11,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; as tarefas 3.1, 3.2, 3.3 e 3.4 foram implementadas e validadas manualmente; a tarefa 3.5 está em implementação.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; a próxima etapa é o grupo 4, de backend e segurança.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: consolidar no design os resultados e limitações dos protótipos técnicos na tarefa 3.5.
+- Próximo passo: iniciar a configuração dos projetos Supabase de desenvolvimento e produção na tarefa 4.1.
 
 ## Fontes de verdade
 
@@ -71,6 +71,7 @@ openspec validate definir-mvp-setlist --type change --strict
 37. A validação manual confirmou a tarefa 3.3 em Android e iOS: perda de foco, bloqueio de tela e chamada mantiveram o cronômetro baseado no tempo real; o estado pausado permaneceu estável. A tarefa 3.3 foi marcada como concluída; a tarefa 3.4 é o próximo protótipo técnico.
 38. A tarefa 3.4 começou com um protótipo isolado de convite e retorno OAuth. As rotas `/invite/[token]` e `/auth/callback` preservam `invite_token`, `code` e `state`; `expo-linking` gera os endereços de desenvolvimento para web, Android e iOS. A tela temporária `Convite e OAuth (protótipo)` permite exercitar os dois caminhos e ficará disponível até a validação manual.
 39. A validação manual confirmou a tarefa 3.4 no navegador, Android e iOS: os links de convite abriram a rota correta, `invite_token`, `code` e `state` permaneceram preservados no retorno OAuth e o convite pôde ser retomado. A tarefa 3.4 foi marcada como concluída; a tarefa 3.5 é o próximo registro técnico.
+40. A tarefa 3.5 consolidou no design os resultados e limites dos três protótipos. O player YouTube permanece visível e dependente de conexão; o cronômetro continua local e já trata interrupções sem encerramento do processo; o fluxo de convite/OAuth preserva parâmetros, mas ainda depende da integração real com Supabase, estado protegido e links definitivos. As tarefas 5.1, 5.6, 8.6, 9.1, 9.2 e 11.5 foram explicitamente alinhadas a essas limitações. O grupo 3 foi concluído.
 
 ## Visão confirmada do produto
 
@@ -232,4 +233,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Registrar no design os resultados dos protótipos YouTube, cronômetro e convite/OAuth e conferir se as limitações observadas estão refletidas nas tarefas seguintes antes de iniciar o backend.
+Iniciar a tarefa 4.1, configurando projetos Supabase separados para desenvolvimento e produção sem incluir segredos no cliente.
