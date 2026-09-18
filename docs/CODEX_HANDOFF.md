@@ -11,10 +11,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; as tarefas 3.1 e 3.2 foram implementadas e validadas manualmente; a tarefa 3.3 está em implementação.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; as tarefas 3.1, 3.2 e 3.3 foram implementadas e validadas manualmente; a tarefa 3.4 está em implementação.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: prototipar a retomada do cronômetro baseado em tempo real após perda de foco, bloqueio e chamada na tarefa 3.3.
+- Próximo passo: prototipar as rotas de convite e o retorno OAuth com preservação de parâmetros na tarefa 3.4.
 
 ## Fontes de verdade
 
@@ -67,7 +67,8 @@ openspec validate definir-mvp-setlist --type change --strict
 33. Durante a validação da tarefa 3.2, o menu lateral ganhou temporariamente o link `Player YouTube (protótipo)`, que abre `/youtube-prototype` no Expo Go sem exigir deep link manual. O item deve ser removido depois da validação nativa da WebView.
 34. A tela do protótipo ganhou o botão `Fechar protótipo`, que retorna para `Minhas bandas` usando a rota raiz. Na WebView, `mediaPlaybackRequiresUserAction` foi desativado para permitir que o comando `Reproduzir` inicie o vídeo pela primeira vez sem exigir um toque prévio nos controles internos do YouTube.
 35. A validação manual confirmou a tarefa 3.2 em Android e iOS: o player abriu na WebView, a ponte respondeu aos comandos e ao tempo, os controles funcionaram e o vídeo indisponível exibiu o estado correspondente. A tarefa 3.2 foi marcada como concluída; a tarefa 3.3 é o próximo protótipo técnico.
-36. A tarefa 3.3 começou com o cronômetro mantendo uma referência de tempo real e recalculando o progresso quando o aplicativo volta ao estado `active` do React Native. O comportamento de retomada após perda de foco foi coberto no teste do hook; a validação manual de bloqueio de tela e chamada em Android e iOS ainda está pendente.
+36. A tarefa 3.3 começou com o cronômetro mantendo uma referência de tempo real e recalculando o progresso quando o aplicativo volta ao estado `active` do React Native. O comportamento de retomada após perda de foco foi coberto no teste do hook.
+37. A validação manual confirmou a tarefa 3.3 em Android e iOS: perda de foco, bloqueio de tela e chamada mantiveram o cronômetro baseado no tempo real; o estado pausado permaneceu estável. A tarefa 3.3 foi marcada como concluída; a tarefa 3.4 é o próximo protótipo técnico.
 
 ## Visão confirmada do produto
 
@@ -229,4 +230,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Validar manualmente a tarefa 3.3 em Android e iOS, interrompendo o aplicativo com bloqueio de tela, perda de foco e chamada para confirmar que o cronômetro em execução é recalculado ao retornar. Depois, registrar o resultado e seguir para a tarefa 3.4, sobre convites e retorno OAuth.
+Iniciar a tarefa 3.4, prototipando rotas de convite e retorno OAuth com URLs de desenvolvimento e preservação de parâmetros no navegador, Android e iOS.
