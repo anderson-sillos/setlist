@@ -6,14 +6,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/ui-improvements-round-2`.
+- Branch de trabalho: `feat/youtube-iframe-prototype`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- PR #10: segunda rodada de melhorias de UI aberta a partir de `feat/ui-improvements-round-2` e mantida disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; o PR #10 foi integrado e a tarefa 3.1 está em implementação em uma nova branch.
+- PR #10: segunda rodada de melhorias de UI integrada à `main`.
+- PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; a tarefa 3.1 foi implementada e validada manualmente no navegador.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: revisar e validar no navegador o protótipo mínimo do YouTube IFrame da tarefa 3.1, antes de iniciar a adaptação para WebView na tarefa 3.2.
+- Próximo passo: iniciar a adaptação do protótipo para WebView Android e iOS na tarefa 3.2.
 
 ## Fontes de verdade
 
@@ -57,8 +58,9 @@ openspec validate definir-mvp-setlist --type change --strict
 24. A suíte monolítica `features/navigation/__tests__/navigation-test.tsx` foi dividida por responsabilidade. O diretório de navegação agora cobre apenas shell, integração de rotas, memória e builders de endereço; os testes de bandas, repertório, shows e seleção do palco ficam junto das respectivas features. O comportamento foi preservado e a convenção está documentada em `docs/ARQUITETURA_DE_TELAS.md`.
 25. Os nomes com colchetes em `src/app/bands/[bandId]/...` são segmentos dinâmicos oficiais do Expo Router, não uma cópia redundante ou incompatível entre plataformas. Eles foram mantidos para preservar as URLs e o roteamento; comandos de shell que apontarem para esses caminhos devem usar aspas.
 26. A limpeza estrutural removeu o componente legado não utilizado `src/components/layout/ResponsiveGrid.tsx`, o helper `getCatalogColumnCount` e seus testes, além das pastas vazias `public/icons`, `dist/icons`, `.vscode/.react` e `src/components/layout`. O diretório `.codex` permanece somente por ser um ponto de montagem ocupado pelo ambiente local; os placeholders `.gitkeep` do OpenSpec foram preservados.
-27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 está pronto para integração; a tarefa 3.1 será iniciada em uma nova branch após o merge.
-28. A tarefa 3.1 começou na branch `feat/youtube-iframe-prototype`. O protótipo web isolado está em `src/features/youtube/YouTubeIframePrototype.tsx`, usa a API oficial do YouTube IFrame para player visível, play, pause, busca de dez segundos e leitura periódica do tempo, e pode ser aberto em `/youtube-prototype`. A adaptação para WebView nativa permanece na tarefa 3.2.
+27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 foi integrado à `main`; a tarefa 3.1 foi iniciada em uma nova branch.
+28. A tarefa 3.1 começou na branch `feat/youtube-iframe-prototype`. O protótipo web isolado está em `src/features/youtube/YouTubeIframePrototype.tsx`, usa a API oficial do YouTube IFrame para player visível, play, pause, busca de dez segundos e leitura periódica do tempo, e pode ser aberto em `/youtube-prototype`.
+29. A validação manual da tarefa 3.1 confirmou no navegador o player visível, reprodução, pausa, busca e leitura do tempo atual. A tarefa foi marcada como concluída no OpenSpec; a adaptação para WebView Android e iOS permanece na tarefa 3.2.
 
 ## Visão confirmada do produto
 

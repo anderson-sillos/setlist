@@ -31,7 +31,7 @@
 
 ## 3. Validação antecipada dos riscos técnicos
 
-- [ ] 3.1 Criar um protótipo mínimo do YouTube IFrame no navegador e verificar player visível, play, pause, busca e leitura do tempo atual
+- [x] 3.1 Criar um protótipo mínimo do YouTube IFrame no navegador e verificar player visível, play, pause, busca e leitura do tempo atual
 - [ ] 3.2 Executar o mesmo protótipo em WebView Android e iOS e verificar ponte JavaScript, origem/referer, controles e comportamento de vídeos indisponíveis
 - [ ] 3.3 Prototipar o relógio baseado em tempo real e verificar retomada após perda de foco, bloqueio e chamada em Android e iOS
 - [ ] 3.4 Prototipar rotas de convite e retorno OAuth com URLs de desenvolvimento e verificar preservação de parâmetros no navegador, Android e iOS
