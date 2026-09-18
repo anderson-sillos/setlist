@@ -6,6 +6,7 @@ import {
   getFeedbackMessage,
 } from '@/components/feedback/feedbackMessages';
 import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
@@ -197,7 +198,7 @@ export function TemporaryFeedback({
         onPress={onDismiss}
         style={({ pressed }) => pressed && styles.pressed}
       >
-        <AppText tone="inverse">×</AppText>
+        <AppIcon color={colors.surface} name="close" size={20} />
       </Pressable>
     </View>
   );

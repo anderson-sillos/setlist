@@ -4,7 +4,7 @@ import {
   getBlockDurationBreakdown,
   getShowDurationBreakdown,
   getShowDurationMs,
-} from '@/features/navigation/display';
+} from '@/domain/setlistDuration';
 
 describe('duração planejada da setlist', () => {
   it('separa músicas e planejamento no bloco e no total do show', () => {

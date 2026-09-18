@@ -2,7 +2,12 @@ import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import {
+  DemoActionNotice,
+  ErrorFeedback,
+  LoadingFeedback,
+} from '@/components/feedback';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
@@ -10,12 +15,10 @@ import { demoIds } from '@/data/demo';
 import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
-import {
-  formatShowDate,
-  normalizeForSearch,
-} from '@/features/navigation/display';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { formatShowListDate } from '@/utils/dateTime';
+import { normalizeForSearch } from '@/utils/text';
 
 const roleLabels: Record<BandRole, string> = {
   editor: 'Editor',
@@ -40,7 +43,7 @@ function getNextShow(shows: readonly Show[], now: Date): Show | null {
   );
 }
 
-export default function BandsScreen({
+export function BandsScreen({
   now = new Date(),
   viewportHeight,
   viewportWidth,
@@ -93,21 +96,14 @@ export default function BandsScreen({
         <ErrorFeedback onRetry={() => void bandsQuery.refetch()} />
       ) : null}
 
-      {creationNoticeVisible ? (
-        <View accessibilityLiveRegion="polite" style={styles.demoNotice}>
-          <AppText>
-            A criação entra junto com o login. Por enquanto, o palco é de
-            demonstração.
-          </AppText>
-          <Pressable
-            accessibilityLabel="Fechar aviso de demonstração"
-            accessibilityRole="button"
-            onPress={() => setCreationNoticeVisible(false)}
-          >
-            <AppText tone="accent">Fechar</AppText>
-          </Pressable>
-        </View>
-      ) : null}
+      <DemoActionNotice
+        message={
+          creationNoticeVisible
+            ? 'A criação entra junto com o login. Por enquanto, o palco é de demonstração.'
+            : null
+        }
+        onClose={() => setCreationNoticeVisible(false)}
+      />
 
       <FlatList
         contentContainerStyle={styles.listContent}
@@ -149,32 +145,38 @@ export default function BandsScreen({
                     pressed && styles.pressed,
                   ]}
                 >
-                  <View style={styles.bandAvatar}>
-                    <AppText tone="inverse" variant="heading">
-                      {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
-                    </AppText>
-                  </View>
-                  <View style={styles.bandCopy}>
-                    <View style={styles.titleLine}>
-                      <AppText variant="heading">{band.name}</AppText>
-                      {isLastAccessed ? (
-                        <View style={styles.lastAccessedBadge}>
-                          <AppText tone="accent" variant="caption">
-                            Última acessada
-                          </AppText>
+                  <View style={styles.bandRowLayout}>
+                    <View style={styles.bandRowContent}>
+                      <View style={styles.bandAvatar}>
+                        <AppText tone="inverse" variant="heading">
+                          {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
+                        </AppText>
+                      </View>
+                      <View style={styles.bandCopy}>
+                        <View style={styles.titleLine}>
+                          <AppText variant="heading">{band.name}</AppText>
+                          {isLastAccessed ? (
+                            <View style={styles.lastAccessedBadge}>
+                              <AppText tone="accent" variant="caption">
+                                Última acessada
+                              </AppText>
+                            </View>
+                          ) : null}
                         </View>
-                      ) : null}
+                        <AppText tone="muted" variant="caption">
+                          {roleLabels[membership.role]}
+                        </AppText>
+                        <AppText variant="caption">
+                          {nextShow
+                            ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
+                            : 'Nenhum próximo show'}
+                        </AppText>
+                      </View>
                     </View>
-                    <AppText tone="muted" variant="caption">
-                      {roleLabels[membership.role]}
-                    </AppText>
-                    <AppText variant="caption">
-                      {nextShow
-                        ? `Próximo show · ${formatShowDate(nextShow.startsAt)}`
-                        : 'Nenhum próximo show'}
-                    </AppText>
+                    <View style={styles.bandRowNavigation}>
+                      <AppIcon color={colors.violet} name="forward" size={20} />
+                    </View>
                   </View>
-                  <AppText tone="accent">›</AppText>
                 </Pressable>
               </Link>
             </View>
@@ -188,20 +190,6 @@ export default function BandsScreen({
 }
 
 const styles = StyleSheet.create({
-  demoNotice: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: colors.cyanSoft,
-    borderRadius: radii.md,
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-    marginHorizontal: spacing.xl,
-    marginTop: spacing.md,
-    maxWidth: layout.contentMaxWidth,
-    padding: spacing.md,
-    width: '90%',
-  },
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,
@@ -215,15 +203,31 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bandRow: {
-    alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.md,
     minHeight: 84,
     padding: spacing.md,
+  },
+  bandRowLayout: {
+    alignItems: 'stretch',
+    flexDirection: 'row',
+    gap: spacing.lg,
+    width: '100%',
+  },
+  bandRowContent: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minWidth: 0,
+  },
+  bandRowNavigation: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    minWidth: 20,
   },
   lastAccessedRow: {
     borderColor: colors.violet,
@@ -258,3 +262,5 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
 });
+
+export default BandsScreen;

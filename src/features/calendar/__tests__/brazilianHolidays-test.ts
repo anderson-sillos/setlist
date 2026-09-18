@@ -1,7 +1,6 @@
 import {
   getBrazilianNationalHolidays,
   getEasterSunday,
-  getSaoPauloDateKey,
 } from '@/features/calendar/brazilianHolidays';
 
 describe('feriados nacionais do Brasil', () => {
@@ -35,9 +34,5 @@ describe('feriados nacionais do Brasil', () => {
       name: 'Dia Nacional de Zumbi e da Consciência Negra',
     });
     expect(holidays).toHaveLength(12);
-  });
-
-  it('converte instantes para a data civil de São Paulo', () => {
-    expect(getSaoPauloDateKey('2026-09-10T01:30:00.000Z')).toBe('2026-09-09');
   });
 });

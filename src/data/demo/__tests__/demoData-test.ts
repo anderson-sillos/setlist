@@ -17,14 +17,42 @@ describe('dados de demonstração', () => {
     const userBands = await repositories.bands.listForUser(demoIds.currentUser);
     const songs = await repositories.songs.listByBandId(demoIds.primaryBand);
     const shows = await repositories.shows.listByBandId(demoIds.primaryBand);
+    const secondarySongs = await repositories.songs.listByBandId(
+      demoIds.secondaryBand,
+    );
+    const secondaryShows = await repositories.shows.listByBandId(
+      demoIds.secondaryBand,
+    );
 
     expect(userBands.map(({ band }) => band.name)).toEqual([
       'Banda Horizonte',
       'Trio Aurora',
     ]);
-    expect(songs).toHaveLength(4);
-    expect(shows).toHaveLength(5);
+    expect(songs).toHaveLength(9);
+    expect(shows).toHaveLength(9);
+    expect(secondarySongs).toHaveLength(5);
+    expect(secondaryShows).toHaveLength(4);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('inclui repertório de outros artistas e shows em várias datas para cada banda', () => {
+    for (const band of demoRepositoryData.bands) {
+      const activeSongs = demoRepositoryData.songs.filter(
+        ({ archivedAt, bandId }) => bandId === band.id && archivedAt === null,
+      );
+      const songsFromOtherArtists = activeSongs.filter(
+        ({ originalArtist }) => originalArtist !== band.name,
+      );
+      const showDates = new Set(
+        demoRepositoryData.shows
+          .filter(({ bandId }) => bandId === band.id)
+          .map(({ startsAt }) => startsAt.slice(0, 10)),
+      );
+
+      expect(activeSongs.length).toBeGreaterThanOrEqual(5);
+      expect(songsFromOtherArtists.length).toBeGreaterThanOrEqual(3);
+      expect(showDates.size).toBeGreaterThanOrEqual(4);
+    }
   });
 
   it('representa papéis, estados de letra e estados de show do MVP', () => {

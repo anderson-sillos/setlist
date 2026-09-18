@@ -4,11 +4,13 @@
     "slug": "setlist",
     "version": "0.1.0",
     "scheme": "setlist",
+    "icon": "./assets/icons/app-icon-1024.png",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "platforms": ["android", "ios", "web"],
     "ios": {
       "bundleIdentifier": "com.andersonsillos.setlist",
+      "icon": "./assets/icons/app-icon-1024.png",
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -16,12 +18,31 @@
     },
     "android": {
       "package": "com.andersonsillos.setlist",
+      "icon": "./assets/icons/app-icon-1024.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/android-adaptive-foreground-1024.png",
+        "monochromeImage": "./assets/icons/android-adaptive-foreground-1024.png",
+        "backgroundColor": "#7c3aed"
+      },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/icons/favicon-48.png"
     },
-    "plugins": ["expo-router", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icons/app-icon-1024.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#7c3aed"
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },

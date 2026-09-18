@@ -1,1 +1,1 @@
-export { default } from '@/features/navigation/BandsScreen';
+export { default } from '@/features/bands/BandsScreen';

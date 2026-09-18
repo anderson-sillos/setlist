@@ -15,17 +15,6 @@ export function getLayoutMode(viewportWidth: number): LayoutMode {
   return 'phone';
 }
 
-export function getCatalogColumnCount(layoutMode: LayoutMode): number {
-  switch (layoutMode) {
-    case 'desktop':
-      return 3;
-    case 'tablet':
-      return 2;
-    case 'phone':
-      return 1;
-  }
-}
-
 export function getNavigationPresentation(
   viewportWidth: number,
   viewportHeight: number,

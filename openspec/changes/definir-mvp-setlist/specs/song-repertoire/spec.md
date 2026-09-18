@@ -80,7 +80,7 @@ O sistema SHALL priorizar a letra na consulta de uma música, SHALL manter todos
 
 #### Scenario: Abrir o detalhe de uma música
 - **WHEN** um integrante abre uma música disponível
-- **THEN** o sistema apresenta título, artista, duração, estado da letra e atualização relativa antes da letra e mantém tonalidade, BPM e observações como informações secundárias
+- **THEN** o sistema apresenta título, artista, duração no mesmo formato da lista, estado da letra e atualização relativa antes da letra e mantém tonalidade, BPM e observações como informações secundárias
 
 #### Scenario: Consultar letra estruturada
 - **WHEN** uma música possui blocos nomeados
@@ -92,7 +92,11 @@ O sistema SHALL priorizar a letra na consulta de uma música, SHALL manter todos
 
 #### Scenario: Abrir referência do YouTube
 - **WHEN** uma música possui referência do YouTube e um integrante solicita sua abertura na consulta
-- **THEN** o sistema abre o aplicativo ou navegador do YouTube sem armazenar o áudio
+- **THEN** o sistema oferece um botão secundário nomeado com ícone externo e abre o aplicativo ou navegador do YouTube sem armazenar o áudio
+
+#### Scenario: Acessar a edição da música
+- **WHEN** um Owner ou Editor consulta uma música
+- **THEN** o sistema apresenta junto ao título uma ação secundária de edição identificada por ícone e nome acessível
 
 #### Scenario: Tentar editar sem conexão
 - **WHEN** um Owner ou Editor consulta uma música sem conexão

@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import { StageHubScreen } from '@/features/navigation/BandSectionScreens';
+import { StageHubScreen } from '@/features/stage/StageHubScreen';
 
 export default function StageHubRoute() {
   const { bandId } = useLocalSearchParams<{ bandId: string }>();

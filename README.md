@@ -6,7 +6,7 @@
 
 O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
-[Abrir prévia do aplicativo](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
+[Abrir prévia do aplicativo](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Mapa das telas](docs/ARQUITETURA_DE_TELAS.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
 
 ## Status do projeto
 
@@ -79,6 +79,8 @@ flowchart LR
 - **Supabase hospedado** para autenticação, PostgreSQL e políticas de acesso com Row Level Security.
 - **Google e Apple OAuth** para login social, sem senhas mantidas pelo Setlist.
 - **Expo SecureStore** somente para persistir a sessão autenticada.
+- **Expo Splash Screen** para a tela de abertura nativa com a identidade visual
+  do aplicativo.
 - **Arquivos JSON locais** para os pacotes de shows disponíveis offline.
 - **Player incorporado do YouTube** apenas como referência durante a sincronização da letra.
 
@@ -465,6 +467,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |-- .agents/skills/                      # Skills locais do OpenSpec
 |-- .vscode/extensions.json              # Extensões recomendadas do editor
 |-- docs/
+|   |-- ARQUITETURA_DE_TELAS.md          # Mapa entre rotas e telas
 |   |-- apresentacao.html                # Apresentação HTML em slides
 |   `-- CODEX_HANDOFF.md                 # Continuidade entre sessões do Codex
 |-- openspec/config.yaml                 # Configuração do OpenSpec
@@ -474,15 +477,19 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- specs/                           # Contratos de comportamento
 |   `-- tasks.md                         # Plano incremental de implementação
 |-- src/
-|   |-- app/                             # Rotas e telas compartilhadas do Expo
-|   |-- components/layout/               # Estruturas responsivas reutilizáveis
+|   |-- app/                             # Entradas de rota do Expo Router
+|   |-- components/feedback/             # Mensagens e avisos compartilhados
 |   |-- components/ui/                   # Componentes visuais reutilizáveis
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
 |   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos
 |   |-- data/in-memory/                   # Repositórios locais para testes e demonstração
 |   |-- domain/                          # Entidades e contratos independentes da infraestrutura
-|   |-- features/navigation/             # Fluxo inicial e áreas da banda
-|   |-- features/stage/                  # Tela de palco e cronômetro manual local
+|   |-- features/bands/                  # Minhas bandas e integrantes
+|   |-- features/calendar/               # Calendário mensal e feriados
+|   |-- features/navigation/             # Infraestrutura compartilhada de navegação
+|   |-- features/repertoire/             # Lista e detalhes das músicas
+|   |-- features/shows/                  # Lista e detalhes dos shows
+|   |-- features/stage/                  # Seleção, palco e cronômetro manual
 |   |-- providers/                       # Contexto de dados e cache de consultas
 |   `-- theme/                           # Tokens e breakpoints responsivos
 |-- .env.example                         # Modelo público, sem credenciais reais

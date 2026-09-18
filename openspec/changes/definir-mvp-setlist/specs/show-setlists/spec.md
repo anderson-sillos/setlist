@@ -11,6 +11,10 @@ O sistema SHALL permitir que Owner ou Editor crie um show com nome, data, horár
 - **WHEN** um Owner ou Editor salva os dados obrigatórios de um novo show
 - **THEN** o sistema cria o show em Rascunho com um bloco Principal vazio
 
+#### Scenario: Acessar a criação pela lista
+- **WHEN** um Owner ou Editor abre a área Shows
+- **THEN** o sistema apresenta no cabeçalho uma ação direta e acessível para iniciar a criação de um novo show
+
 #### Scenario: Editar show sem permissão
 - **WHEN** um Member tenta alterar os dados de um show
 - **THEN** o sistema rejeita a operação
@@ -46,7 +50,11 @@ O sistema SHALL permitir várias anotações de planejamento independentes entre
 
 #### Scenario: Consultar a composição da duração
 - **WHEN** um integrante abre os detalhes de um show com tempos informados
-- **THEN** o sistema apresenta a duração estimada total e sua composição entre músicas e planejamento
+- **THEN** o sistema apresenta a quantidade de ocorrências de músicas, incluindo repetições, a duração estimada total e sua composição entre músicas e planejamento
+
+#### Scenario: Apresentar tempos nos detalhes
+- **WHEN** um integrante consulta os dados e a setlist de um show
+- **THEN** o sistema usa na data e no horário o mesmo formato compacto da lista de Shows, mostra totais do show e dos blocos em horas e minutos e preserva os segundos nas durações individuais
 
 #### Scenario: Nenhum item possui duração
 - **WHEN** um show não possui duração informada em nenhuma música ou anotação
@@ -75,6 +83,10 @@ O sistema SHALL oferecer uma única ação de inclusão para blocos, músicas, a
 - **WHEN** um Owner ou Editor tenta sair da edição sem salvar
 - **THEN** o sistema solicita confirmação antes de descartar as alterações locais
 
+#### Scenario: Acessar a edição da setlist
+- **WHEN** um Owner ou Editor consulta um show Rascunho
+- **THEN** o sistema apresenta junto ao cabeçalho da Setlist uma ação de edição identificada por ícone e nome acessível
+
 ### Requirement: Observação específica do item
 O sistema SHALL permitir uma observação opcional para cada ocorrência de uma música na setlist sem alterar a música do repertório.
 
@@ -83,30 +95,46 @@ O sistema SHALL permitir uma observação opcional para cada ocorrência de uma 
 - **THEN** o sistema mostra a observação na setlist e no modo palco apenas para aquela ocorrência
 
 ### Requirement: Consulta organizada de shows
-O sistema SHALL apresentar os shows em uma lista vertical rolável com busca por nome ou local, filtros compactos por período e estado e ordenação por data, nome ou duração.
+O sistema SHALL apresentar os shows em uma única lista vertical rolável com busca por nome ou local, filtros compactos por período, data específica e estado e ordenação por data, nome ou duração, SHALL selecionar `Todos` em período e estado quando uma data específica for escolhida e SHALL contar cada uma dessas três dimensões de filtro separadamente.
 
 #### Scenario: Abrir a lista de shows
 - **WHEN** um integrante abre Shows sem alterar os controles de consulta
-- **THEN** o sistema mostra os próximos shows em Rascunho ou Pronto, ordenados pela data mais próxima, com a duração estimada de cada evento
+- **THEN** o sistema seleciona `Próximos` e `Ativo`, mostra os próximos shows em Rascunho ou Pronto ordenados pela data mais próxima, apresenta a duração estimada de cada evento e exibe a contagem de filtros igual a `2`
+
+#### Scenario: Desativar período e estado
+- **WHEN** um integrante seleciona `Todos` tanto em período quanto em estado e não há uma data específica selecionada
+- **THEN** o sistema exibe a contagem de filtros igual a `0`
+
+#### Scenario: Limpar os filtros pelo painel
+- **WHEN** um integrante aciona `Limpar` no painel de filtros
+- **THEN** o sistema restaura `Próximos`, `Ativo` e nenhuma data específica, atualiza a lista, exibe a contagem de filtros igual a `2` e fecha o painel
 
 #### Scenario: Consultar outros shows
 - **WHEN** um integrante altera o período, estado ou ordenação
-- **THEN** o sistema permite consultar shows passados, todos os períodos, Cancelados, nome, data mais distante ou maior duração
+- **THEN** o sistema permite consultar shows passados, todos os períodos, uma data específica, Cancelados, nome, data mais distante ou maior duração
 
 #### Scenario: Buscar show
 - **WHEN** um integrante informa parte do nome do show ou do local
 - **THEN** o sistema mantém na lista somente os shows correspondentes
 
 ### Requirement: Calendário mensal de shows
-O sistema SHALL oferecer dentro de Shows uma visualização mensal das datas com eventos, sem integração com calendários externos, SHALL calcular localmente os feriados nacionais do Brasil e SHALL destacar também a terça-feira de Carnaval e Corpus Christi como feriados do calendário do produto.
+O sistema SHALL oferecer dentro de Shows um botão de acesso direto ao calendário mensal usado como filtro de data da lista geral, sem criar uma segunda lista de resultados e sem integração com calendários externos, SHALL calcular localmente os feriados nacionais do Brasil e SHALL destacar também a terça-feira de Carnaval e Corpus Christi como feriados do calendário do produto.
 
 #### Scenario: Abrir o calendário
-- **WHEN** um integrante alterna de Lista para Calendário
-- **THEN** o sistema mostra o mês atual, inicia a semana no domingo, destaca e seleciona o dia de hoje e mantém Shows como área ativa da navegação
+- **WHEN** um integrante aciona o botão exclusivo do calendário
+- **THEN** o sistema abre diretamente o seletor mensal no mês atual ou no mês da data específica já escolhida, inicia a semana no domingo e mantém Shows como área ativa da navegação
 
 #### Scenario: Consultar um dia
 - **WHEN** um integrante seleciona uma data
-- **THEN** o sistema apresenta abaixo do calendário os shows do dia com horário, nome, local, estado e duração
+- **THEN** o sistema fecha o calendário, muda período e estado para `Todos`, contabiliza somente a data com o valor `1` e atualiza imediatamente a lista geral com todos os eventos daquele dia
+
+#### Scenario: Remover a data específica
+- **WHEN** um integrante remove a data escolhida pelo controle visível da consulta
+- **THEN** o sistema remove a data específica, restaura `Próximos` como período e `Ativo` como estado e atualiza a lista geral
+
+#### Scenario: Combinar a data com os demais controles
+- **WHEN** um integrante seleciona uma data e altera a busca, o estado ou a ordenação
+- **THEN** o sistema combina os controles na única lista geral e mantém todos os critérios ativos visíveis
 
 #### Scenario: Dia com vários shows
 - **WHEN** uma data possui mais de um show visível
@@ -116,9 +144,9 @@ O sistema SHALL oferecer dentro de Shows uma visualização mensal das datas com
 - **WHEN** uma data possui um show visível
 - **THEN** o sistema diferencia seu fundo e mantém um marcador de evento na célula
 
-#### Scenario: Consultar estados no calendário
-- **WHEN** o integrante alterna da lista para o calendário
-- **THEN** o sistema oculta filtros e ordenação, mostra todos os Rascunhos e Prontos do mês e mantém Cancelados fora do calendário
+#### Scenario: Preservar os marcadores do calendário
+- **WHEN** o integrante abre o calendário após alterar a busca ou a ordenação da lista
+- **THEN** o sistema mantém os marcadores de todos os shows em Rascunho ou Pronto do mês, sem modificá-los pela busca ou ordenação e sem marcar shows Cancelados
 
 #### Scenario: Diferenciar dias especiais
 - **WHEN** o calendário apresenta sábados, domingos ou um feriado nacional

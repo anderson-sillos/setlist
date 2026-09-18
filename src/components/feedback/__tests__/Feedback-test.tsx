@@ -2,6 +2,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 
 import {
   ConnectionBanner,
+  DemoActionNotice,
   ErrorFeedback,
   feedbackMessages,
   getFeedbackMessage,
@@ -113,6 +114,28 @@ describe('feedback compartilhado', () => {
     );
     expect(onAction).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('apresenta avisos de demonstração em um popup acessível', async () => {
+    const onClose = jest.fn();
+    const view = await render(
+      <DemoActionNotice
+        message="Essa função entra no próximo incremento."
+        onClose={onClose}
+      />,
+    );
+
+    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
+    expect(view.getByRole('alert')).toBeTruthy();
+    expect(
+      view.getByText('Essa função entra no próximo incremento.'),
+    ).toBeTruthy();
+
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Fechar aviso de demonstração' }),
+    );
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('resolve variações controladas sem aleatoriedade', () => {

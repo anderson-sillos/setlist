@@ -1,9 +1,4 @@
-import {
-  getCatalogColumnCount,
-  getLayoutMode,
-  getNavigationPresentation,
-  type LayoutMode,
-} from '@/theme/responsive';
+import { getLayoutMode, getNavigationPresentation } from '@/theme/responsive';
 
 describe('getLayoutMode', () => {
   it.each([
@@ -15,16 +10,6 @@ describe('getLayoutMode', () => {
     [1920, 'desktop'],
   ] as const)('classifica %d px como %s', (width, expected) => {
     expect(getLayoutMode(width)).toBe(expected);
-  });
-});
-
-describe('getCatalogColumnCount', () => {
-  it.each([
-    { mode: 'phone', expected: 1 },
-    { mode: 'tablet', expected: 2 },
-    { mode: 'desktop', expected: 3 },
-  ] as const)('define $expected coluna(s) para $mode', ({ mode, expected }) => {
-    expect(getCatalogColumnCount(mode as LayoutMode)).toBe(expected);
   });
 });
 
