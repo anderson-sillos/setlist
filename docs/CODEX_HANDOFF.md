@@ -12,10 +12,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
 - PR #12: grupo 4 aberto a partir de `feat/supabase-environments` e aguardando revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; as tarefas 4.1, 4.2, 4.3, 4.4, 4.5 e 4.6 foram concluídas.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; as tarefas 4.1, 4.2, 4.3, 4.4, 4.5, 4.6 e 4.7 foram concluídas.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: implementar as políticas RLS e a matriz automatizada de papéis na tarefa 4.7.
+- Próximo passo: executar o reset completo em ambiente isolado e confirmar a reprodutibilidade na tarefa 4.8.
 
 ## Fontes de verdade
 
@@ -79,6 +79,7 @@ openspec validate definir-mvp-setlist --type change --strict
 44. A tarefa 4.4 foi concluída na mesma branch. `supabase/migrations/20260918180000_create_shows_and_setlists.sql` cria `shows`, `show_blocks` e `show_items`, com os estados `draft`, `ready` e `cancelled`, ordem única por show/bloco, referências restritivas às músicas usadas, tipos discriminados para música, planejamento e separador, descrições e durações validadas e RLS habilitado sem políticas até a tarefa 4.7. `supabase/tests/4.4-shows-and-setlists.sql` verifica 29 invariantes e passou junto com as migrações anteriores, totalizando 76 testes.
 45. A tarefa 4.5 foi concluída na mesma branch. `supabase/migrations/20260918183000_create_invitations.sql` cria convites com hash SHA-256 do token, rótulo opcional, validade padrão de sete dias, revogação, consumo e referências anuláveis de autoria/uso. As funções `create_invitation`, `revoke_invitation` e `accept_invitation` restringem execução a usuários autenticados; o aceite usa bloqueio da linha, valida expiração/revogação/uso e insere a participação como `member` de forma atômica, sem armazenar o token bruto. `supabase/tests/4.5-invitations.sql` cobre 33 invariantes e a suíte acumulada passou com 109 testes.
 46. A tarefa 4.6 foi concluída na mesma branch. `supabase/migrations/20260918190000_add_integrity_triggers.sql` adiciona timestamps de servidor para perfis, bandas, músicas, shows, blocos e itens; impede que uma banda com outros integrantes fique sem Owner; anonimiza referências de conta removida em aceites e convites; bloqueia alterações de conteúdo fora de shows `draft`; e rejeita músicas de outra banda na setlist. `supabase/tests/4.6-integrity-triggers.sql` verifica 24 invariantes, incluindo exclusão de conta, estados somente leitura e reabertura para Rascunho; a suíte acumulada passou com 133 testes.
+47. A tarefa 4.7 foi concluída na mesma branch. `supabase/migrations/20260918200000_add_rls_policies.sql` adiciona funções de escopo por banda/show, RLS para todas as tabelas de negócio, acesso de leitura aos integrantes, escrita de conteúdo para Owner/Editor, administração de acesso apenas para Owner e a RPC `create_band` com Owner e aceite do termo em uma operação segura. Usuários anônimos e externos permanecem sem acesso. `supabase/tests/4.7-rls-matrix.sql` verifica a matriz automatizada por papel; a suíte acumulada passou com 161 testes.
 
 ## Visão confirmada do produto
 
