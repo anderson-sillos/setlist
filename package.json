@@ -13,6 +13,7 @@
     "build:preview:ios": "npx --yes eas-cli@latest build --platform ios --profile preview",
     "build:preview:all": "npx --yes eas-cli@latest build --platform all --profile preview",
     "assets:icons": "node scripts/generate-app-icons.mjs",
+    "supabase:check": "node scripts/check-supabase-connection.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "expo lint --max-warnings=0",

@@ -1,0 +1,56 @@
+import { createClient } from '@supabase/supabase-js';
+
+import {
+  createConfiguredSupabaseClient,
+  getSupabaseClient,
+} from '@/data/supabase/client';
+import type { PublicEnvironment } from '@/config/environment';
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({ mocked: true })),
+}));
+
+const createClientMock = jest.mocked(createClient);
+
+const developmentEnvironment: PublicEnvironment = {
+  appEnvironment: 'development',
+  supabase: {
+    publishableKey: 'sb_publishable_development_key',
+    url: 'https://development-project.supabase.co',
+  },
+};
+
+describe('cliente Supabase', () => {
+  beforeEach(() => {
+    createClientMock.mockClear();
+    process.env.EXPO_PUBLIC_APP_ENV = 'development';
+    process.env.EXPO_PUBLIC_SUPABASE_URL = developmentEnvironment.supabase.url;
+    process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
+      developmentEnvironment.supabase.publishableKey;
+  });
+
+  afterEach(() => {
+    delete process.env.EXPO_PUBLIC_APP_ENV;
+    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    delete process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  });
+
+  it('usa somente a URL e a chave publicável do ambiente', () => {
+    const client = createConfiguredSupabaseClient(developmentEnvironment);
+
+    expect(client).toEqual({ mocked: true });
+    expect(createClientMock).toHaveBeenCalledWith(
+      'https://development-project.supabase.co',
+      'sb_publishable_development_key',
+    );
+    expect(createClientMock.mock.calls[0]).toHaveLength(2);
+  });
+
+  it('reutiliza a instância configurada para o processo', () => {
+    const first = getSupabaseClient();
+    const second = getSupabaseClient();
+
+    expect(first).toBe(second);
+    expect(createClientMock).toHaveBeenCalledTimes(1);
+  });
+});

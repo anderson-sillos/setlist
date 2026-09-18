@@ -199,13 +199,13 @@ Na versão atual, o npm informa alertas moderados em dependências transitivas d
 
 ### 5. Variáveis de ambiente
 
-Crie a configuração local a partir do modelo versionado:
+Para desenvolvimento local, copie o modelo do ambiente correspondente:
 
 ```bash
-cp .env.example .env.local
+cp .env.development.example .env.local
 ```
 
-No PowerShell, use `Copy-Item .env.example .env.local`. Preencha os dados do projeto Supabase hospedado correspondente ao ambiente:
+No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar produção localmente, substitua pelo modelo `.env.production.example`. Nunca versione o arquivo `.env.local` preenchido.
 
 | Variável                               | Uso                                               |
 | -------------------------------------- | ------------------------------------------------- |
@@ -213,7 +213,16 @@ No PowerShell, use `Copy-Item .env.example .env.local`. Preencha os dados do pro
 | `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente         |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                  |
 
-Use projetos Supabase distintos para desenvolvimento e produção e altere `EXPO_PUBLIC_APP_ENV` no perfil de build. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
+Use dois projetos Supabase hospedados distintos: um para desenvolvimento e outro para produção. Copie de cada painel a **Project URL** e a **Publishable key** para o arquivo do mesmo ambiente. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
+
+Para conferir a conexão com o projeto selecionado, execute:
+
+```bash
+npm run supabase:check -- development
+npm run supabase:check -- production
+```
+
+O comando consulta o endpoint de configurações do Supabase usando somente a URL e a chave publicável. Ele não aceita nem procura `service_role`, `sb_secret` ou outra credencial administrativa. As variáveis dos builds EAS devem ser cadastradas no painel do projeto para os ambientes `development` e `production`; o arquivo `eas.json` apenas seleciona o ambiente e fixa `EXPO_PUBLIC_APP_ENV`.
 
 Consulte a [documentação de variáveis de ambiente do Expo](https://docs.expo.dev/guides/environment-variables/) para detalhes sobre carregamento e perfis de build.
 
@@ -643,6 +652,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
 |   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos
 |   |-- data/in-memory/                   # Repositórios locais para testes e demonstração
+|   |-- data/supabase/                    # Cliente Supabase configurado por ambiente
 |   |-- domain/                          # Entidades e contratos independentes da infraestrutura
 |   |-- features/bands/                  # Minhas bandas e integrantes
 |   |-- features/calendar/               # Calendário mensal e feriados
@@ -652,12 +662,15 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- features/stage/                  # Seleção, palco e cronômetro manual
 |   |-- providers/                       # Contexto de dados e cache de consultas
 |   `-- theme/                           # Tokens e breakpoints responsivos
-|-- .env.example                         # Modelo público, sem credenciais reais
+|-- .env.example                         # Modelo público genérico, sem credenciais reais
+|-- .env.development.example             # Modelo do projeto Supabase de desenvolvimento
+|-- .env.production.example              # Modelo do projeto Supabase de produção
 |-- .github/workflows/ci.yml             # Qualidade contínua no GitHub
 |-- .github/workflows/pages.yml          # Exportação e publicação do site e da prévia
 |-- app.config.ts                        # Base web variável para publicação em subdiretório
 |-- app.json                             # Configuração de Android, iOS e web
 |-- eas.json                             # Perfil de builds internos Android e iOS
+|-- scripts/check-supabase-connection.mjs # Verificação pública por ambiente
 |-- eslint.config.js                     # Regras estáticas do projeto Expo
 |-- jest.config.js                       # Testes e cobertura mínima
 |-- package.json                         # Dependências e comandos do projeto
@@ -672,7 +685,7 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- validar antecipadamente YouTube, cronômetro e links de autenticação no incremento 3;
+- configurar os projetos Supabase de desenvolvimento e produção e validar a conexão pública;
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 
