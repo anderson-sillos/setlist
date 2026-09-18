@@ -368,6 +368,45 @@ gh pr edit NUMERO \
 
 Depois da revisão, a integração e o fechamento devem ser feitos explicitamente pelo responsável do projeto. Não exclua a branch nem feche a PR antes da aprovação final.
 
+#### Concluir a PR após a aprovação
+
+Antes de integrar, confirme que a PR está aprovada, que os checks passaram e que a cópia local não possui alterações pendentes:
+
+```bash
+gh pr view NUMERO \
+  --repo anderson-sillos/setlist \
+  --json state,reviewDecision,mergeable,url
+gh pr checks NUMERO --repo anderson-sillos/setlist --watch --interval 10
+git status --short
+```
+
+Com a aprovação registrada, troque para `main` e faça o merge usando squash. Essa opção transforma os commits da atividade em um único commit na branch principal e `--delete-branch` remove a branch local e remota após a integração:
+
+```bash
+git switch main
+git pull --ff-only origin main
+gh pr merge NUMERO \
+  --repo anderson-sillos/setlist \
+  --squash \
+  --delete-branch
+```
+
+Finalize atualizando a cópia local e confirme o estado do repositório:
+
+```bash
+git pull --ff-only origin main
+git fetch origin --prune
+git status --short --branch
+```
+
+Se a branch local ainda existir depois do comando de merge, remova-a somente após confirmar que o merge foi concluído:
+
+```bash
+git branch --delete feat/nome-curto-da-atividade
+```
+
+Para abandonar uma PR sem integrá-la, use `gh pr close NUMERO --repo anderson-sillos/setlist --delete-branch` somente após confirmar que nenhum trabalho será aproveitado. O comando de merge e suas opções estão descritos no [manual oficial do GitHub CLI](https://cli.github.com/manual/gh_pr_merge).
+
 ### 8. Testar em Android e iOS com Expo Go
 
 O Expo Go permite revisar o aplicativo gratuitamente em um aparelho físico, sem gerar um APK ou um build iOS e sem pagar o Apple Developer Program. Ele abre o projeto servido pelo Metro no computador; portanto, mantenha o terminal do Expo em execução durante todo o teste.
