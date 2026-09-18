@@ -104,6 +104,7 @@ Obrigatórios em qualquer sistema:
 | Componente              | Necessidade                                                          | Download ou instalação oficial                                                                  |
 | ----------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Git                     | Obrigatório                                                          | [Downloads do Git](https://git-scm.com/downloads/)                                              |
+| GitHub CLI              | Recomendado para criar e acompanhar PRs pelo terminal                | [Instalação do GitHub CLI](https://cli.github.com/)                                             |
 | Node.js 24 LTS          | Obrigatório                                                          | [Downloads do Node.js](https://nodejs.org/en/download)                                          |
 | npm 11                  | Obrigatório                                                          | Já acompanha a instalação do Node.js; não precisa ser instalado separadamente                   |
 | nvm                     | Recomendado em Linux, macOS e WSL                                    | [Instalação do nvm](https://github.com/nvm-sh/nvm#installing-and-updating)                      |
@@ -271,6 +272,101 @@ npm run export:web -- --output-dir dist
 ```
 
 O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, formatação, lint, tipos e testes em cada pull request e em cada envio para `main`. O resultado atual também pode ser consultado pelo selo no início deste README.
+
+### 7.1. Criar um commit e abrir uma PR manualmente
+
+O fluxo abaixo reproduz os comandos usados no projeto para registrar uma atividade e enviá-la ao GitHub. Execute tudo dentro da pasta do projeto. A branch `main` deve permanecer estável; cada atividade deve usar uma branch própria.
+
+#### Preparar a branch
+
+Atualize a base antes de começar uma atividade:
+
+```bash
+git status --short --branch
+git switch main
+git pull --ff-only origin main
+git switch -c feat/nome-curto-da-atividade
+```
+
+Se a branch já existir, use `git switch feat/nome-curto-da-atividade` e atualize-a com `git pull --ff-only origin feat/nome-curto-da-atividade`. Não continue se `git status --short` mostrar alterações de outra atividade sem antes registrá-las ou preservá-las.
+
+#### Validar e criar o commit
+
+Depois de implementar a atividade, revise os arquivos alterados e execute a automação antes de criar o commit:
+
+```bash
+npm run validate
+git diff --check
+git status --short
+```
+
+Adicione somente os arquivos da atividade, confira o que entrará no commit e então registre a alteração:
+
+```bash
+git add README.md src/caminho/arquivo.tsx
+git diff --cached --check
+git diff --cached --stat
+git commit -m "tipo: descrição curta da atividade"
+```
+
+Use mensagens curtas no padrão `feat:`, `fix:`, `docs:`, `refactor:` ou `test:`. Se a atividade também atualizar o handoff ou o checklist OpenSpec, inclua esses arquivos no mesmo commit.
+
+#### Enviar a branch
+
+Na primeira publicação da branch, configure o rastreamento remoto com `-u`:
+
+```bash
+git push -u origin feat/nome-curto-da-atividade
+```
+
+Para commits adicionais na mesma PR, use:
+
+```bash
+git push origin feat/nome-curto-da-atividade
+```
+
+#### Criar a PR pelo GitHub CLI
+
+Autentique o GitHub CLI uma vez na máquina:
+
+```bash
+gh auth login
+gh auth status
+```
+
+Abra a PR apontando para `main`:
+
+```bash
+gh pr create \
+  --repo anderson-sillos/setlist \
+  --base main \
+  --head feat/nome-curto-da-atividade \
+  --title "tipo: título da atividade" \
+  --body "Descreva objetivo, alterações, validações e pendências da revisão."
+```
+
+O comando retorna a URL da PR. Também é possível criar a PR pelo botão **Compare & pull request** que aparece na página da branch no GitHub. Em ambos os casos, mantenha a PR aberta para revisão e não faça merge automático.
+
+#### Atualizar e acompanhar a PR
+
+Cada novo commit enviado para a mesma branch atualiza a PR automaticamente. Use estes comandos para conferir a situação:
+
+```bash
+gh pr view NUMERO --repo anderson-sillos/setlist
+gh pr checks NUMERO --repo anderson-sillos/setlist
+gh pr checks NUMERO --repo anderson-sillos/setlist --watch --interval 10
+```
+
+Para corrigir título ou descrição sem abrir outra PR:
+
+```bash
+gh pr edit NUMERO \
+  --repo anderson-sillos/setlist \
+  --title "novo título" \
+  --body "Descrição atualizada da atividade."
+```
+
+Depois da revisão, a integração e o fechamento devem ser feitos explicitamente pelo responsável do projeto. Não exclua a branch nem feche a PR antes da aprovação final.
 
 ### 8. Testar em Android e iOS com Expo Go
 
