@@ -4,6 +4,10 @@ export const PROTOTYPE_INVITE_TOKEN = 'convite-demo-2026';
 export const PROTOTYPE_OAUTH_CODE = 'oauth-code-demo';
 export const PROTOTYPE_OAUTH_STATE = 'oauth-state-demo';
 
+export function getAuthCallbackPath(inviteToken?: string): string {
+  return appendQuery('/auth/callback', [['invite_token', inviteToken]]);
+}
+
 export interface OAuthCallbackPrototypeParams {
   readonly code?: string;
   readonly error?: string;

@@ -15,6 +15,13 @@ export function createConfiguredSupabaseClient(
   return createClient(
     environment.supabase.url,
     environment.supabase.publishableKey,
+    {
+      auth: {
+        detectSessionInUrl: false,
+        flowType: 'pkce',
+        persistSession: true,
+      },
+    },
   );
 }
 

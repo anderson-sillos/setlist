@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a integração da autenticação social na tarefa 5.1.
+- Estado atual: implementação da tarefa 5.1 em andamento; faltam configurar os provedores no Supabase e validar manualmente web, Android e iOS.
 
 ## Fontes de verdade
 
@@ -81,6 +81,7 @@ openspec validate definir-mvp-setlist --type change --strict
 46. A tarefa 4.6 foi concluída na mesma branch. `supabase/migrations/20260918190000_add_integrity_triggers.sql` adiciona timestamps de servidor para perfis, bandas, músicas, shows, blocos e itens; impede que uma banda com outros integrantes fique sem Owner; anonimiza referências de conta removida em aceites e convites; bloqueia alterações de conteúdo fora de shows `draft`; e rejeita músicas de outra banda na setlist. `supabase/tests/4.6-integrity-triggers.sql` verifica 24 invariantes, incluindo exclusão de conta, estados somente leitura e reabertura para Rascunho; a suíte acumulada passou com 133 testes.
 47. A tarefa 4.7 foi concluída na mesma branch. `supabase/migrations/20260918200000_add_rls_policies.sql` adiciona funções de escopo por banda/show, RLS para todas as tabelas de negócio, acesso de leitura aos integrantes, escrita de conteúdo para Owner/Editor, administração de acesso apenas para Owner e a RPC `create_band` com Owner e aceite do termo em uma operação segura. Usuários anônimos e externos permanecem sem acesso. `supabase/tests/4.7-rls-matrix.sql` verifica a matriz automatizada por papel; a suíte acumulada passou com 161 testes.
 48. A tarefa 4.8 concluiu o grupo 4. O banco local foi recriado do zero duas vezes, em ambiente isolado, aplicando as seis migrações na mesma ordem; em ambos os ciclos `npm run supabase:test` passou com 161 testes. O novo `npm run supabase:lint` verifica somente o schema `public` com `--fail-on error` e terminou com `No schema errors found`; a exclusão do schema `extensions` evita falsos positivos internos do pgTAP. A validação OpenSpec, o formato, lint, TypeScript e os 155 testes automatizados do aplicativo também passaram.
+49. A tarefa 5.1 foi iniciada na mesma branch. O cliente Supabase passou a usar PKCE e as dependências `expo-crypto` e `expo-web-browser` sustentam, respectivamente, o `state` protegido e o retorno nativo. `AuthScreen` oferece Google e Apple, `/auth/callback` troca `code` por sessão após validar `state`, e o serviço expõe renovação e inscrição no ciclo de sessão. O contexto `invite_token` segue preservado na rota real `/invite/[token]`; o atalho temporário do protótipo OAuth saiu do menu. A cobertura automatizada cobre entrada, cancelamento, erro, retorno nativo/web, renovação e convite. A tarefa ainda não foi marcada como concluída: faltam credenciais dos provedores no Supabase e a validação manual em web, Android e iOS com development build.
 
 ## Visão confirmada do produto
 

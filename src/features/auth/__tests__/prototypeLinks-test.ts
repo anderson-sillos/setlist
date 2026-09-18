@@ -1,4 +1,5 @@
 import {
+  getAuthCallbackPath,
   getDevelopmentUrl,
   getInvitePath,
   getOAuthCallbackPath,
@@ -29,6 +30,13 @@ describe('rotas do protótipo de convite e OAuth', () => {
     ).toBe(
       '/auth/callback?code=code%2Fdemo&state=state%20demo&invite_token=invite%2Fdemo',
     );
+  });
+
+  it('gera o retorno real preservando somente o contexto do convite', () => {
+    expect(getAuthCallbackPath('invite/demo')).toBe(
+      '/auth/callback?invite_token=invite%2Fdemo',
+    );
+    expect(getAuthCallbackPath()).toBe('/auth/callback');
   });
 
   it('aceita tanto parâmetro único quanto repetido do Expo Router', () => {

@@ -20,6 +20,9 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 | Rota                                   | Tela                      | Arquivo                                        |
 | -------------------------------------- | ------------------------- | ---------------------------------------------- |
 | `/`                                    | Minhas bandas             | `src/features/bands/BandsScreen.tsx`           |
+| `/auth`                                | Login social              | `src/features/auth/AuthScreen.tsx`             |
+| `/auth/callback`                       | Retorno OAuth             | `src/features/auth/OAuthCallbackScreen.tsx`    |
+| `/invite/[token]`                      | Convite e autenticação    | `src/features/auth/InviteScreen.tsx`           |
 | `/bands/[bandId]/band`                 | Banda e integrantes       | `src/features/bands/BandScreen.tsx`            |
 | `/bands/[bandId]/repertoire`           | Repertório                | `src/features/repertoire/RepertoireScreen.tsx` |
 | `/bands/[bandId]/repertoire/[songId]`  | Detalhes da música        | `src/features/repertoire/SongDetailScreen.tsx` |
@@ -29,6 +32,11 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 | `/bands/[bandId]/shows/[showId]/stage` | Execução do modo palco    | `src/features/stage/StageScreen.tsx`           |
 
 O protótipo técnico `/youtube-prototype` fica fora da navegação principal e serve somente para validar a integração web do player do YouTube antes da implementação no detalhe da música.
+
+As telas de autenticação ficam em `src/features/auth/`. O fluxo real usa
+`AuthScreen`, `OAuthCallbackScreen` e `InviteScreen`; os arquivos com sufixo
+`Prototype` permanecem apenas como registro dos testes técnicos da atividade
+3.4 e não são expostos pelo menu principal.
 
 ## Componentes estruturais
 
@@ -61,6 +69,7 @@ O protótipo técnico `/youtube-prototype` fica fora da navegação principal e 
 | Integração das entradas de rota             | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                          |
 | Memória de rota, rolagem e visão            | `src/features/navigation/__tests__/navigationMemory-test.tsx`                               |
 | Construção e codificação de endereços       | `src/features/navigation/__tests__/navigationRoutes-test.ts`                                |
+| Autenticação, state OAuth e convite         | `src/features/auth/__tests__/`                                                              |
 | Telas de bandas                             | `src/features/bands/__tests__/BandsScreen-test.tsx` e `BandScreen-test.tsx`                 |
 | Repertório e detalhe da música              | `src/features/repertoire/__tests__/RepertoireScreen-test.tsx` e `SongDetailScreen-test.tsx` |
 | Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`           |

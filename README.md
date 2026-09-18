@@ -235,6 +235,36 @@ npm run supabase:lint
 
 `supabase:test` executa a suíte pgTAP de acesso e integridade. `supabase:lint` verifica somente o schema público da aplicação e falha em erros; a extensão pgTAP local fica fora desse lint porque suas funções auxiliares são específicas da infraestrutura de testes. Alterações de schema devem ser feitas nas migrações, não diretamente no banco remoto.
 
+### Configurar o login social no Supabase
+
+A tarefa 5.1 conecta Google e Apple ao cliente Expo, mas cada projeto Supabase
+precisa receber as credenciais dos provedores antes de o login real funcionar.
+Faça essa configuração no painel de cada ambiente, sem colocar segredos no Git:
+
+1. Em **Authentication → Providers**, habilite **Google** e **Apple** e informe
+   as credenciais emitidas por cada provedor. O endereço de callback cadastrado
+   no Google e na Apple é o callback do Supabase:
+   `https://<project-ref>.supabase.co/auth/v1/callback`.
+2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
+   adicione os retornos permitidos usados no desenvolvimento:
+   `http://localhost:8081/auth/callback` e `setlist://auth/callback`.
+   O endereço HTTPS definitivo do aplicativo será acrescentado na tarefa 11.5.
+3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
+   `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
+   correspondentes. Client IDs podem ser públicos no aplicativo, mas client
+   secrets, chaves privadas Apple e tokens nunca devem ser versionados.
+
+Depois de configurar os provedores, inicie a aplicação e abra **Menu geral →
+Entrar**. O fluxo usa PKCE, cria um `state` por tentativa e rejeita retornos
+com `state` ausente ou diferente. Ao abrir um link `/invite/<token>`, o token é
+levado até o retorno OAuth sem ser salvo como conteúdo do aplicativo. No
+navegador, o retorno troca o `code` por uma sessão; no Android e iOS, o
+`WebBrowser` abre o provedor e devolve o resultado à aplicação.
+
+Para validar o retorno nativo com o esquema `setlist://`, use um development
+build ou build interno. O Expo Go pode abrir as telas, mas não representa todos
+os comportamentos de deep link e credenciais nativas dos provedores sociais.
+
 ### Publicar as migrações nos projetos hospedados
 
 As migrações em `supabase/migrations/` são a fonte de verdade do banco. Depois de revisar o grupo 4 e validar o banco local, publique primeiro no projeto Supabase de desenvolvimento e somente depois no projeto de produção. O comando `db push` aplica apenas as migrações ainda ausentes no histórico remoto; ele não recria nem apaga o banco.
@@ -561,18 +591,25 @@ Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
 
-#### 8.6. Validar o protótipo de convite e OAuth
+#### 8.6. Validar o login social e o retorno de convite
 
-Durante a atividade 3.4, abra o menu lateral e selecione **Convite e OAuth (protótipo)**. A tela apresenta as URLs de desenvolvimento geradas pelo Expo e não cria conta, convite ou sessão real.
+Com Google e Apple configurados no projeto Supabase conforme a seção de
+provedores, abra **Menu geral → Entrar** e repita o fluxo no navegador e em um
+development build Android/iOS:
 
-Repita o fluxo no navegador, Android e iOS:
+1. Escolha Google ou Apple e conclua o login no provedor.
+2. Confirme que o retorno chega à aplicação e abre `Minhas bandas` quando não
+   há convite.
+3. Abra um link `/invite/<token>`, entre por um provedor e confirme que a tela
+   informa que o convite foi preservado após o retorno.
+4. Cancele o login e confirme que a aplicação permanece disponível para tentar
+   novamente.
+5. Repita o fluxo depois de atualizar a sessão e registre no PR a plataforma,
+   navegador/provedor, resultado do retorno e qualquer falha de configuração.
 
-1. Acione **Abrir rota de convite** e confirme que o token `convite-demo-2026` aparece na tela de convite.
-2. Acione **Simular login social e retorno** e confirme que `code`, `state` e `invite_token` chegam preservados na tela de callback.
-3. Acione **Retomar convite** e confirme que o mesmo token é exibido como convite retomado.
-4. Use também **Abrir URL do convite** e **Abrir URL de retorno** para conferir o comportamento do endereço de desenvolvimento da plataforma.
-
-Essas telas são somente um protótipo técnico. O login Google/Apple, o consumo do convite e a validação no Supabase serão implementados em incrementos posteriores.
+O aceite efetivo do convite e a criação de bandas dependem das tarefas 5.4 e
+5.6. Nesta etapa a tela confirma a autenticação e preserva o contexto, sem
+consumir o convite.
 
 ### 9. Publicar a prévia e gerar builds internos
 

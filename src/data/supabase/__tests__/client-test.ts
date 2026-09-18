@@ -42,8 +42,15 @@ describe('cliente Supabase', () => {
     expect(createClientMock).toHaveBeenCalledWith(
       'https://development-project.supabase.co',
       'sb_publishable_development_key',
+      {
+        auth: {
+          detectSessionInUrl: false,
+          flowType: 'pkce',
+          persistSession: true,
+        },
+      },
     );
-    expect(createClientMock.mock.calls[0]).toHaveLength(2);
+    expect(createClientMock.mock.calls[0]).toHaveLength(3);
   });
 
   it('reutiliza a instância configurada para o processo', () => {

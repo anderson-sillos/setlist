@@ -131,12 +131,11 @@ export function NavigationPanel({
           label="Player YouTube (protótipo)"
           onNavigate={onNavigate}
         />
-        {/* Remover quando a validação do protótipo OAuth (atividade 3.4) terminar. */}
         <SidebarNavigationLink
           active={false}
-          href="/auth-prototype"
-          icon="externalLink"
-          label="Convite e OAuth (protótipo)"
+          href={'/auth' as Href}
+          icon="login"
+          label="Entrar"
           onNavigate={onNavigate}
         />
         <DisabledGeneralItem label="Perfil e conta" />
@@ -147,7 +146,7 @@ export function NavigationPanel({
       <View style={styles.footer}>
         <DisabledGeneralItem label="Sair" />
         <AppText style={styles.muted} variant="caption">
-          A autenticação entra em um próximo incremento.
+          Login social com Google ou Apple.
         </AppText>
       </View>
     </ScrollView>
