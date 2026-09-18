@@ -80,14 +80,15 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 
 ### Consulta e calendário de shows
 
-- Mostrar Shows em lista rolável com busca por nome ou local, uma ação compacta agrupando filtros por período e estado, com `Todos` como primeira opção de cada grupo, e ordenação por data, nome ou duração.
+- Mostrar Shows em uma única lista rolável com busca por nome ou local, filtros compactos por data e estado, com `Todos` como primeira opção de cada grupo, e ordenação por data, nome ou duração.
 - Abrir por padrão os próximos shows em Rascunho ou Pronto, pela data mais próxima, deixando Cancelados acessíveis pelos filtros.
-- Oferecer as visões Lista e Calendário dentro de Shows, sem criar outra opção na barra inferior.
-- Usar calendário mensal, abrir no mês atual com hoje selecionado por um contorno completo e arredondado e iniciar a semana no domingo.
-- Marcar datas com shows por fundo próprio, manter um marcador, indicar quantidade quando houver mais de um e listar os eventos do dia abaixo do mês.
-- Exibir filtros e ordenação somente na visão Lista; no Calendário, mostrar todos os shows ativos do mês sem herdar filtros ocultos.
+- Tratar `Próximos`, `Passados`, `Todos` e uma data específica como critérios mutuamente exclusivos e manter a data escolhida visível em um controle removível.
+- Oferecer um botão exclusivo de acesso direto ao calendário mensal, usado somente como seletor visual de data da lista geral, sem criar uma segunda visualização ou lista de eventos.
+- Abrir o calendário no mês atual ou no mês da data específica já escolhida, iniciar a semana no domingo e aplicar imediatamente o filtro ao tocar em um dia, fechando o seletor.
+- Marcar datas com shows ativos por fundo próprio, manter um marcador e indicar a quantidade quando houver mais de um; busca e ordenação não devem alterar esses marcadores.
 - Usar fundos distintos para finais de semana, hoje e feriados; centralizar os números e mostrar o nome do feriado somente após selecionar a data, mantendo essa informação disponível para tecnologias assistivas.
 - Calcular os feriados localmente, sem API, visão semanal ou anual e sem integração com calendários externos no MVP.
+- Reservar no cabeçalho uma ação direta e acessível para Owner e Editor criarem um novo show em um incremento futuro.
 
 ### Bandas, integrantes e convites
 

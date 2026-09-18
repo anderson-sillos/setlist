@@ -31,6 +31,7 @@ export function BottomNavigation({
             key={item.section}
             replace
             asChild
+            disabled={active}
           >
             <Pressable
               accessibilityLabel={`Ir para ${item.label}`}

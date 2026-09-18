@@ -27,7 +27,7 @@
 - [x] 2.10 Evoluir os contratos e dados demonstrativos da setlist para anotações de planejamento, separadores e cálculo de duração e verificar reordenação conceitual, totais e ausência desses itens no modo palco
 - [x] 2.11 Implementar os componentes compartilhados de carregamento, erro, indisponibilidade, conexão e mensagens temporárias e aplicar o guia de tom e voz com testes de acessibilidade e variações controladas
 - [x] 2.12 Validar as melhorias em celular, tablet e computador, publicar nova prévia web e build interno Android e aguardar aprovação antes de encerrar o grupo de UX/UI
-- [ ] 2.13 Discutir, registrar, implementar e validar uma nova rodada de melhorias de UI em celular, tablet e computador, mantendo o PR aberto até a revisão e a aprovação explícitas antes de iniciar a tarefa 3.1
+- [ ] 2.13 Discutir, registrar, implementar e validar uma nova rodada de melhorias de UI em celular, tablet e computador, incluindo a reorganização de Shows como lista única com calendário usado como filtro de data e botão de acesso direto, mantendo o PR aberto até a revisão e a aprovação explícitas antes de iniciar a tarefa 3.1
 
 ## 3. Validação antecipada dos riscos técnicos
 
@@ -72,7 +72,7 @@
 
 ## 7. Shows e setlists
 
-- [ ] 7.1 Implementar lista rolável, busca, filtros, ordenação, duração, calendário mensal, detalhes, criação e edição online de shows e verificar padrão de próximos eventos, feriados nacionais locais, campos, estado inicial Rascunho e permissões
+- [ ] 7.1 Implementar lista rolável única, busca, filtros, ordenação, duração, calendário mensal como filtro de data com acesso direto, detalhes, ação de criação no cabeçalho para Owner e Editor e edição online de shows; verificar aplicação e remoção imediata da data, marcadores independentes de busca e ordenação, padrão de próximos eventos, feriados nacionais locais, campos, estado inicial Rascunho e permissões
 - [ ] 7.2 Implementar duplicação de show e verificar cópia independente de blocos, músicas, anotações de planejamento, separadores, ordem e observações
 - [ ] 7.3 Implementar criação, nomeação e reordenação de blocos por alça e verificar a existência do bloco Principal em novos shows
 - [ ] 7.4 Implementar uma única ação de inclusão, seleção múltipla de músicas, anotações de planejamento, separadores e reordenação de itens dentro e entre blocos e verificar observações específicas e repetições sem alterar a música do repertório

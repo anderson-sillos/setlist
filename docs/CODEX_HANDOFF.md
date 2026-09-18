@@ -13,7 +13,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.12; a tarefa 2.13 está em andamento e aguardará nova revisão visual antes de ser concluída.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: revisar a reorganização visual, os ícones, o favicon e a splash da tarefa 2.13 em celular, tablet e computador; somente após aprovação explícita integrar o PR e iniciar a tarefa 3.1.
+- Próximo passo: revisar a reorganização visual, os ícones, o favicon, a splash e a nova consulta de Shows da tarefa 2.13 em celular, tablet e computador; somente após aprovação explícita integrar o PR e iniciar a tarefa 3.1.
 
 ## Fontes de verdade
 
@@ -49,6 +49,7 @@ openspec validate definir-mvp-setlist --type change --strict
 16. A tarefa 2.13 abriu uma segunda rodada de refinamentos de UI. A iconografia deixou de usar caracteres tipográficos e passou a ser centralizada pelo componente semântico `AppIcon`, com Lucide React Native e `react-native-svg`, mantendo o mesmo desenho em Android, iOS e web.
 17. As entradas de `src/app` passaram a somente encaminhar as rotas, enquanto as telas foram separadas por domínio em `features/bands`, `features/repertoire`, `features/shows` e `features/stage`. O shell de navegação, o menu lateral e os controles de lista também foram divididos em componentes e hooks menores, documentados em `docs/ARQUITETURA_DE_TELAS.md`.
 18. As linhas de bandas, músicas e shows foram padronizadas, as datas e durações receberam formatadores compartilhados e os campos de busca ganharam uma ação acessível para limpar o texto. A identidade visual passou a incluir ícones nativos, foreground adaptativo do Android, favicon multirresolução e splash violeta com a nota branca do `brandMark`.
+19. A consulta de Shows foi redefinida como uma única lista. O calendário deixou de ser uma visualização concorrente e passou a funcionar como filtro de data aberto por um botão dedicado; a seleção aplica o dia imediatamente, preserva marcadores independentes da busca e ordenação e mantém a futura criação de show como ação contextual do cabeçalho para Owner e Editor. Ajustes pontuais adicionais alinharam os grupos de integrantes à esquerda, permitiram quebra responsiva nos controles do repertório e impediram novo acionamento do destino já ativo na barra inferior.
 
 ## Visão confirmada do produto
 
@@ -115,7 +116,7 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 - Preservar pilha, busca, filtros, ordenação e rolagem ao alternar entre as seções principais.
 - Usar listas compactas e roláveis para repertório, shows e bandas, com controles fixos conforme a tela.
 - Priorizar a letra nos detalhes da música, mantendo todos os blocos expandidos e os tempos ocultos fora do editor de sincronização.
-- Disponibilizar em Shows as visões Lista e Calendário mensal, com filtros e ordenação exclusivos da lista; usar fundos próprios para datas com eventos, finais de semana, hoje e feriados e mostrar o nome do feriado quando a data for selecionada.
+- Disponibilizar em Shows uma única lista com busca, filtros e ordenação; usar o calendário mensal como filtro de data aberto por um botão dedicado, aplicar o dia imediatamente e manter seus marcadores independentes da busca e ordenação. Usar fundos próprios para datas com eventos, finais de semana, hoje e feriados e mostrar o nome do feriado quando a data for selecionada.
 - Apresentar carregamento, vazio, erro, indisponibilidade, conexão e mensagens temporárias de forma consistente e acessível.
 - Usar ícones vetoriais Lucide para navegação, busca, setas, seletores, indicadores e menus; manter rótulos nos controles e tratar o desenho como elemento decorativo para tecnologias assistivas.
 - Usar tom informal e bem-humorado em situações gerais e recuperáveis; manter linguagem direta em ações destrutivas, legais, de segurança ou de perda de conteúdo.
@@ -202,8 +203,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #7: roteiro para atualizar o ambiente local.
 - PR #8: primeira versão navegável e revisão de UX/UI do Incremento 2, concluídas e aprovadas.
 - PR #9: correção das vulnerabilidades de dependências apontadas pelo GitHub e pelo `npm audit`.
-- PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon e splash; aberto para revisão.
+- PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon, splash e consulta de Shows com calendário como filtro de data; aberto para revisão.
 
 ## Próxima ação recomendada
 
-Concluir a revisão visual da tarefa 2.13 em celular, tablet e computador, mantendo-a aberta até a aprovação explícita. Depois disso, iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador. A validação iOS permanece adiada para uma etapa futura.
+Concluir a revisão visual da tarefa 2.13 em celular, tablet e computador, incluindo a lista única de Shows, o filtro direto pelo calendário e a futura ação de criação, mantendo-a aberta até a aprovação explícita. Depois disso, iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador. A validação iOS permanece adiada para uma etapa futura.

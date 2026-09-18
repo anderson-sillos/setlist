@@ -13,6 +13,7 @@ import {
   Music,
   Music2,
   Play,
+  Plus,
   Search,
   Users,
   X,
@@ -22,6 +23,7 @@ import {
 import { colors } from '@/theme/tokens';
 
 const iconComponents = {
+  add: Plus,
   back: ChevronLeft,
   band: Users,
   bands: LayoutGrid,

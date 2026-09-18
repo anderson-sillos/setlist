@@ -416,7 +416,7 @@ describe('navegação inicial', () => {
     expect(await view.findByText('Encontro de Inverno')).toBeTruthy();
   });
 
-  it('mostra o calendário mensal, feriados e vários shows no mesmo dia', async () => {
+  it('usa o calendário como filtro direto da lista geral de shows', async () => {
     const view = await render(
       <AppProviders>
         <ShowsScreen
@@ -428,24 +428,63 @@ describe('navegação inicial', () => {
     );
 
     await view.findByText('Ensaio Aberto');
-    await fireEvent.press(view.getByLabelText('Calendário'));
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar show por nome ou local'),
+      'praça',
+    );
+    await fireEvent.press(
+      view.getByLabelText('Abrir calendário para filtrar por data'),
+    );
 
     expect(view.getByTestId('shows-month-calendar')).toBeTruthy();
-    expect(view.queryByLabelText('Abrir filtros dos shows')).toBeNull();
-    expect(view.queryByLabelText('Alterar ordenação dos shows')).toBeNull();
+    expect(view.getByLabelText('Abrir filtros dos shows')).toBeTruthy();
+    expect(view.getByLabelText('Alterar ordenação dos shows')).toBeTruthy();
+    expect(view.getByLabelText(/19 de setembro de 2026, 2 shows/)).toBeTruthy();
     expect(view.queryByText('Independência do Brasil')).toBeNull();
+
+    await fireEvent.press(view.getByLabelText('Fechar calendário'));
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar show por nome ou local'),
+      '',
+    );
+    await fireEvent.press(
+      view.getByLabelText('Abrir calendário para filtrar por data'),
+    );
 
     await fireEvent.press(
       view.getByLabelText(/7 de setembro de 2026, Independência do Brasil/),
     );
     expect(view.getByText('Independência do Brasil')).toBeTruthy();
+    expect(view.queryByTestId('shows-month-calendar')).toBeNull();
 
+    await fireEvent.press(
+      view.getByLabelText('Abrir calendário para filtrar por data'),
+    );
     await fireEvent.press(
       view.getByLabelText(/19 de setembro de 2026, 2 shows/),
     );
 
     expect(view.getByText('Ensaio Aberto')).toBeTruthy();
     expect(view.getByText('Show do Bairro')).toBeTruthy();
+    expect(view.queryByText('Festival da Praça')).toBeNull();
+
+    await fireEvent.press(view.getByLabelText('Criar novo show'));
+    expect(view.getByText(/A criação do show em 19 set 2026/)).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText(/Remover filtro de data/));
+    expect(view.getByText('Festival da Praça')).toBeTruthy();
+  });
+
+  it('oculta a criação de show para integrante sem permissão de edição', async () => {
+    const view = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <ShowsScreen bandId={demoIds.primaryBand} viewportWidth={390} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Festival da Praça');
+    expect(view.queryByLabelText('Criar novo show')).toBeNull();
+    view.unmount();
   });
 
   it.each([

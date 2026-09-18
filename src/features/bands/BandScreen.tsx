@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   groupHeader: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     backgroundColor: colors.paper,
     maxWidth: layout.contentMaxWidth,
     paddingBottom: spacing.sm,

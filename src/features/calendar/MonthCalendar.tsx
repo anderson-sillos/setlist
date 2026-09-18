@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -13,7 +12,8 @@ import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 interface MonthCalendarProps {
   readonly initialDate?: Date;
-  readonly renderShow: (show: Show) => ReactNode;
+  readonly onSelectDate: (dateKey: string) => void;
+  readonly selectedDateKey?: string;
   readonly shows: readonly Show[];
 }
 
@@ -49,26 +49,21 @@ function getMonthCells(
   return cells;
 }
 
-function formatSelectedDate(dateKey: string): string {
-  const { day, month, year } = getDateParts(dateKey);
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'full',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, month, day)));
-}
-
 export function MonthCalendar({
   initialDate = new Date(),
-  renderShow,
+  onSelectDate,
+  selectedDateKey,
   shows,
 }: MonthCalendarProps) {
   const todayKey = getSaoPauloDateKey(initialDate);
   const todayParts = getDateParts(todayKey);
+  const initialVisibleDate = selectedDateKey
+    ? getDateParts(selectedDateKey)
+    : todayParts;
   const [visibleMonth, setVisibleMonth] = useState({
-    month: todayParts.month,
-    year: todayParts.year,
+    month: initialVisibleDate.month,
+    year: initialVisibleDate.year,
   });
-  const [selectedDateKey, setSelectedDateKey] = useState(todayKey);
   const cells = useMemo(
     () => getMonthCells(visibleMonth.year, visibleMonth.month),
     [visibleMonth],
@@ -89,10 +84,6 @@ export function MonthCalendar({
     showsByDate.set(dateKey, dateShows);
   });
 
-  const selectedShows = [...(showsByDate.get(selectedDateKey) ?? [])].sort(
-    (left, right) => left.startsAt.localeCompare(right.startsAt),
-  );
-  const selectedHoliday = holidaysByDate.get(selectedDateKey);
   const monthName = new Intl.DateTimeFormat('pt-BR', {
     month: 'long',
     timeZone: 'UTC',
@@ -112,7 +103,6 @@ export function MonthCalendar({
     const nextYear = date.getUTCFullYear();
 
     setVisibleMonth({ month: nextMonth, year: nextYear });
-    setSelectedDateKey(createDateKey(nextYear, nextMonth, 1));
   };
 
   return (
@@ -203,7 +193,7 @@ export function MonthCalendar({
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
               key={dateKey}
-              onPress={() => setSelectedDateKey(dateKey)}
+              onPress={() => onSelectDate(dateKey)}
               testID={`calendar-day-${dateKey}`}
               style={({ pressed }) => [
                 styles.dayCell,
@@ -237,24 +227,6 @@ export function MonthCalendar({
             </Pressable>
           );
         })}
-      </View>
-
-      <View style={styles.selectedDayShows}>
-        <AppText accessibilityRole="header" variant="heading">
-          {formatSelectedDate(selectedDateKey)}
-        </AppText>
-        {selectedHoliday ? (
-          <AppText tone="accent">{selectedHoliday.name}</AppText>
-        ) : null}
-        {selectedShows.length === 0 ? (
-          <AppText tone="muted">
-            Agenda livre. Até o amplificador pode descansar.
-          </AppText>
-        ) : (
-          selectedShows.map((show) => (
-            <View key={show.id}>{renderShow(show)}</View>
-          ))
-        )}
       </View>
     </View>
   );
@@ -355,9 +327,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     position: 'absolute',
     right: 2,
-  },
-  selectedDayShows: {
-    gap: spacing.md,
   },
   pressed: {
     opacity: 0.72,

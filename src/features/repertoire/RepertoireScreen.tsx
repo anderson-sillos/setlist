@@ -241,6 +241,7 @@ const styles = StyleSheet.create({
   controlToolbarEnd: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     justifyContent: 'flex-end',
   },
