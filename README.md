@@ -479,7 +479,6 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |-- src/
 |   |-- app/                             # Entradas de rota do Expo Router
 |   |-- components/feedback/             # Mensagens e avisos compartilhados
-|   |-- components/layout/               # Estruturas responsivas reutilizáveis
 |   |-- components/ui/                   # Componentes visuais reutilizáveis
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
 |   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos
