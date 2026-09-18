@@ -230,9 +230,10 @@ As migrações e os testes de banco ficam em `supabase/`. Com Docker instalado, 
 npx --yes supabase@latest start
 npx --yes supabase@latest db reset --local
 npm run supabase:test
+npm run supabase:lint
 ```
 
-O seed local habilita a extensão pgTAP somente para os testes. Alterações de schema devem ser feitas nas migrações, não diretamente no banco remoto.
+`supabase:test` executa a suíte pgTAP de acesso e integridade. `supabase:lint` verifica somente o schema público da aplicação e falha em erros; a extensão pgTAP local fica fora desse lint porque suas funções auxiliares são específicas da infraestrutura de testes. Alterações de schema devem ser feitas nas migrações, não diretamente no banco remoto.
 
 Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
 

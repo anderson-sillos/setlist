@@ -46,7 +46,7 @@
 - [x] 4.5 Criar migrações para vários convites ativos com rótulo opcional e funções transacionais de aceite e verificar uso único, revogação e expiração padrão de sete dias
 - [x] 4.6 Implementar funções e gatilhos para último Owner, estados somente leitura, anonimização e atualização de timestamps e verificar cada regra com testes de integração
 - [x] 4.7 Implementar RLS com negação por padrão para Owner, Editor, Member e pessoa externa e verificar uma matriz automatizada de leitura e escrita por papel
-- [ ] 4.8 Executar todas as migrações do zero em ambiente isolado e verificar que o schema e a suíte de segurança são reproduzíveis
+- [x] 4.8 Executar todas as migrações do zero em ambiente isolado e verificar que o schema e a suíte de segurança são reproduzíveis
 
 ## 5. Autenticação, bandas e integrantes
 

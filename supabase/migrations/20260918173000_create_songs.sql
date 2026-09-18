@@ -17,8 +17,8 @@ declare
   line jsonb;
   block_id text;
   line_id text;
-  block_ids text[] := '{}';
-  line_ids text[] := '{}';
+  block_ids text[] := '{}'::text[];
+  line_ids text[] := '{}'::text[];
 begin
   if coalesce(jsonb_typeof(document), 'null') <> 'object'
     or coalesce(jsonb_typeof(document->'blocks'), 'null') <> 'array' then
@@ -93,7 +93,7 @@ declare
   has_out_of_order boolean := false;
 begin
   if not public.is_valid_lyric_document(document) then
-    return 'missing';
+    return 'missing'::public.lyric_status;
   end if;
 
   for block in select value from jsonb_array_elements(document->'blocks') loop
@@ -117,15 +117,15 @@ begin
   end loop;
 
   if text_line_count = 0 then
-    return 'missing';
+    return 'missing'::public.lyric_status;
   end if;
   if timed_line_count = 0 then
-    return 'static';
+    return 'static'::public.lyric_status;
   end if;
   if timed_line_count < text_line_count or has_out_of_order then
-    return 'incomplete';
+    return 'incomplete'::public.lyric_status;
   end if;
-  return 'synchronized';
+  return 'synchronized'::public.lyric_status;
 end;
 $$;
 
