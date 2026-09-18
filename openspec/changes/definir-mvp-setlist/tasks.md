@@ -42,7 +42,7 @@
 - [x] 4.1 Configurar projetos Supabase separados para desenvolvimento e produção e verificar conexão usando apenas URL e chave pública por ambiente
 - [x] 4.2 Criar migrações para perfis, bandas, participações e aceites de termo e verificar chaves, restrições e exclusões previstas
 - [x] 4.3 Criar migrações para músicas com letra JSONB e estados de sincronização e verificar validações de estrutura e timestamps do servidor
-- [ ] 4.4 Criar migrações para shows, blocos e itens de setlist de música, planejamento ou separador e verificar tipos, ordem, referências, descrições, durações, observações e estados permitidos
+- [x] 4.4 Criar migrações para shows, blocos e itens de setlist de música, planejamento ou separador e verificar tipos, ordem, referências, descrições, durações, observações e estados permitidos
 - [ ] 4.5 Criar migrações para vários convites ativos com rótulo opcional e funções transacionais de aceite e verificar uso único, revogação e expiração padrão de sete dias
 - [ ] 4.6 Implementar funções e gatilhos para último Owner, estados somente leitura, anonimização e atualização de timestamps e verificar cada regra com testes de integração
 - [ ] 4.7 Implementar RLS com negação por padrão para Owner, Editor, Member e pessoa externa e verificar uma matriz automatizada de leitura e escrita por papel
