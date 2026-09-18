@@ -15,6 +15,18 @@ O sistema SHALL permitir autenticação exclusivamente com Google ou Apple em An
 - **WHEN** uma pessoa tenta entrar por senha ou por um provedor diferente de Google e Apple
 - **THEN** o sistema não oferece nem aceita esse método de autenticação
 
+#### Scenario: Usar Google nativo no Android
+- **WHEN** uma pessoa escolhe Google em um development build ou build distribuído Android com a integração nativa disponível
+- **THEN** o sistema apresenta a experiência nativa do Google, troca o ID Token recebido por uma sessão Supabase e preserva o contexto de convite sem abrir um navegador externo
+
+#### Scenario: Usar OAuth quando a integração nativa não está disponível
+- **WHEN** uma pessoa escolhe Google no Expo Go, na web, em um aparelho sem Google Play Services ou em um build sem a configuração nativa
+- **THEN** o sistema inicia o OAuth pelo navegador e conclui o mesmo retorno `/auth/callback` usado no fluxo multiplataforma
+
+#### Scenario: Cancelar o login nativo
+- **WHEN** uma pessoa fecha ou cancela explicitamente a experiência nativa do Google
+- **THEN** o sistema informa o cancelamento e não abre automaticamente o navegador
+
 ### Requirement: Conta independente de banda
 O sistema SHALL permitir que uma pessoa autenticada permaneça sem participar de uma banda ou sem selecionar uma banda ativa.
 

@@ -267,6 +267,16 @@ levado até o retorno OAuth sem ser salvo como conteúdo do aplicativo. No
 navegador, o retorno troca o `code` por uma sessão; no Android e iOS, o
 `WebBrowser` abre o provedor e devolve o resultado à aplicação.
 
+O login seguirá um fluxo híbrido. Em um development build ou build distribuído
+Android com a integração nativa do Google configurada, o botão poderá apresentar
+a tela nativa de contas e enviará o ID Token para o Supabase. No Expo Go, na
+web, em aparelhos sem Google Play Services ou quando o módulo nativo não estiver
+disponível, o aplicativo usará automaticamente o OAuth pelo navegador. O
+cancelamento explícito da tela nativa apenas encerra a tentativa e não abre o
+navegador sem uma nova ação. A integração nativa exige dependência e configuração
+de build próprias; instalar o pacote JavaScript não altera o funcionamento do
+Expo Go.
+
 #### Modelo de identidade e vinculação de provedores
 
 O UUID de `auth.users.id` representa a conta do Setlist e é a chave usada pelos
