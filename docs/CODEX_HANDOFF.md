@@ -10,10 +10,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI aberta a partir de `feat/ui-improvements-round-2` e mantida disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; o PR #10 foi aprovado para merge e a próxima atividade é a tarefa 3.1.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; o PR #10 foi integrado e a tarefa 3.1 está em implementação em uma nova branch.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, depois de integrar o PR #10.
+- Próximo passo: revisar e validar no navegador o protótipo mínimo do YouTube IFrame da tarefa 3.1, antes de iniciar a adaptação para WebView na tarefa 3.2.
 
 ## Fontes de verdade
 
@@ -58,6 +58,7 @@ openspec validate definir-mvp-setlist --type change --strict
 25. Os nomes com colchetes em `src/app/bands/[bandId]/...` são segmentos dinâmicos oficiais do Expo Router, não uma cópia redundante ou incompatível entre plataformas. Eles foram mantidos para preservar as URLs e o roteamento; comandos de shell que apontarem para esses caminhos devem usar aspas.
 26. A limpeza estrutural removeu o componente legado não utilizado `src/components/layout/ResponsiveGrid.tsx`, o helper `getCatalogColumnCount` e seus testes, além das pastas vazias `public/icons`, `dist/icons`, `.vscode/.react` e `src/components/layout`. O diretório `.codex` permanece somente por ser um ponto de montagem ocupado pelo ambiente local; os placeholders `.gitkeep` do OpenSpec foram preservados.
 27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 está pronto para integração; a tarefa 3.1 será iniciada em uma nova branch após o merge.
+28. A tarefa 3.1 começou na branch `feat/youtube-iframe-prototype`. O protótipo web isolado está em `src/features/youtube/YouTubeIframePrototype.tsx`, usa a API oficial do YouTube IFrame para player visível, play, pause, busca de dez segundos e leitura periódica do tempo, e pode ser aberto em `/youtube-prototype`. A adaptação para WebView nativa permanece na tarefa 3.2.
 
 ## Visão confirmada do produto
 
