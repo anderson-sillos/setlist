@@ -11,10 +11,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; a tarefa 3.1 foi implementada e validada manualmente no navegador.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; a tarefa 3.1 foi implementada e validada manualmente no navegador; a tarefa 3.2 está em implementação.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a adaptação do protótipo para WebView Android e iOS na tarefa 3.2.
+- Próximo passo: validar a ponte do protótipo em WebView Android e iOS e concluir a tarefa 3.2.
 
 ## Fontes de verdade
 
@@ -61,6 +61,7 @@ openspec validate definir-mvp-setlist --type change --strict
 27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 foi integrado à `main`; a tarefa 3.1 foi iniciada em uma nova branch.
 28. A tarefa 3.1 começou na branch `feat/youtube-iframe-prototype`. O protótipo web isolado está em `src/features/youtube/YouTubeIframePrototype.tsx`, usa a API oficial do YouTube IFrame para player visível, play, pause, busca de dez segundos e leitura periódica do tempo, e pode ser aberto em `/youtube-prototype`.
 29. A validação manual da tarefa 3.1 confirmou no navegador o player visível, reprodução, pausa, busca e leitura do tempo atual. A tarefa foi marcada como concluída no OpenSpec; a adaptação para WebView Android e iOS permanece na tarefa 3.2.
+30. A tarefa 3.2 começou na mesma branch. `src/features/youtube/YouTubeMobilePlayer.tsx` hospeda o player em `react-native-webview`; `youtubeMobilePlayer.ts` gera o HTML com origem e `baseUrl` definidos, envia comandos pela ponte `injectJavaScript` e valida mensagens de pronto, tempo, estado e vídeo indisponível. A validação automatizada da ponte passou; ainda falta conferir o comportamento em Android e iOS físicos ou simulados antes de marcar a tarefa como concluída.
 
 ## Visão confirmada do produto
 

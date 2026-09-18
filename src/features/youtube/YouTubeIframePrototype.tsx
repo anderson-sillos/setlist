@@ -5,6 +5,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
+import { YouTubeMobilePlayer } from '@/features/youtube/YouTubeMobilePlayer';
 import {
   DEFAULT_YOUTUBE_REFERENCE,
   extractYouTubeVideoId,
@@ -39,7 +40,10 @@ export function YouTubeIframePrototype({
     <Screen testID="youtube-iframe-prototype">
       <View style={styles.header}>
         <AppText tone="accent" variant="eyebrow">
-          Tarefa 3.1 · protótipo web
+          Tarefa{' '}
+          {Platform.OS === 'web'
+            ? '3.1 · protótipo web'
+            : '3.2 · protótipo WebView'}
         </AppText>
         <AppText accessibilityRole="header" variant="title">
           Player de referência
@@ -50,17 +54,7 @@ export function YouTubeIframePrototype({
         </AppText>
       </View>
 
-      {Platform.OS !== 'web' ? (
-        <Card tone="accent" testID="youtube-web-only">
-          <AppText variant="heading">Só no navegador por enquanto</AppText>
-          <AppText tone="muted">
-            Este protótipo usa a API oficial do YouTube IFrame e será adaptado
-            para WebView na próxima atividade.
-          </AppText>
-        </Card>
-      ) : videoId ? (
-        <YouTubeWebPlayer videoId={videoId} viewportWidth={width} />
-      ) : (
+      {!videoId ? (
         <Card tone="accent" testID="youtube-invalid-reference">
           <AppText variant="heading">Referência inválida</AppText>
           <AppText tone="muted">
@@ -68,6 +62,10 @@ export function YouTubeIframePrototype({
             continuar.
           </AppText>
         </Card>
+      ) : Platform.OS !== 'web' ? (
+        <YouTubeMobilePlayer videoId={videoId} viewportWidth={width} />
+      ) : (
+        <YouTubeWebPlayer videoId={videoId} viewportWidth={width} />
       )}
     </Screen>
   );

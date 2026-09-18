@@ -9,6 +9,25 @@ import {
 } from '@/features/youtube/youtubePlayer';
 import { AppProviders } from '@/providers/AppProviders';
 
+jest.mock('react-native-webview', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockWebView = React.forwardRef(
+    (
+      props: { readonly testID?: string },
+      ref: { readonly current: unknown } | null,
+    ) => {
+      React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+      return <View testID={props.testID} />;
+    },
+  );
+  MockWebView.displayName = 'MockWebView';
+
+  return {
+    WebView: MockWebView,
+  };
+});
+
 jest.mock('@/features/youtube/youtubePlayer', () => {
   const actual = jest.requireActual('@/features/youtube/youtubePlayer');
 
@@ -31,15 +50,16 @@ describe('<YouTubeIframePrototype />', () => {
     jest.clearAllMocks();
   });
 
-  it('orienta plataformas nativas para a futura etapa de WebView', async () => {
+  it('renderiza o player nativo em uma WebView', async () => {
     const view = await render(
       <AppProviders>
         <YouTubeIframePrototype />
       </AppProviders>,
     );
 
-    expect(view.getByTestId('youtube-web-only')).toBeTruthy();
-    expect(view.getByText('Só no navegador por enquanto')).toBeTruthy();
+    expect(view.getByTestId('youtube-mobile-player-card')).toBeTruthy();
+    expect(view.getByTestId('youtube-mobile-webview')).toBeTruthy();
+    expect(view.getByText('Tarefa 3.2 · protótipo WebView')).toBeTruthy();
   });
 
   it('exibe o player web e conecta os controles ao IFrame API', async () => {
