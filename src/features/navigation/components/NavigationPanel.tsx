@@ -123,6 +123,14 @@ export function NavigationPanel({
       ) : null}
 
       <View style={styles.generalNavigation}>
+        {/* Remover quando a validação do player YouTube (atividade 3.2) terminar. */}
+        <SidebarNavigationLink
+          active={false}
+          href="/youtube-prototype"
+          icon="music"
+          label="Player YouTube (protótipo)"
+          onNavigate={onNavigate}
+        />
         <DisabledGeneralItem label="Perfil e conta" />
         <DisabledGeneralItem label="Termos e privacidade" />
         <DisabledGeneralItem label="Sobre o Setlist" />

@@ -241,6 +241,15 @@ A rota inicial exibe `Minhas bandas` e permite navegar por Shows, Repertório e 
 
 O protótipo técnico do player de referência fica separado da navegação principal. Com a versão web em execução, abra [http://localhost:8081/youtube-prototype](http://localhost:8081/youtube-prototype) para validar o IFrame visível do YouTube, os controles de reproduzir, pausar, buscar dez segundos e a leitura do tempo atual. No Android e no iOS, a mesma rota usa o `react-native-webview` para hospedar o IFrame, enviar comandos pela ponte JavaScript e receber tempo, estado e erros. A validação nativa depende de um aparelho ou simulador e de um build que contenha o módulo nativo.
 
+Durante a validação da tarefa 3.2, o menu lateral possui temporariamente a opção **Player YouTube (protótipo)**. Para acessá-la no celular:
+
+1. Inicie o projeto com `npx expo start --go --lan --clear` quando computador e aparelho estiverem na mesma rede Wi-Fi.
+2. Se a rede local não funcionar, use `npx expo start --go --tunnel --clear` e leia o novo QR code.
+3. Abra o projeto no Expo Go, toque em **Abrir menu geral** e selecione **Player YouTube (protótipo)**.
+4. O player deve aparecer dentro de uma WebView no Android ou no iOS. Reproduza, pause e use os controles de `−10 s` e `+10 s`; confira também o tempo atual e a mensagem exibida para um vídeo indisponível.
+
+Esse item é provisório e será removido do menu depois da validação da WebView. No navegador, a rota continua disponível diretamente em `/youtube-prototype`.
+
 O comando para iOS requer macOS quando usado com o simulador. Em Linux ou Windows, teste iOS em um aparelho físico com Expo Go ou utilize posteriormente um build remoto apropriado.
 
 ### 7. Verificar a instalação

@@ -64,6 +64,7 @@ openspec validate definir-mvp-setlist --type change --strict
 30. A tarefa 3.2 começou na mesma branch. `src/features/youtube/YouTubeMobilePlayer.tsx` hospeda o player em `react-native-webview`; `youtubeMobilePlayer.ts` gera o HTML com origem e `baseUrl` definidos, envia comandos pela ponte `injectJavaScript` e valida mensagens de pronto, tempo, estado e vídeo indisponível. A validação automatizada da ponte passou; ainda falta conferir o comportamento em Android e iOS físicos ou simulados antes de marcar a tarefa como concluída.
 31. O README passou a documentar o fluxo manual de trabalho com Git e GitHub CLI: atualizar `main`, criar branch, validar, revisar o staging, criar commit, publicar com `git push`, abrir ou editar a PR e acompanhar os checks sem fazer merge automático antes da revisão.
 32. O roteiro manual também documenta a conclusão da PR: verificar aprovação e checks, trocar para `main`, executar `gh pr merge --squash --delete-branch`, atualizar a cópia local e remover a branch restante somente depois de confirmar a integração.
+33. Durante a validação da tarefa 3.2, o menu lateral ganhou temporariamente o link `Player YouTube (protótipo)`, que abre `/youtube-prototype` no Expo Go sem exigir deep link manual. O item deve ser removido depois da validação nativa da WebView.
 
 ## Visão confirmada do produto
 

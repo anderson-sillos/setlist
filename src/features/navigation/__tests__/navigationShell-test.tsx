@@ -124,9 +124,13 @@ describe('shell de navegação', () => {
 
     expect(view.getByTestId('navigation-drawer')).toBeTruthy();
     const myBandsLink = view.getByLabelText('Ir para Minhas bandas');
+    const youtubePrototypeLink = view.getByLabelText(
+      'Ir para Player YouTube (protótipo)',
+    );
 
     expect(myBandsLink.props.accessibilityRole).toBe('tab');
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
+    expect(youtubePrototypeLink.props.accessibilityRole).toBe('tab');
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
