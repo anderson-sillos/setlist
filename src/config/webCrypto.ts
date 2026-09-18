@@ -92,13 +92,22 @@ function encodeBase64(value: string): string {
   return result;
 }
 
-function normalizeBuffer(data: BufferSource): ArrayBuffer {
+function normalizeBytes(data: BufferSource): Uint8Array {
   if (data instanceof ArrayBuffer) {
-    return data;
+    return new Uint8Array(data);
   }
 
-  const view = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-  return view.slice().buffer;
+  return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+}
+
+function hexToArrayBuffer(hex: string): ArrayBuffer {
+  const bytes = new Uint8Array(hex.length / 2);
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+  }
+
+  return bytes.buffer;
 }
 
 async function digestSha256(
@@ -112,10 +121,17 @@ async function digestSha256(
     throw new Error('O polyfill WebCrypto do Setlist suporta somente SHA-256.');
   }
 
-  return ExpoCrypto.digest(
+  // Supabase's PKCE verifier uses the ASCII-only RFC 7636 alphabet. Passing
+  // those bytes as a string avoids the ArrayBuffer bridge issue in Expo Go's
+  // Android Kotlin module while preserving the exact input to SHA-256.
+  const verifier = String.fromCharCode(...normalizeBytes(data));
+  const digest = await ExpoCrypto.digestStringAsync(
     ExpoCrypto.CryptoDigestAlgorithm.SHA256,
-    normalizeBuffer(data),
+    verifier,
+    { encoding: ExpoCrypto.CryptoEncoding.HEX },
   );
+
+  return hexToArrayBuffer(digest);
 }
 
 function installTextEncoder(): void {

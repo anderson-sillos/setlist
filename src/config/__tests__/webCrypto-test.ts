@@ -3,7 +3,8 @@ import { installWebCryptoPolyfill } from '@/config/webCrypto';
 
 jest.mock('expo-crypto', () => ({
   CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
-  digest: jest.fn(async () => Uint8Array.from([1, 2, 3]).buffer),
+  CryptoEncoding: { HEX: 'hex' },
+  digestStringAsync: jest.fn(async () => '010203'),
   getRandomValues: jest.fn(<T extends ArrayBufferView>(values: T) => {
     new Uint8Array(values.buffer, values.byteOffset, values.byteLength).fill(7);
     return values;
@@ -21,6 +22,9 @@ jest.mock('expo-standard-web-crypto', () => ({
     }),
   },
 }));
+
+const mockDigestStringAsync = jest.requireMock('expo-crypto')
+  .digestStringAsync as jest.Mock;
 
 type TestGlobals = typeof globalThis & {
   crypto?: {
@@ -57,6 +61,7 @@ describe('polyfill WebCrypto do Expo', () => {
     restoreGlobal('btoa');
     restoreGlobal('crypto');
     restoreGlobal('TextEncoder');
+    jest.clearAllMocks();
   });
 
   it('mantém PKCE compatível quando o runtime nativo não oferece WebCrypto', async () => {
@@ -90,9 +95,20 @@ describe('polyfill WebCrypto do Expo', () => {
 
     const digest = await testGlobals.crypto!.subtle!.digest!(
       'SHA-256',
-      new Uint8Array([1]),
+      new TextEncoder().encode('verifier'),
     );
     expect(Array.from(new Uint8Array(digest))).toEqual([1, 2, 3]);
+    expect(mockDigestStringAsync).toHaveBeenCalledWith('SHA-256', 'verifier', {
+      encoding: 'hex',
+    });
+
+    const digestFromArrayBuffer = await testGlobals.crypto!.subtle!.digest!(
+      'SHA-256',
+      new TextEncoder().encode('verifier').buffer,
+    );
+    expect(Array.from(new Uint8Array(digestFromArrayBuffer))).toEqual([
+      1, 2, 3,
+    ]);
     const values = new Uint8Array(3);
     expect(testGlobals.crypto!.getRandomValues!(values)).toBe(values);
     expect(Array.from(values)).toEqual([9, 9, 9]);
