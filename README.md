@@ -207,11 +207,12 @@ cp .env.development.example .env.local
 
 No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar produção localmente, substitua pelo modelo `.env.production.example`. Nunca versione o arquivo `.env.local` preenchido.
 
-| Variável                               | Uso                                               |
-| -------------------------------------- | ------------------------------------------------- |
-| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production` |
-| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente         |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                  |
+| Variável                               | Uso                                                        |
+| -------------------------------------- | ---------------------------------------------------------- |
+| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production`          |
+| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente                  |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                           |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web opcional para Google nativo no Android |
 
 Use dois projetos Supabase hospedados distintos: um para desenvolvimento e outro para produção. Copie de cada painel a **Project URL** e a **Publishable key** para o arquivo do mesmo ambiente. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
 
@@ -257,8 +258,10 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    O endereço HTTPS definitivo do aplicativo será acrescentado na tarefa 11.5.
 3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
    `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
-   correspondentes. Client IDs podem ser públicos no aplicativo, mas client
-   secrets, chaves privadas Apple e tokens nunca devem ser versionados.
+   correspondentes. Para habilitar Google nativo no Android, cadastre também
+   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` com o Client ID OAuth do tipo Web. Client
+   IDs podem ser públicos no aplicativo, mas client secrets, chaves privadas
+   Apple e tokens nunca devem ser versionados.
 
 Depois de configurar os provedores, inicie a aplicação e abra **Menu geral →
 Entrar**. O fluxo usa o `state` e o PKCE gerenciados pelo Supabase e troca o
@@ -276,6 +279,20 @@ cancelamento explícito da tela nativa apenas encerra a tentativa e não abre o
 navegador sem uma nova ação. A integração nativa exige dependência e configuração
 de build próprias; instalar o pacote JavaScript não altera o funcionamento do
 Expo Go.
+
+Para gerar um development build Android com o módulo nativo, o plugin é
+habilitado somente para a plataforma Android. Em uma execução local, use:
+
+```bash
+SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo prebuild --platform android
+SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo run:android
+```
+
+No EAS, `EAS_BUILD_PLATFORM=android` habilita o plugin automaticamente. O
+Client ID Android precisa estar cadastrado no Google Cloud com o pacote
+`com.andersonsillos.setlist` e a impressão digital SHA-1 correspondente à
+assinatura do build (EAS, local ou Google Play). O iOS continua usando o OAuth
+no navegador nesta etapa; sua integração nativa será configurada futuramente.
 
 #### Modelo de identidade e vinculação de provedores
 
@@ -667,7 +684,42 @@ npx --yes eas-cli@latest login --browser
 npx --yes eas-cli@latest whoami
 ```
 
-A configuração versionada em `eas.json` usa o perfil `preview` com distribuição interna. No Android, o resultado é um APK instalável diretamente. Gere uma plataforma ou as duas:
+A configuração versionada em `eas.json` possui dois perfis Android relevantes:
+
+- `development-android`: development build com o módulo nativo do Google e APK
+  instalável diretamente, usado para validar o login híbrido;
+- `preview`: build interno sem o modo de desenvolvimento, usado para revisar a
+  aplicação como um artefato distribuído.
+
+Gere o development build Android do login nativo com:
+
+```bash
+npm run build:development:android
+```
+
+Depois de instalar o APK no aparelho, inicie o Metro para o development client:
+
+```bash
+npx expo start --dev-client --tunnel --clear
+```
+
+O EAS é necessário para produzir esse APK remoto, mas cada ajuste somente em
+TypeScript, telas ou logs pode ser testado no mesmo APK pelo Fast Refresh. Será
+necessário gerar outro build quando houver mudança de dependência nativa,
+plugin/configuração do `app.config.ts`, pacote Android, assinatura ou qualquer
+outro recurso que precise ser compilado dentro do binário. Para uma alternativa
+local, em um ambiente Android configurado, use:
+
+```bash
+SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo run:android
+```
+
+No ambiente EAS, cadastre `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` como variável
+pública do ambiente `development`; sem ela, o mesmo APK continua funcional e
+usa o OAuth pelo navegador como fallback. O Client ID Android e a impressão
+digital SHA-1 precisam corresponder ao pacote e à assinatura do APK instalado.
+
+Para o build interno sem development client, use o perfil `preview`:
 
 ```bash
 npm run build:preview:android
@@ -682,6 +734,28 @@ npx --yes eas-cli@latest device:create
 ```
 
 A autenticação fica no perfil local do usuário e as credenciais são administradas pelo EAS; não adicione tokens, certificados, perfis ou chaves ao repositório. Consulte a [documentação de distribuição interna do Expo](https://docs.expo.dev/build/internal-distribution/) para instalar e compartilhar os artefatos.
+
+#### Diagnóstico do login nativo Android
+
+No ambiente `development`, o fluxo registra no Metro eventos prefixados por
+`[auth:native-google]`. Eles cobrem a disponibilidade do runtime, carregamento
+do módulo, configuração, Google Play Services, resposta da tela nativa,
+criação de conta quando não há credencial salva, cancelamento, troca do ID
+Token no Supabase e fallback. Os logs nunca imprimem o ID Token, access token,
+Client ID ou sessão; erros nativos são reduzidos ao nome, código e mensagem
+curta para facilitar a identificação da etapa que falhou.
+
+Para acompanhar os logs no Android conectado por USB, use:
+
+```bash
+adb logcat -s ReactNativeJS
+```
+
+No Metro, filtre por `auth:native-google`. Guarde somente os eventos e códigos
+ao relatar um problema; não compartilhe tokens ou valores completos de erros
+que possam conter credenciais. O perfil `development-android` permite corrigir
+o fluxo JavaScript e repetir o teste sem novo build; gere outro APK apenas
+quando a alteração for nativa, conforme as regras acima.
 
 ### 10. Problemas comuns
 

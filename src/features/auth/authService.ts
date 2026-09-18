@@ -10,6 +10,7 @@ import {
   getDevelopmentUrl,
   getSingleRouteParam,
 } from '@/features/auth/prototypeLinks';
+import { tryNativeGoogleSignIn } from '@/features/auth/nativeGoogleSignIn';
 
 export type SocialAuthProvider = Extract<Provider, 'apple' | 'google'>;
 
@@ -96,7 +97,7 @@ export async function completeOAuthCallback(
   };
 }
 
-export async function signInWithSocialProvider(
+async function signInWithBrowserOAuth(
   provider: SocialAuthProvider,
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
@@ -142,6 +143,36 @@ export async function signInWithSocialProvider(
       'Não foi possível concluir o login agora. Tente novamente.',
     );
   }
+}
+
+export async function signInWithSocialProvider(
+  provider: SocialAuthProvider,
+  inviteToken?: string,
+): Promise<SocialAuthResult> {
+  if (provider === 'google' && Platform.OS === 'android') {
+    const nativeResult = await tryNativeGoogleSignIn(inviteToken);
+
+    if (
+      nativeResult.status === 'authenticated' ||
+      nativeResult.status === 'cancelled'
+    ) {
+      return {
+        inviteToken: nativeResult.inviteToken,
+        session: nativeResult.session,
+        status: nativeResult.status,
+      };
+    }
+
+    if (nativeResult.status === 'failed') {
+      throw new AuthFlowError(
+        'native_google_exchange_failed',
+        nativeResult.errorMessage ??
+          'O Google não entregou uma sessão válida ao Supabase.',
+      );
+    }
+  }
+
+  return signInWithBrowserOAuth(provider, inviteToken);
 }
 
 export async function refreshAuthSession(): Promise<Session | undefined> {

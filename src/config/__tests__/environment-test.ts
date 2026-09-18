@@ -83,4 +83,16 @@ describe('parsePublicEnvironment', () => {
       },
     });
   });
+
+  it('aceita o Client ID do Google como configuração opcional', () => {
+    const environment = parsePublicEnvironment({
+      ...validSource,
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:
+        'google-web-client.apps.googleusercontent.com',
+    });
+
+    expect(environment.googleWebClientId).toBe(
+      'google-web-client.apps.googleusercontent.com',
+    );
+  });
 });

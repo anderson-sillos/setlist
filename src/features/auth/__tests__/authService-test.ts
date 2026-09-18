@@ -27,9 +27,16 @@ jest.mock('@/data/supabase/client', () => ({
   getSupabaseClient: jest.fn(),
 }));
 
+jest.mock('@/features/auth/nativeGoogleSignIn', () => ({
+  tryNativeGoogleSignIn: jest.fn(),
+}));
+
 const mockGetSupabaseClient = jest.mocked(getSupabaseClient);
 const mockOpenAuthSessionAsync = jest.requireMock('expo-web-browser')
   .openAuthSessionAsync as jest.Mock;
+const mockTryNativeGoogleSignIn = jest.requireMock(
+  '@/features/auth/nativeGoogleSignIn',
+).tryNativeGoogleSignIn as jest.Mock;
 
 function createAuthMock() {
   const subscription = { unsubscribe: jest.fn() };
@@ -55,7 +62,11 @@ describe('serviço de autenticação social', () => {
     });
   });
 
-  it('inicia o Google nativo, abre o retorno e preserva o convite', async () => {
+  beforeEach(() => {
+    mockTryNativeGoogleSignIn.mockResolvedValue({ status: 'unsupported' });
+  });
+
+  it('usa o OAuth pelo navegador quando o Google nativo não está disponível', async () => {
     const { auth } = createAuthMock();
     auth.signInWithOAuth.mockResolvedValue({
       data: { url: 'https://accounts.google.com/oauth' },
@@ -90,6 +101,60 @@ describe('serviço de autenticação social', () => {
     expect(auth.exchangeCodeForSession).toHaveBeenCalledWith(
       'code-from-provider',
     );
+  });
+
+  it('usa a sessão devolvida pelo Google nativo no Android', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    const { auth } = createAuthMock();
+    const session = { user: { id: 'native-user' } };
+    mockTryNativeGoogleSignIn.mockResolvedValue({
+      inviteToken: 'invite-native',
+      session,
+      status: 'authenticated',
+    });
+
+    await expect(
+      signInWithSocialProvider('google', 'invite-native'),
+    ).resolves.toEqual({
+      inviteToken: 'invite-native',
+      session,
+      status: 'authenticated',
+    });
+    expect(auth.signInWithOAuth).not.toHaveBeenCalled();
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('não abre o navegador quando o login nativo é cancelado', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    mockTryNativeGoogleSignIn.mockResolvedValue({ status: 'cancelled' });
+
+    await expect(signInWithSocialProvider('google')).resolves.toEqual({
+      status: 'cancelled',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('expõe falha na troca do token nativo sem mascará-la como fallback', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    mockTryNativeGoogleSignIn.mockResolvedValue({
+      errorMessage: 'invalid token',
+      status: 'failed',
+    });
+
+    await expect(signInWithSocialProvider('google')).rejects.toMatchObject({
+      code: 'native_google_exchange_failed',
+      message: 'invalid token',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
   });
 
   it('inicia o Apple na web e deixa o redirecionamento para o navegador', async () => {
