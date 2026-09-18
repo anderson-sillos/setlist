@@ -67,6 +67,7 @@ openspec validate definir-mvp-setlist --type change --strict
 33. Durante a validação da tarefa 3.2, o menu lateral ganhou temporariamente o link `Player YouTube (protótipo)`, que abre `/youtube-prototype` no Expo Go sem exigir deep link manual. O item deve ser removido depois da validação nativa da WebView.
 34. A tela do protótipo ganhou o botão `Fechar protótipo`, que retorna para `Minhas bandas` usando a rota raiz. Na WebView, `mediaPlaybackRequiresUserAction` foi desativado para permitir que o comando `Reproduzir` inicie o vídeo pela primeira vez sem exigir um toque prévio nos controles internos do YouTube.
 35. A validação manual confirmou a tarefa 3.2 em Android e iOS: o player abriu na WebView, a ponte respondeu aos comandos e ao tempo, os controles funcionaram e o vídeo indisponível exibiu o estado correspondente. A tarefa 3.2 foi marcada como concluída; a tarefa 3.3 é o próximo protótipo técnico.
+36. A tarefa 3.3 começou com o cronômetro mantendo uma referência de tempo real e recalculando o progresso quando o aplicativo volta ao estado `active` do React Native. O comportamento de retomada após perda de foco foi coberto no teste do hook; a validação manual de bloqueio de tela e chamada em Android e iOS ainda está pendente.
 
 ## Visão confirmada do produto
 
@@ -228,4 +229,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, validando player visível, play, pause, busca e leitura do tempo atual. A validação iOS permanece adiada para uma etapa futura.
+Validar manualmente a tarefa 3.3 em Android e iOS, interrompendo o aplicativo com bloqueio de tela, perda de foco e chamada para confirmar que o cronômetro em execução é recalculado ao retornar. Depois, registrar o resultado e seguir para a tarefa 3.4, sobre convites e retorno OAuth.
