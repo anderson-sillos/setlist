@@ -224,6 +224,15 @@ npm run supabase:check -- production
 
 O comando consulta o endpoint de configurações do Supabase usando somente a URL e a chave publicável. Ele não aceita nem procura `service_role`, `sb_secret` ou outra credencial administrativa. As variáveis dos builds EAS devem ser cadastradas no painel do projeto para os ambientes `development` e `production`; o arquivo `eas.json` apenas seleciona o ambiente e fixa `EXPO_PUBLIC_APP_ENV`.
 
+Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
+
+```bash
+npm run supabase:check:eas -- development
+npm run supabase:check:eas -- production
+```
+
+O script chama `eas env:exec` e repassa o ambiente ao mesmo verificador local. O EAS CLI precisa estar autenticado na conta que possui o projeto Expo. Para conferir apenas se as variáveis foram cadastradas, use `npx --yes eas-cli@latest env:list --environment development` ou o equivalente para `production`. Não use opções que imprimam valores sensíveis nos logs.
+
 Consulte a [documentação de variáveis de ambiente do Expo](https://docs.expo.dev/guides/environment-variables/) para detalhes sobre carregamento e perfis de build.
 
 A tela inicial ainda pode ser executada sem essa configuração porque não acessa o backend. Quando uma integração remota solicitar as variáveis, `src/config/environment.ts` valida tipos e valores e informa somente os nomes inválidos, sem incluir chaves ou seus conteúdos na mensagem de erro.
