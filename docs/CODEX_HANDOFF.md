@@ -6,11 +6,11 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/youtube-iframe-prototype`.
+- Branch de trabalho: `main` (a branch do grupo 3 foi integrada e removida do remoto).
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
-- PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
+- PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; a próxima etapa é o grupo 4, de backend e segurança.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
@@ -229,7 +229,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #7: roteiro para atualizar o ambiente local.
 - PR #8: primeira versão navegável e revisão de UX/UI do Incremento 2, concluídas e aprovadas.
 - PR #9: correção das vulnerabilidades de dependências apontadas pelo GitHub e pelo `npm audit`.
-- PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon, splash e consulta de Shows com calendário como filtro de data; aberto para revisão.
+- PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon, splash e consulta de Shows com calendário como filtro de data; integrada à `main`.
+- PR #11: validação antecipada dos riscos técnicos do player YouTube, cronômetro em tempo real e rotas de convite/OAuth; grupo 3 concluído e integrado à `main`.
 
 ## Próxima ação recomendada
 
