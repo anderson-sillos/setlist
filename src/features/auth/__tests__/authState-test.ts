@@ -10,12 +10,26 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'state-generated'),
 }));
 
+const mockSecureValues = new Map<string, string>();
+jest.mock('expo-secure-store', () => ({
+  deleteItemAsync: jest.fn(async (key: string) => {
+    mockSecureValues.delete(key);
+  }),
+  getItemAsync: jest.fn(
+    async (key: string) => mockSecureValues.get(key) ?? null,
+  ),
+  setItemAsync: jest.fn(async (key: string, value: string) => {
+    mockSecureValues.set(key, value);
+  }),
+}));
+
 describe('estado de proteção do retorno OAuth', () => {
   const platform = Platform.OS;
   const originalWindow = (globalThis as { window?: unknown }).window;
 
-  afterEach(() => {
-    clearOAuthState();
+  afterEach(async () => {
+    await clearOAuthState();
+    mockSecureValues.clear();
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
       value: platform,
@@ -26,13 +40,15 @@ describe('estado de proteção do retorno OAuth', () => {
     });
   });
 
-  it('cria e consome um state apenas uma vez em memória', () => {
-    expect(createOAuthState()).toBe('state-generated');
-    expect(consumeOAuthState('state-generated')).toBe(true);
-    expect(consumeOAuthState('state-generated')).toBe(false);
+  it('cria e consome um state apenas uma vez em memória e no SecureStore', async () => {
+    await expect(createOAuthState()).resolves.toBe('state-generated');
+    expect(mockSecureValues.get('setlist.oauth.state')).toBe('state-generated');
+    await expect(consumeOAuthState('state-generated')).resolves.toBe(true);
+    await expect(consumeOAuthState('state-generated')).resolves.toBe(false);
+    expect(mockSecureValues.has('setlist.oauth.state')).toBe(false);
   });
 
-  it('usa sessionStorage no navegador e rejeita state diferente', () => {
+  it('usa sessionStorage no navegador e rejeita state diferente', async () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
       value: 'web',
@@ -48,11 +64,11 @@ describe('estado de proteção do retorno OAuth', () => {
       value: { sessionStorage: storage },
     });
 
-    createOAuthState();
+    await createOAuthState();
     expect(window.sessionStorage.getItem('setlist.oauth.state')).toBe(
       'state-generated',
     );
-    expect(consumeOAuthState('outro-state')).toBe(false);
+    await expect(consumeOAuthState('outro-state')).resolves.toBe(false);
     expect(window.sessionStorage.getItem('setlist.oauth.state')).toBeNull();
   });
 });

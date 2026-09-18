@@ -65,8 +65,8 @@ function getCallbackParams(url: string): OAuthCallbackParams {
   };
 }
 
-function assertOAuthState(state?: string): void {
-  if (!consumeOAuthState(state)) {
+async function assertOAuthState(state?: string): Promise<void> {
+  if (!(await consumeOAuthState(state))) {
     throw new AuthFlowError(
       'oauth_state_invalid',
       'O retorno do login perdeu a marcação de segurança. Tente de novo.',
@@ -77,7 +77,7 @@ function assertOAuthState(state?: string): void {
 export async function completeOAuthCallback(
   params: OAuthCallbackParams,
 ): Promise<SocialAuthResult> {
-  assertOAuthState(params.state);
+  await assertOAuthState(params.state);
 
   if (params.error) {
     throw new AuthFlowError(
@@ -113,7 +113,7 @@ export async function signInWithSocialProvider(
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
   try {
-    const state = createOAuthState();
+    const state = await createOAuthState();
     const redirectTo = getAuthRedirectUrl(inviteToken);
     const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
       options: {

@@ -13,6 +13,12 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'state-generated'),
 }));
 
+jest.mock('expo-secure-store', () => ({
+  deleteItemAsync: jest.fn(async () => undefined),
+  getItemAsync: jest.fn(async () => null),
+  setItemAsync: jest.fn(async () => undefined),
+}));
+
 jest.mock('expo-linking', () => ({
   createURL: (path: string) => `setlist://${path}`,
   parse: jest.fn(() => ({
@@ -52,8 +58,8 @@ function createAuthMock() {
 describe('serviço de autenticação social', () => {
   const platform = Platform.OS;
 
-  afterEach(() => {
-    clearOAuthState();
+  afterEach(async () => {
+    await clearOAuthState();
     jest.clearAllMocks();
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
@@ -118,7 +124,7 @@ describe('serviço de autenticação social', () => {
 
   it('valida state antes de trocar o code por uma sessão', async () => {
     const { auth } = createAuthMock();
-    createOAuthState();
+    await createOAuthState();
 
     await expect(
       completeOAuthCallback({ code: 'code', state: 'state-wrong' }),
@@ -127,7 +133,7 @@ describe('serviço de autenticação social', () => {
   });
 
   it('rejeita erro do provedor quando o state não confere', async () => {
-    createOAuthState();
+    await createOAuthState();
 
     await expect(
       completeOAuthCallback({
