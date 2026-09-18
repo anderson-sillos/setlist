@@ -10,10 +10,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI aberta a partir de `feat/ui-improvements-round-2` e mantida disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.12; a tarefa 2.13 está em andamento e aguardará nova revisão visual antes de ser concluída.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; o PR #10 foi aprovado para merge e a próxima atividade é a tarefa 3.1.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: revisar a reorganização visual, os ícones, o favicon, a splash, a consulta de Shows e os detalhes do show refinados na tarefa 2.13 em celular, tablet e computador; somente após aprovação explícita integrar o PR e iniciar a tarefa 3.1.
+- Próximo passo: iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, depois de integrar o PR #10.
 
 ## Fontes de verdade
 
@@ -57,6 +57,7 @@ openspec validate definir-mvp-setlist --type change --strict
 24. A suíte monolítica `features/navigation/__tests__/navigation-test.tsx` foi dividida por responsabilidade. O diretório de navegação agora cobre apenas shell, integração de rotas, memória e builders de endereço; os testes de bandas, repertório, shows e seleção do palco ficam junto das respectivas features. O comportamento foi preservado e a convenção está documentada em `docs/ARQUITETURA_DE_TELAS.md`.
 25. Os nomes com colchetes em `src/app/bands/[bandId]/...` são segmentos dinâmicos oficiais do Expo Router, não uma cópia redundante ou incompatível entre plataformas. Eles foram mantidos para preservar as URLs e o roteamento; comandos de shell que apontarem para esses caminhos devem usar aspas.
 26. A limpeza estrutural removeu o componente legado não utilizado `src/components/layout/ResponsiveGrid.tsx`, o helper `getCatalogColumnCount` e seus testes, além das pastas vazias `public/icons`, `dist/icons`, `.vscode/.react` e `src/components/layout`. O diretório `.codex` permanece somente por ser um ponto de montagem ocupado pelo ambiente local; os placeholders `.gitkeep` do OpenSpec foram preservados.
+27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 está pronto para integração; a tarefa 3.1 será iniciada em uma nova branch após o merge.
 
 ## Visão confirmada do produto
 
@@ -218,4 +219,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Concluir a revisão visual da tarefa 2.13 em celular, tablet e computador, incluindo a lista única de Shows, o filtro direto pelo calendário e a futura ação de criação, mantendo-a aberta até a aprovação explícita. Depois disso, iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador. A validação iOS permanece adiada para uma etapa futura.
+Iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, validando player visível, play, pause, busca e leitura do tempo atual. A validação iOS permanece adiada para uma etapa futura.
