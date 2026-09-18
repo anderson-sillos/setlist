@@ -267,6 +267,27 @@ levado até o retorno OAuth sem ser salvo como conteúdo do aplicativo. No
 navegador, o retorno troca o `code` por uma sessão; no Android e iOS, o
 `WebBrowser` abre o provedor e devolve o resultado à aplicação.
 
+#### Modelo de identidade e vinculação de provedores
+
+O UUID de `auth.users.id` representa a conta do Setlist e é a chave usada pelos
+dados do aplicativo. Após o primeiro login, o perfil público usa o mesmo valor
+em `public.profiles.id`; participações em bandas, aceites legais, convites e
+futuras entidades devem referenciar esse UUID. O e-mail e o identificador
+externo do Google ou da Apple são atributos da identidade OAuth, não chaves
+estrangeiras do aplicativo.
+
+Uma conta poderá ter mais de uma identidade de login vinculada. Em uma etapa
+futura, as configurações da conta deverão oferecer **Adicionar outro método de
+login** ou **Vincular Google/Apple**, usando o mecanismo de vinculação de
+identidades do Supabase. Se a pessoa entrar com outro provedor sem vinculá-lo,
+ela poderá criar uma segunda conta com outro UUID; nesse caso será necessário um
+fluxo explícito de recuperação ou mesclagem, nunca uma reassociação automática
+por e-mail ou pelo identificador externo.
+
+Excluir definitivamente o usuário em **Authentication** também encerra a conta
+associada ao UUID. Um login posterior criará outro UUID e não recuperará
+automaticamente as associações anteriores.
+
 Para validar o retorno nativo com o esquema `setlist://`, use um development
 build ou build interno. O Expo Go pode abrir as telas, mas não representa todos
 os comportamentos de deep link e credenciais nativas dos provedores sociais.

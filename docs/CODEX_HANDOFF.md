@@ -86,6 +86,7 @@ openspec validate definir-mvp-setlist --type change --strict
 51. Uma nova tentativa ainda exibiu a mensagem genérica de falha no botão do Google. O digest móvel passou a usar diretamente `expo-crypto`, sem reaproveitar uma implementação parcial de `crypto.subtle`, e o serviço agora normaliza e registra no Metro qualquer exceção inesperada como `oauth_unexpected_error`. O Expo Go não transporta corretamente um `ArrayBuffer` para o módulo Kotlin, então a ponte usa `digestStringAsync` e reconstrói o resultado hexadecimal; o teste cobre tanto `Uint8Array` quanto `ArrayBuffer`. A próxima validação deve conferir se o provedor Google está habilitado no mesmo projeto Supabase selecionado por `EXPO_PUBLIC_APP_ENV`.
 52. O retorno final do Supabase entrega o `code` sem repetir o `state` usado no callback do provedor; o `state` é reservado e validado pelo próprio Supabase junto com PKCE. A validação local que exigia um `state` próprio foi removida, assim como o helper de armazenamento transitório, e o app troca o `code` por sessão diretamente. Os testes cobrem o callback sem `state`, erros do provedor, cancelamento e falhas inesperadas.
 53. A validação manual confirmou o login Google no web por túnel e no Android: o callback chegou à rota `/auth/callback`, a aplicação voltou para a Home sem erro, o usuário foi criado no projeto Supabase e a sessão apareceu no `Local Storage` web. A PR ainda aguarda a confirmação do iOS e a revisão final antes de ser concluída.
+54. Foi registrada a decisão de usar `auth.users.id` como UUID canônico da conta do Setlist, replicado em `public.profiles.id` e referenciado pelos dados do aplicativo. Identificadores externos de Google/Apple e e-mail permanecem atributos de identidade, não chaves estrangeiras. Como evolução futura, as configurações deverão oferecer **Adicionar outro método de login** ou **Vincular Google/Apple**; entrar com um provedor não vinculado poderá criar outra conta e exigirá recuperação ou mesclagem explícita, sem reassociação automática.
 
 ## Visão confirmada do produto
 
@@ -113,6 +114,8 @@ O reconhecimento automático da música ou da posição do áudio fica fora do M
 ## Acesso e bandas
 
 - Login exclusivamente com Google ou Apple.
+- O UUID de `auth.users.id` é a chave canônica da conta; identidades Google/Apple podem ser vinculadas à mesma conta sem alterar as referências dos dados.
+- Evolução futura: oferecer nas configurações as ações **Adicionar outro método de login** e **Vincular Google/Apple**. Um provedor usado sem vinculação pode criar uma segunda conta, que não deve ser mesclada automaticamente por e-mail.
 - A conta pode existir sem banda selecionada; `Minhas bandas` é o contexto neutro.
 - Um usuário pode participar de várias bandas.
 - Papéis: Owner, Editor e Member.
