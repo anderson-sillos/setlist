@@ -247,12 +247,13 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    `https://<project-ref>.supabase.co/auth/v1/callback`.
 2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
    adicione os retornos permitidos usados no desenvolvimento:
-   `http://localhost:8081/auth/callback` e `setlist://auth/callback`.
+   `http://localhost:8081/auth/callback`,
+   `https://*.exp.direct/auth/callback` e `setlist://auth/callback`.
    Para validar pelo Expo Go usando túnel, adicione também
-   `exp://**/--/auth/callback`; esse padrão cobre o subdomínio e a porta
-   aleatórios gerados pelo ngrok em cada execução. O `Site URL` deve continuar
-   sendo a URL web do ambiente (ou `http://localhost:8081` no desenvolvimento),
-   e não a URL temporária do túnel.
+   `exp://**/--/auth/callback`; esses padrões cobrem os endereços temporários
+   gerados pelo Expo em cada execução. Neste projeto, o `Site URL` fica como
+   `setlist://auth/callback`, servindo como fallback nativo; os destinos web
+   precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
    O endereço HTTPS definitivo do aplicativo será acrescentado na tarefa 11.5.
 3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
    `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
@@ -260,8 +261,8 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    secrets, chaves privadas Apple e tokens nunca devem ser versionados.
 
 Depois de configurar os provedores, inicie a aplicação e abra **Menu geral →
-Entrar**. O fluxo usa PKCE, cria um `state` por tentativa e rejeita retornos
-com `state` ausente ou diferente. Ao abrir um link `/invite/<token>`, o token é
+Entrar**. O fluxo usa o `state` e o PKCE gerenciados pelo Supabase e troca o
+`code` recebido na rota de callback por uma sessão. Ao abrir um link `/invite/<token>`, o token é
 levado até o retorno OAuth sem ser salvo como conteúdo do aplicativo. No
 navegador, o retorno troca o `code` por uma sessão; no Android e iOS, o
 `WebBrowser` abre o provedor e devolve o resultado à aplicação.
@@ -613,12 +614,12 @@ development build Android/iOS:
    navegador/provedor, resultado do retorno e qualquer falha de configuração.
 
 Ao executar com `npx expo start --go --tunnel --clear`, o app monta
-automaticamente um retorno `exp://.../--/auth/callback` a partir do endereço
-daquela sessão. Se o padrão não estiver na lista de Redirect URLs do Supabase,
-o provedor pode ignorar o `redirectTo` e voltar para o `Site URL` (por exemplo,
-`localhost`), deixando o login preso no navegador. Em um development build ou
-build interno, o retorno é `setlist://auth/callback` e deve ser mantido na mesma
-lista.
+automaticamente um retorno `exp://.../--/auth/callback` no Expo Go e a versão
+web usa a origem HTTPS `https://*.exp.direct/auth/callback`. Se esses padrões
+não estiverem na lista de Redirect URLs do Supabase, o provedor pode ignorar o
+`redirectTo` e voltar para o `Site URL` (`setlist://auth/callback`), deixando o
+login web sem um destino navegável. Em um development build ou build interno,
+o retorno é `setlist://auth/callback` e deve ser mantido na mesma lista.
 
 O aceite efetivo do convite e a criação de bandas dependem das tarefas 5.4 e
 5.6. Nesta etapa a tela confirma a autenticação e preserva o contexto, sem

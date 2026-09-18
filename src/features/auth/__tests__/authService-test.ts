@@ -7,17 +7,6 @@ import {
   signInWithSocialProvider,
   subscribeToAuthState,
 } from '@/features/auth/authService';
-import { clearOAuthState, createOAuthState } from '@/features/auth/authState';
-
-jest.mock('expo-crypto', () => ({
-  randomUUID: jest.fn(() => 'state-generated'),
-}));
-
-jest.mock('expo-secure-store', () => ({
-  deleteItemAsync: jest.fn(async () => undefined),
-  getItemAsync: jest.fn(async () => null),
-  setItemAsync: jest.fn(async () => undefined),
-}));
 
 jest.mock('expo-linking', () => ({
   createURL: (path: string) => `setlist://${path}`,
@@ -58,8 +47,7 @@ function createAuthMock() {
 describe('serviço de autenticação social', () => {
   const platform = Platform.OS;
 
-  afterEach(async () => {
-    await clearOAuthState();
+  afterEach(() => {
     jest.clearAllMocks();
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
@@ -90,7 +78,6 @@ describe('serviço de autenticação social', () => {
     });
     expect(auth.signInWithOAuth).toHaveBeenCalledWith({
       options: {
-        queryParams: { state: 'state-generated' },
         redirectTo: 'setlist://auth/callback?invite_token=invite-demo',
         skipBrowserRedirect: true,
       },
@@ -122,26 +109,26 @@ describe('serviço de autenticação social', () => {
     expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
   });
 
-  it('valida state antes de trocar o code por uma sessão', async () => {
+  it('troca o code mesmo quando o retorno do Supabase não traz state', async () => {
     const { auth } = createAuthMock();
-    await createOAuthState();
+    auth.exchangeCodeForSession.mockResolvedValue({
+      data: { session: { user: { id: 'user-1' } } },
+      error: null,
+    });
 
     await expect(
-      completeOAuthCallback({ code: 'code', state: 'state-wrong' }),
-    ).rejects.toMatchObject({ code: 'oauth_state_invalid' });
-    expect(auth.exchangeCodeForSession).not.toHaveBeenCalled();
+      completeOAuthCallback({ code: 'code' }),
+    ).resolves.toMatchObject({ status: 'authenticated' });
+    expect(auth.exchangeCodeForSession).toHaveBeenCalledWith('code');
   });
 
-  it('rejeita erro do provedor quando o state não confere', async () => {
-    await createOAuthState();
-
+  it('rejeita erro devolvido pelo provedor', async () => {
     await expect(
       completeOAuthCallback({
         error: 'access_denied',
         errorDescription: 'cancelado',
-        state: 'state-wrong',
       }),
-    ).rejects.toMatchObject({ code: 'oauth_state_invalid' });
+    ).rejects.toMatchObject({ code: 'access_denied' });
   });
 
   it('converte falhas de início e de renovação em erro de fluxo', async () => {

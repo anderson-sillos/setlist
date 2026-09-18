@@ -10,7 +10,6 @@ import {
   getDevelopmentUrl,
   getSingleRouteParam,
 } from '@/features/auth/prototypeLinks';
-import { consumeOAuthState, createOAuthState } from '@/features/auth/authState';
 
 export type SocialAuthProvider = Extract<Provider, 'apple' | 'google'>;
 
@@ -65,20 +64,9 @@ function getCallbackParams(url: string): OAuthCallbackParams {
   };
 }
 
-async function assertOAuthState(state?: string): Promise<void> {
-  if (!(await consumeOAuthState(state))) {
-    throw new AuthFlowError(
-      'oauth_state_invalid',
-      'O retorno do login perdeu a marcação de segurança. Tente de novo.',
-    );
-  }
-}
-
 export async function completeOAuthCallback(
   params: OAuthCallbackParams,
 ): Promise<SocialAuthResult> {
-  await assertOAuthState(params.state);
-
   if (params.error) {
     throw new AuthFlowError(
       params.error,
@@ -113,11 +101,9 @@ export async function signInWithSocialProvider(
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
   try {
-    const state = await createOAuthState();
     const redirectTo = getAuthRedirectUrl(inviteToken);
     const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
       options: {
-        queryParams: { state },
         redirectTo,
         skipBrowserRedirect: Platform.OS !== 'web',
       },
