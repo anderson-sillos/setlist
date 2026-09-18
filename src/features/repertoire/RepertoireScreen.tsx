@@ -15,11 +15,6 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { useSongs } from '@/data/queries';
 import type { EntityId, Song } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import {
-  formatSongDuration,
-  lyricStatusLabels,
-  normalizeForSearch,
-} from '@/features/navigation/display';
 import { getBandSectionHref, getSongHref } from '@/features/navigation/routes';
 import {
   type BandSectionScreenProps,
@@ -27,6 +22,9 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { formatSongDuration } from '@/utils/duration';
+import { normalizeForSearch } from '@/utils/text';
+import { lyricStatusLabels } from './songPresentation';
 
 type RepertoireFilter = 'all' | 'archived' | 'pending' | 'synchronized';
 type RepertoireSort = 'artist' | 'duration' | 'title' | 'updated';
@@ -179,6 +177,7 @@ export function RepertoireScreen({
             <OptionMenu
               accessibilityLabel="Alterar filtros do repertório"
               compact
+              icon="filter"
               label="Filtrar"
               onChange={(value) => update('filter', value)}
               options={repertoireFilters}
@@ -187,6 +186,7 @@ export function RepertoireScreen({
             <OptionMenu
               accessibilityLabel="Alterar ordenação do repertório"
               compact
+              icon="sort"
               label="Ordenar"
               onChange={(value) => update('sort', value)}
               options={repertoireSorts}

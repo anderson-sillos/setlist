@@ -19,16 +19,10 @@ import {
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { useShows, useSongs, useUserBands } from '@/data/queries';
 import type { ShowStatus } from '@/domain';
-import {
-  getBrazilianNationalHolidays,
-  getSaoPauloDateKey,
-} from '@/features/calendar/brazilianHolidays';
+import { getShowDurationMs } from '@/domain/setlistDuration';
+import { getBrazilianNationalHolidays } from '@/features/calendar/brazilianHolidays';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import {
-  getShowDurationMs,
-  normalizeForSearch,
-} from '@/features/navigation/display';
 import { getBandSectionHref, getShowHref } from '@/features/navigation/routes';
 import {
   type BandSectionScreenProps,
@@ -37,6 +31,8 @@ import {
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { ShowListRow } from '@/features/shows/ShowListRow';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { formatDateFilter, getDateKey } from '@/utils/dateTime';
+import { normalizeForSearch } from '@/utils/text';
 
 type ShowPeriod = 'all' | 'past' | 'upcoming';
 type ShowStatusFilter = 'active' | 'all' | ShowStatus;
@@ -50,7 +46,7 @@ const showPeriods = [
 
 const showStatuses = [
   { label: 'Todos', value: 'all' },
-  { label: 'Ativos', value: 'active' },
+  { label: 'Ativo', value: 'active' },
   { label: 'Rascunho', value: 'draft' },
   { label: 'Pronto', value: 'ready' },
   { label: 'Cancelado', value: 'cancelled' },
@@ -62,18 +58,6 @@ const showSorts = [
   { label: 'Nome', value: 'name' },
   { label: 'Maior duração', value: 'duration' },
 ] as const;
-
-function formatDateFilter(dateKey: string): string {
-  const [year, month, day] = dateKey.split('-').map(Number);
-  const monthLabel = new Intl.DateTimeFormat('pt-BR', {
-    month: 'short',
-    timeZone: 'UTC',
-  })
-    .format(new Date(Date.UTC(year, month - 1, day)))
-    .replace(/\.$/, '');
-
-  return `${day.toString().padStart(2, '0')} ${monthLabel} ${year}`;
-}
 
 export function ShowsScreen({
   bandId,
@@ -110,17 +94,18 @@ export function ShowsScreen({
         `${show.name} ${show.venue}`,
       ).includes(normalizedSearch);
       const startsAt = new Date(show.startsAt);
-      const matchesDate = state.date
-        ? getSaoPauloDateKey(show.startsAt) === state.date
-        : state.period === 'all' ||
-          (state.period === 'upcoming' ? startsAt >= now : startsAt < now);
+      const matchesPeriod =
+        state.period === 'all' ||
+        (state.period === 'upcoming' ? startsAt >= now : startsAt < now);
+      const matchesDate =
+        !state.date || getDateKey(show.startsAt) === state.date;
       const matchesStatus =
         state.status === 'all' ||
         (state.status === 'active'
           ? show.status === 'draft' || show.status === 'ready'
           : show.status === state.status);
 
-      return matchesSearch && matchesDate && matchesStatus;
+      return matchesSearch && matchesPeriod && matchesDate && matchesStatus;
     });
 
     return [...result].sort((left, right) => {
@@ -164,16 +149,19 @@ export function ShowsScreen({
     update('sort', 'date-asc');
   };
   const activeFilterCount =
-    Number(Boolean(state.date) || state.period !== 'upcoming') +
-    Number(state.status !== 'active');
+    Number(Boolean(state.date)) +
+    Number(state.period !== 'all') +
+    Number(state.status !== 'all');
   const selectDate = (dateKey: string) => {
     update('date', dateKey);
     update('period', 'all');
+    update('status', 'all');
     setCalendarOpen(false);
   };
   const clearSelectedDate = () => {
     update('date', '');
     update('period', 'upcoming');
+    update('status', 'active');
   };
 
   const controls = (
@@ -201,19 +189,20 @@ export function ShowsScreen({
         </Pressable>
         <FilterMenu
           accessibilityLabel="Abrir filtros dos shows"
+          icon="filter"
           label="Filtros"
-          summary={
-            activeFilterCount > 0 ? String(activeFilterCount) : undefined
-          }
+          onClear={() => {
+            update('date', '');
+            update('period', 'upcoming');
+            update('status', 'active');
+          }}
+          summary={String(activeFilterCount)}
         >
           <View style={styles.filterGroup}>
             <AppText variant="eyebrow">Período</AppText>
             <ChoiceChips
               accessibilityLabel="Período dos shows"
-              onChange={(value) => {
-                update('date', '');
-                update('period', value);
-              }}
+              onChange={(value) => update('period', value)}
               options={showPeriods}
               value={state.period}
             />
@@ -231,6 +220,7 @@ export function ShowsScreen({
         <OptionMenu
           accessibilityLabel="Alterar ordenação dos shows"
           compact
+          icon="sort"
           label="Ordenar"
           onChange={(value) => update('sort', value)}
           options={showSorts}

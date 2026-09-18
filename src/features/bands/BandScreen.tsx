@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 
-import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import {
+  DemoActionNotice,
+  ErrorFeedback,
+  LoadingFeedback,
+} from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -92,24 +96,14 @@ export function BandScreen({
           }}
         />
       ) : null}
+      <DemoActionNotice
+        message={previewNotice}
+        onClose={() => setPreviewNotice(null)}
+      />
       <SectionList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         keyExtractor={(member) => member.id}
-        ListHeaderComponent={
-          previewNotice ? (
-            <View accessibilityLiveRegion="polite" style={styles.demoNotice}>
-              <AppText>{previewNotice}</AppText>
-              <Pressable
-                accessibilityLabel="Fechar aviso de demonstração"
-                accessibilityRole="button"
-                onPress={() => setPreviewNotice(null)}
-              >
-                <AppText tone="accent">Fechar</AppText>
-              </Pressable>
-            </View>
-          ) : null
-        }
         onScroll={(event) =>
           rememberListScrollOffset(event, rememberScrollOffset)
         }
@@ -252,16 +246,6 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
-  },
-  demoNotice: {
-    alignItems: 'center',
-    backgroundColor: colors.cyanSoft,
-    borderRadius: radii.md,
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-    padding: spacing.md,
   },
   pressed: {
     opacity: 0.72,

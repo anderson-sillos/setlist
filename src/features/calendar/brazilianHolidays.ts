@@ -84,16 +84,3 @@ export function getBrazilianNationalHolidays(
     { dateKey: toDateKey(year, 12, 25), name: 'Natal' },
   ];
 }
-
-export function getSaoPauloDateKey(value: Date | string): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    day: '2-digit',
-    month: '2-digit',
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-  }).formatToParts(typeof value === 'string' ? new Date(value) : value);
-  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? '';
-
-  return `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
-}

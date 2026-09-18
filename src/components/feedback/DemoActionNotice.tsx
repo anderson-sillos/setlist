@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 interface DemoActionNoticeProps {
   readonly message: string | null;
@@ -9,30 +9,78 @@ interface DemoActionNoticeProps {
 }
 
 export function DemoActionNotice({ message, onClose }: DemoActionNoticeProps) {
-  return message ? (
-    <View accessibilityLiveRegion="polite" style={styles.notice}>
-      <AppText>{message}</AppText>
-      <Pressable
-        accessibilityLabel="Fechar aviso de demonstração"
-        accessibilityRole="button"
-        onPress={onClose}
-      >
-        <AppText tone="accent">Fechar</AppText>
-      </Pressable>
-    </View>
-  ) : null;
+  if (!message) return null;
+
+  return (
+    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+      <View accessibilityViewIsModal style={styles.modalLayer}>
+        <Pressable
+          accessibilityLabel="Fechar popup de demonstração"
+          accessibilityRole="button"
+          onPress={onClose}
+          style={styles.scrim}
+        />
+        <View
+          accessibilityLiveRegion="polite"
+          accessibilityRole="alert"
+          accessible
+          style={styles.dialog}
+          testID="demo-action-notice"
+        >
+          <AppText accessibilityRole="header" variant="heading">
+            Demonstração
+          </AppText>
+          <AppText>{message}</AppText>
+          <Pressable
+            accessibilityLabel="Fechar aviso de demonstração"
+            accessibilityRole="button"
+            onPress={onClose}
+            style={({ pressed }) => [
+              styles.closeButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppText tone="inverse">Fechar</AppText>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 const styles = StyleSheet.create({
-  notice: {
+  closeButton: {
     alignItems: 'center',
-    backgroundColor: colors.cyanSoft,
+    alignSelf: 'flex-end',
+    backgroundColor: colors.violet,
     borderRadius: radii.md,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-    padding: spacing.md,
+    justifyContent: 'center',
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.xl,
+  },
+  dialog: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    gap: spacing.lg,
+    maxWidth: 420,
+    padding: spacing.xl,
+    width: '100%',
+  },
+  modalLayer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  pressed: {
+    opacity: 0.72,
+  },
+  scrim: {
+    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
 });

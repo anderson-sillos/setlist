@@ -2,7 +2,11 @@ import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import {
+  DemoActionNotice,
+  ErrorFeedback,
+  LoadingFeedback,
+} from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -11,12 +15,10 @@ import { demoIds } from '@/data/demo';
 import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
-import {
-  formatShowListDate,
-  normalizeForSearch,
-} from '@/features/navigation/display';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { formatShowListDate } from '@/utils/dateTime';
+import { normalizeForSearch } from '@/utils/text';
 
 const roleLabels: Record<BandRole, string> = {
   editor: 'Editor',
@@ -94,21 +96,14 @@ export function BandsScreen({
         <ErrorFeedback onRetry={() => void bandsQuery.refetch()} />
       ) : null}
 
-      {creationNoticeVisible ? (
-        <View accessibilityLiveRegion="polite" style={styles.demoNotice}>
-          <AppText>
-            A criação entra junto com o login. Por enquanto, o palco é de
-            demonstração.
-          </AppText>
-          <Pressable
-            accessibilityLabel="Fechar aviso de demonstração"
-            accessibilityRole="button"
-            onPress={() => setCreationNoticeVisible(false)}
-          >
-            <AppText tone="accent">Fechar</AppText>
-          </Pressable>
-        </View>
-      ) : null}
+      <DemoActionNotice
+        message={
+          creationNoticeVisible
+            ? 'A criação entra junto com o login. Por enquanto, o palco é de demonstração.'
+            : null
+        }
+        onClose={() => setCreationNoticeVisible(false)}
+      />
 
       <FlatList
         contentContainerStyle={styles.listContent}
@@ -195,20 +190,6 @@ export function BandsScreen({
 }
 
 const styles = StyleSheet.create({
-  demoNotice: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: colors.cyanSoft,
-    borderRadius: radii.md,
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-    marginHorizontal: spacing.xl,
-    marginTop: spacing.md,
-    maxWidth: layout.contentMaxWidth,
-    padding: spacing.md,
-    width: '90%',
-  },
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,

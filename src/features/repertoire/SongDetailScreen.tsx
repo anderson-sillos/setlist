@@ -1,6 +1,6 @@
 import { Link, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import {
   DemoActionNotice,
@@ -9,19 +9,19 @@ import {
   UnavailableFeedback,
 } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import {
-  formatDuration,
-  formatRelativeUpdate,
-  lyricStatusLabels,
-} from '@/features/navigation/display';
 import { getBandSectionHref, getSongHref } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { formatRelativeUpdate } from '@/utils/dateTime';
+import { formatSongDuration } from '@/utils/duration';
+import { lyricStatusLabels } from './songPresentation';
 
 interface SongDetailScreenProps {
   readonly bandId: EntityId;
@@ -107,29 +107,44 @@ export function SongDetailScreen({
               </View>
               {canEdit ? (
                 <AppButton
+                  accessibilityLabel="Editar música"
+                  icon="edit"
                   label="Editar"
                   onPress={() =>
                     setDemoNotice(
                       'O editor chega no incremento do repertório. A permissão já está conferida.',
                     )
                   }
+                  style={styles.editButton}
+                  variant="secondary"
                 />
               ) : null}
             </View>
             <View style={styles.summaryLine}>
-              <View style={styles.statusPill}>
-                <AppText tone="accent" variant="caption">
-                  {lyricStatusLabels[song.lyricStatus]}
+              <StatusPill
+                tone={
+                  song.lyricStatus === 'synchronized'
+                    ? 'ready'
+                    : song.lyricStatus === 'missing'
+                      ? 'warning'
+                      : 'default'
+                }
+              >
+                {lyricStatusLabels[song.lyricStatus]}
+              </StatusPill>
+              {song.archivedAt ? (
+                <StatusPill tone="warning">Arquivada</StatusPill>
+              ) : null}
+              <View
+                accessibilityLabel={`Duração ${formatSongDuration(song.estimatedDurationMs)}`}
+                accessible
+                style={styles.durationMeta}
+              >
+                <AppIcon color={colors.violet} name="duration" size={14} />
+                <AppText variant="caption">
+                  Duração · {formatSongDuration(song.estimatedDurationMs)}
                 </AppText>
               </View>
-              {song.archivedAt ? (
-                <View style={styles.archivedPill}>
-                  <AppText variant="caption">Arquivada</AppText>
-                </View>
-              ) : null}
-              <AppText variant="caption">
-                Duração · {formatDuration(song.estimatedDurationMs)}
-              </AppText>
               <AppText tone="muted" variant="caption">
                 Atualizada {formatRelativeUpdate(song.updatedAt, now)}
               </AppText>
@@ -143,7 +158,11 @@ export function SongDetailScreen({
             ]}
           >
             <Card style={styles.lyricCard} tone="dark">
-              <AppText tone="inverse" variant="eyebrow">
+              <AppText
+                accessibilityRole="header"
+                tone="inverse"
+                variant="eyebrow"
+              >
                 Letra
               </AppText>
               {song.lyrics.blocks.length === 0 ? (
@@ -166,7 +185,9 @@ export function SongDetailScreen({
             </Card>
 
             <Card style={styles.secondaryCard}>
-              <AppText variant="heading">Informações</AppText>
+              <AppText accessibilityRole="header" variant="heading">
+                Informações
+              </AppText>
               <View style={styles.metadataGrid}>
                 <View style={styles.metadataItem}>
                   <AppText tone="muted" variant="caption">
@@ -184,7 +205,9 @@ export function SongDetailScreen({
 
               {song.notes ? (
                 <View style={styles.notes}>
-                  <AppText variant="heading">Observações</AppText>
+                  <AppText accessibilityRole="header" variant="heading">
+                    Observações
+                  </AppText>
                   <AppText>{song.notes}</AppText>
                 </View>
               ) : null}
@@ -195,16 +218,13 @@ export function SongDetailScreen({
                   target="_blank"
                   asChild
                 >
-                  <Pressable
+                  <AppButton
                     accessibilityLabel="Abrir referência no YouTube"
-                    accessibilityRole="link"
-                    style={({ pressed }) => [
-                      styles.externalLink,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <AppText tone="accent">Abrir no YouTube ↗</AppText>
-                  </Pressable>
+                    icon="externalLink"
+                    label="Abrir no YouTube"
+                    style={styles.youtubeButton}
+                    variant="secondary"
+                  />
                 </Link>
               ) : null}
             </Card>
@@ -235,23 +255,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minWidth: 220,
   },
+  editButton: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
   summaryLine: {
     alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  statusPill: {
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  archivedPill: {
-    backgroundColor: '#fef3c7',
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+  durationMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
   },
   detailColumns: {
     gap: spacing.lg,
@@ -296,12 +314,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingTop: spacing.lg,
   },
-  externalLink: {
+  youtubeButton: {
     alignSelf: 'flex-start',
-    minHeight: 48,
-    paddingVertical: spacing.md,
-  },
-  pressed: {
-    opacity: 0.72,
+    paddingHorizontal: spacing.md,
   },
 });

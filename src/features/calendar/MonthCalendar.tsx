@@ -4,11 +4,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { Show } from '@/domain';
-import {
-  getBrazilianNationalHolidays,
-  getSaoPauloDateKey,
-} from '@/features/calendar/brazilianHolidays';
+import { getBrazilianNationalHolidays } from '@/features/calendar/brazilianHolidays';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { getDateKey } from '@/utils/dateTime';
 
 interface MonthCalendarProps {
   readonly initialDate?: Date;
@@ -55,7 +53,7 @@ export function MonthCalendar({
   selectedDateKey,
   shows,
 }: MonthCalendarProps) {
-  const todayKey = getSaoPauloDateKey(initialDate);
+  const todayKey = getDateKey(initialDate);
   const todayParts = getDateParts(todayKey);
   const initialVisibleDate = selectedDateKey
     ? getDateParts(selectedDateKey)
@@ -78,7 +76,7 @@ export function MonthCalendar({
   const showsByDate = new Map<string, Show[]>();
 
   shows.forEach((show) => {
-    const dateKey = getSaoPauloDateKey(show.startsAt);
+    const dateKey = getDateKey(show.startsAt);
     const dateShows = showsByDate.get(dateKey) ?? [];
     dateShows.push(show);
     showsByDate.set(dateKey, dateShows);

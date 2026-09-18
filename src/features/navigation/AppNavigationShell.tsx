@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.paper,
     borderBottomColor: colors.line,
     borderBottomWidth: 1,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     zIndex: 2,
   },

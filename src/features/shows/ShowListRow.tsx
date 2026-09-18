@@ -5,12 +5,10 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { Show } from '@/domain';
-import {
-  formatShowDuration,
-  formatShowListDate,
-  showStatusLabels,
-} from '@/features/navigation/display';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { formatShowListDate } from '@/utils/dateTime';
+import { formatShowDuration } from '@/utils/duration';
+import { showStatusLabels } from './showPresentation';
 
 interface ShowListRowProps {
   readonly accessibilityLabel: string;

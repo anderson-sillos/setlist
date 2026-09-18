@@ -60,18 +60,23 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 
 ### Repertório e música
 
+- Manter dados demonstrativos suficientes para exercitar rolagem, busca, filtros e ordenação nas duas bandas, incluindo músicas próprias e músicas cujo artista original é diferente da banda responsável pelo repertório.
 - Mostrar o repertório em lista vertical rolável com busca por título ou artista.
-- Usar um seletor compacto para os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas. Pendentes reúne Sem letra, Letra estática e Sincronização incompleta.
+- Usar um seletor compacto com ícone para os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas. Pendentes reúne Sem letra, Letra estática e Sincronização incompleta; a ordenação também usa ícone acompanhado do rótulo.
 - Ordenar por Título, padrão A–Z, Artista/Banda, atualização mais recente ou maior duração.
 - Mostrar título, artista, duração e estado em linhas alinhadas, sem o rótulo redundante de duração; manter tonalidade e BPM nos detalhes.
 - Priorizar a letra nos detalhes, apresentar todos os blocos expandidos e ocultar tempos por linha fora do editor de sincronização.
-- Exibir a última atualização em formato relativo e abrir externamente a referência do YouTube na consulta.
+- Nos detalhes, reutilizar os marcadores de estado e o formato de duração da lista, manter a edição secundária com ícone junto ao título e usar semântica de cabeçalho em Letra, Informações e Observações.
+- Exibir a última atualização em formato relativo e abrir externamente a referência do YouTube por um botão secundário nomeado com ícone vetorial.
 
 ### Shows, planejamento e setlist
 
 - Mostrar a duração estimada na lista e no detalhe do show, com composição entre músicas e planejamento e totais por bloco.
+- Nos detalhes, usar o mesmo formato compacto de data e horário da lista de Shows, apresentar junto ao tempo total a quantidade de ocorrências de músicas da setlist e contar também as repetições.
+- Usar horas e minutos nos totais do show e dos blocos e preservar os segundos nos tempos individuais de músicas e anotações.
+- Posicionar a ação `Editar` com ícone junto ao cabeçalho da Setlist nos shows Rascunho em que o integrante possui permissão.
 - Somar somente durações informadas e não apresentar aviso de duração parcial. Quando nenhum tempo existir, usar traço na lista e `Duração não informada` no detalhe.
-- Permitir várias anotações de planejamento independentes, com descrição livre e duração opcional, visualmente distintas das músicas.
+- Permitir várias anotações de planejamento independentes, com descrição livre e duração opcional, visualmente distintas das músicas por fundo e ícone compacto, sem repetir o rótulo `Planejamento` em cada item e preservando a identificação acessível.
 - Permitir separadores exclusivamente visuais, sem texto, duração ou participação nos cálculos.
 - Manter planejamento e separadores fora das etapas e cronômetros do modo palco.
 - Usar uma única ação de inclusão para novo bloco, música, anotação ou separador e aceitar seleção múltipla de músicas.
@@ -80,9 +85,12 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 
 ### Consulta e calendário de shows
 
-- Mostrar Shows em uma única lista rolável com busca por nome ou local, filtros compactos por data e estado, com `Todos` como primeira opção de cada grupo, e ordenação por data, nome ou duração.
-- Abrir por padrão os próximos shows em Rascunho ou Pronto, pela data mais próxima, deixando Cancelados acessíveis pelos filtros.
-- Tratar `Próximos`, `Passados`, `Todos` e uma data específica como critérios mutuamente exclusivos e manter a data escolhida visível em um controle removível.
+- Distribuir os shows demonstrativos entre datas e meses diferentes para permitir a revisão dos filtros de período e data e dos marcadores do calendário.
+- Mostrar Shows em uma única lista rolável com busca por nome ou local, filtros compactos por período, data específica e estado, com `Todos` como primeira opção de período e estado, e ordenação por data, nome ou duração.
+- Abrir por padrão com `Próximos` e `Ativo`, mostrando Rascunhos e Prontos pela data mais próxima e deixando Cancelados acessíveis pelos filtros. Como ambos estão ativos, a contagem padrão é `2`.
+- Contar período, estado e data específica separadamente. Mostrar `0` somente com `Todos` nos dois grupos e nenhuma data; somar `1` quando houver uma data selecionada.
+- Ao selecionar uma data específica, mudar automaticamente período e estado para `Todos`, mostrar todos os eventos daquele dia e contabilizar somente a data, resultando em `1`. Manter a data visível em um controle removível e, ao removê-la, restaurar `Próximos` e `Ativo`.
+- Incluir no painel a ação `Limpar`, que restaura `Próximos`, `Ativo` e nenhuma data e fecha o painel, e usar ícones acompanhados dos rótulos nos controles de filtros e ordenação.
 - Oferecer um botão exclusivo de acesso direto ao calendário mensal, usado somente como seletor visual de data da lista geral, sem criar uma segunda visualização ou lista de eventos.
 - Abrir o calendário no mês atual ou no mês da data específica já escolhida, iniciar a semana no domingo e aplicar imediatamente o filtro ao tocar em um dia, fechando o seletor.
 - Marcar datas com shows ativos por fundo próprio, manter um marcador e indicar a quantidade quando houver mais de um; busca e ordenação não devem alterar esses marcadores.
@@ -121,6 +129,7 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 - Preservar edições após falha de salvamento e mostrar a mensagem próxima da ação correspondente.
 - Exibir uma faixa compacta de falta de conexão abaixo do cabeçalho, manter conteúdo carregado somente para leitura e atualizar automaticamente ao reconectar.
 - Usar mensagens temporárias não bloqueantes para sucesso e desfazer; reservar diálogos para ações destrutivas.
+- Enquanto uma ação existir apenas na versão demonstrativa, apresentar seu `DemoActionNotice` em um popup acessível com título, mensagem e fechamento explícito ou pelo fundo, sem misturá-lo ao conteúdo da tela.
 - Comunicar estados por texto e disponibilizar o mesmo significado a leitores de tela.
 
 ### Tom de voz

@@ -13,6 +13,7 @@ import { colors, layout, radii, spacing } from '@/theme/tokens';
 export function OptionMenu<Value extends string>({
   accessibilityLabel,
   compact = false,
+  icon,
   label,
   onChange,
   options,
@@ -28,6 +29,7 @@ export function OptionMenu<Value extends string>({
       <MenuButton
         accessibilityLabel={accessibilityLabel}
         accessibilityValueText={selectedLabel}
+        icon={icon}
         label={compact ? label : `${label}: ${selectedLabel}`}
         onPress={() => setOpen(true)}
       />

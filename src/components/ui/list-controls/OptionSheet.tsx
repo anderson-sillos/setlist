@@ -2,12 +2,14 @@ import type { ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface MenuButtonProps {
   readonly accessibilityLabel: string;
   readonly accessibilityValueText?: string;
+  readonly icon?: AppIconName;
   readonly label: string;
   readonly onPress: () => void;
 }
@@ -23,6 +25,7 @@ interface OptionSheetProps {
 export function MenuButton({
   accessibilityLabel,
   accessibilityValueText,
+  icon,
   label,
   onPress,
 }: MenuButtonProps) {
@@ -36,6 +39,7 @@ export function MenuButton({
       onPress={onPress}
       style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
     >
+      {icon ? <AppIcon color={colors.violet} name={icon} size={16} /> : null}
       <AppText
         numberOfLines={1}
         style={styles.menuButtonLabel}

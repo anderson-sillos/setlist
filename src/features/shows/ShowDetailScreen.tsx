@@ -12,16 +12,14 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useSongs, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
-import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
-  formatDuration,
-  formatShowDate,
   getBlockDurationBreakdown,
   getShowDurationBreakdown,
-  showStatusLabels,
-} from '@/features/navigation/display';
+} from '@/domain/setlistDuration';
+import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
   getShowHref,
@@ -29,6 +27,9 @@ import {
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { formatShowListDate } from '@/utils/dateTime';
+import { formatShowDuration, formatSongDuration } from '@/utils/duration';
+import { showStatusLabels } from './showPresentation';
 
 interface ShowDetailScreenProps {
   readonly bandId: EntityId;
@@ -59,6 +60,13 @@ export function ShowDetailScreen({
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const duration = show ? getShowDurationBreakdown(show, songsById) : null;
+  const songCount =
+    show?.blocks.reduce(
+      (total, block) =>
+        total + block.items.filter((item) => item.type === 'song').length,
+      0,
+    ) ?? 0;
+  const songCountLabel = `${songCount} ${songCount === 1 ? 'música' : 'músicas'}`;
 
   return (
     <BandAreaLayout
@@ -114,31 +122,43 @@ export function ShowDetailScreen({
         >
           <Card style={styles.showSummary}>
             <View style={styles.summaryLine}>
-              <View style={styles.statusPill}>
-                <AppText tone="accent" variant="caption">
-                  {showStatusLabels[show.status]}
-                </AppText>
-              </View>
+              <StatusPill tone={show.status === 'ready' ? 'ready' : 'default'}>
+                {showStatusLabels[show.status]}
+              </StatusPill>
             </View>
             <AppText accessibilityRole="header" variant="title">
               {show.name}
             </AppText>
-            <AppText tone="muted">{formatShowDate(show.startsAt)}</AppText>
+            <AppText tone="muted">{formatShowListDate(show.startsAt)}</AppText>
             <AppText>{show.venue}</AppText>
 
             <View style={styles.durationSummary}>
-              <AppText tone="muted" variant="caption">
-                Tempo total estimado
-              </AppText>
-              <AppText variant="heading">
-                {duration?.totalMs == null
-                  ? 'Duração não informada'
-                  : formatDuration(duration.totalMs)}
-              </AppText>
+              <View style={styles.durationHeading}>
+                <View style={styles.durationCopy}>
+                  <AppText tone="muted" variant="caption">
+                    Tempo total estimado
+                  </AppText>
+                  <AppText variant="heading">
+                    {duration?.totalMs == null
+                      ? 'Duração não informada'
+                      : formatShowDuration(duration.totalMs)}
+                  </AppText>
+                </View>
+                <View
+                  accessibilityLabel={`${songCountLabel} no setlist`}
+                  accessible
+                  style={styles.songCount}
+                >
+                  <AppIcon color={colors.violet} name="music" size={16} />
+                  <AppText tone="accent" variant="caption">
+                    {songCountLabel}
+                  </AppText>
+                </View>
+              </View>
               {duration?.totalMs != null ? (
                 <AppText tone="muted" variant="caption">
-                  Músicas {formatDuration(duration.musicMs)} · Planejamento{' '}
-                  {formatDuration(duration.planningMs)}
+                  Músicas {formatShowDuration(duration.musicMs)} · Planejamento{' '}
+                  {formatShowDuration(duration.planningMs)}
                 </AppText>
               ) : null}
             </View>
@@ -148,17 +168,6 @@ export function ShowDetailScreen({
                 <AppText variant="heading">Observações</AppText>
                 <AppText>{show.notes}</AppText>
               </View>
-            ) : null}
-
-            {canEdit && show.status === 'draft' ? (
-              <AppButton
-                label="Editar setlist"
-                onPress={() =>
-                  setDemoNotice(
-                    'A edição completa chega no incremento de shows. A permissão já está conferida.',
-                  )
-                }
-              />
             ) : null}
 
             {show.status !== 'cancelled' ? (
@@ -178,9 +187,25 @@ export function ShowDetailScreen({
           </Card>
 
           <View style={styles.setlist}>
-            <AppText accessibilityRole="header" variant="heading">
-              Setlist
-            </AppText>
+            <View style={styles.setlistHeader} testID="show-setlist-header">
+              <AppText accessibilityRole="header" variant="heading">
+                Setlist
+              </AppText>
+              {canEdit && show.status === 'draft' ? (
+                <AppButton
+                  accessibilityLabel="Editar setlist"
+                  icon="edit"
+                  label="Editar"
+                  onPress={() =>
+                    setDemoNotice(
+                      'A edição completa chega no incremento de shows. A permissão já está conferida.',
+                    )
+                  }
+                  style={styles.editSetlistButton}
+                  variant="secondary"
+                />
+              ) : null}
+            </View>
             {show.blocks.map((block) => {
               const blockDuration = getBlockDurationBreakdown(block, songsById);
 
@@ -193,7 +218,7 @@ export function ShowDetailScreen({
                     <AppText tone="muted" variant="caption">
                       {blockDuration.totalMs === null
                         ? '—'
-                        : formatDuration(blockDuration.totalMs)}
+                        : formatShowDuration(blockDuration.totalMs)}
                     </AppText>
                   </View>
                   {block.items.map((item, index) => {
@@ -210,23 +235,25 @@ export function ShowDetailScreen({
                     if (item.type === 'planning') {
                       return (
                         <View key={item.id} style={styles.planningItem}>
-                          <View style={styles.planningIcon}>
+                          <View
+                            accessibilityLabel="Anotação de planejamento"
+                            accessibilityRole="image"
+                            accessible
+                            style={styles.planningIcon}
+                          >
                             <AppIcon
                               color={colors.violet}
                               name="planning"
-                              size={18}
+                              size={14}
                             />
                           </View>
                           <View style={styles.itemCopy}>
-                            <AppText tone="accent" variant="caption">
-                              Planejamento
-                            </AppText>
                             <AppText>{item.description}</AppText>
                           </View>
                           <AppText tone="muted" variant="caption">
                             {item.estimatedDurationMs === null
                               ? '—'
-                              : formatDuration(item.estimatedDurationMs)}
+                              : formatSongDuration(item.estimatedDurationMs)}
                           </AppText>
                         </View>
                       );
@@ -252,7 +279,7 @@ export function ShowDetailScreen({
                         <AppText tone="muted" variant="caption">
                           {song?.estimatedDurationMs == null
                             ? '—'
-                            : formatDuration(song.estimatedDurationMs)}
+                            : formatSongDuration(song.estimatedDurationMs)}
                         </AppText>
                       </View>
                     );
@@ -281,12 +308,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  statusPill: {
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
   notes: {
     borderTopColor: colors.line,
     borderTopWidth: 1,
@@ -304,10 +325,43 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     padding: spacing.md,
   },
+  durationCopy: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  durationHeading: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  songCount: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radii.pill,
+    flexDirection: 'row',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
   setlist: {
     flex: 1.4,
     gap: spacing.md,
     minWidth: 0,
+  },
+  setlistHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  editSetlistButton: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   blockCard: {
     gap: spacing.md,
@@ -337,9 +391,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radii.pill,
-    height: 36,
+    height: 28,
     justifyContent: 'center',
-    width: 36,
+    width: 28,
   },
   separatorItem: {
     borderTopColor: colors.violet,

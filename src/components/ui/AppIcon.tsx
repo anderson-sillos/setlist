@@ -1,4 +1,5 @@
 import {
+  ArrowUpDown,
   CalendarCheck,
   CalendarDays,
   Check,
@@ -6,12 +7,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Ellipsis,
+  ExternalLink,
   Hourglass,
   HourglassCog,
   LayoutGrid,
+  ListFilter,
   Menu,
   Music,
   Music2,
+  Pencil,
   Play,
   Plus,
   Search,
@@ -31,7 +35,10 @@ const iconComponents = {
   chevronDown: ChevronDown,
   close: X,
   duration: Hourglass,
+  edit: Pencil,
   event: CalendarCheck,
+  externalLink: ExternalLink,
+  filter: ListFilter,
   forward: ChevronRight,
   menu: Menu,
   more: Ellipsis,
@@ -41,6 +48,7 @@ const iconComponents = {
   search: Search,
   shows: CalendarDays,
   stage: Play,
+  sort: ArrowUpDown,
 } satisfies Record<string, LucideIcon>;
 
 export type AppIconName = keyof typeof iconComponents;

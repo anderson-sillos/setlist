@@ -1,49 +1,10 @@
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import type { Show, Song } from '@/domain';
 import {
-  formatShowDate,
-  formatShowDuration,
-  formatShowListDate,
-  formatShowTime,
-  formatSongDuration,
   getBlockDurationBreakdown,
   getShowDurationBreakdown,
   getShowDurationMs,
-} from '@/features/navigation/display';
-
-describe('formatação compacta da lista de shows', () => {
-  it('combina dia da semana, data média e horário compacto', () => {
-    expect(formatShowListDate('2026-09-19T21:00:00-03:00')).toBe(
-      'sáb, 19 de set. de 2026 · 21h',
-    );
-    expect(formatShowListDate('2026-09-19T21:30:00-03:00')).toBe(
-      'sáb, 19 de set. de 2026 · 21h30',
-    );
-  });
-
-  it('usa horário detalhado na data completa e compacto isoladamente', () => {
-    expect(formatShowDate('2026-09-19T21:30:45-03:00')).toBe(
-      '19 de set. de 2026, 21:30:45',
-    );
-    expect(formatShowTime('2026-09-19T21:00:00-03:00')).toBe('21h');
-    expect(formatShowTime('2026-09-19T21:30:00-03:00')).toBe('21h30');
-  });
-
-  it('apresenta a duração total em horas e minutos sem segundos', () => {
-    expect(formatShowDuration(1_177_000)).toBe('19min');
-    expect(formatShowDuration(3_661_000)).toBe('1h 1min');
-    expect(formatShowDuration(3_600_000)).toBe('1h');
-    expect(formatShowDuration(null)).toBe('Não informada');
-  });
-
-  it('apresenta a duração da música com horas, minutos e segundos', () => {
-    expect(formatSongDuration(218_000)).toBe('3min38s');
-    expect(formatSongDuration(5_535_000)).toBe('1h32min15s');
-    expect(formatSongDuration(3_605_000)).toBe('1h0min5s');
-    expect(formatSongDuration(45_000)).toBe('45s');
-    expect(formatSongDuration(null)).toBe('Não informada');
-  });
-});
+} from '@/domain/setlistDuration';
 
 describe('duração planejada da setlist', () => {
   it('separa músicas e planejamento no bloco e no total do show', () => {

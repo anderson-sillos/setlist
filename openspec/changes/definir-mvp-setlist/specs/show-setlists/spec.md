@@ -50,7 +50,11 @@ O sistema SHALL permitir várias anotações de planejamento independentes entre
 
 #### Scenario: Consultar a composição da duração
 - **WHEN** um integrante abre os detalhes de um show com tempos informados
-- **THEN** o sistema apresenta a duração estimada total e sua composição entre músicas e planejamento
+- **THEN** o sistema apresenta a quantidade de ocorrências de músicas, incluindo repetições, a duração estimada total e sua composição entre músicas e planejamento
+
+#### Scenario: Apresentar tempos nos detalhes
+- **WHEN** um integrante consulta os dados e a setlist de um show
+- **THEN** o sistema usa na data e no horário o mesmo formato compacto da lista de Shows, mostra totais do show e dos blocos em horas e minutos e preserva os segundos nas durações individuais
 
 #### Scenario: Nenhum item possui duração
 - **WHEN** um show não possui duração informada em nenhuma música ou anotação
@@ -79,6 +83,10 @@ O sistema SHALL oferecer uma única ação de inclusão para blocos, músicas, a
 - **WHEN** um Owner ou Editor tenta sair da edição sem salvar
 - **THEN** o sistema solicita confirmação antes de descartar as alterações locais
 
+#### Scenario: Acessar a edição da setlist
+- **WHEN** um Owner ou Editor consulta um show Rascunho
+- **THEN** o sistema apresenta junto ao cabeçalho da Setlist uma ação de edição identificada por ícone e nome acessível
+
 ### Requirement: Observação específica do item
 O sistema SHALL permitir uma observação opcional para cada ocorrência de uma música na setlist sem alterar a música do repertório.
 
@@ -87,11 +95,19 @@ O sistema SHALL permitir uma observação opcional para cada ocorrência de uma 
 - **THEN** o sistema mostra a observação na setlist e no modo palco apenas para aquela ocorrência
 
 ### Requirement: Consulta organizada de shows
-O sistema SHALL apresentar os shows em uma única lista vertical rolável com busca por nome ou local, filtros compactos por data e estado e ordenação por data, nome ou duração, SHALL tratar `Próximos`, `Passados`, `Todos` e uma data específica como critérios de data mutuamente exclusivos.
+O sistema SHALL apresentar os shows em uma única lista vertical rolável com busca por nome ou local, filtros compactos por período, data específica e estado e ordenação por data, nome ou duração, SHALL selecionar `Todos` em período e estado quando uma data específica for escolhida e SHALL contar cada uma dessas três dimensões de filtro separadamente.
 
 #### Scenario: Abrir a lista de shows
 - **WHEN** um integrante abre Shows sem alterar os controles de consulta
-- **THEN** o sistema mostra os próximos shows em Rascunho ou Pronto, ordenados pela data mais próxima, com a duração estimada de cada evento
+- **THEN** o sistema seleciona `Próximos` e `Ativo`, mostra os próximos shows em Rascunho ou Pronto ordenados pela data mais próxima, apresenta a duração estimada de cada evento e exibe a contagem de filtros igual a `2`
+
+#### Scenario: Desativar período e estado
+- **WHEN** um integrante seleciona `Todos` tanto em período quanto em estado e não há uma data específica selecionada
+- **THEN** o sistema exibe a contagem de filtros igual a `0`
+
+#### Scenario: Limpar os filtros pelo painel
+- **WHEN** um integrante aciona `Limpar` no painel de filtros
+- **THEN** o sistema restaura `Próximos`, `Ativo` e nenhuma data específica, atualiza a lista, exibe a contagem de filtros igual a `2` e fecha o painel
 
 #### Scenario: Consultar outros shows
 - **WHEN** um integrante altera o período, estado ou ordenação
@@ -110,11 +126,11 @@ O sistema SHALL oferecer dentro de Shows um botão de acesso direto ao calendár
 
 #### Scenario: Consultar um dia
 - **WHEN** um integrante seleciona uma data
-- **THEN** o sistema fecha o calendário, substitui o critério de período pela data escolhida e atualiza imediatamente a lista geral com os shows desse dia
+- **THEN** o sistema fecha o calendário, muda período e estado para `Todos`, contabiliza somente a data com o valor `1` e atualiza imediatamente a lista geral com todos os eventos daquele dia
 
 #### Scenario: Remover a data específica
 - **WHEN** um integrante remove a data escolhida pelo controle visível da consulta
-- **THEN** o sistema restaura `Próximos` como critério de data e atualiza a lista geral
+- **THEN** o sistema remove a data específica, restaura `Próximos` como período e `Ativo` como estado e atualiza a lista geral
 
 #### Scenario: Combinar a data com os demais controles
 - **WHEN** um integrante seleciona uma data e altera a busca, o estado ou a ordenação

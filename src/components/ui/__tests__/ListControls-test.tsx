@@ -76,6 +76,7 @@ describe('<OptionMenu />', () => {
     const view = await render(
       <OptionMenu
         accessibilityLabel="Alterar ordenação"
+        icon="sort"
         label="Ordenar"
         onChange={onChange}
         options={options}
@@ -102,10 +103,13 @@ describe('<OptionMenu />', () => {
 describe('<FilterMenu />', () => {
   it('mantém o painel aberto durante a seleção e separa o fundo dos controles', async () => {
     const onChange = jest.fn();
+    const onClear = jest.fn();
     const view = await render(
       <FilterMenu
         accessibilityLabel="Abrir filtros"
+        icon="filter"
         label="Filtros"
+        onClear={onClear}
         summary="1"
       >
         <ChoiceChips
@@ -130,8 +134,9 @@ describe('<FilterMenu />', () => {
     expect(onChange).toHaveBeenCalledWith('artist');
     expect(view.getByLabelText('Aplicar filtros')).toBeTruthy();
 
-    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    await fireEvent.press(view.getByLabelText('Limpar filtros'));
 
+    expect(onClear).toHaveBeenCalledTimes(1);
     expect(view.queryByLabelText('Fechar filtros')).toBeNull();
   });
 });

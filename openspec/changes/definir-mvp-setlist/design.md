@@ -63,6 +63,8 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - TanStack Query cuidará do estado remoto, invalidação, nova tentativa e reconexão. Seu cache será temporário e não substituirá os pacotes offline.
 - React Hook Form e Zod cuidarão de formulários e validação.
 - `lucide-react-native`, apoiado por `react-native-svg`, fornecerá os ícones vetoriais compartilhados em Android, iOS e web. Um componente semântico `AppIcon` centralizará o catálogo, tamanhos, cores e ocultação de elementos decorativos para tecnologias assistivas; os rótulos e áreas de toque continuarão pertencendo aos controles que contêm os ícones.
+- Regras de negócio puras ficarão em `src/domain`, funções compartilhadas e sem contexto de domínio ficarão em `src/utils` organizadas por assunto, e constantes transversais de apresentação ficarão em `src/config`. A navegação não será usada como depósito de formatadores, rótulos ou cálculos de setlist.
+- Formatação de datas e durações e normalização de busca serão reutilizadas por meio de `src/utils/dateTime.ts`, `src/utils/duration.ts` e `src/utils/text.ts`. O cálculo de duração de blocos e shows ficará em `src/domain/setlistDuration.ts`; rótulos específicos de Shows e Repertório permanecerão em suas respectivas features.
 - Estado local e Context do React serão usados inicialmente. Zustand só será adicionado se surgir estado global complexo que não seja remoto nem pertencente à rota.
 - Jest e React Native Testing Library cobrirão unidades e componentes; Maestro cobrirá fluxos móveis e Playwright os fluxos web.
 
@@ -91,6 +93,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Sem conexão, uma faixa compacta ficará abaixo do cabeçalho. Conteúdo já carregado permanecerá somente para leitura, criação e edição indicarão que exigem conexão e os aplicativos móveis continuarão oferecendo os shows previamente baixados.
 - Ao recuperar a conexão, o cliente atualizará os dados automaticamente e informará brevemente o restabelecimento.
 - Sucessos e ações reversíveis usarão mensagens temporárias não bloqueantes acima da barra inferior, com `Desfazer` quando aplicável. Validações ficarão junto aos campos; diálogos serão reservados para confirmações destrutivas.
+- Como exceção temporária da primeira versão navegável, ações ainda não implementadas usarão `DemoActionNotice` em um popup modal acessível, com título, mensagem e fechamento explícito ou pelo fundo, evitando que o aviso se misture ao conteúdo da tela. Esse componente não será usado para sucessos, erros ou validações reais.
 - Toda informação de estado será comunicada por texto, sem depender apenas de cor. Leitores de tela receberão o mesmo significado das mensagens visuais quando o estado mudar.
 
 ### Tom de voz da interface
@@ -140,16 +143,17 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 - Cada banda manterá seu próprio repertório e uma única versão vigente de cada música.
 - Os campos previstos são título, artista original, tonalidade, BPM, duração estimada, referência do YouTube, letra estruturada, observações, estado da sincronização e `updated_at`.
-- O repertório usará lista vertical rolável com busca por título ou artista, um seletor compacto para os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas e ordenação por título, artista, atualização ou duração. O padrão será músicas ativas por título.
+- O repertório usará lista vertical rolável com busca por título ou artista, um seletor compacto com ícone para os filtros agrupados Todas, Pendentes, Sincronizadas e Arquivadas e ordenação com ícone por título, artista, atualização ou duração. Os ícones acompanharão os rótulos, e o padrão será músicas ativas por título.
 - Cada linha priorizará título, artista, duração e estado da letra; tonalidade e BPM ficarão no detalhe.
 - A letra será um documento JSONB dentro da música, composto por blocos e linhas ordenados. Blocos e linhas terão identificadores estáveis; cada linha poderá ter seu início em milissegundos.
 - Não haverá tabelas por linha, histórico de versões ou consulta textual avançada no MVP. A gravação de toda a letra será atômica.
 - Os estados serão Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
 - Serão mantidas somente letras, sem cifras ou transposição.
 - Uma música utilizada em shows será arquivada em vez de excluída. Ela deixará de aparecer para novas inclusões, continuará nos shows existentes e poderá ser restaurada.
-- No detalhe, a letra aparecerá logo após um cabeçalho compacto, com todos os blocos expandidos em uma única rolagem. Os timestamps das linhas ficarão restritos ao editor de sincronização.
-- A última atualização será apresentada em formato relativo. Tonalidade, BPM e observações serão secundários; arquivamento e restauração ficarão no menu de ações conforme o papel.
-- A consulta abrirá a referência no aplicativo ou navegador do YouTube. O player incorporado ficará reservado à edição e à sincronização.
+- No detalhe, a letra aparecerá logo após um cabeçalho compacto, com todos os blocos expandidos em uma única rolagem. Os timestamps das linhas ficarão restritos ao editor de sincronização. Os títulos de Letra, Informações e Observações terão semântica de cabeçalho para facilitar a navegação assistiva.
+- O cabeçalho do detalhe reutilizará os marcadores de estado da lista e o mesmo formato de duração com horas, minutos e segundos. A última atualização será apresentada em formato relativo. Tonalidade, BPM e observações serão secundários; arquivamento e restauração ficarão no menu de ações conforme o papel.
+- A ação `Editar` será secundária, terá ícone e nome acessível e permanecerá junto ao título porque altera a música inteira, não somente a letra.
+- A consulta abrirá a referência no aplicativo ou navegador do YouTube por um botão secundário nomeado e acompanhado de ícone vetorial externo, sem marcador tipográfico. O player incorporado ficará reservado à edição e à sincronização.
 
 ### Sincronização manual com YouTube
 
@@ -165,18 +169,21 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - O show terá nome, data, horário, local, observações, estado e `updated_at`.
 - Cada show terá setlist própria e poderá ser criado pela duplicação de outro show.
 - A setlist aceitará blocos nomeados, como Primeiro Set, Segundo Set e Bis. Um bloco Principal será criado como padrão.
-- Além de músicas, cada bloco aceitará anotações de planejamento independentes com descrição e duração opcional e separadores puramente visuais. Esses itens poderão ser reordenados dentro do bloco ou entre blocos e não serão etapas do modo palco.
+- Além de músicas, cada bloco aceitará anotações de planejamento independentes com descrição e duração opcional e separadores puramente visuais. Na consulta, cada anotação será diferenciada por fundo e ícone compacto, sem repetir o rótulo `Planejamento`; seu significado permanecerá disponível para tecnologias assistivas. Esses itens poderão ser reordenados dentro do bloco ou entre blocos e não serão etapas do modo palco.
 - A edição terá uma única ação `Adicionar`, seguida da escolha entre bloco, música, anotação ou separador. A inclusão de músicas aceitará seleção múltipla e repetições da mesma música no show.
 - Blocos terão alças de reordenação; itens terão alças que permitirão também a troca de bloco. Um menu compacto oferecerá edição, remoção e alternativas acessíveis ao arraste.
 - As mudanças permanecerão locais durante a edição e serão persistidas por um único salvamento explícito. A saída com mudanças pendentes exigirá confirmação.
-- A duração total somará os valores informados nas músicas e anotações, sem aviso de total parcial. O detalhe apresentará a composição entre músicas e planejamento e cada bloco mostrará seu total; quando nenhum tempo existir, exibirá `Duração não informada`.
+- A duração total somará os valores informados nas músicas e anotações, sem aviso de total parcial. O detalhe apresentará a quantidade de ocorrências de músicas, incluindo repetições, a composição entre músicas e planejamento e o total de cada bloco; quando nenhum tempo existir, exibirá `Duração não informada`.
+- Nos detalhes, a data e o horário seguirão o mesmo formato compacto da lista de Shows. As durações agregadas do show e dos blocos usarão horas e minutos, enquanto os tempos de cada música ou anotação preservarão os segundos.
+- Em shows Rascunho editáveis, a ação `Editar` com ícone ficará junto ao cabeçalho da Setlist, associando visualmente a ação ao conteúdo que será alterado.
 - Cada item poderá ter uma observação opcional específica do show, sem alterar a música do repertório. Ela aparecerá na setlist e no modo palco.
-- Shows usarão uma única lista vertical rolável com busca por nome ou local, filtros compactos por data e estado e ordenação por data, nome ou duração. A consulta padrão mostrará próximos Rascunhos e Prontos pela data mais próxima e ocultará Cancelados.
+- Shows usarão uma única lista vertical rolável com busca por nome ou local, filtros compactos por data e estado e ordenação por data, nome ou duração. A consulta padrão selecionará `Próximos` no período e `Ativo` no estado, reunirá Rascunhos e Prontos pela data mais próxima e ocultará Cancelados.
 - A lista exibirá a duração estimada alinhada aos demais metadados, sem o rótulo redundante `Tempo total`. Busca e controles compactos permanecerão fixos durante a rolagem.
-- O critério de data terá as opções mutuamente exclusivas `Próximos`, `Passados`, `Todos` e uma data específica. Um botão exclusivo com ícone de calendário abrirá diretamente o seletor mensal, sem exigir acesso pelo menu de filtros.
-- O calendário funcionará somente como seletor visual de uma data para a lista geral, sem criar uma visualização ou lista de resultados própria. Ao escolher um dia, o seletor fechará e aplicará o filtro imediatamente; a data escolhida ficará visível em um controle removível e sua remoção restaurará `Próximos`.
+- O período terá as opções `Próximos`, `Passados` e `Todos`. A data específica será um filtro adicional e independente, escolhido por um botão exclusivo com ícone de calendário que abrirá diretamente o seletor mensal, sem exigir acesso pelo menu de filtros.
+- O calendário funcionará somente como seletor visual de uma data para a lista geral, sem criar uma visualização ou lista de resultados própria. Ao escolher um dia, o seletor fechará, mudará período e estado para `Todos` e aplicará somente a data, mostrando todos os eventos daquele dia; a data escolhida ficará visível em um controle removível e sua remoção restaurará `Próximos` e `Ativo`.
+- O indicador dos filtros contará separadamente período, estado e data específica. A consulta padrão exibirá `2`; `Todos` em período e estado, sem data específica, exibirá `0`; uma data selecionada com os outros dois controles em `Todos` exibirá `1`. A ação `Limpar` restaurará `Próximos`, `Ativo` e nenhuma data e fechará o painel. Os acionadores de filtros e ordenação usarão ícones acompanhados dos seus rótulos.
 - Os dias terão altura compacta e números centralizados. A data selecionada terá contorno completo com cantos moderadamente arredondados. Datas com shows usarão fundo próprio e marcador ou quantidade; finais de semana, hoje e feriados também terão fundos distintos. Quando classificações coincidirem, hoje e feriado terão prioridade de fundo e o marcador continuará identificando o evento. Os feriados nacionais do Brasil serão calculados localmente; o nome ficará disponível para tecnologias assistivas e será mostrado visualmente somente quando a data for selecionada. Por decisão do produto, a terça-feira de Carnaval e Corpus Christi receberão o mesmo destaque, embora sejam classificados como pontos facultativos no calendário federal.
-- Os marcadores do calendário representarão os shows ativos do mês e não serão alterados pela busca textual ou pela ordenação. Depois da escolha da data, busca, estado e ordenação continuarão visíveis e serão combinados com ela na única lista de resultados.
+- Os marcadores do calendário representarão os shows ativos do mês e não serão alterados pela busca textual ou pela ordenação. Depois da escolha da data, busca, período, estado e ordenação continuarão visíveis; período e estado começarão em `Todos`, deixando a data como único filtro da lista de resultados.
 - O calendário não terá visão semanal ou anual nem integração com calendários externos no MVP.
 - O cabeçalho de Shows terá uma ação direta de criação para Owner e Editor. No celular, ela poderá ser representada por um ícone de adição com nome acessível `Criar novo show`; se houver uma data específica selecionada, a criação poderá reutilizá-la como valor inicial quando o cadastro for implementado.
 - Os estados compartilhados serão Rascunho, Pronto e Cancelado. Não haverá Em andamento ou Finalizado; shows passados serão identificados pela data.
