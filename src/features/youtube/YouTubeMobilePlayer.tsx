@@ -116,7 +116,7 @@ export function YouTubeMobilePlayer({
           allowsInlineMediaPlayback
           domStorageEnabled
           javaScriptEnabled
-          mediaPlaybackRequiresUserAction
+          mediaPlaybackRequiresUserAction={false}
           onError={() => {
             setError('Não foi possível carregar o player do YouTube.');
             setReady(false);

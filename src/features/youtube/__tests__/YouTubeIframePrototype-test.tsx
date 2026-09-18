@@ -9,14 +9,21 @@ import {
 } from '@/features/youtube/youtubePlayer';
 import { AppProviders } from '@/providers/AppProviders';
 
+let mockWebViewProps:
+  { readonly mediaPlaybackRequiresUserAction?: boolean } | undefined;
+
 jest.mock('react-native-webview', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   const MockWebView = React.forwardRef(
     (
-      props: { readonly testID?: string },
+      props: {
+        readonly mediaPlaybackRequiresUserAction?: boolean;
+        readonly testID?: string;
+      },
       ref: { readonly current: unknown } | null,
     ) => {
+      mockWebViewProps = props;
       React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
       return <View testID={props.testID} />;
     },
@@ -47,6 +54,7 @@ describe('<YouTubeIframePrototype />', () => {
       configurable: true,
       value: originalPlatform,
     });
+    mockWebViewProps = undefined;
     jest.clearAllMocks();
   });
 
@@ -59,6 +67,8 @@ describe('<YouTubeIframePrototype />', () => {
 
     expect(view.getByTestId('youtube-mobile-player-card')).toBeTruthy();
     expect(view.getByTestId('youtube-mobile-webview')).toBeTruthy();
+    expect(view.getByRole('link', { name: 'Fechar protótipo' })).toBeTruthy();
+    expect(mockWebViewProps?.mediaPlaybackRequiresUserAction).toBe(false);
     expect(view.getByText('Tarefa 3.2 · protótipo WebView')).toBeTruthy();
   });
 

@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 
@@ -39,6 +40,14 @@ export function YouTubeIframePrototype({
   return (
     <Screen testID="youtube-iframe-prototype">
       <View style={styles.header}>
+        <Link href="/" replace asChild>
+          <AppButton
+            icon="back"
+            label="Fechar protótipo"
+            style={styles.closeButton}
+            variant="secondary"
+          />
+        </Link>
         <AppText tone="accent" variant="eyebrow">
           Tarefa{' '}
           {Platform.OS === 'web'
@@ -244,6 +253,9 @@ const styles = StyleSheet.create({
   header: {
     gap: spacing.sm,
     marginBottom: spacing.xl,
+  },
+  closeButton: {
+    alignSelf: 'flex-start',
   },
   playerCard: {
     gap: spacing.lg,

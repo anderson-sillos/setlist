@@ -65,6 +65,7 @@ openspec validate definir-mvp-setlist --type change --strict
 31. O README passou a documentar o fluxo manual de trabalho com Git e GitHub CLI: atualizar `main`, criar branch, validar, revisar o staging, criar commit, publicar com `git push`, abrir ou editar a PR e acompanhar os checks sem fazer merge automático antes da revisão.
 32. O roteiro manual também documenta a conclusão da PR: verificar aprovação e checks, trocar para `main`, executar `gh pr merge --squash --delete-branch`, atualizar a cópia local e remover a branch restante somente depois de confirmar a integração.
 33. Durante a validação da tarefa 3.2, o menu lateral ganhou temporariamente o link `Player YouTube (protótipo)`, que abre `/youtube-prototype` no Expo Go sem exigir deep link manual. O item deve ser removido depois da validação nativa da WebView.
+34. A tela do protótipo ganhou o botão `Fechar protótipo`, que retorna para `Minhas bandas` usando a rota raiz. Na WebView, `mediaPlaybackRequiresUserAction` foi desativado para permitir que o comando `Reproduzir` inicie o vídeo pela primeira vez sem exigir um toque prévio nos controles internos do YouTube.
 
 ## Visão confirmada do produto
 

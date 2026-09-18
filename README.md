@@ -247,6 +247,7 @@ Durante a validação da tarefa 3.2, o menu lateral possui temporariamente a op�
 2. Se a rede local não funcionar, use `npx expo start --go --tunnel --clear` e leia o novo QR code.
 3. Abra o projeto no Expo Go, toque em **Abrir menu geral** e selecione **Player YouTube (protótipo)**.
 4. O player deve aparecer dentro de uma WebView no Android ou no iOS. Reproduza, pause e use os controles de `−10 s` e `+10 s`; confira também o tempo atual e a mensagem exibida para um vídeo indisponível.
+5. Para retornar ao aplicativo, toque em **Fechar protótipo**; o botão volta para `Minhas bandas`.
 
 Esse item é provisório e será removido do menu depois da validação da WebView. No navegador, a rota continua disponível diretamente em `/youtube-prototype`.
 
