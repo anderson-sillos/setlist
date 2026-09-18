@@ -268,6 +268,33 @@ Regras que envolvem mais de uma linha serão protegidas por funções ou gatilho
 - A exclusão de conta estará disponível dentro do aplicativo e também será atendida pela versão web.
 - A integração com YouTube seguirá os termos do player incorporado e não tentará contornar anúncios, marca, controles, restrições de reprodução ou indisponibilidade do vídeo.
 
+## Resultados da validação antecipada
+
+### Player YouTube (tarefas 3.1 e 3.2)
+
+- O navegador e a WebView Android/iOS exibem o player oficial do YouTube com reprodução, pausa, busca, leitura do tempo atual e controles visíveis.
+- A ponte nativa comunica estado de pronto, estado de reprodução, tempo, duração e indisponibilidade. `origin`, `baseUrl` e a política de referer foram configurados para os ambientes de desenvolvimento.
+- A reprodução inicial na WebView exige `mediaPlaybackRequiresUserAction: false` para que o comando do protótipo funcione sem um toque prévio nos controles internos.
+- O player continua dependente de conexão, das políticas de incorporação e da disponibilidade do vídeo. O MVP não poderá baixar, extrair, ocultar ou reproduzir esse áudio em segundo plano. As limitações ficam refletidas nas tarefas 9.1 a 9.5.
+
+### Cronômetro em tempo real (tarefa 3.3)
+
+- O cronômetro usa uma referência de tempo real (`Date.now`) em vez de acumular somente os intervalos de JavaScript.
+- Ao retornar ao estado `active` do aplicativo, o tempo é recalculado após perda de foco, bloqueio de tela e chamada. Um cronômetro pausado mantém o valor pausado.
+- A retomada após encerramento do processo não foi incluída neste protótipo. A tarefa 8.6 deverá persistir o contexto e exigir a escolha explícita entre `Retomar` e `Reiniciar`, sem início silencioso.
+
+### Convites e retorno OAuth (tarefa 3.4)
+
+- As rotas `/invite/[token]` e `/auth/callback` funcionam no navegador, Android e iOS usando URLs geradas por `expo-linking`.
+- O fluxo prototipado preserva `invite_token`, `code` e `state` durante o retorno e permite retomar a tela do convite depois do login simulado.
+- O protótipo não autentica, não consome convite e não valida estado no servidor. A integração real deverá usar Supabase, proteger o `state`, consumir o convite atomicamente e configurar os endereços HTTPS, App Links, Universal Links e o esquema nativo definitivo nas tarefas 4.5, 5.1, 5.6 e 11.5.
+
+### Decisões para a sequência
+
+- Os protótipos confirmam a viabilidade técnica das integrações sem alterar o escopo do MVP: áudio continua externo, cronômetros continuam locais e convites continuam links de uso único.
+- A tela `Convite e OAuth (protótipo)` e o item temporário do menu devem ser removidos quando a integração real de autenticação e convites começar.
+- Nenhuma limitação observada exige SQLite, sincronização de cronômetros entre aparelhos ou armazenamento local de áudio.
+
 ## Risks / Trade-offs
 
 - [Cronômetros independentes podem divergir entre músicos] -> Manter controles rápidos de correção e estudar reconhecimento automático somente após validar o fluxo manual.
@@ -288,9 +315,9 @@ Não existe sistema anterior nem dados a migrar. A implantação será increment
 
 ## Validações pendentes
 
-- Construir um protótipo do YouTube IFrame em WebView e navegador e validar vídeo visível, play, pause, busca, leitura de tempo, captura de linha, origem/referer e falhas em Android, iOS e web.
-- Validar o cronômetro e sua restauração após bloqueio, mudança de foco, chamada e encerramento do processo nos sistemas suportados.
-- Configurar e testar Google, Apple, URLs de retorno, links de convite e preservação do token durante autenticação em desenvolvimento e produção.
+- Integrar o player já validado à edição de músicas e implementar marcação, correção e persistência dos tempos das linhas.
+- Implementar e validar a recuperação do modo palco após encerramento do processo, com `Retomar` ou `Reiniciar` explícitos.
+- Configurar e testar Google, Apple, URLs de retorno, links de convite e preservação do token com Supabase em desenvolvimento e produção.
 - Implementar testes de integração das políticas RLS, do último Owner, dos estados do show, dos convites e dos timestamps de conteúdo.
 - Validar escrita atômica, corrupção, substituição e limpeza dos pacotes JSON em Android e iOS.
 - Redigir a versão inicial do termo de responsabilidade e da política de privacidade e submetê-los a revisão jurídica antes de distribuição pública.

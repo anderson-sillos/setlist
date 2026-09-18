@@ -6,14 +6,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/ui-improvements-round-2`.
+- Branch de trabalho: `feat/youtube-iframe-prototype`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- PR #10: segunda rodada de melhorias de UI aberta a partir de `feat/ui-improvements-round-2` e mantida disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; o PR #10 foi aprovado para merge e a próxima atividade é a tarefa 3.1.
+- PR #10: segunda rodada de melhorias de UI integrada à `main`.
+- PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; a próxima etapa é o grupo 4, de backend e segurança.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, depois de integrar o PR #10.
+- Próximo passo: iniciar a configuração dos projetos Supabase de desenvolvimento e produção na tarefa 4.1.
 
 ## Fontes de verdade
 
@@ -57,7 +58,20 @@ openspec validate definir-mvp-setlist --type change --strict
 24. A suíte monolítica `features/navigation/__tests__/navigation-test.tsx` foi dividida por responsabilidade. O diretório de navegação agora cobre apenas shell, integração de rotas, memória e builders de endereço; os testes de bandas, repertório, shows e seleção do palco ficam junto das respectivas features. O comportamento foi preservado e a convenção está documentada em `docs/ARQUITETURA_DE_TELAS.md`.
 25. Os nomes com colchetes em `src/app/bands/[bandId]/...` são segmentos dinâmicos oficiais do Expo Router, não uma cópia redundante ou incompatível entre plataformas. Eles foram mantidos para preservar as URLs e o roteamento; comandos de shell que apontarem para esses caminhos devem usar aspas.
 26. A limpeza estrutural removeu o componente legado não utilizado `src/components/layout/ResponsiveGrid.tsx`, o helper `getCatalogColumnCount` e seus testes, além das pastas vazias `public/icons`, `dist/icons`, `.vscode/.react` e `src/components/layout`. O diretório `.codex` permanece somente por ser um ponto de montagem ocupado pelo ambiente local; os placeholders `.gitkeep` do OpenSpec foram preservados.
-27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 está pronto para integração; a tarefa 3.1 será iniciada em uma nova branch após o merge.
+27. A tarefa 2.13 foi aprovada e concluída após a revisão dos refinamentos visuais, organização de testes, arquitetura e limpeza de artefatos. O PR #10 foi integrado à `main`; a tarefa 3.1 foi iniciada em uma nova branch.
+28. A tarefa 3.1 começou na branch `feat/youtube-iframe-prototype`. O protótipo web isolado está em `src/features/youtube/YouTubeIframePrototype.tsx`, usa a API oficial do YouTube IFrame para player visível, play, pause, busca de dez segundos e leitura periódica do tempo, e pode ser aberto em `/youtube-prototype`.
+29. A validação manual da tarefa 3.1 confirmou no navegador o player visível, reprodução, pausa, busca e leitura do tempo atual. A tarefa foi marcada como concluída no OpenSpec; a adaptação para WebView Android e iOS permanece na tarefa 3.2.
+30. A tarefa 3.2 começou na mesma branch. `src/features/youtube/YouTubeMobilePlayer.tsx` hospeda o player em `react-native-webview`; `youtubeMobilePlayer.ts` gera o HTML com origem e `baseUrl` definidos, envia comandos pela ponte `injectJavaScript` e valida mensagens de pronto, tempo, estado e vídeo indisponível. A validação automatizada da ponte passou; ainda falta conferir o comportamento em Android e iOS físicos ou simulados antes de marcar a tarefa como concluída.
+31. O README passou a documentar o fluxo manual de trabalho com Git e GitHub CLI: atualizar `main`, criar branch, validar, revisar o staging, criar commit, publicar com `git push`, abrir ou editar a PR e acompanhar os checks sem fazer merge automático antes da revisão.
+32. O roteiro manual também documenta a conclusão da PR: verificar aprovação e checks, trocar para `main`, executar `gh pr merge --squash --delete-branch`, atualizar a cópia local e remover a branch restante somente depois de confirmar a integração.
+33. Durante a validação da tarefa 3.2, o menu lateral ganhou temporariamente o link `Player YouTube (protótipo)`, que abre `/youtube-prototype` no Expo Go sem exigir deep link manual. O item deve ser removido depois da validação nativa da WebView.
+34. A tela do protótipo ganhou o botão `Fechar protótipo`, que retorna para `Minhas bandas` usando a rota raiz. Na WebView, `mediaPlaybackRequiresUserAction` foi desativado para permitir que o comando `Reproduzir` inicie o vídeo pela primeira vez sem exigir um toque prévio nos controles internos do YouTube.
+35. A validação manual confirmou a tarefa 3.2 em Android e iOS: o player abriu na WebView, a ponte respondeu aos comandos e ao tempo, os controles funcionaram e o vídeo indisponível exibiu o estado correspondente. A tarefa 3.2 foi marcada como concluída; a tarefa 3.3 é o próximo protótipo técnico.
+36. A tarefa 3.3 começou com o cronômetro mantendo uma referência de tempo real e recalculando o progresso quando o aplicativo volta ao estado `active` do React Native. O comportamento de retomada após perda de foco foi coberto no teste do hook.
+37. A validação manual confirmou a tarefa 3.3 em Android e iOS: perda de foco, bloqueio de tela e chamada mantiveram o cronômetro baseado no tempo real; o estado pausado permaneceu estável. A tarefa 3.3 foi marcada como concluída; a tarefa 3.4 é o próximo protótipo técnico.
+38. A tarefa 3.4 começou com um protótipo isolado de convite e retorno OAuth. As rotas `/invite/[token]` e `/auth/callback` preservam `invite_token`, `code` e `state`; `expo-linking` gera os endereços de desenvolvimento para web, Android e iOS. A tela temporária `Convite e OAuth (protótipo)` permite exercitar os dois caminhos e ficará disponível até a validação manual.
+39. A validação manual confirmou a tarefa 3.4 no navegador, Android e iOS: os links de convite abriram a rota correta, `invite_token`, `code` e `state` permaneceram preservados no retorno OAuth e o convite pôde ser retomado. A tarefa 3.4 foi marcada como concluída; a tarefa 3.5 é o próximo registro técnico.
+40. A tarefa 3.5 consolidou no design os resultados e limites dos três protótipos. O player YouTube permanece visível e dependente de conexão; o cronômetro continua local e já trata interrupções sem encerramento do processo; o fluxo de convite/OAuth preserva parâmetros, mas ainda depende da integração real com Supabase, estado protegido e links definitivos. As tarefas 5.1, 5.6, 8.6, 9.1, 9.2 e 11.5 foram explicitamente alinhadas a essas limitações. O grupo 3 foi concluído.
 
 ## Visão confirmada do produto
 
@@ -219,4 +233,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 3.1 com um protótipo mínimo do YouTube IFrame no navegador, validando player visível, play, pause, busca e leitura do tempo atual. A validação iOS permanece adiada para uma etapa futura.
+Iniciar a tarefa 4.1, configurando projetos Supabase separados para desenvolvimento e produção sem incluir segredos no cliente.

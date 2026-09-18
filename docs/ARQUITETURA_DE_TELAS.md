@@ -28,6 +28,8 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 | `/bands/[bandId]/stage`                | Seleção para o modo palco | `src/features/stage/StageHubScreen.tsx`        |
 | `/bands/[bandId]/shows/[showId]/stage` | Execução do modo palco    | `src/features/stage/StageScreen.tsx`           |
 
+O protótipo técnico `/youtube-prototype` fica fora da navegação principal e serve somente para validar a integração web do player do YouTube antes da implementação no detalhe da música.
+
 ## Componentes estruturais
 
 | Responsabilidade                             | Arquivo                                                                                  |

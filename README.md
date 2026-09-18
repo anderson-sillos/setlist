@@ -104,6 +104,7 @@ Obrigatórios em qualquer sistema:
 | Componente              | Necessidade                                                          | Download ou instalação oficial                                                                  |
 | ----------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Git                     | Obrigatório                                                          | [Downloads do Git](https://git-scm.com/downloads/)                                              |
+| GitHub CLI              | Recomendado para criar e acompanhar PRs pelo terminal                | [Instalação do GitHub CLI](https://cli.github.com/)                                             |
 | Node.js 24 LTS          | Obrigatório                                                          | [Downloads do Node.js](https://nodejs.org/en/download)                                          |
 | npm 11                  | Obrigatório                                                          | Já acompanha a instalação do Node.js; não precisa ser instalado separadamente                   |
 | nvm                     | Recomendado em Linux, macOS e WSL                                    | [Instalação do nvm](https://github.com/nvm-sh/nvm#installing-and-updating)                      |
@@ -238,6 +239,18 @@ npm run ios
 
 A rota inicial exibe `Minhas bandas` e permite navegar por Shows, Repertório e Banda usando conteúdo demonstrativo local. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
 
+O protótipo técnico do player de referência fica separado da navegação principal. Com a versão web em execução, abra [http://localhost:8081/youtube-prototype](http://localhost:8081/youtube-prototype) para validar o IFrame visível do YouTube, os controles de reproduzir, pausar, buscar dez segundos e a leitura do tempo atual. No Android e no iOS, a mesma rota usa o `react-native-webview` para hospedar o IFrame, enviar comandos pela ponte JavaScript e receber tempo, estado e erros. A validação nativa depende de um aparelho ou simulador e de um build que contenha o módulo nativo.
+
+Durante a validação da tarefa 3.2, o menu lateral possui temporariamente a opção **Player YouTube (protótipo)**. Para acessá-la no celular:
+
+1. Inicie o projeto com `npx expo start --go --lan --clear` quando computador e aparelho estiverem na mesma rede Wi-Fi.
+2. Se a rede local não funcionar, use `npx expo start --go --tunnel --clear` e leia o novo QR code.
+3. Abra o projeto no Expo Go, toque em **Abrir menu geral** e selecione **Player YouTube (protótipo)**.
+4. O player deve aparecer dentro de uma WebView no Android ou no iOS. Reproduza, pause e use os controles de `−10 s` e `+10 s`; confira também o tempo atual e a mensagem exibida para um vídeo indisponível.
+5. Para retornar ao aplicativo, toque em **Fechar protótipo**; o botão volta para `Minhas bandas`.
+
+Esse item é provisório e será removido do menu depois da validação da WebView. No navegador, a rota continua disponível diretamente em `/youtube-prototype`.
+
 O comando para iOS requer macOS quando usado com o simulador. Em Linux ou Windows, teste iOS em um aparelho físico com Expo Go ou utilize posteriormente um build remoto apropriado.
 
 ### 7. Verificar a instalação
@@ -269,6 +282,140 @@ npm run export:web -- --output-dir dist
 ```
 
 O workflow [Qualidade](.github/workflows/ci.yml) repete a instalação limpa, formatação, lint, tipos e testes em cada pull request e em cada envio para `main`. O resultado atual também pode ser consultado pelo selo no início deste README.
+
+### 7.1. Criar um commit e abrir uma PR manualmente
+
+O fluxo abaixo reproduz os comandos usados no projeto para registrar uma atividade e enviá-la ao GitHub. Execute tudo dentro da pasta do projeto. A branch `main` deve permanecer estável; cada atividade deve usar uma branch própria.
+
+#### Preparar a branch
+
+Atualize a base antes de começar uma atividade:
+
+```bash
+git status --short --branch
+git switch main
+git pull --ff-only origin main
+git switch -c feat/nome-curto-da-atividade
+```
+
+Se a branch já existir, use `git switch feat/nome-curto-da-atividade` e atualize-a com `git pull --ff-only origin feat/nome-curto-da-atividade`. Não continue se `git status --short` mostrar alterações de outra atividade sem antes registrá-las ou preservá-las.
+
+#### Validar e criar o commit
+
+Depois de implementar a atividade, revise os arquivos alterados e execute a automação antes de criar o commit:
+
+```bash
+npm run validate
+git diff --check
+git status --short
+```
+
+Adicione somente os arquivos da atividade, confira o que entrará no commit e então registre a alteração:
+
+```bash
+git add README.md src/caminho/arquivo.tsx
+git diff --cached --check
+git diff --cached --stat
+git commit -m "tipo: descrição curta da atividade"
+```
+
+Use mensagens curtas no padrão `feat:`, `fix:`, `docs:`, `refactor:` ou `test:`. Se a atividade também atualizar o handoff ou o checklist OpenSpec, inclua esses arquivos no mesmo commit.
+
+#### Enviar a branch
+
+Na primeira publicação da branch, configure o rastreamento remoto com `-u`:
+
+```bash
+git push -u origin feat/nome-curto-da-atividade
+```
+
+Para commits adicionais na mesma PR, use:
+
+```bash
+git push origin feat/nome-curto-da-atividade
+```
+
+#### Criar a PR pelo GitHub CLI
+
+Autentique o GitHub CLI uma vez na máquina:
+
+```bash
+gh auth login
+gh auth status
+```
+
+Abra a PR apontando para `main`:
+
+```bash
+gh pr create \
+  --repo anderson-sillos/setlist \
+  --base main \
+  --head feat/nome-curto-da-atividade \
+  --title "tipo: título da atividade" \
+  --body "Descreva objetivo, alterações, validações e pendências da revisão."
+```
+
+O comando retorna a URL da PR. Também é possível criar a PR pelo botão **Compare & pull request** que aparece na página da branch no GitHub. Em ambos os casos, mantenha a PR aberta para revisão e não faça merge automático.
+
+#### Atualizar e acompanhar a PR
+
+Cada novo commit enviado para a mesma branch atualiza a PR automaticamente. Use estes comandos para conferir a situação:
+
+```bash
+gh pr view NUMERO --repo anderson-sillos/setlist
+gh pr checks NUMERO --repo anderson-sillos/setlist
+gh pr checks NUMERO --repo anderson-sillos/setlist --watch --interval 10
+```
+
+Para corrigir título ou descrição sem abrir outra PR:
+
+```bash
+gh pr edit NUMERO \
+  --repo anderson-sillos/setlist \
+  --title "novo título" \
+  --body "Descrição atualizada da atividade."
+```
+
+Depois da revisão, a integração e o fechamento devem ser feitos explicitamente pelo responsável do projeto. Não exclua a branch nem feche a PR antes da aprovação final.
+
+#### Concluir a PR após a aprovação
+
+Antes de integrar, confirme que a PR está aprovada, que os checks passaram e que a cópia local não possui alterações pendentes:
+
+```bash
+gh pr view NUMERO \
+  --repo anderson-sillos/setlist \
+  --json state,reviewDecision,mergeable,url
+gh pr checks NUMERO --repo anderson-sillos/setlist --watch --interval 10
+git status --short
+```
+
+Com a aprovação registrada, troque para `main` e faça o merge usando squash. Essa opção transforma os commits da atividade em um único commit na branch principal e `--delete-branch` remove a branch local e remota após a integração:
+
+```bash
+git switch main
+git pull --ff-only origin main
+gh pr merge NUMERO \
+  --repo anderson-sillos/setlist \
+  --squash \
+  --delete-branch
+```
+
+Finalize atualizando a cópia local e confirme o estado do repositório:
+
+```bash
+git pull --ff-only origin main
+git fetch origin --prune
+git status --short --branch
+```
+
+Se a branch local ainda existir depois do comando de merge, remova-a somente após confirmar que o merge foi concluído:
+
+```bash
+git branch --delete feat/nome-curto-da-atividade
+```
+
+Para abandonar uma PR sem integrá-la, use `gh pr close NUMERO --repo anderson-sillos/setlist --delete-branch` somente após confirmar que nenhum trabalho será aproveitado. O comando de merge e suas opções estão descritos no [manual oficial do GitHub CLI](https://cli.github.com/manual/gh_pr_merge).
 
 ### 8. Testar em Android e iOS com Expo Go
 
@@ -347,6 +494,19 @@ Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
 Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
+
+#### 8.6. Validar o protótipo de convite e OAuth
+
+Durante a atividade 3.4, abra o menu lateral e selecione **Convite e OAuth (protótipo)**. A tela apresenta as URLs de desenvolvimento geradas pelo Expo e não cria conta, convite ou sessão real.
+
+Repita o fluxo no navegador, Android e iOS:
+
+1. Acione **Abrir rota de convite** e confirme que o token `convite-demo-2026` aparece na tela de convite.
+2. Acione **Simular login social e retorno** e confirme que `code`, `state` e `invite_token` chegam preservados na tela de callback.
+3. Acione **Retomar convite** e confirme que o mesmo token é exibido como convite retomado.
+4. Use também **Abrir URL do convite** e **Abrir URL de retorno** para conferir o comportamento do endereço de desenvolvimento da plataforma.
+
+Essas telas são somente um protótipo técnico. O login Google/Apple, o consumo do convite e a validação no Supabase serão implementados em incrementos posteriores.
 
 ### 9. Publicar a prévia e gerar builds internos
 

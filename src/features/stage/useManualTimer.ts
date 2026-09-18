@@ -1,3 +1,4 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ManualTimerStatus = 'idle' | 'running' | 'paused';
@@ -22,29 +23,49 @@ export function useManualTimer(): ManualTimer {
   });
   const startedAtRef = useRef<number | null>(null);
 
+  const refreshElapsedTime = useCallback(() => {
+    const startedAt = startedAtRef.current;
+
+    if (startedAt === null) {
+      return;
+    }
+
+    setState((current) => {
+      if (current.status !== 'running') {
+        return current;
+      }
+
+      return {
+        ...current,
+        elapsedMs: Math.max(0, Date.now() - startedAt),
+      };
+    });
+  }, []);
+
   useEffect(() => {
     if (state.status !== 'running' || startedAtRef.current === null) {
       return;
     }
 
-    const updateElapsedTime = () => {
-      const startedAt = startedAtRef.current;
-
-      if (startedAt === null) {
-        return;
-      }
-
-      setState((current) => ({
-        ...current,
-        elapsedMs: Math.max(0, Date.now() - startedAt),
-      }));
-    };
-
-    updateElapsedTime();
-    const interval = setInterval(updateElapsedTime, tickIntervalMs);
+    refreshElapsedTime();
+    const interval = setInterval(refreshElapsedTime, tickIntervalMs);
 
     return () => clearInterval(interval);
-  }, [state.status]);
+  }, [refreshElapsedTime, state.status]);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        refreshElapsedTime();
+      }
+    };
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    return () => subscription.remove();
+  }, [refreshElapsedTime]);
 
   const start = useCallback(() => {
     setState((current) => {

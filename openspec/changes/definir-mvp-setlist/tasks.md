@@ -31,11 +31,11 @@
 
 ## 3. Validação antecipada dos riscos técnicos
 
-- [ ] 3.1 Criar um protótipo mínimo do YouTube IFrame no navegador e verificar player visível, play, pause, busca e leitura do tempo atual
-- [ ] 3.2 Executar o mesmo protótipo em WebView Android e iOS e verificar ponte JavaScript, origem/referer, controles e comportamento de vídeos indisponíveis
-- [ ] 3.3 Prototipar o relógio baseado em tempo real e verificar retomada após perda de foco, bloqueio e chamada em Android e iOS
-- [ ] 3.4 Prototipar rotas de convite e retorno OAuth com URLs de desenvolvimento e verificar preservação de parâmetros no navegador, Android e iOS
-- [ ] 3.5 Registrar os resultados dos protótipos no design e verificar que qualquer limitação descoberta foi refletida nas tarefas afetadas antes de continuar
+- [x] 3.1 Criar um protótipo mínimo do YouTube IFrame no navegador e verificar player visível, play, pause, busca e leitura do tempo atual
+- [x] 3.2 Executar o mesmo protótipo em WebView Android e iOS e verificar ponte JavaScript, origem/referer, controles e comportamento de vídeos indisponíveis
+- [x] 3.3 Prototipar o relógio baseado em tempo real e verificar retomada após perda de foco, bloqueio e chamada em Android e iOS
+- [x] 3.4 Prototipar rotas de convite e retorno OAuth com URLs de desenvolvimento e verificar preservação de parâmetros no navegador, Android e iOS
+- [x] 3.5 Registrar os resultados dos protótipos no design e verificar que qualquer limitação descoberta foi refletida nas tarefas afetadas antes de continuar
 
 ## 4. Fundação do backend e segurança
 
@@ -50,12 +50,12 @@
 
 ## 5. Autenticação, bandas e integrantes
 
-- [ ] 5.1 Integrar autenticação Google e Apple com Supabase e verificar entrada, retorno e renovação de sessão em web, Android e iOS
+- [ ] 5.1 Integrar autenticação Google e Apple com Supabase e verificar entrada, retorno e renovação de sessão em web, Android e iOS, reutilizando as rotas de retorno prototipadas e validando `code`, `state` e o contexto de convite
 - [ ] 5.2 Implementar persistência de sessão com SecureStore nos aplicativos e armazenamento do navegador na web e verificar restauração e expiração segura
 - [ ] 5.3 Implementar `Minhas bandas`, busca por nome, próximo show, seleção e restauração da última banda autorizada e verificar o fluxo sem banda, a criação e a entrada exclusivamente por link de convite
 - [ ] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
 - [ ] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
-- [ ] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado
+- [ ] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4
 - [ ] 5.7 Implementar promoção e saída de integrantes e verificar que a banda nunca fica sem Owner fora da exceção de exclusão da banda pelo único integrante
 - [ ] 5.8 Implementar exclusão de conta e exclusão de banda restrita ao único integrante, anonimização e limpeza local e verificar os casos de integrante comum, Owner substituível, banda com outros integrantes e único integrante
 - [ ] 5.9 Executar testes ponta a ponta dos papéis e convites nas três plataformas e publicar uma versão interna para revisão desse incremento
@@ -89,15 +89,15 @@
 - [ ] 8.3 Implementar destaque e rolagem da linha atual somente para letras Sincronizadas e verificar leitura manual para os demais estados
 - [ ] 8.4 Implementar tempo, duração, observação do item, prévia e troca manual de música e verificar que nenhum comando altera a setlist compartilhada
 - [ ] 8.5 Implementar preferências de fonte, tema, orientação e tela ativa e verificar aplicação sem reiniciar o cronômetro
-- [ ] 8.6 Implementar recuperação após perda de foco e encerramento do processo e verificar os fluxos Retomar e Reiniciar sem início silencioso
+- [ ] 8.6 Implementar recuperação após perda de foco e encerramento do processo e verificar os fluxos Retomar e Reiniciar sem início silencioso; a retomada após foco, bloqueio e chamada já foi validada no protótipo 3.3
 - [ ] 8.7 Implementar bloqueio manual contra toques com desbloqueio por pressão prolongada e verificar que cronômetro e rolagem continuam ativos
 - [ ] 8.8 Implementar indicadores discretos de conexão e conteúdo e verificar que nenhum diálogo cobre a letra durante a execução
 - [ ] 8.9 Realizar a revisão de UX/UI e o ensaio guiado do modo palco em celular, tablet e computador e registrar ajustes antes do próximo incremento
 
 ## 9. Sincronização manual com YouTube
 
-- [ ] 9.1 Integrar o player validado à edição da música em web, Android e iOS e verificar visibilidade, controles, origem e indisponibilidade
-- [ ] 9.2 Implementar a ponte de estado e amostragem do tempo atual e verificar precisão suficiente em reprodução, pausa e busca
+- [ ] 9.1 Integrar o player validado nos protótipos 3.1 e 3.2 à edição da música em web, Android e iOS e verificar visibilidade, controles, origem e indisponibilidade
+- [ ] 9.2 Implementar a ponte de estado e amostragem do tempo atual, aproveitando os eventos prototipados de pronto, estado, tempo e erro, e verificar precisão suficiente em reprodução, pausa e busca
 - [ ] 9.3 Implementar marcação do início da linha por toque e verificar gravação do tempo observado em milissegundos
 - [ ] 9.4 Implementar correção manual e validação de ordem dos tempos e verificar que inconsistências mantêm Sincronização incompleta
 - [ ] 9.5 Garantir que o player pare ao deixar a tela e verificar ausência de download, extração, reprodução oculta ou em segundo plano
@@ -120,6 +120,6 @@
 - [ ] 11.2 Revisar acessibilidade, responsividade, desempenho e consistência do tom de voz em celular, tablet e computador e registrar e corrigir bloqueios de uso
 - [ ] 11.3 Redigir termo de responsabilidade, política de privacidade e procedimento de remoção e verificar revisão jurídica antes de qualquer distribuição pública
 - [ ] 11.4 Configurar monitoramento de banco, tráfego e usuários ativos e verificar alertas internos ao atingir 80% das cotas do Supabase
-- [ ] 11.5 Configurar ambientes, URLs, associações de links e credenciais definitivas e verificar que nenhum segredo ou chave administrativa está no cliente
+- [ ] 11.5 Configurar ambientes, URLs, associações de links e credenciais definitivas, incluindo os destinos HTTPS e o esquema nativo exercitados no protótipo 3.4, e verificar que nenhum segredo ou chave administrativa está no cliente
 - [ ] 11.6 Gerar candidato a piloto para web, distribuição interna Android e TestFlight e verificar instalação, login, preparação e modo palco em cada plataforma
 - [ ] 11.7 Conduzir o piloto com uma banda, registrar problemas e decisões e verificar que revisões aprovadas foram incorporadas ou planejadas antes do lançamento seguinte
