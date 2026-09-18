@@ -235,6 +235,43 @@ npm run supabase:lint
 
 `supabase:test` executa a suíte pgTAP de acesso e integridade. `supabase:lint` verifica somente o schema público da aplicação e falha em erros; a extensão pgTAP local fica fora desse lint porque suas funções auxiliares são específicas da infraestrutura de testes. Alterações de schema devem ser feitas nas migrações, não diretamente no banco remoto.
 
+### Publicar as migrações nos projetos hospedados
+
+As migrações em `supabase/migrations/` são a fonte de verdade do banco. Depois de revisar o grupo 4 e validar o banco local, publique primeiro no projeto Supabase de desenvolvimento e somente depois no projeto de produção. O comando `db push` aplica apenas as migrações ainda ausentes no histórico remoto; ele não recria nem apaga o banco.
+
+Autentique a CLI uma vez, usando uma conta com acesso aos projetos, e informe a senha do banco somente quando a CLI solicitar, sem incluí-la em comandos ou arquivos versionados:
+
+```bash
+npx --yes supabase@latest login
+```
+
+Faça uma prévia e publique no projeto de desenvolvimento:
+
+```bash
+npx --yes supabase@latest link --project-ref <PROJECT_REF_DESENVOLVIMENTO>
+npx --yes supabase@latest db push --linked --dry-run
+npx --yes supabase@latest db push --linked
+npx --yes supabase@latest db lint --linked --schema public --fail-on error
+```
+
+Após validar o schema e os fluxos no ambiente de desenvolvimento, repita o processo para produção, trocando o projeto vinculado:
+
+```bash
+npx --yes supabase@latest link --project-ref <PROJECT_REF_PRODUCAO>
+npx --yes supabase@latest db push --linked --dry-run
+npx --yes supabase@latest db push --linked
+npx --yes supabase@latest db lint --linked --schema public --fail-on error
+```
+
+Depois de cada publicação, confira a conexão pública do ambiente correspondente:
+
+```bash
+npm run supabase:check -- development
+npm run supabase:check -- production
+```
+
+Não execute `db reset --local` apontando para um projeto hospedado, não use `--include-seed` nesses ambientes e não aplique alterações manualmente pelo Table Editor. O `seed.sql` habilita pgTAP somente no banco local; produção e desenvolvimento hospedados devem receber apenas as migrações versionadas. Se o `dry-run` indicar divergência de histórico, interrompa a publicação e revise o projeto antes de usar opções como `--include-all`.
+
 Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
 
 ```bash
