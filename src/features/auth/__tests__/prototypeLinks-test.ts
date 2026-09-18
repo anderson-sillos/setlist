@@ -2,7 +2,6 @@ import {
   getAuthCallbackPath,
   getDevelopmentUrl,
   getInvitePath,
-  getOAuthCallbackPath,
   getSingleRouteParam,
 } from '@/features/auth/prototypeLinks';
 
@@ -17,18 +16,6 @@ describe('rotas do protótipo de convite e OAuth', () => {
     );
     expect(getInvitePath('convite-demo', { resumed: true })).toBe(
       '/invite/convite-demo?resumed=1',
-    );
-  });
-
-  it('preserva code, state e token da banda no retorno OAuth', () => {
-    expect(
-      getOAuthCallbackPath({
-        code: 'code/demo',
-        inviteToken: 'invite/demo',
-        state: 'state demo',
-      }),
-    ).toBe(
-      '/auth/callback?code=code%2Fdemo&state=state%20demo&invite_token=invite%2Fdemo',
     );
   });
 

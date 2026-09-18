@@ -34,9 +34,9 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 O protótipo técnico `/youtube-prototype` fica fora da navegação principal e serve somente para validar a integração web do player do YouTube antes da implementação no detalhe da música.
 
 As telas de autenticação ficam em `src/features/auth/`. O fluxo real usa
-`AuthScreen`, `OAuthCallbackScreen` e `InviteScreen`; os arquivos com sufixo
-`Prototype` permanecem apenas como registro dos testes técnicos da atividade
-3.4 e não são expostos pelo menu principal.
+`AuthScreen`, `OAuthCallbackScreen` e `InviteScreen`. As telas temporárias do
+protótipo 3.4 foram removidas quando o fluxo real entrou no menu principal; o
+histórico técnico permanece registrado no handoff e no design.
 
 ## Componentes estruturais
 
