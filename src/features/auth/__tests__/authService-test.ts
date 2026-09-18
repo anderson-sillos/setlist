@@ -157,6 +157,16 @@ describe('serviço de autenticação social', () => {
     });
   });
 
+  it('normaliza exceções inesperadas do navegador para o fluxo de login', async () => {
+    const { auth } = createAuthMock();
+    auth.signInWithOAuth.mockRejectedValue(new Error('network unavailable'));
+
+    await expect(signInWithSocialProvider('google')).rejects.toMatchObject({
+      code: 'oauth_unexpected_error',
+      message: 'Não foi possível concluir o login agora. Tente novamente.',
+    });
+  });
+
   it('expõe renovação e inscrição no ciclo de sessão', async () => {
     const { auth, subscription } = createAuthMock();
     const session = { user: { id: 'user-1' } };

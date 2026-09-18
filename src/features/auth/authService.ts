@@ -112,38 +112,50 @@ export async function signInWithSocialProvider(
   provider: SocialAuthProvider,
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
-  const state = createOAuthState();
-  const redirectTo = getAuthRedirectUrl(inviteToken);
-  const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
-    options: {
-      queryParams: { state },
-      redirectTo,
-      skipBrowserRedirect: Platform.OS !== 'web',
-    },
-    provider,
-  });
+  try {
+    const state = createOAuthState();
+    const redirectTo = getAuthRedirectUrl(inviteToken);
+    const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
+      options: {
+        queryParams: { state },
+        redirectTo,
+        skipBrowserRedirect: Platform.OS !== 'web',
+      },
+      provider,
+    });
 
-  if (error) {
-    throw new AuthFlowError('oauth_start_failed', error.message);
-  }
+    if (error) {
+      throw new AuthFlowError('oauth_start_failed', error.message);
+    }
 
-  if (Platform.OS === 'web') {
-    return { inviteToken, status: 'redirecting' };
-  }
+    if (Platform.OS === 'web') {
+      return { inviteToken, status: 'redirecting' };
+    }
 
-  if (!data.url) {
+    if (!data.url) {
+      throw new AuthFlowError(
+        'oauth_url_missing',
+        'O provedor não devolveu um endereço para iniciar o login.',
+      );
+    }
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success') {
+      return { inviteToken, status: 'cancelled' };
+    }
+
+    return completeOAuthCallback(getCallbackParams(result.url));
+  } catch (error) {
+    if (error instanceof AuthFlowError) {
+      throw error;
+    }
+
+    console.error('[auth] Falha inesperada no login social.', error);
     throw new AuthFlowError(
-      'oauth_url_missing',
-      'O provedor não devolveu um endereço para iniciar o login.',
+      'oauth_unexpected_error',
+      'Não foi possível concluir o login agora. Tente novamente.',
     );
   }
-
-  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-  if (result.type !== 'success') {
-    return { inviteToken, status: 'cancelled' };
-  }
-
-  return completeOAuthCallback(getCallbackParams(result.url));
 }
 
 export async function refreshAuthSession(): Promise<Session | undefined> {

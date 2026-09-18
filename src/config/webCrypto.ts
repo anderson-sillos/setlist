@@ -163,8 +163,10 @@ export function installWebCryptoPolyfill(): void {
     currentCrypto?.getRandomValues?.bind(currentCrypto) ??
     expoWebCrypto.getRandomValues?.bind(expoWebCrypto) ??
     ExpoCrypto.getRandomValues;
-  const digest =
-    currentCrypto?.subtle?.digest?.bind(currentCrypto.subtle) ?? digestSha256;
+  // Expo Go may expose a partial `crypto.subtle` object. Always route SHA-256
+  // through the native Expo implementation on mobile so a partial WebCrypto
+  // surface cannot fail midway through the OAuth request.
+  const digest = digestSha256;
 
   Object.defineProperty(runtimeGlobals, 'crypto', {
     configurable: true,
