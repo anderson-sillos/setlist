@@ -12,10 +12,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
 - PR #12: grupo 4 aberto a partir de `feat/supabase-environments` e aguardando revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; as tarefas 4.1, 4.2, 4.3 e 4.4 foram concluídas.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; as tarefas 4.1, 4.2, 4.3, 4.4 e 4.5 foram concluídas.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: implementar convites e as funções transacionais de aceite na tarefa 4.5.
+- Próximo passo: implementar funções e gatilhos transacionais de integridade na tarefa 4.6.
 
 ## Fontes de verdade
 
@@ -77,6 +77,7 @@ openspec validate definir-mvp-setlist --type change --strict
 42. A tarefa 4.2 foi concluída na mesma branch. `supabase/migrations/20260918170000_create_band_access.sql` cria `profiles`, `bands`, `band_members` e `legal_acceptances`, com enumeração de papéis, chaves estrangeiras, unicidade de participação, validações de texto, timestamps, RLS habilitado e exclusões em cascata ou anonimização conforme o domínio. `supabase/tests/4.2-band-access.sql` verifica 30 invariantes e passou com `npm run supabase:test`; `supabase/seed.sql` habilita pgTAP somente no banco local. As políticas de acesso detalhadas permanecem para a tarefa 4.7 e as regras transacionais do último Owner para a tarefa 4.6.
 43. A tarefa 4.3 foi concluída na mesma branch. `supabase/migrations/20260918173000_create_songs.sql` cria `songs`, o enum `lyric_status`, validação de documento JSONB com blocos/linhas/identificadores/tempos e derivação do estado da letra. A música mantém duração, referência do YouTube, arquivamento e timestamps gerados pelo banco; RLS fica habilitado sem políticas até a tarefa 4.7. `supabase/tests/4.3-songs.sql` cobre os estados válidos e rejeita estruturas, tempos, IDs e estados inconsistentes.
 44. A tarefa 4.4 foi concluída na mesma branch. `supabase/migrations/20260918180000_create_shows_and_setlists.sql` cria `shows`, `show_blocks` e `show_items`, com os estados `draft`, `ready` e `cancelled`, ordem única por show/bloco, referências restritivas às músicas usadas, tipos discriminados para música, planejamento e separador, descrições e durações validadas e RLS habilitado sem políticas até a tarefa 4.7. `supabase/tests/4.4-shows-and-setlists.sql` verifica 29 invariantes e passou junto com as migrações anteriores, totalizando 76 testes.
+45. A tarefa 4.5 foi concluída na mesma branch. `supabase/migrations/20260918183000_create_invitations.sql` cria convites com hash SHA-256 do token, rótulo opcional, validade padrão de sete dias, revogação, consumo e referências anuláveis de autoria/uso. As funções `create_invitation`, `revoke_invitation` e `accept_invitation` restringem execução a usuários autenticados; o aceite usa bloqueio da linha, valida expiração/revogação/uso e insere a participação como `member` de forma atômica, sem armazenar o token bruto. `supabase/tests/4.5-invitations.sql` cobre 33 invariantes e a suíte acumulada passou com 109 testes.
 
 ## Visão confirmada do produto
 
