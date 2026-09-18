@@ -3,6 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import type { AuthChangeEvent, Provider, Session } from '@supabase/supabase-js';
 
+import '@/config/webCrypto';
 import { getSupabaseClient } from '@/data/supabase/client';
 import {
   getAuthCallbackPath,

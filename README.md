@@ -248,6 +248,11 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
 2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
    adicione os retornos permitidos usados no desenvolvimento:
    `http://localhost:8081/auth/callback` e `setlist://auth/callback`.
+   Para validar pelo Expo Go usando túnel, adicione também
+   `exp://**/--/auth/callback`; esse padrão cobre o subdomínio e a porta
+   aleatórios gerados pelo ngrok em cada execução. O `Site URL` deve continuar
+   sendo a URL web do ambiente (ou `http://localhost:8081` no desenvolvimento),
+   e não a URL temporária do túnel.
    O endereço HTTPS definitivo do aplicativo será acrescentado na tarefa 11.5.
 3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
    `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
@@ -606,6 +611,14 @@ development build Android/iOS:
    novamente.
 5. Repita o fluxo depois de atualizar a sessão e registre no PR a plataforma,
    navegador/provedor, resultado do retorno e qualquer falha de configuração.
+
+Ao executar com `npx expo start --go --tunnel --clear`, o app monta
+automaticamente um retorno `exp://.../--/auth/callback` a partir do endereço
+daquela sessão. Se o padrão não estiver na lista de Redirect URLs do Supabase,
+o provedor pode ignorar o `redirectTo` e voltar para o `Site URL` (por exemplo,
+`localhost`), deixando o login preso no navegador. Em um development build ou
+build interno, o retorno é `setlist://auth/callback` e deve ser mantido na mesma
+lista.
 
 O aceite efetivo do convite e a criação de bandas dependem das tarefas 5.4 e
 5.6. Nesta etapa a tela confirma a autenticação e preserva o contexto, sem
