@@ -131,6 +131,14 @@ export function NavigationPanel({
           label="Player YouTube (protótipo)"
           onNavigate={onNavigate}
         />
+        {/* Remover quando a validação do protótipo OAuth (atividade 3.4) terminar. */}
+        <SidebarNavigationLink
+          active={false}
+          href="/auth-prototype"
+          icon="externalLink"
+          label="Convite e OAuth (protótipo)"
+          onNavigate={onNavigate}
+        />
         <DisabledGeneralItem label="Perfil e conta" />
         <DisabledGeneralItem label="Termos e privacidade" />
         <DisabledGeneralItem label="Sobre o Setlist" />

@@ -69,6 +69,7 @@ openspec validate definir-mvp-setlist --type change --strict
 35. A validação manual confirmou a tarefa 3.2 em Android e iOS: o player abriu na WebView, a ponte respondeu aos comandos e ao tempo, os controles funcionaram e o vídeo indisponível exibiu o estado correspondente. A tarefa 3.2 foi marcada como concluída; a tarefa 3.3 é o próximo protótipo técnico.
 36. A tarefa 3.3 começou com o cronômetro mantendo uma referência de tempo real e recalculando o progresso quando o aplicativo volta ao estado `active` do React Native. O comportamento de retomada após perda de foco foi coberto no teste do hook.
 37. A validação manual confirmou a tarefa 3.3 em Android e iOS: perda de foco, bloqueio de tela e chamada mantiveram o cronômetro baseado no tempo real; o estado pausado permaneceu estável. A tarefa 3.3 foi marcada como concluída; a tarefa 3.4 é o próximo protótipo técnico.
+38. A tarefa 3.4 começou com um protótipo isolado de convite e retorno OAuth. As rotas `/invite/[token]` e `/auth/callback` preservam `invite_token`, `code` e `state`; `expo-linking` gera os endereços de desenvolvimento para web, Android e iOS. A tela temporária `Convite e OAuth (protótipo)` permite exercitar os dois caminhos e ficará disponível até a validação manual.
 
 ## Visão confirmada do produto
 
@@ -230,4 +231,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 3.4, prototipando rotas de convite e retorno OAuth com URLs de desenvolvimento e preservação de parâmetros no navegador, Android e iOS.
+Validar manualmente a tarefa 3.4 no navegador, Android e iOS: abrir o convite, simular o retorno OAuth, conferir `invite_token`, `code` e `state` e retomar o convite. Depois, registrar as limitações no design e seguir para a tarefa 3.5.

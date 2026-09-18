@@ -495,6 +495,19 @@ Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
 
+#### 8.6. Validar o protótipo de convite e OAuth
+
+Durante a atividade 3.4, abra o menu lateral e selecione **Convite e OAuth (protótipo)**. A tela apresenta as URLs de desenvolvimento geradas pelo Expo e não cria conta, convite ou sessão real.
+
+Repita o fluxo no navegador, Android e iOS:
+
+1. Acione **Abrir rota de convite** e confirme que o token `convite-demo-2026` aparece na tela de convite.
+2. Acione **Simular login social e retorno** e confirme que `code`, `state` e `invite_token` chegam preservados na tela de callback.
+3. Acione **Retomar convite** e confirme que o mesmo token é exibido como convite retomado.
+4. Use também **Abrir URL do convite** e **Abrir URL de retorno** para conferir o comportamento do endereço de desenvolvimento da plataforma.
+
+Essas telas são somente um protótipo técnico. O login Google/Apple, o consumo do convite e a validação no Supabase serão implementados em incrementos posteriores.
+
 ### 9. Publicar a prévia e gerar builds internos
 
 A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.
