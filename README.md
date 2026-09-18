@@ -224,6 +224,16 @@ npm run supabase:check -- production
 
 O comando consulta o endpoint de configurações do Supabase usando somente a URL e a chave publicável. Ele não aceita nem procura `service_role`, `sb_secret` ou outra credencial administrativa. As variáveis dos builds EAS devem ser cadastradas no painel do projeto para os ambientes `development` e `production`; o arquivo `eas.json` apenas seleciona o ambiente e fixa `EXPO_PUBLIC_APP_ENV`.
 
+As migrações e os testes de banco ficam em `supabase/`. Com Docker instalado, inicie o banco local, reaplique o schema e execute os testes pgTAP:
+
+```bash
+npx --yes supabase@latest start
+npx --yes supabase@latest db reset --local
+npm run supabase:test
+```
+
+O seed local habilita a extensão pgTAP somente para os testes. Alterações de schema devem ser feitas nas migrações, não diretamente no banco remoto.
+
 Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
 
 ```bash
@@ -654,6 +664,11 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- design.md                        # Decisões e arquitetura
 |   |-- specs/                           # Contratos de comportamento
 |   `-- tasks.md                         # Plano incremental de implementação
+|-- supabase/
+|   |-- migrations/                      # Migrações SQL versionadas do backend
+|   |-- tests/                           # Testes pgTAP do banco local
+|   |-- config.toml                      # Configuração da CLI local
+|   `-- seed.sql                         # Extensões e dados exclusivos do banco local
 |-- src/
 |   |-- app/                             # Entradas de rota do Expo Router
 |   |-- components/feedback/             # Mensagens e avisos compartilhados
@@ -679,6 +694,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |-- app.json                             # Configuração de Android, iOS e web
 |-- eas.json                             # Perfil de builds internos Android e iOS
 |-- scripts/check-supabase-connection.mjs # Verificação pública por ambiente
+|-- scripts/check-supabase-eas.mjs       # Verificação usando variáveis do EAS
 |-- eslint.config.js                     # Regras estáticas do projeto Expo
 |-- jest.config.js                       # Testes e cobertura mínima
 |-- package.json                         # Dependências e comandos do projeto
@@ -693,7 +709,7 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- configurar os projetos Supabase de desenvolvimento e produção e validar a conexão pública;
+- concluir as migrações de músicas, shows, convites e políticas de acesso do Supabase;
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 
