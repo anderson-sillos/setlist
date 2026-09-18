@@ -39,7 +39,7 @@
 
 ## 4. Fundação do backend e segurança
 
-- [ ] 4.1 Configurar projetos Supabase separados para desenvolvimento e produção e verificar conexão usando apenas URL e chave pública por ambiente
+- [x] 4.1 Configurar projetos Supabase separados para desenvolvimento e produção e verificar conexão usando apenas URL e chave pública por ambiente
 - [ ] 4.2 Criar migrações para perfis, bandas, participações e aceites de termo e verificar chaves, restrições e exclusões previstas
 - [ ] 4.3 Criar migrações para músicas com letra JSONB e estados de sincronização e verificar validações de estrutura e timestamps do servidor
 - [ ] 4.4 Criar migrações para shows, blocos e itens de setlist de música, planejamento ou separador e verificar tipos, ordem, referências, descrições, durações, observações e estados permitidos

@@ -11,11 +11,11 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
-- PR do grupo 4: ainda será aberta a partir de `feat/supabase-environments`.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; a tarefa 4.1 está em implementação.
+- PR #12: grupo 4 aberto a partir de `feat/supabase-environments` e aguardando revisão.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; a tarefa 4.1 foi concluída.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a configuração dos projetos Supabase de desenvolvimento e produção na tarefa 4.1.
+- Próximo passo: iniciar as migrações de perfis, bandas, participações e aceites de termo na tarefa 4.2.
 
 ## Fontes de verdade
 
@@ -73,7 +73,7 @@ openspec validate definir-mvp-setlist --type change --strict
 38. A tarefa 3.4 começou com um protótipo isolado de convite e retorno OAuth. As rotas `/invite/[token]` e `/auth/callback` preservam `invite_token`, `code` e `state`; `expo-linking` gera os endereços de desenvolvimento para web, Android e iOS. A tela temporária `Convite e OAuth (protótipo)` permite exercitar os dois caminhos e ficará disponível até a validação manual.
 39. A validação manual confirmou a tarefa 3.4 no navegador, Android e iOS: os links de convite abriram a rota correta, `invite_token`, `code` e `state` permaneceram preservados no retorno OAuth e o convite pôde ser retomado. A tarefa 3.4 foi marcada como concluída; a tarefa 3.5 é o próximo registro técnico.
 40. A tarefa 3.5 consolidou no design os resultados e limites dos três protótipos. O player YouTube permanece visível e dependente de conexão; o cronômetro continua local e já trata interrupções sem encerramento do processo; o fluxo de convite/OAuth preserva parâmetros, mas ainda depende da integração real com Supabase, estado protegido e links definitivos. As tarefas 5.1, 5.6, 8.6, 9.1, 9.2 e 11.5 foram explicitamente alinhadas a essas limitações. O grupo 3 foi concluído.
-41. A tarefa 4.1 começou na branch `feat/supabase-environments`. O cliente tipado em `src/data/supabase/client.ts` usa somente URL e chave publicável, os perfis EAS selecionam `development` e `production`, e os modelos `.env.development.example` e `.env.production.example` separam os projetos. Os comandos `npm run supabase:check -- development|production` e `npm run supabase:check:eas -- development|production` testam o endpoint público sem expor credenciais; o segundo injeta as variáveis cadastradas no EAS usando `eas env:exec`. A conexão de desenvolvimento foi confirmada; a tarefa permanece pendente até a conexão de produção também ser verificada.
+41. A tarefa 4.1 foi concluída na branch `feat/supabase-environments`. O cliente tipado em `src/data/supabase/client.ts` usa somente URL e chave publicável, os perfis EAS selecionam `development` e `production`, e os modelos `.env.development.example` e `.env.production.example` separam os projetos. Os comandos `npm run supabase:check -- development|production` e `npm run supabase:check:eas -- development|production` testam o endpoint público sem expor credenciais; o segundo injeta as variáveis cadastradas no EAS usando `eas env:exec`. As conexões de desenvolvimento e produção foram confirmadas com sucesso.
 
 ## Visão confirmada do produto
 
@@ -236,4 +236,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Preencher os projetos Supabase de desenvolvimento e produção, executar `npm run supabase:check -- development` e `npm run supabase:check -- production`, e então concluir a tarefa 4.1 antes de avançar para as migrações.
+Iniciar a tarefa 4.2 criando as migrações de perfis, bandas, participações e aceites de termo no projeto de desenvolvimento, com testes de chaves, restrições e exclusões antes da promoção para produção.
