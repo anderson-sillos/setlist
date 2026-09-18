@@ -12,10 +12,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
 - PR #12: grupo 4 aberto a partir de `feat/supabase-environments` e aguardando revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; as tarefas 4.1 e 4.2 foram concluídas.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; as tarefas 4.1, 4.2 e 4.3 foram concluídas.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: iniciar a migração de músicas, letras JSONB e estados de sincronização na tarefa 4.3.
+- Próximo passo: iniciar as migrações de shows, blocos e itens de setlist na tarefa 4.4.
 
 ## Fontes de verdade
 
@@ -75,6 +75,7 @@ openspec validate definir-mvp-setlist --type change --strict
 40. A tarefa 3.5 consolidou no design os resultados e limites dos três protótipos. O player YouTube permanece visível e dependente de conexão; o cronômetro continua local e já trata interrupções sem encerramento do processo; o fluxo de convite/OAuth preserva parâmetros, mas ainda depende da integração real com Supabase, estado protegido e links definitivos. As tarefas 5.1, 5.6, 8.6, 9.1, 9.2 e 11.5 foram explicitamente alinhadas a essas limitações. O grupo 3 foi concluído.
 41. A tarefa 4.1 foi concluída na branch `feat/supabase-environments`. O cliente tipado em `src/data/supabase/client.ts` usa somente URL e chave publicável, os perfis EAS selecionam `development` e `production`, e os modelos `.env.development.example` e `.env.production.example` separam os projetos. Os comandos `npm run supabase:check -- development|production` e `npm run supabase:check:eas -- development|production` testam o endpoint público sem expor credenciais; o segundo injeta as variáveis cadastradas no EAS usando `eas env:exec`. As conexões de desenvolvimento e produção foram confirmadas com sucesso.
 42. A tarefa 4.2 foi concluída na mesma branch. `supabase/migrations/20260918170000_create_band_access.sql` cria `profiles`, `bands`, `band_members` e `legal_acceptances`, com enumeração de papéis, chaves estrangeiras, unicidade de participação, validações de texto, timestamps, RLS habilitado e exclusões em cascata ou anonimização conforme o domínio. `supabase/tests/4.2-band-access.sql` verifica 30 invariantes e passou com `npm run supabase:test`; `supabase/seed.sql` habilita pgTAP somente no banco local. As políticas de acesso detalhadas permanecem para a tarefa 4.7 e as regras transacionais do último Owner para a tarefa 4.6.
+43. A tarefa 4.3 foi concluída na mesma branch. `supabase/migrations/20260918173000_create_songs.sql` cria `songs`, o enum `lyric_status`, validação de documento JSONB com blocos/linhas/identificadores/tempos e derivação do estado da letra. A música mantém duração, referência do YouTube, arquivamento e timestamps gerados pelo banco; RLS fica habilitado sem políticas até a tarefa 4.7. `supabase/tests/4.3-songs.sql` cobre os estados válidos e rejeita estruturas, tempos, IDs e estados inconsistentes.
 
 ## Visão confirmada do produto
 
@@ -237,4 +238,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 4.3 criando a migração de músicas com letra JSONB e estados de sincronização, mantendo a validação local com `npm run supabase:test`.
+Iniciar a tarefa 4.4 criando as migrações de shows, blocos e itens de setlist, mantendo a validação local com `npm run supabase:test`.
