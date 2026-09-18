@@ -11,10 +11,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: protótipo do player YouTube na web aberto a partir de `feat/youtube-iframe-prototype` e mantido disponível para revisão.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; as tarefas 3.1, 3.2 e 3.3 foram implementadas e validadas manualmente; a tarefa 3.4 está em implementação.
+- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; as tarefas 3.1, 3.2, 3.3 e 3.4 foram implementadas e validadas manualmente; a tarefa 3.5 está em implementação.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Próximo passo: prototipar as rotas de convite e o retorno OAuth com preservação de parâmetros na tarefa 3.4.
+- Próximo passo: consolidar no design os resultados e limitações dos protótipos técnicos na tarefa 3.5.
 
 ## Fontes de verdade
 
@@ -70,6 +70,7 @@ openspec validate definir-mvp-setlist --type change --strict
 36. A tarefa 3.3 começou com o cronômetro mantendo uma referência de tempo real e recalculando o progresso quando o aplicativo volta ao estado `active` do React Native. O comportamento de retomada após perda de foco foi coberto no teste do hook.
 37. A validação manual confirmou a tarefa 3.3 em Android e iOS: perda de foco, bloqueio de tela e chamada mantiveram o cronômetro baseado no tempo real; o estado pausado permaneceu estável. A tarefa 3.3 foi marcada como concluída; a tarefa 3.4 é o próximo protótipo técnico.
 38. A tarefa 3.4 começou com um protótipo isolado de convite e retorno OAuth. As rotas `/invite/[token]` e `/auth/callback` preservam `invite_token`, `code` e `state`; `expo-linking` gera os endereços de desenvolvimento para web, Android e iOS. A tela temporária `Convite e OAuth (protótipo)` permite exercitar os dois caminhos e ficará disponível até a validação manual.
+39. A validação manual confirmou a tarefa 3.4 no navegador, Android e iOS: os links de convite abriram a rota correta, `invite_token`, `code` e `state` permaneceram preservados no retorno OAuth e o convite pôde ser retomado. A tarefa 3.4 foi marcada como concluída; a tarefa 3.5 é o próximo registro técnico.
 
 ## Visão confirmada do produto
 
@@ -231,4 +232,4 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Validar manualmente a tarefa 3.4 no navegador, Android e iOS: abrir o convite, simular o retorno OAuth, conferir `invite_token`, `code` e `state` e retomar o convite. Depois, registrar as limitações no design e seguir para a tarefa 3.5.
+Registrar no design os resultados dos protótipos YouTube, cronômetro e convite/OAuth e conferir se as limitações observadas estão refletidas nas tarefas seguintes antes de iniciar o backend.
