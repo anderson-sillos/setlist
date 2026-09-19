@@ -725,6 +725,24 @@ um novo APK.
 
 A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.
 
+Para que o login funcione nessa versão hospedada, o repositório precisa ter as
+seguintes **Variables** públicas em _Settings → Secrets and variables → Actions_:
+`EXPO_PUBLIC_APP_ENV`, `EXPO_PUBLIC_SUPABASE_URL`,
+`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e, opcionalmente,
+`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. A chave publicável e o Client ID podem ser
+embutidos no bundle web; nunca use `service_role`, `sb_secret`, Client Secret ou
+outra credencial privada. O workflow falha antes da exportação quando a URL ou
+a chave publicável não estiverem configuradas.
+
+Para publicar manualmente a branch atual e validar o login sem Metro, use:
+
+```bash
+gh workflow run pages.yml --ref feat/supabase-environments
+```
+
+Depois acompanhe a execução em _Actions → Publicar GitHub Pages_ e abra a URL
+publicada em uma janela anônima, para não reutilizar uma sessão local.
+
 Para gerar builds internos, autentique a CLI pelo navegador e confirme a conta ativa:
 
 ```bash
