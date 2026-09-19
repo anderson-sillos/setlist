@@ -53,6 +53,7 @@ histórico técnico permanece registrado no handoff e no design.
 | Restauração de rota e rolagem da seção       | `src/features/navigation/hooks/useBandNavigationState.ts` e `NavigationMemory.tsx`       |
 | Definição das seções de navegação            | `src/features/navigation/navigationItems.ts`                                             |
 | Contexto visual da banda selecionada         | `src/features/navigation/BandAreaLayout.tsx`                                             |
+| Persistência da última banda autorizada      | `src/features/bands/LastBandSelection.tsx` e `lastBandStorage.ts`                         |
 | Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                      |
 | Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                         |
 | Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                |
@@ -73,6 +74,7 @@ histórico técnico permanece registrado no handoff e no design.
 | Construção e codificação de endereços       | `src/features/navigation/__tests__/navigationRoutes-test.ts`                                |
 | Autenticação, state OAuth e convite         | `src/features/auth/__tests__/`                                                              |
 | Telas de bandas                             | `src/features/bands/__tests__/BandsScreen-test.tsx` e `BandScreen-test.tsx`                 |
+| Seleção persistida de banda                  | `src/features/bands/__tests__/lastBandStorage-test.ts`                                    |
 | Repertório e detalhe da música              | `src/features/repertoire/__tests__/RepertoireScreen-test.tsx` e `SongDetailScreen-test.tsx` |
 | Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`           |
 | Seleção do modo palco                       | `src/features/stage/__tests__/StageHubScreen-test.tsx`                                      |

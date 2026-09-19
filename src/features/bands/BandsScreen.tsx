@@ -1,5 +1,5 @@
 import { Link } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import {
@@ -11,9 +11,9 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
-import { demoIds } from '@/data/demo';
 import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
+import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -49,9 +49,22 @@ export function BandsScreen({
   viewportWidth,
 }: BandsScreenProps) {
   const bandsQuery = useUserBandSummaries();
+  const { clearLastBand, isHydrated, lastBandId, setLastBand } =
+    useLastBandSelection();
   const [search, setSearch] = useState('');
   const [creationNoticeVisible, setCreationNoticeVisible] = useState(false);
   const normalizedSearch = normalizeForSearch(search);
+
+  useEffect(() => {
+    if (!isHydrated || !bandsQuery.data || !lastBandId) {
+      return;
+    }
+
+    if (!bandsQuery.data.some(({ band }) => band.id === lastBandId)) {
+      void clearLastBand();
+    }
+  }, [bandsQuery.data, clearLastBand, isHydrated, lastBandId]);
+
   const bands = useMemo(
     () =>
       [...(bandsQuery.data ?? [])]
@@ -59,11 +72,11 @@ export function BandsScreen({
           normalizeForSearch(band.name).includes(normalizedSearch),
         )
         .sort((left, right) => {
-          if (left.band.id === demoIds.primaryBand) return -1;
-          if (right.band.id === demoIds.primaryBand) return 1;
+          if (lastBandId && left.band.id === lastBandId) return -1;
+          if (lastBandId && right.band.id === lastBandId) return 1;
           return left.band.name.localeCompare(right.band.name, 'pt-BR');
         }),
-    [bandsQuery.data, normalizedSearch],
+    [bandsQuery.data, lastBandId, normalizedSearch],
   );
 
   return (
@@ -99,7 +112,7 @@ export function BandsScreen({
       <DemoActionNotice
         message={
           creationNoticeVisible
-            ? 'A criação entra junto com o login. Por enquanto, o palco é de demonstração.'
+            ? 'A criação da banda e o aceite do termo entram na próxima etapa. Por enquanto, abra um link de convite recebido.'
             : null
         }
         onClose={() => setCreationNoticeVisible(false)}
@@ -114,7 +127,7 @@ export function BandsScreen({
           !bandsQuery.isPending && !bandsQuery.isError ? (
             normalizedSearch ? (
               <ListEmptyState
-                actionLabel="Limpar filtros"
+                actionLabel="Limpar busca"
                 message="Nem o roadie encontrou essa. Tente outra busca."
                 onAction={() => setSearch('')}
                 title="Nenhuma banda encontrada"
@@ -131,7 +144,7 @@ export function BandsScreen({
         }
         renderItem={({ item: { band, membership, shows } }) => {
           const nextShow = getNextShow(shows, now);
-          const isLastAccessed = band.id === demoIds.primaryBand;
+          const isLastAccessed = band.id === lastBandId;
 
           return (
             <View style={styles.rowFrame}>
@@ -139,6 +152,7 @@ export function BandsScreen({
                 <Pressable
                   accessibilityLabel={`Abrir ${band.name}`}
                   accessibilityRole="link"
+                  onPress={() => void setLastBand(band.id)}
                   style={({ pressed }) => [
                     styles.bandRow,
                     isLastAccessed && styles.lastAccessedRow,

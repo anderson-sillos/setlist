@@ -1,6 +1,12 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
+import { createInMemoryRepositories } from '@/data/in-memory';
 import { BandsScreen } from '@/features/bands/BandsScreen';
+import {
+  clearLastBandId,
+  readLastBandId,
+  writeLastBandId,
+} from '@/features/bands/lastBandStorage';
 import { AppProviders } from '@/providers/AppProviders';
 
 jest.mock('expo-router', () => ({
@@ -9,7 +15,12 @@ jest.mock('expo-router', () => ({
 }));
 
 describe('<BandsScreen />', () => {
+  beforeEach(async () => {
+    await clearLastBandId();
+  });
+
   it('carrega Minhas bandas com os destinos demonstrativos', async () => {
+    await writeLastBandId('band-demo-horizonte');
     const view = await render(
       <AppProviders>
         <BandsScreen
@@ -37,7 +48,9 @@ describe('<BandsScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Criar banda'));
     expect(view.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(view.getByText(/A criação entra junto com o login/)).toBeTruthy();
+    expect(
+      view.getByText(/A criação da banda e o aceite do termo/),
+    ).toBeTruthy();
     await fireEvent.press(view.getByLabelText('Fechar aviso de demonstração'));
     expect(view.queryByTestId('demo-action-notice')).toBeNull();
   });
@@ -57,5 +70,58 @@ describe('<BandsScreen />', () => {
 
     expect(view.getByText('Trio Aurora')).toBeTruthy();
     expect(view.queryByText('Banda Horizonte')).toBeNull();
+  });
+
+  it('persiste a banda escolhida para a próxima abertura', async () => {
+    const view = await render(
+      <AppProviders>
+        <BandsScreen />
+      </AppProviders>,
+    );
+
+    await view.findByText('Banda Horizonte');
+    await fireEvent.press(view.getByLabelText('Abrir Trio Aurora'));
+
+    expect(await view.findByText('Última acessada')).toBeTruthy();
+    expect(view.getByText('Trio Aurora')).toBeTruthy();
+  });
+
+  it('mostra o estado neutro quando a pessoa ainda não participa de uma banda', async () => {
+    const view = await render(
+      <AppProviders
+        repositories={createInMemoryRepositories({
+          bandMembers: [],
+          bands: [],
+          shows: [],
+          songs: [],
+        })}
+      >
+        <BandsScreen />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Seu palco ainda está vazio')).toBeTruthy();
+    expect(
+      view.getByText(
+        'Crie uma banda ou abra o link de convite que você recebeu.',
+      ),
+    ).toBeTruthy();
+    expect(view.getByLabelText('Criar banda')).toBeTruthy();
+  });
+
+  it('remove uma seleção persistida quando ela deixa de ser autorizada', async () => {
+    await writeLastBandId('band-no-longer-authorized');
+
+    const view = await render(
+      <AppProviders>
+        <BandsScreen />
+      </AppProviders>,
+    );
+
+    await view.findByText('Banda Horizonte');
+    await waitFor(async () => {
+      expect(await readLastBandId()).toBeNull();
+    });
+    expect(view.queryByText('Última acessada')).toBeNull();
   });
 });

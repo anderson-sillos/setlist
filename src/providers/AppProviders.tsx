@@ -8,6 +8,7 @@ import {
 
 import { createDemoRepositories, demoIds } from '@/data/demo';
 import type { AppRepositories, EntityId } from '@/domain';
+import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
 import { NavigationMemoryProvider } from '@/features/navigation/NavigationMemory';
 
 interface AppDataContextValue {
@@ -43,7 +44,9 @@ export function AppProviders({
   return (
     <AppDataContext.Provider value={{ currentUserId, repositories }}>
       <QueryClientProvider client={queryClient}>
-        <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
+        <LastBandSelectionProvider>
+          <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
+        </LastBandSelectionProvider>
       </QueryClientProvider>
     </AppDataContext.Provider>
   );
