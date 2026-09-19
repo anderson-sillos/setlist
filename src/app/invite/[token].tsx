@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 
 import { InviteScreen } from '@/features/auth/InviteScreen';
-import { getSingleRouteParam } from '@/features/auth/prototypeLinks';
+import { getSingleRouteParam } from '@/features/auth/authLinks';
 
 export default function InviteRoute() {
   const params = useLocalSearchParams<{

@@ -16,10 +16,7 @@ import {
   signInWithSocialProvider,
   type SocialAuthProvider,
 } from '@/features/auth/authService';
-import {
-  getInvitePath,
-  getSingleRouteParam,
-} from '@/features/auth/prototypeLinks';
+import { getInvitePath, getSingleRouteParam } from '@/features/auth/authLinks';
 import { radii, spacing } from '@/theme/tokens';
 
 type AuthState =

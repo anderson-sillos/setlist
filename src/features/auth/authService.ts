@@ -14,7 +14,7 @@ import {
   getAuthCallbackPath,
   getDevelopmentUrl,
   getSingleRouteParam,
-} from '@/features/auth/prototypeLinks';
+} from '@/features/auth/authLinks';
 import { tryNativeGoogleSignIn } from '@/features/auth/nativeGoogleSignIn';
 
 export type SocialAuthProvider = Extract<Provider, 'apple' | 'google'>;

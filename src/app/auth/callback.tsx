@@ -2,7 +2,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams } from 'expo-router';
 
 import { OAuthCallbackScreen } from '@/features/auth/OAuthCallbackScreen';
-import { getSingleRouteParam } from '@/features/auth/prototypeLinks';
+import { getSingleRouteParam } from '@/features/auth/authLinks';
 
 WebBrowser.maybeCompleteAuthSession();
 

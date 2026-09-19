@@ -251,15 +251,18 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
 2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
    adicione os retornos permitidos usados no desenvolvimento:
    `http://localhost:8081/auth/callback**`,
-   `https://*.exp.direct/auth/callback**` e `setlist://auth/callback**`.
+   `https://*.exp.direct/auth/callback**`,
+   `https://anderson-sillos.github.io/setlist/app/auth/callback**` e
+   `setlist://auth/callback**`.
    Para validar pelo Expo Go usando túnel, adicione também
    `exp://**/--/auth/callback**`; esses padrões cobrem os endereços temporários
    gerados pelo Expo em cada execução e o parâmetro `sb_flow_id` acrescentado
    pelo PKCE. Neste projeto, o `Site URL` fica como
    `setlist://auth/callback`, servindo como fallback nativo; os destinos web
    precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
-   O endereço HTTPS definitivo do aplicativo será acrescentado na tarefa 11.5.
-   No projeto de desenvolvimento, essa lista já foi aplicada pela Supabase CLI.
+   A prévia hospedada no GitHub Pages já usa o retorno HTTPS acima; o endereço
+   HTTPS definitivo do aplicativo será revisado na tarefa 11.5. No projeto de
+   desenvolvimento, essa lista já foi aplicada pela Supabase CLI.
    Antes de repetir a operação em outro ambiente, execute `supabase config diff`
    e revise o resultado; o `supabase/config.toml` versionado contém valores para
    desenvolvimento local e não deve ser enviado diretamente sem essa revisão.
@@ -689,11 +692,13 @@ pendência futura desta etapa:
 
 Ao executar com `npx expo start --go --tunnel --clear`, o app monta
 automaticamente um retorno `exp://.../--/auth/callback` no Expo Go e a versão
-web usa a origem HTTPS `https://*.exp.direct/auth/callback`. Se esses padrões
-não estiverem na lista de Redirect URLs do Supabase, o provedor pode ignorar o
-`redirectTo` e voltar para o `Site URL` (`setlist://auth/callback`), deixando o
-login web sem um destino navegável. Em um development build ou build interno,
-o retorno é `setlist://auth/callback` e deve ser mantido na mesma lista.
+web usa a origem HTTPS `https://*.exp.direct/auth/callback`; a prévia publicada
+no GitHub Pages usa `https://anderson-sillos.github.io/setlist/app/auth/callback`.
+Se esses padrões não estiverem na lista de Redirect URLs do Supabase, o
+provedor pode ignorar o `redirectTo` e voltar para o `Site URL`
+(`setlist://auth/callback`), deixando o login web sem um destino navegável. Em
+um development build ou build interno, o retorno é `setlist://auth/callback` e
+deve ser mantido na mesma lista.
 
 O aceite efetivo do convite e a criação de bandas dependem das tarefas 5.4 e
 5.6. Nesta etapa a tela confirma a autenticação e preserva o contexto, sem

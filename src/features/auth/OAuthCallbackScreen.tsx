@@ -14,7 +14,7 @@ import {
   AuthFlowError,
   completeOAuthCallback,
 } from '@/features/auth/authService';
-import { getInvitePath } from '@/features/auth/prototypeLinks';
+import { getInvitePath } from '@/features/auth/authLinks';
 import { spacing } from '@/theme/tokens';
 
 interface OAuthCallbackScreenProps {
