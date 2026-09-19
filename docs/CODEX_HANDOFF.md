@@ -109,6 +109,7 @@ openspec validate definir-mvp-setlist --type change --strict
 73. A validação seguinte mostrou que o runtime web também polifilava o construtor global `URL`, mantendo a origem incorreta mesmo após a correção anterior. A montagem do callback foi simplificada para não usar `new URL`: concatena a origem já fornecida por `window.location.origin` e extrai o caminho do script por operações de string. O log seguro do OAuth também deixou de usar `new URL`, evitando diagnóstico enganoso.
 74. O teste que simula o `URL` polifilado revelou e cobriu um segundo detalhe: a concatenação textual poderia duplicar a barra entre a origem e o base path. O caminho inicial agora remove barras à esquerda antes da concatenação e o teste exige exatamente `https://anderson-sillos.github.io/setlist/app/auth/callback`.
 75. A validação manual final no GitHub Pages confirmou o fluxo web completo até a rota `/setlist/app/auth/callback`: o retorno chegou com `code` e `sb_flow_id`, mantendo o domínio `anderson-sillos.github.io` e sem tentar abrir `setlist://`. A correção do callback web está validada; a PR #12 permanece aberta para revisão do grupo 4/5.
+76. Após a validação, a instrumentação temporária `[auth:web] callback_resolved` e seus helpers foram removidos do bundle. O comportamento do callback permanece coberto pelos testes de URL, sem logs adicionais no console do navegador.
 
 ## Visão confirmada do produto
 
