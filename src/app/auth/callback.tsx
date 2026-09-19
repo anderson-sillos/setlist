@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams } from 'expo-router';
 
-import { OAuthCallbackScreen } from '@/features/auth/OAuthCallbackScreen';
+import { OAuthCallbackHandler } from '@/features/auth/OAuthCallbackHandler';
 import { getSingleRouteParam } from '@/features/auth/authLinks';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -17,7 +17,7 @@ export default function OAuthCallbackRoute() {
   }>();
 
   return (
-    <OAuthCallbackScreen
+    <OAuthCallbackHandler
       code={getSingleRouteParam(params.code)}
       error={getSingleRouteParam(params.error)}
       errorDescription={getSingleRouteParam(params.error_description)}

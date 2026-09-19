@@ -726,6 +726,25 @@ npx expo start --dev-client --tunnel --clear
 Alterações no módulo nativo, no plugin ou nas credenciais do build ainda exigem
 um novo APK.
 
+#### 8.8. Inspecionar o splash e o AuthGate
+
+Essas pausas são opcionais e só funcionam quando
+`EXPO_PUBLIC_APP_ENV=development`. Copie as variáveis para `.env.local` para
+examinar os estados visuais sem alterar builds de produção:
+
+```dotenv
+EXPO_PUBLIC_AUTH_SPLASH_PREVIEW_MS=1500
+EXPO_PUBLIC_AUTH_GATE_PREVIEW_MS=4000
+```
+
+`EXPO_PUBLIC_AUTH_SPLASH_PREVIEW_MS` mantém o splash nativo visível pelo tempo
+informado. `EXPO_PUBLIC_AUTH_GATE_PREVIEW_MS` mantém o `AuthLoadingScreen`
+renderizado pelo `AuthGate` depois que a sessão real foi resolvida, sem alterar a
+autenticação. Para conferir ambos, use um tempo de splash menor que o tempo do
+AuthGate, como no exemplo acima. Os valores são limitados a 30 segundos e devem
+ser removidos depois da revisão. Reinicie o Metro com `--clear` após alterar o
+`.env.local`.
+
 ### 9. Publicar a prévia e gerar builds internos
 
 A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.

@@ -21,7 +21,7 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 | -------------------------------------- | ------------------------- | ---------------------------------------------- |
 | `/`                                    | Minhas bandas             | `src/features/bands/BandsScreen.tsx`           |
 | `/auth`                                | Login social              | `src/features/auth/AuthScreen.tsx`             |
-| `/auth/callback`                       | Retorno OAuth             | `src/features/auth/OAuthCallbackScreen.tsx`    |
+| `/auth/callback`                       | Retorno OAuth             | `src/features/auth/OAuthCallbackHandler.tsx`   |
 | `/invite/[token]`                      | Convite e autenticação    | `src/features/auth/InviteScreen.tsx`           |
 | `/bands/[bandId]/band`                 | Banda e integrantes       | `src/features/bands/BandScreen.tsx`            |
 | `/bands/[bandId]/repertoire`           | Repertório                | `src/features/repertoire/RepertoireScreen.tsx` |
@@ -34,7 +34,9 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 O protótipo técnico `/youtube-prototype` fica fora da navegação principal e serve somente para validar a integração web do player do YouTube antes da implementação no detalhe da música.
 
 As telas de autenticação ficam em `src/features/auth/`. O fluxo real usa
-`AuthScreen`, `OAuthCallbackScreen` e `InviteScreen`. As telas temporárias do
+`AuthScreen`, `OAuthCallbackHandler` e `InviteScreen`. O handler do callback
+troca o código OAuth e redireciona diretamente para a área protegida ou para o
+convite, sem exibir uma tela intermediária de sucesso. As telas temporárias do
 protótipo 3.4 foram removidas quando o fluxo real entrou no menu principal; o
 histórico técnico permanece registrado no handoff e no design.
 

@@ -30,11 +30,22 @@ type AuthState =
   | { readonly message: string; readonly status: 'error' };
 
 export function AuthScreen() {
-  const params = useLocalSearchParams<{ invite_token?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    auth_error?: string | string[];
+    invite_token?: string | string[];
+  }>();
   const router = useRouter();
   const inviteToken = getSingleRouteParam(params.invite_token);
+  const hasOAuthError = getSingleRouteParam(params.auth_error) === 'oauth';
   const { setSession } = useAuthSession();
-  const [authState, setAuthState] = useState<AuthState>({ status: 'idle' });
+  const [authState, setAuthState] = useState<AuthState>(() =>
+    hasOAuthError
+      ? {
+          message: 'Não foi possível concluir o login. Tente novamente.',
+          status: 'error',
+        }
+      : { status: 'idle' },
+  );
 
   async function handleSignIn(provider: SocialAuthProvider) {
     setAuthState({ provider, status: 'loading' });

@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
 import { AppText } from '@/components/ui/AppText';
@@ -11,6 +11,9 @@ import {
 jest.mock('expo-splash-screen', () => ({
   hideAsync: jest.fn().mockResolvedValue(undefined),
 }));
+
+const mockHideSplash = jest.requireMock('expo-splash-screen')
+  .hideAsync as jest.Mock;
 
 let mockSegments: string[] = ['index'];
 
@@ -52,6 +55,11 @@ function createValue(
 describe('guarda de autenticação', () => {
   afterEach(() => {
     mockSegments = ['index'];
+    jest.useRealTimers();
+    delete process.env.EXPO_PUBLIC_AUTH_GATE_PREVIEW_MS;
+    delete process.env.EXPO_PUBLIC_AUTH_SPLASH_PREVIEW_MS;
+    process.env.EXPO_PUBLIC_APP_ENV = 'development';
+    mockHideSplash.mockClear();
   });
 
   it('mostra o carregamento enquanto confere a sessão', async () => {
@@ -88,5 +96,29 @@ describe('guarda de autenticação', () => {
       <AppText>Convite</AppText>,
     );
     expect(inviteView.getByText('Convite')).toBeTruthy();
+  });
+
+  it('permite revisar o splash e o carregamento do AuthGate', async () => {
+    jest.useFakeTimers();
+    process.env.EXPO_PUBLIC_AUTH_SPLASH_PREVIEW_MS = '500';
+    process.env.EXPO_PUBLIC_AUTH_GATE_PREVIEW_MS = '1000';
+
+    const view = await renderGate(createValue('authenticated'));
+
+    expect(
+      view.getByRole('progressbar', { name: 'Conferindo seu acesso…' }),
+    ).toBeTruthy();
+    expect(mockHideSplash).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
+    expect(mockHideSplash).toHaveBeenCalled();
+    expect(view.getByRole('progressbar')).toBeTruthy();
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(view.getByText('Conteúdo protegido')).toBeTruthy();
   });
 });
