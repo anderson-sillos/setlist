@@ -9,6 +9,7 @@ import type {
 } from '@supabase/supabase-js';
 
 import '@/config/webCrypto';
+import { getPublicEnvironment } from '@/config/environment';
 import { getSupabaseClient } from '@/data/supabase/client';
 import {
   getAuthCallbackPath,
@@ -45,6 +46,30 @@ export class AuthFlowError extends Error {
 }
 
 const OAUTH_CODE_CACHE_TTL_MS = 15_000;
+
+function isAuthDebugEnabled(): boolean {
+  try {
+    return getPublicEnvironment().appEnvironment === 'development';
+  } catch {
+    return typeof __DEV__ !== 'undefined' && __DEV__;
+  }
+}
+
+function redactAuthUrl(url: string): string {
+  const queryIndex = url.indexOf('?');
+  return queryIndex >= 0
+    ? `${url.slice(0, queryIndex)}?query_present=true`
+    : url;
+}
+
+function authDebugLog(
+  event: string,
+  details: Readonly<Record<string, boolean | string | undefined>>,
+): void {
+  if (isAuthDebugEnabled()) {
+    console.info(`[auth:oauth] ${event}`, details);
+  }
+}
 
 /**
  * No Android, o polyfill do `openAuthSessionAsync` usa uma Custom Tab. A
@@ -180,6 +205,10 @@ async function signInWithBrowserOAuth(
 ): Promise<SocialAuthResult> {
   try {
     const redirectTo = getAuthRedirectUrl(inviteToken);
+    authDebugLog('redirect_to', {
+      platform: Platform.OS,
+      redirectTo: redactAuthUrl(redirectTo),
+    });
     const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
       options: {
         redirectTo,
@@ -208,6 +237,11 @@ async function signInWithBrowserOAuth(
       redirectTo,
       Platform.OS === 'android' ? ANDROID_AUTH_BROWSER_OPTIONS : undefined,
     );
+    authDebugLog('browser_result', {
+      callbackUrl:
+        result.type === 'success' ? redactAuthUrl(result.url) : undefined,
+      resultType: result.type,
+    });
     if (result.type !== 'success') {
       return { inviteToken, status: 'cancelled' };
     }
