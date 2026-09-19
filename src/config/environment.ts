@@ -14,12 +14,14 @@ const publicEnvironmentSchema = z.object({
     .string({ error: 'é obrigatória' })
     .trim()
     .min(20, 'deve ser uma chave pública válida'),
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: z.string().trim().min(1).optional(),
 });
 
 export type PublicEnvironmentSource = {
   readonly EXPO_PUBLIC_APP_ENV?: string;
   readonly EXPO_PUBLIC_SUPABASE_URL?: string;
   readonly EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
+  readonly EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?: string;
 };
 
 export type PublicEnvironment = Readonly<{
@@ -28,6 +30,7 @@ export type PublicEnvironment = Readonly<{
     url: string;
     publishableKey: string;
   }>;
+  googleWebClientId?: string;
 }>;
 
 export type EnvironmentConfigurationIssue = Readonly<{
@@ -71,6 +74,9 @@ export function parsePublicEnvironment(
       url: result.data.EXPO_PUBLIC_SUPABASE_URL,
       publishableKey: result.data.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     }),
+    ...(result.data.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+      ? { googleWebClientId: result.data.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }
+      : {}),
   });
 }
 
@@ -84,5 +90,7 @@ export function getPublicEnvironment(): PublicEnvironment {
     EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
     EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:
+      process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   });
 }

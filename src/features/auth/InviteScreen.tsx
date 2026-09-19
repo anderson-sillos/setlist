@@ -5,45 +5,38 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
-import {
-  getOAuthCallbackPath,
-  PROTOTYPE_OAUTH_CODE,
-  PROTOTYPE_OAUTH_STATE,
-} from '@/features/auth/prototypeLinks';
 import { spacing } from '@/theme/tokens';
 
-interface InvitePrototypeScreenProps {
+interface InviteScreenProps {
+  readonly authenticated?: string;
   readonly resumed?: string;
   readonly token?: string;
 }
 
-export function InvitePrototypeScreen({
+export function InviteScreen({
+  authenticated,
   resumed,
   token,
-}: InvitePrototypeScreenProps) {
-  const callbackPath = token
-    ? getOAuthCallbackPath({
-        code: PROTOTYPE_OAUTH_CODE,
-        inviteToken: token,
-        state: PROTOTYPE_OAUTH_STATE,
-      })
-    : null;
+}: InviteScreenProps) {
+  const authPath = token
+    ? ({
+        pathname: '/auth',
+        params: { invite_token: token },
+      } as unknown as Href)
+    : ('/auth' as Href);
 
   return (
-    <Screen testID="invite-prototype">
+    <Screen testID="invite-screen">
       <View style={styles.header}>
-        <Link href="/auth-prototype" replace asChild>
-          <AppButton
-            icon="back"
-            label="Voltar ao protótipo"
-            variant="secondary"
-          />
-        </Link>
         <AppText tone="accent" variant="eyebrow">
-          Convite de desenvolvimento
+          Convite para banda
         </AppText>
         <AppText accessibilityRole="header" variant="title">
-          Convite para a banda
+          Você foi convidado
+        </AppText>
+        <AppText tone="muted">
+          Entre com Google ou Apple para revisar e confirmar sua entrada na
+          banda.
         </AppText>
       </View>
 
@@ -56,26 +49,30 @@ export function InvitePrototypeScreen({
         </Card>
       ) : (
         <Card style={styles.card} testID="invite-details">
-          <AppText variant="heading">Token preservado</AppText>
+          <AppText variant="heading">Convite recebido</AppText>
           <AppText tone="muted">
-            O token recebido pela rota é mantido até o retorno do login.
+            O token permanece protegido durante o login e não é salvo como
+            conteúdo do aplicativo.
           </AppText>
           <AppText selectable testID="invite-token" variant="heading">
             {token}
           </AppText>
-          {resumed === '1' ? (
-            <AppText tone="accent">Convite retomado após o login.</AppText>
-          ) : null}
-          {callbackPath ? (
-            <Link href={callbackPath as Href} asChild>
-              <AppButton
-                icon="externalLink"
-                label="Simular login social e retorno"
-              />
+          {authenticated === '1' || resumed === '1' ? (
+            <AppText tone="accent" testID="invite-authenticated">
+              Login concluído. A confirmação de entrada será habilitada na
+              próxima etapa.
+            </AppText>
+          ) : (
+            <Link href={authPath} replace asChild>
+              <AppButton icon="login" label="Entrar para continuar" />
             </Link>
-          ) : null}
+          )}
         </Card>
       )}
+
+      <Link href="/" replace asChild>
+        <AppButton label="Voltar" variant="secondary" />
+      </Link>
     </Screen>
   );
 }
@@ -87,5 +84,6 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: spacing.md,
+    marginBottom: spacing.lg,
   },
 });

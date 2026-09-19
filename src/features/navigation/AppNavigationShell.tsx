@@ -4,6 +4,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useCallback } from 'react';
+import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConnectionBanner } from '@/components/feedback';
@@ -11,6 +13,7 @@ import { AppHeader } from '@/features/navigation/components/AppHeader';
 import { BottomNavigation } from '@/features/navigation/components/BottomNavigation';
 import { MobileNavigationDrawer } from '@/features/navigation/components/MobileNavigationDrawer';
 import { NavigationPanel } from '@/features/navigation/components/NavigationPanel';
+import { signOut } from '@/features/auth/authService';
 import { useBandNavigationState } from '@/features/navigation/hooks/useBandNavigationState';
 import { useNavigationDrawer } from '@/features/navigation/hooks/useNavigationDrawer';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
@@ -44,6 +47,15 @@ export function AppNavigationShell({
   viewportHeight,
   viewportWidth,
 }: AppNavigationShellProps) {
+  const router = useRouter();
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut();
+      router.replace('/auth' as Href);
+    } catch (error) {
+      console.error('[auth] Falha ao sair.', error);
+    }
+  }, [router]);
   const window = useWindowDimensions();
   const width = viewportWidth ?? window.width;
   const height = viewportHeight ?? window.height;
@@ -78,6 +90,7 @@ export function AppNavigationShell({
               bandId={bandId}
               bandName={bandName}
               getSectionHref={getSectionHref}
+              onLogout={handleLogout}
             />
           </View>
         ) : null}
@@ -154,6 +167,7 @@ export function AppNavigationShell({
           bandName={bandName}
           getSectionHref={getSectionHref}
           onClose={closeDrawer}
+          onLogout={handleLogout}
           translateX={drawerTranslateX}
           visible={drawerOpen}
         />

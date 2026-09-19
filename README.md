@@ -63,7 +63,7 @@ O aplicativo também deverá oferecer controle de acesso por banda, login social
 flowchart LR
     APP[Aplicação Expo\nAndroid, iOS e web]
     API[Supabase hospedado\nAuth + PostgreSQL + RLS]
-    AUTH[SecureStore\nSessão autenticada]
+    AUTH[SecureStore\nSessão + verificador PKCE]
     CACHE[Arquivos JSON\nShows baixados]
     YT[YouTube incorporado\nReferência na edição]
 
@@ -78,7 +78,9 @@ flowchart LR
 - **React Native com Expo** para compartilhar a base da aplicação entre Android, iOS e web.
 - **Supabase hospedado** para autenticação, PostgreSQL e políticas de acesso com Row Level Security.
 - **Google e Apple OAuth** para login social, sem senhas mantidas pelo Setlist.
-- **Expo SecureStore** somente para persistir a sessão autenticada.
+- **Expo SecureStore** para proteger a sessão e o verificador temporário do
+  fluxo PKCE nos aplicativos móveis; na web, o Supabase usa o armazenamento
+  persistente do navegador.
 - **Expo Splash Screen** para a tela de abertura nativa com a identidade visual
   do aplicativo.
 - **Arquivos JSON locais** para os pacotes de shows disponíveis offline.
@@ -199,21 +201,188 @@ Na versão atual, o npm informa alertas moderados em dependências transitivas d
 
 ### 5. Variáveis de ambiente
 
-Crie a configuração local a partir do modelo versionado:
+Para desenvolvimento local, copie o modelo do ambiente correspondente:
 
 ```bash
-cp .env.example .env.local
+cp .env.development.example .env.local
 ```
 
-No PowerShell, use `Copy-Item .env.example .env.local`. Preencha os dados do projeto Supabase hospedado correspondente ao ambiente:
+No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar produção localmente, substitua pelo modelo `.env.production.example`. Nunca versione o arquivo `.env.local` preenchido.
 
-| Variável                               | Uso                                               |
-| -------------------------------------- | ------------------------------------------------- |
-| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production` |
-| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente         |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                  |
+| Variável                               | Uso                                                        |
+| -------------------------------------- | ---------------------------------------------------------- |
+| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production`          |
+| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente                  |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                           |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web opcional para Google nativo no Android |
 
-Use projetos Supabase distintos para desenvolvimento e produção e altere `EXPO_PUBLIC_APP_ENV` no perfil de build. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
+Use dois projetos Supabase hospedados distintos: um para desenvolvimento e outro para produção. Copie de cada painel a **Project URL** e a **Publishable key** para o arquivo do mesmo ambiente. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
+
+Para conferir a conexão com o projeto selecionado, execute:
+
+```bash
+npm run supabase:check -- development
+npm run supabase:check -- production
+```
+
+O comando consulta o endpoint de configurações do Supabase usando somente a URL e a chave publicável. Ele não aceita nem procura `service_role`, `sb_secret` ou outra credencial administrativa. As variáveis dos builds EAS devem ser cadastradas no painel do projeto para os ambientes `development` e `production`; o arquivo `eas.json` apenas seleciona o ambiente e fixa `EXPO_PUBLIC_APP_ENV`.
+
+As migrações e os testes de banco ficam em `supabase/`. Com Docker instalado, inicie o banco local, reaplique o schema e execute os testes pgTAP:
+
+```bash
+npx --yes supabase@latest start
+npx --yes supabase@latest db reset --local
+npm run supabase:test
+npm run supabase:lint
+```
+
+`supabase:test` executa a suíte pgTAP de acesso e integridade. `supabase:lint` verifica somente o schema público da aplicação e falha em erros; a extensão pgTAP local fica fora desse lint porque suas funções auxiliares são específicas da infraestrutura de testes. Alterações de schema devem ser feitas nas migrações, não diretamente no banco remoto.
+
+### Configurar o login social no Supabase
+
+A tarefa 5.1 conecta Google e Apple ao cliente Expo, mas cada projeto Supabase
+precisa receber as credenciais dos provedores antes de o login real funcionar.
+Faça essa configuração no painel de cada ambiente, sem colocar segredos no Git:
+
+1. Em **Authentication → Providers**, habilite **Google** e **Apple** e informe
+   as credenciais emitidas por cada provedor. O endereço de callback cadastrado
+   no Google e na Apple é o callback do Supabase:
+   `https://<project-ref>.supabase.co/auth/v1/callback`.
+2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
+   adicione os retornos permitidos usados no desenvolvimento:
+   `http://localhost:8081/auth/callback**`,
+   `https://*.exp.direct/auth/callback**`,
+   `https://anderson-sillos.github.io/setlist/app/auth/callback**` e
+   `setlist://auth/callback**`.
+   Para validar pelo Expo Go usando túnel, adicione também
+   `exp://**/--/auth/callback**`; esses padrões cobrem os endereços temporários
+   gerados pelo Expo em cada execução e o parâmetro `sb_flow_id` acrescentado
+   pelo PKCE. Neste projeto, o `Site URL` fica como
+   `setlist://auth/callback`, servindo como fallback nativo; os destinos web
+   precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
+   A prévia hospedada no GitHub Pages já usa o retorno HTTPS acima; o endereço
+   HTTPS definitivo do aplicativo será revisado na tarefa 11.5. No projeto de
+   desenvolvimento, essa lista já foi aplicada pela Supabase CLI.
+   Antes de repetir a operação em outro ambiente, execute `supabase config diff`
+   e revise o resultado; o `supabase/config.toml` versionado contém valores para
+   desenvolvimento local e não deve ser enviado diretamente sem essa revisão.
+3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
+   `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
+   correspondentes. Para habilitar Google nativo no Android, cadastre também
+   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` com o Client ID OAuth do tipo Web. Client
+   IDs podem ser públicos no aplicativo, mas client secrets, chaves privadas
+   Apple e tokens nunca devem ser versionados.
+
+Depois de configurar os provedores, inicie a aplicação e abra **Menu geral →
+Entrar**. O fluxo usa o `state` e o PKCE gerenciados pelo Supabase e troca o
+`code` recebido na rota de callback por uma sessão. Ao abrir um link `/invite/<token>`, o token é
+levado até o retorno OAuth sem ser salvo como conteúdo do aplicativo. No
+navegador, o retorno troca o `code` por uma sessão; no Android e iOS, o
+`WebBrowser` abre o provedor e devolve o resultado à aplicação.
+
+O login seguirá um fluxo híbrido. Em um development build ou build distribuído
+Android com a integração nativa do Google configurada, o botão poderá apresentar
+a tela nativa de contas e enviará o ID Token para o Supabase. No Expo Go, na
+web, em aparelhos sem Google Play Services ou quando o módulo nativo não estiver
+disponível, o aplicativo usará automaticamente o OAuth pelo navegador. O
+cancelamento explícito da tela nativa apenas encerra a tentativa e não abre o
+navegador sem uma nova ação. A integração nativa exige dependência e configuração
+de build próprias; instalar o pacote JavaScript não altera o funcionamento do
+Expo Go.
+
+No Android e no iOS, a sessão e o verificador temporário gerado pelo PKCE ficam
+no SecureStore para continuar disponíveis quando o navegador devolver o deep
+link ou quando o aplicativo for reaberto. Na web, o Supabase usa o armazenamento
+persistente do navegador. O retorno recebido pelo `WebBrowser` e a rota
+`/auth/callback` podem chegar juntos; o app compartilha a mesma troca do `code`
+para não consumir o código OAuth duas vezes. A renovação automática é pausada
+quando o aplicativo móvel vai para segundo plano e retomada quando volta ao
+primeiro plano.
+
+Para gerar um development build Android com o módulo nativo, o plugin é
+habilitado somente para a plataforma Android. Em uma execução local, use:
+
+```bash
+SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo prebuild --platform android
+SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo run:android
+```
+
+No EAS, `EAS_BUILD_PLATFORM=android` habilita o plugin automaticamente. O
+Client ID Android precisa estar cadastrado no Google Cloud com o pacote
+`com.andersonsillos.setlist` e a impressão digital SHA-1 correspondente à
+assinatura do build (EAS, local ou Google Play). O iOS continua usando o OAuth
+no navegador nesta etapa; sua integração nativa será configurada futuramente.
+
+#### Modelo de identidade e vinculação de provedores
+
+O UUID de `auth.users.id` representa a conta do Setlist e é a chave usada pelos
+dados do aplicativo. Após o primeiro login, o perfil público usa o mesmo valor
+em `public.profiles.id`; participações em bandas, aceites legais, convites e
+futuras entidades devem referenciar esse UUID. O e-mail e o identificador
+externo do Google ou da Apple são atributos da identidade OAuth, não chaves
+estrangeiras do aplicativo.
+
+Uma conta poderá ter mais de uma identidade de login vinculada. Em uma etapa
+futura, as configurações da conta deverão oferecer **Adicionar outro método de
+login** ou **Vincular Google/Apple**, usando o mecanismo de vinculação de
+identidades do Supabase. Se a pessoa entrar com outro provedor sem vinculá-lo,
+ela poderá criar uma segunda conta com outro UUID; nesse caso será necessário um
+fluxo explícito de recuperação ou mesclagem, nunca uma reassociação automática
+por e-mail ou pelo identificador externo.
+
+Excluir definitivamente o usuário em **Authentication** também encerra a conta
+associada ao UUID. Um login posterior criará outro UUID e não recuperará
+automaticamente as associações anteriores.
+
+Para validar o retorno nativo com o esquema `setlist://`, use um development
+build ou build interno. O Expo Go pode abrir as telas, mas não representa todos
+os comportamentos de deep link e credenciais nativas dos provedores sociais.
+
+### Publicar as migrações nos projetos hospedados
+
+As migrações em `supabase/migrations/` são a fonte de verdade do banco. Depois de revisar o grupo 4 e validar o banco local, publique primeiro no projeto Supabase de desenvolvimento e somente depois no projeto de produção. O comando `db push` aplica apenas as migrações ainda ausentes no histórico remoto; ele não recria nem apaga o banco.
+
+Autentique a CLI uma vez, usando uma conta com acesso aos projetos, e informe a senha do banco somente quando a CLI solicitar, sem incluí-la em comandos ou arquivos versionados:
+
+```bash
+npx --yes supabase@latest login
+```
+
+Faça uma prévia e publique no projeto de desenvolvimento:
+
+```bash
+npx --yes supabase@latest link --project-ref <PROJECT_REF_DESENVOLVIMENTO>
+npx --yes supabase@latest db push --linked --dry-run
+npx --yes supabase@latest db push --linked
+npx --yes supabase@latest db lint --linked --schema public --fail-on error
+```
+
+Após validar o schema e os fluxos no ambiente de desenvolvimento, repita o processo para produção, trocando o projeto vinculado:
+
+```bash
+npx --yes supabase@latest link --project-ref <PROJECT_REF_PRODUCAO>
+npx --yes supabase@latest db push --linked --dry-run
+npx --yes supabase@latest db push --linked
+npx --yes supabase@latest db lint --linked --schema public --fail-on error
+```
+
+Depois de cada publicação, confira a conexão pública do ambiente correspondente:
+
+```bash
+npm run supabase:check -- development
+npm run supabase:check -- production
+```
+
+Não execute `db reset --local` apontando para um projeto hospedado, não use `--include-seed` nesses ambientes e não aplique alterações manualmente pelo Table Editor. O `seed.sql` habilita pgTAP somente no banco local; produção e desenvolvimento hospedados devem receber apenas as migrações versionadas. Se o `dry-run` indicar divergência de histórico, interrompa a publicação e revise o projeto antes de usar opções como `--include-all`.
+
+Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
+
+```bash
+npm run supabase:check:eas -- development
+npm run supabase:check:eas -- production
+```
+
+O script chama `eas env:exec` e repassa o ambiente ao mesmo verificador local. O EAS CLI precisa estar autenticado na conta que possui o projeto Expo. Para conferir apenas se as variáveis foram cadastradas, use `npx --yes eas-cli@latest env:list --environment development` ou o equivalente para `production`. Não use opções que imprimam valores sensíveis nos logs.
 
 Consulte a [documentação de variáveis de ambiente do Expo](https://docs.expo.dev/guides/environment-variables/) para detalhes sobre carregamento e perfis de build.
 
@@ -479,6 +648,13 @@ Leia o novo QR code. Nesse modo, computador e aparelho precisam apenas de acesso
 
 #### 8.5. Executar a revisão nas duas plataformas
 
+Depois da tela de splash, o aplicativo verifica a sessão persistida. Sem uma
+sessão autenticada, a primeira tela apresentada é **Entrar**; somente após
+concluir o login e acionar a continuidade o app monta a área protegida e abre
+**Minhas bandas**. Em Android e iOS, a sessão é lida do SecureStore; na web,
+ela é lida do armazenamento persistente do navegador. Sessões expiradas ou que
+não puderem ser renovadas retornam com segurança para **Entrar**.
+
 Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
 
 - abrir a tela **Minhas bandas** e selecionar cada banda demonstrativa;
@@ -495,22 +671,82 @@ Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
 
-#### 8.6. Validar o protótipo de convite e OAuth
+#### 8.6. Validar o login social e o retorno de convite
 
-Durante a atividade 3.4, abra o menu lateral e selecione **Convite e OAuth (protótipo)**. A tela apresenta as URLs de desenvolvimento geradas pelo Expo e não cria conta, convite ou sessão real.
+Com Google e Apple configurados no projeto Supabase conforme a seção de
+provedores, abra **Menu geral → Entrar** e repita o fluxo no navegador e em um
+development build Android. A validação nativa do iOS fica registrada como
+pendência futura desta etapa:
 
-Repita o fluxo no navegador, Android e iOS:
+1. Escolha Google ou Apple e conclua o login no provedor.
+2. Confirme que o retorno chega à aplicação e exibe a confirmação **Login concluído**.
+   Acione o botão de continuidade para abrir `Minhas bandas` quando
+   não há convite.
+3. Abra um link `/invite/<token>`, entre por um provedor e confirme que a tela
+   exibe a confirmação e oferece `Continuar para o convite`, preservando o
+   token sem consumi-lo nesta etapa.
+4. Cancele o login e confirme que a aplicação permanece disponível para tentar
+   novamente.
+5. Registre no PR a plataforma, navegador/provedor, resultado do retorno e
+   qualquer falha de configuração.
 
-1. Acione **Abrir rota de convite** e confirme que o token `convite-demo-2026` aparece na tela de convite.
-2. Acione **Simular login social e retorno** e confirme que `code`, `state` e `invite_token` chegam preservados na tela de callback.
-3. Acione **Retomar convite** e confirme que o mesmo token é exibido como convite retomado.
-4. Use também **Abrir URL do convite** e **Abrir URL de retorno** para conferir o comportamento do endereço de desenvolvimento da plataforma.
+Ao executar com `npx expo start --go --tunnel --clear`, o app monta
+automaticamente um retorno `exp://.../--/auth/callback` no Expo Go e a versão
+web usa a origem HTTPS `https://*.exp.direct/auth/callback`; a prévia publicada
+no GitHub Pages usa `https://anderson-sillos.github.io/setlist/app/auth/callback`.
+Se esses padrões não estiverem na lista de Redirect URLs do Supabase, o
+provedor pode ignorar o `redirectTo` e voltar para o `Site URL`
+(`setlist://auth/callback`), deixando o login web sem um destino navegável. Em
+um development build ou build interno, o retorno é `setlist://auth/callback` e
+deve ser mantido na mesma lista.
 
-Essas telas são somente um protótipo técnico. O login Google/Apple, o consumo do convite e a validação no Supabase serão implementados em incrementos posteriores.
+O aceite efetivo do convite e a criação de bandas dependem das tarefas 5.4 e
+5.6. Nesta etapa a tela confirma a autenticação e preserva o contexto, sem
+consumir o convite.
+
+#### 8.7. Validar persistência e expiração da sessão
+
+Depois de concluir o login em um development build Android ou no navegador:
+
+1. Feche completamente o aplicativo ou recarregue a página.
+2. Abra novamente o projeto e confirme que a tela **Entrar** não aparece.
+3. Confirme que o app retorna para **Minhas bandas** com a mesma conta.
+4. Coloque o aplicativo em segundo plano e retorne depois de alguns segundos;
+   a sessão deve permanecer válida sem novo login.
+5. Faça logout quando essa ação estiver disponível e confirme que a sessão
+   removida não reaparece após reiniciar.
+
+No Android, o development build pode continuar usando o mesmo APK enquanto o
+Metro fornece alterações JavaScript:
+
+```bash
+npx expo start --dev-client --tunnel --clear
+```
+
+Alterações no módulo nativo, no plugin ou nas credenciais do build ainda exigem
+um novo APK.
 
 ### 9. Publicar a prévia e gerar builds internos
 
 A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.
+
+Para que o login funcione nessa versão hospedada, o repositório precisa ter as
+seguintes **Variables** públicas em _Settings → Secrets and variables → Actions_:
+`EXPO_PUBLIC_APP_ENV`, `EXPO_PUBLIC_SUPABASE_URL`,
+`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e, opcionalmente,
+`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. A chave publicável e o Client ID podem ser
+embutidos no bundle web; nunca use `service_role`, `sb_secret`, Client Secret ou
+outra credencial privada. O workflow falha antes da exportação quando a URL ou
+a chave publicável não estiverem configuradas.
+
+Para publicar manualmente a branch atual e validar o login sem Metro, use:
+
+```bash
+gh workflow run pages.yml --ref feat/supabase-environments
+```
+
+Depois acompanhe a execução em _Actions → Publicar GitHub Pages_ e abra a URL
+publicada em uma janela anônima, para não reutilizar uma sessão local.
 
 Para gerar builds internos, autentique a CLI pelo navegador e confirme a conta ativa:
 
@@ -519,7 +755,42 @@ npx --yes eas-cli@latest login --browser
 npx --yes eas-cli@latest whoami
 ```
 
-A configuração versionada em `eas.json` usa o perfil `preview` com distribuição interna. No Android, o resultado é um APK instalável diretamente. Gere uma plataforma ou as duas:
+A configuração versionada em `eas.json` possui dois perfis Android relevantes:
+
+- `development-android`: development build com o módulo nativo do Google e APK
+  instalável diretamente, usado para validar o login híbrido;
+- `preview`: build interno sem o modo de desenvolvimento, usado para revisar a
+  aplicação como um artefato distribuído.
+
+Gere o development build Android do login nativo com:
+
+```bash
+npm run build:development:android
+```
+
+Depois de instalar o APK no aparelho, inicie o Metro para o development client:
+
+```bash
+npx expo start --dev-client --tunnel --clear
+```
+
+O EAS é necessário para produzir esse APK remoto, mas cada ajuste somente em
+TypeScript, telas ou logs pode ser testado no mesmo APK pelo Fast Refresh. Será
+necessário gerar outro build quando houver mudança de dependência nativa,
+plugin/configuração do `app.config.ts`, pacote Android, assinatura ou qualquer
+outro recurso que precise ser compilado dentro do binário. Para uma alternativa
+local, em um ambiente Android configurado, use:
+
+```bash
+SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo run:android
+```
+
+No ambiente EAS, cadastre `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` como variável
+pública do ambiente `development`; sem ela, o mesmo APK continua funcional e
+usa o OAuth pelo navegador como fallback. O Client ID Android e a impressão
+digital SHA-1 precisam corresponder ao pacote e à assinatura do APK instalado.
+
+Para o build interno sem development client, use o perfil `preview`:
 
 ```bash
 npm run build:preview:android
@@ -535,6 +806,28 @@ npx --yes eas-cli@latest device:create
 
 A autenticação fica no perfil local do usuário e as credenciais são administradas pelo EAS; não adicione tokens, certificados, perfis ou chaves ao repositório. Consulte a [documentação de distribuição interna do Expo](https://docs.expo.dev/build/internal-distribution/) para instalar e compartilhar os artefatos.
 
+#### Diagnóstico do login nativo Android
+
+No ambiente `development`, o fluxo registra no Metro eventos prefixados por
+`[auth:native-google]`. Eles cobrem a disponibilidade do runtime, carregamento
+do módulo, configuração, Google Play Services, resposta da tela nativa,
+criação de conta quando não há credencial salva, cancelamento, troca do ID
+Token no Supabase e fallback. Os logs nunca imprimem o ID Token, access token,
+Client ID ou sessão; erros nativos são reduzidos ao nome, código e mensagem
+curta para facilitar a identificação da etapa que falhou.
+
+Para acompanhar os logs no Android conectado por USB, use:
+
+```bash
+adb logcat -s ReactNativeJS
+```
+
+No Metro, filtre por `auth:native-google`. Guarde somente os eventos e códigos
+ao relatar um problema; não compartilhe tokens ou valores completos de erros
+que possam conter credenciais. O perfil `development-android` permite corrigir
+o fluxo JavaScript e repetir o teste sem novo build; gere outro APK apenas
+quando a alteração for nativa, conforme as regras acima.
+
 ### 10. Problemas comuns
 
 - **Cache do Metro inconsistente:** execute `npx expo start --clear`.
@@ -545,6 +838,15 @@ A autenticação fica no perfil local do usuário e as credenciais são administ
 - **Emulador Android não abre:** inicialize o dispositivo virtual no Android Studio e confirme que `adb devices` o lista.
 - **Atalho de iOS indisponível:** o iOS Simulator e builds locais para iOS exigem macOS e Xcode.
 - **Porta do Expo ocupada:** execute `npx expo start --port 8082` ou escolha outra porta livre.
+- **Google retorna `invalid flow state`:** encerre tentativas antigas do provedor,
+  reinicie o Metro com `npx expo start --go --tunnel --clear` e inicie um novo
+  login. O app evita a troca duplicada do mesmo `code`; se o erro persistir,
+  confirme que o Redirect URL usado está cadastrado no projeto Supabase do
+  ambiente atual.
+- **Aviso de múltiplas instâncias `GoTrueClient`:** recarregue a página após
+  limpar o Metro. O cliente Supabase é compartilhado no contexto do navegador,
+  inclusive durante o Fast Refresh, para que a mesma chave de armazenamento não
+  seja usada por instâncias concorrentes.
 
 #### Android físico e WSL2
 
@@ -636,6 +938,11 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- design.md                        # Decisões e arquitetura
 |   |-- specs/                           # Contratos de comportamento
 |   `-- tasks.md                         # Plano incremental de implementação
+|-- supabase/
+|   |-- migrations/                      # Migrações SQL versionadas do backend
+|   |-- tests/                           # Testes pgTAP do banco local
+|   |-- config.toml                      # Configuração da CLI local
+|   `-- seed.sql                         # Extensões e dados exclusivos do banco local
 |-- src/
 |   |-- app/                             # Entradas de rota do Expo Router
 |   |-- components/feedback/             # Mensagens e avisos compartilhados
@@ -643,6 +950,7 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
 |   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos
 |   |-- data/in-memory/                   # Repositórios locais para testes e demonstração
+|   |-- data/supabase/                    # Cliente Supabase configurado por ambiente
 |   |-- domain/                          # Entidades e contratos independentes da infraestrutura
 |   |-- features/bands/                  # Minhas bandas e integrantes
 |   |-- features/calendar/               # Calendário mensal e feriados
@@ -652,12 +960,15 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- features/stage/                  # Seleção, palco e cronômetro manual
 |   |-- providers/                       # Contexto de dados e cache de consultas
 |   `-- theme/                           # Tokens e breakpoints responsivos
-|-- .env.example                         # Modelo público, sem credenciais reais
+|-- .env.development.example             # Modelo do projeto Supabase de desenvolvimento
+|-- .env.production.example              # Modelo do projeto Supabase de produção
 |-- .github/workflows/ci.yml             # Qualidade contínua no GitHub
 |-- .github/workflows/pages.yml          # Exportação e publicação do site e da prévia
 |-- app.config.ts                        # Base web variável para publicação em subdiretório
 |-- app.json                             # Configuração de Android, iOS e web
 |-- eas.json                             # Perfil de builds internos Android e iOS
+|-- scripts/check-supabase-connection.mjs # Verificação pública por ambiente
+|-- scripts/check-supabase-eas.mjs       # Verificação usando variáveis do EAS
 |-- eslint.config.js                     # Regras estáticas do projeto Expo
 |-- jest.config.js                       # Testes e cobertura mínima
 |-- package.json                         # Dependências e comandos do projeto
@@ -672,7 +983,7 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- validar antecipadamente YouTube, cronômetro e links de autenticação no incremento 3;
+- concluir as migrações de músicas, shows, convites e políticas de acesso do Supabase;
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 
