@@ -43,7 +43,7 @@ export function getDevelopmentUrl(path: string): string {
       .join('/')
       .replace(/\/+/g, '/');
 
-    return `${window.location.origin.replace(/\/+$/, '')}/${pathWithBase}`;
+    return `${window.location.origin.replace(/\/+$/, '')}/${pathWithBase.replace(/^\/+/, '')}`;
   }
 
   return Linking.createURL(normalizedPath);

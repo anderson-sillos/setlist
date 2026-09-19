@@ -42,6 +42,7 @@ describe('rotas de convite e OAuth', () => {
     const originalPlatform = Platform.OS;
     const originalWindow = (globalThis as { window?: unknown }).window;
     const originalDocument = (globalThis as { document?: unknown }).document;
+    const originalUrl = globalThis.URL;
 
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
@@ -66,12 +67,23 @@ describe('rotas de convite e OAuth', () => {
         }),
       },
     });
+    Object.defineProperty(globalThis, 'URL', {
+      configurable: true,
+      value: function BrokenUrl() {
+        throw new Error('URL polyfill incompatível');
+      },
+    });
 
     try {
-      expect(getDevelopmentUrl('/auth/callback')).toMatch(
-        /\/setlist\/app\/auth\/callback$/,
+      expect(getDevelopmentUrl('/auth/callback')).toBe(
+        'https://anderson-sillos.github.io/setlist/app/auth/callback',
       );
     } finally {
+      Object.defineProperty(globalThis, 'URL', {
+        configurable: true,
+        value: originalUrl,
+      });
+
       Object.defineProperty(Platform, 'OS', {
         configurable: true,
         value: originalPlatform,
