@@ -13,10 +13,21 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 const secureStoreMock = jest.mocked(SecureStore);
+const secureStoreData = new Map<string, string>();
 
 describe('lastBandStorage', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    secureStoreData.clear();
+    secureStoreMock.getItemAsync.mockImplementation(async (key) => {
+      return secureStoreData.get(key) ?? null;
+    });
+    secureStoreMock.setItemAsync.mockImplementation(async (key, value) => {
+      secureStoreData.set(key, value);
+    });
+    secureStoreMock.deleteItemAsync.mockImplementation(async (key) => {
+      secureStoreData.delete(key);
+    });
     await clearLastBandId();
   });
 
@@ -42,8 +53,18 @@ describe('lastBandStorage', () => {
 
   it('mantém a seleção em memória quando o armazenamento seguro falha', async () => {
     secureStoreMock.setItemAsync.mockRejectedValueOnce(new Error('offline'));
+    secureStoreMock.getItemAsync.mockRejectedValueOnce(new Error('offline'));
     await writeLastBandId('band-demo-horizonte');
 
     expect(await readLastBandId()).toBe('band-demo-horizonte');
+  });
+
+  it('recupera o valor persistido no armazenamento após uma nova leitura', async () => {
+    await writeLastBandId('band-demo-horizonte');
+
+    expect(await readLastBandId()).toBe('band-demo-horizonte');
+    expect(secureStoreMock.getItemAsync).toHaveBeenCalledWith(
+      'setlist:last-selected-band',
+    );
   });
 });

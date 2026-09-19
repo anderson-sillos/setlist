@@ -11,7 +11,7 @@ import { AppProviders } from '@/providers/AppProviders';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
 describe('<BandsScreen />', () => {

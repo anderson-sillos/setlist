@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
@@ -48,12 +48,18 @@ export function BandsScreen({
   viewportHeight,
   viewportWidth,
 }: BandsScreenProps) {
+  const router = useRouter();
   const bandsQuery = useUserBandSummaries();
   const { clearLastBand, isHydrated, lastBandId, setLastBand } =
     useLastBandSelection();
   const [search, setSearch] = useState('');
   const [creationNoticeVisible, setCreationNoticeVisible] = useState(false);
   const normalizedSearch = normalizeForSearch(search);
+
+  const openBand = async (bandId: string) => {
+    await setLastBand(bandId);
+    router.push(getBandSectionHref(bandId, 'shows'));
+  };
 
   useEffect(() => {
     if (!isHydrated || !bandsQuery.data || !lastBandId) {
@@ -148,51 +154,49 @@ export function BandsScreen({
 
           return (
             <View style={styles.rowFrame}>
-              <Link href={getBandSectionHref(band.id, 'shows')} asChild>
-                <Pressable
-                  accessibilityLabel={`Abrir ${band.name}`}
-                  accessibilityRole="link"
-                  onPress={() => void setLastBand(band.id)}
-                  style={({ pressed }) => [
-                    styles.bandRow,
-                    isLastAccessed && styles.lastAccessedRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.bandRowLayout}>
-                    <View style={styles.bandRowContent}>
-                      <View style={styles.bandAvatar}>
-                        <AppText tone="inverse" variant="heading">
-                          {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
-                        </AppText>
-                      </View>
-                      <View style={styles.bandCopy}>
-                        <View style={styles.titleLine}>
-                          <AppText variant="heading">{band.name}</AppText>
-                          {isLastAccessed ? (
-                            <View style={styles.lastAccessedBadge}>
-                              <AppText tone="accent" variant="caption">
-                                Última acessada
-                              </AppText>
-                            </View>
-                          ) : null}
-                        </View>
-                        <AppText tone="muted" variant="caption">
-                          {roleLabels[membership.role]}
-                        </AppText>
-                        <AppText variant="caption">
-                          {nextShow
-                            ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
-                            : 'Nenhum próximo show'}
-                        </AppText>
-                      </View>
+              <Pressable
+                accessibilityLabel={`Abrir ${band.name}`}
+                accessibilityRole="link"
+                onPress={() => void openBand(band.id)}
+                style={({ pressed }) => [
+                  styles.bandRow,
+                  isLastAccessed && styles.lastAccessedRow,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.bandRowLayout}>
+                  <View style={styles.bandRowContent}>
+                    <View style={styles.bandAvatar}>
+                      <AppText tone="inverse" variant="heading">
+                        {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
+                      </AppText>
                     </View>
-                    <View style={styles.bandRowNavigation}>
-                      <AppIcon color={colors.violet} name="forward" size={20} />
+                    <View style={styles.bandCopy}>
+                      <View style={styles.titleLine}>
+                        <AppText variant="heading">{band.name}</AppText>
+                        {isLastAccessed ? (
+                          <View style={styles.lastAccessedBadge}>
+                            <AppText tone="accent" variant="caption">
+                              Última acessada
+                            </AppText>
+                          </View>
+                        ) : null}
+                      </View>
+                      <AppText tone="muted" variant="caption">
+                        {roleLabels[membership.role]}
+                      </AppText>
+                      <AppText variant="caption">
+                        {nextShow
+                          ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
+                          : 'Nenhum próximo show'}
+                      </AppText>
                     </View>
                   </View>
-                </Pressable>
-              </Link>
+                  <View style={styles.bandRowNavigation}>
+                    <AppIcon color={colors.violet} name="forward" size={20} />
+                  </View>
+                </View>
+              </Pressable>
             </View>
           );
         }}
