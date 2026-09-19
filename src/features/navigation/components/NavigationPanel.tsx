@@ -14,6 +14,7 @@ interface NavigationPanelProps {
   readonly bandName?: string;
   readonly getSectionHref: (section: BandSection) => Href;
   readonly onNavigate?: () => void;
+  readonly onLogout?: () => void | Promise<void>;
 }
 
 function SidebarNavigationLink({
@@ -65,12 +66,37 @@ function DisabledGeneralItem({ label }: { readonly label: string }) {
   );
 }
 
+function GeneralNavigationAction({
+  icon,
+  label,
+  onPress,
+}: {
+  readonly icon: AppIconName;
+  readonly label: string;
+  readonly onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
+    >
+      <View style={styles.sectionContent}>
+        <AppIcon color={colors.surface} name={icon} size={20} />
+        <AppText tone="inverse">{label}</AppText>
+      </View>
+    </Pressable>
+  );
+}
+
 export function NavigationPanel({
   activeSection,
   bandId,
   bandName,
   getSectionHref,
   onNavigate,
+  onLogout,
 }: NavigationPanelProps) {
   return (
     <ScrollView contentContainerStyle={styles.panel}>
@@ -131,22 +157,22 @@ export function NavigationPanel({
           label="Player YouTube (protótipo)"
           onNavigate={onNavigate}
         />
-        <SidebarNavigationLink
-          active={false}
-          href={'/auth' as Href}
-          icon="login"
-          label="Entrar"
-          onNavigate={onNavigate}
-        />
         <DisabledGeneralItem label="Perfil e conta" />
         <DisabledGeneralItem label="Termos e privacidade" />
         <DisabledGeneralItem label="Sobre o Setlist" />
       </View>
 
       <View style={styles.footer}>
-        <DisabledGeneralItem label="Sair" />
+        <GeneralNavigationAction
+          icon="logout"
+          label="Sair"
+          onPress={() => {
+            onNavigate?.();
+            void onLogout?.();
+          }}
+        />
         <AppText style={styles.muted} variant="caption">
-          Login social com Google ou Apple.
+          Google ativo · Apple em breve.
         </AppText>
       </View>
     </ScrollView>

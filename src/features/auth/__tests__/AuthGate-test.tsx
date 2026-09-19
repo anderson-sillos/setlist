@@ -8,6 +8,10 @@ import {
   type AuthSessionContextValue,
 } from '@/features/auth/AuthSessionProvider';
 
+jest.mock('expo-splash-screen', () => ({
+  hideAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 let mockSegments: string[] = ['index'];
 
 jest.mock('expo-router', () => ({
@@ -56,6 +60,7 @@ describe('guarda de autenticação', () => {
     expect(
       view.getByRole('progressbar', { name: 'Conferindo seu acesso…' }),
     ).toBeTruthy();
+    expect(view.getByLabelText('Logo do Setlist')).toBeTruthy();
   });
 
   it('mostra o login em uma rota privada sem sessão', async () => {

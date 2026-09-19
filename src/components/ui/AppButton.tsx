@@ -16,6 +16,7 @@ type AppButtonProps = Omit<PressableProps, 'children'> & {
 };
 
 export function AppButton({
+  disabled,
   icon,
   label,
   leading,
@@ -27,11 +28,13 @@ export function AppButton({
 
   return (
     <Pressable
+      disabled={disabled}
       {...props}
       accessibilityRole="button"
       style={(state) => [
         styles.base,
         variants[variant],
+        disabled && styles.disabled,
         state.pressed && styles.pressed,
         typeof style === 'function' ? style(state) : style,
       ]}
@@ -65,6 +68,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.72,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });
 

@@ -264,6 +264,17 @@ export async function refreshAuthSession(): Promise<Session | undefined> {
   return data.session ?? undefined;
 }
 
+export async function signOut(): Promise<void> {
+  const { error } = await getSupabaseClient().auth.signOut();
+
+  if (error) {
+    throw new AuthFlowError(
+      'sign_out_failed',
+      'Não foi possível sair agora. Tente novamente.',
+    );
+  }
+}
+
 export function subscribeToAuthState(
   callback: (event: AuthChangeEvent, session: Session | null) => void,
 ): { unsubscribe: () => void } {

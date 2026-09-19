@@ -44,7 +44,7 @@ describe('tela de autenticação', () => {
     ).toBeTruthy();
     expect(
       view.getByText(
-        'Entre com Google ou Apple. Se ainda não tiver banda, você pode aceitar um convite depois.',
+        'Entre com sua conta Google. O acesso com Apple chegará em breve. Se ainda não tiver banda, você pode aceitar um convite depois.',
       ),
     ).toBeTruthy();
     expect(
@@ -68,7 +68,11 @@ describe('tela de autenticação', () => {
     expect(buttonStyle('auth-apple')).toMatchObject({
       backgroundColor: colors.surface,
       borderColor: colors.violet,
+      opacity: 0.5,
     });
+    expect(
+      view.getByRole('button', { name: 'Continuar com Apple (em breve)' }),
+    ).toBeDisabled();
   });
 
   it('preserva o convite ao concluir o login', async () => {
@@ -96,7 +100,7 @@ describe('tela de autenticação', () => {
     const view = await render(<AuthScreen />);
 
     await fireEvent.press(
-      view.getByRole('button', { name: 'Continuar com Apple' }),
+      view.getByRole('button', { name: 'Continuar com Google' }),
     );
     expect(await view.findByTestId('auth-error')).toHaveTextContent(
       /Login cancelado/,
@@ -145,7 +149,7 @@ describe('tela de autenticação', () => {
       view.getByRole('button', { name: 'Continuar com Google' }),
     ).toBeDisabled();
     expect(
-      view.getByRole('button', { name: 'Continuar com Apple' }),
+      view.getByRole('button', { name: 'Continuar com Apple (em breve)' }),
     ).toBeDisabled();
   });
 });

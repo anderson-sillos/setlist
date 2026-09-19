@@ -15,6 +15,7 @@ interface MobileNavigationDrawerProps {
   readonly bandName?: string;
   readonly getSectionHref: (section: BandSection) => Href;
   readonly onClose: () => void;
+  readonly onLogout?: () => void | Promise<void>;
   readonly translateX: Animated.Value;
   readonly visible: boolean;
 }
@@ -25,6 +26,7 @@ export function MobileNavigationDrawer({
   bandName,
   getSectionHref,
   onClose,
+  onLogout,
   translateX,
   visible,
 }: MobileNavigationDrawerProps) {
@@ -55,6 +57,7 @@ export function MobileNavigationDrawer({
               bandName={bandName}
               getSectionHref={getSectionHref}
               onNavigate={onClose}
+              onLogout={onLogout}
             />
           </SafeAreaView>
         </Animated.View>

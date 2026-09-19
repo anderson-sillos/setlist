@@ -15,6 +15,11 @@ jest.mock('expo-router', () => ({
     showId: 'show-demo-festival',
     songId: 'song-demo-luzes',
   }),
+  useRouter: () => ({ replace: jest.fn() }),
+}));
+
+jest.mock('expo-splash-screen', () => ({
+  preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('shell de navegação', () => {
@@ -132,6 +137,8 @@ describe('shell de navegação', () => {
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(youtubePrototypeLink.props.accessibilityRole).toBe('tab');
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
+    expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();
+    expect(view.queryByRole('tab', { name: 'Ir para Entrar' })).toBeNull();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
     await waitFor(() =>

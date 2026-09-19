@@ -4,6 +4,7 @@ import { getSupabaseClient } from '@/data/supabase/client';
 import {
   completeOAuthCallback,
   refreshAuthSession,
+  signOut,
   signInWithSocialProvider,
   subscribeToAuthState,
 } from '@/features/auth/authService';
@@ -44,6 +45,7 @@ function createAuthMock() {
     exchangeCodeForSession: jest.fn(),
     onAuthStateChange: jest.fn(() => ({ data: { subscription } })),
     refreshSession: jest.fn(),
+    signOut: jest.fn(),
     signInWithOAuth: jest.fn(),
   };
   const client = { auth };
@@ -181,6 +183,25 @@ describe('serviço de autenticação social', () => {
       status: 'redirecting',
     });
     expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('encerra a sessão pelo Supabase', async () => {
+    const { auth } = createAuthMock();
+    auth.signOut.mockResolvedValue({ error: null });
+
+    await expect(signOut()).resolves.toBeUndefined();
+    expect(auth.signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('informa falha ao encerrar a sessão', async () => {
+    const { auth } = createAuthMock();
+    auth.signOut.mockResolvedValue({
+      error: { message: 'service unavailable' },
+    });
+
+    await expect(signOut()).rejects.toMatchObject({
+      code: 'sign_out_failed',
+    });
   });
 
   it('troca o code mesmo quando o retorno do Supabase não traz state', async () => {

@@ -110,8 +110,8 @@ export function AuthScreen() {
             </AppText>
           ) : (
             <AppText style={styles.loginExplanation} tone="muted">
-              Entre com Google ou Apple. Se ainda não tiver banda, você pode
-              aceitar um convite depois.
+              Entre com sua conta Google. O acesso com Apple chegará em breve.
+              Se ainda não tiver banda, você pode aceitar um convite depois.
             </AppText>
           )}
           {inviteToken && !isSuccess ? (
@@ -146,10 +146,10 @@ export function AuthScreen() {
                 variant="secondary"
               />
               <AppButton
-                disabled={authState.status === 'loading'}
+                disabled
                 leading={<AuthProviderIcon provider="apple" size={28} />}
-                label="Continuar com Apple"
-                onPress={() => void handleSignIn('apple')}
+                label="Continuar com Apple (em breve)"
+                onPress={() => undefined}
                 testID="auth-apple"
                 variant="secondary"
               />
@@ -192,6 +192,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.xxl,
+    marginTop: spacing.lg,
     width: '100%',
   },
   brand: {
