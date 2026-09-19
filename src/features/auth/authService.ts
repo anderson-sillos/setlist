@@ -184,10 +184,9 @@ async function signInWithBrowserOAuth(
       Platform.OS === 'web' &&
       process.env.EXPO_PUBLIC_APP_ENV !== 'production'
     ) {
-      const callbackUrl = new URL(redirectTo);
       console.info('[auth:web] callback_resolved', {
-        callbackOrigin: callbackUrl.origin,
-        callbackPath: callbackUrl.pathname,
+        callbackOrigin: getUrlOrigin(redirectTo),
+        callbackPath: getUrlPath(redirectTo),
         pageOrigin:
           typeof window !== 'undefined' ? window.location?.origin : undefined,
       });
@@ -236,6 +235,25 @@ async function signInWithBrowserOAuth(
       'Não foi possível concluir o login agora. Tente novamente.',
     );
   }
+}
+
+function getUrlOrigin(value: string): string {
+  const schemeEnd = value.indexOf('://');
+  const originEnd = value.indexOf('/', schemeEnd + 3);
+
+  return originEnd >= 0 ? value.slice(0, originEnd) : value;
+}
+
+function getUrlPath(value: string): string {
+  const schemeEnd = value.indexOf('://');
+  const originEnd = value.indexOf('/', schemeEnd + 3);
+  const queryStart = value.search(/[?#]/);
+
+  if (originEnd < 0) {
+    return '/';
+  }
+
+  return value.slice(originEnd, queryStart >= 0 ? queryStart : value.length);
 }
 
 export async function signInWithSocialProvider(

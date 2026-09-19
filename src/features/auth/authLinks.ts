@@ -43,7 +43,7 @@ export function getDevelopmentUrl(path: string): string {
       .join('/')
       .replace(/\/+/g, '/');
 
-    return new URL(`/${pathWithBase}`, window.location.origin).toString();
+    return `${window.location.origin.replace(/\/+$/, '')}/${pathWithBase}`;
   }
 
   return Linking.createURL(normalizedPath);
@@ -70,10 +70,22 @@ function getWebBasePath(): string {
     return '';
   }
 
-  const pathname = new URL(source, window.location.origin).pathname;
+  const pathname = getPathname(source);
   const expoPathIndex = pathname.indexOf('/_expo/');
 
   return expoPathIndex >= 0 ? pathname.slice(0, expoPathIndex) : '';
+}
+
+function getPathname(source: string): string {
+  const withoutQuery = source.split(/[?#]/, 1)[0] ?? '';
+  const schemeIndex = withoutQuery.indexOf('://');
+
+  if (schemeIndex >= 0) {
+    const pathStart = withoutQuery.indexOf('/', schemeIndex + 3);
+    return pathStart >= 0 ? withoutQuery.slice(pathStart) : '/';
+  }
+
+  return withoutQuery.startsWith('/') ? withoutQuery : `/${withoutQuery}`;
 }
 
 export function getSingleRouteParam(
