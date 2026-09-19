@@ -36,15 +36,14 @@ export function getDevelopmentUrl(path: string): string {
   // URL web: isso pode transformar o host publicado em `https://setlist`.
   // O teste de `window` também mantém o comportamento correto caso o bundler
   // entregue um valor inesperado para `Platform.OS`.
-  if (typeof window !== 'undefined' && window.location?.href) {
-    const currentUrl = new URL(window.location.href);
+  if (typeof window !== 'undefined' && window.location?.origin) {
     const basePath = getWebBasePath();
     const pathWithBase = [basePath, normalizedPath]
       .filter(Boolean)
       .join('/')
       .replace(/\/+/g, '/');
 
-    return new URL(`/${pathWithBase}`, currentUrl.origin).toString();
+    return new URL(`/${pathWithBase}`, window.location.origin).toString();
   }
 
   return Linking.createURL(normalizedPath);
@@ -61,13 +60,17 @@ function getWebBasePath(): string {
   }
 
   const script = document.querySelector('script[src*="/_expo/"]');
-  const source = script?.getAttribute('src');
+  const source =
+    typeof HTMLScriptElement !== 'undefined' &&
+    script instanceof HTMLScriptElement
+      ? script.src
+      : script?.getAttribute('src');
 
-  if (!source || typeof window === 'undefined' || !window.location?.href) {
+  if (!source || typeof window === 'undefined' || !window.location?.origin) {
     return '';
   }
 
-  const pathname = new URL(source, window.location.href).pathname;
+  const pathname = new URL(source, window.location.origin).pathname;
   const expoPathIndex = pathname.indexOf('/_expo/');
 
   return expoPathIndex >= 0 ? pathname.slice(0, expoPathIndex) : '';
