@@ -180,6 +180,18 @@ async function signInWithBrowserOAuth(
 ): Promise<SocialAuthResult> {
   try {
     const redirectTo = getAuthRedirectUrl(inviteToken);
+    if (
+      Platform.OS === 'web' &&
+      process.env.EXPO_PUBLIC_APP_ENV !== 'production'
+    ) {
+      const callbackUrl = new URL(redirectTo);
+      console.info('[auth:web] callback_resolved', {
+        callbackOrigin: callbackUrl.origin,
+        callbackPath: callbackUrl.pathname,
+        pageOrigin:
+          typeof window !== 'undefined' ? window.location?.origin : undefined,
+      });
+    }
     const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
       options: {
         redirectTo,
