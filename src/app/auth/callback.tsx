@@ -11,6 +11,7 @@ export default function OAuthCallbackRoute() {
     code?: string | string[];
     error?: string | string[];
     error_description?: string | string[];
+    sb_flow_id?: string | string[];
     invite_token?: string | string[];
     state?: string | string[];
   }>();
@@ -20,6 +21,7 @@ export default function OAuthCallbackRoute() {
       code={getSingleRouteParam(params.code)}
       error={getSingleRouteParam(params.error)}
       errorDescription={getSingleRouteParam(params.error_description)}
+      flowId={getSingleRouteParam(params.sb_flow_id)}
       inviteToken={getSingleRouteParam(params.invite_token)}
       state={getSingleRouteParam(params.state)}
     />

@@ -63,7 +63,7 @@ O aplicativo também deverá oferecer controle de acesso por banda, login social
 flowchart LR
     APP[Aplicação Expo\nAndroid, iOS e web]
     API[Supabase hospedado\nAuth + PostgreSQL + RLS]
-    AUTH[SecureStore\nSessão autenticada]
+    AUTH[SecureStore\nSessão + verificador PKCE]
     CACHE[Arquivos JSON\nShows baixados]
     YT[YouTube incorporado\nReferência na edição]
 
@@ -78,7 +78,9 @@ flowchart LR
 - **React Native com Expo** para compartilhar a base da aplicação entre Android, iOS e web.
 - **Supabase hospedado** para autenticação, PostgreSQL e políticas de acesso com Row Level Security.
 - **Google e Apple OAuth** para login social, sem senhas mantidas pelo Setlist.
-- **Expo SecureStore** somente para persistir a sessão autenticada.
+- **Expo SecureStore** para proteger a sessão e o verificador temporário do
+  fluxo PKCE nos aplicativos móveis; na web, o Supabase usa o armazenamento
+  persistente do navegador.
 - **Expo Splash Screen** para a tela de abertura nativa com a identidade visual
   do aplicativo.
 - **Arquivos JSON locais** para os pacotes de shows disponíveis offline.
@@ -248,14 +250,19 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    `https://<project-ref>.supabase.co/auth/v1/callback`.
 2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
    adicione os retornos permitidos usados no desenvolvimento:
-   `http://localhost:8081/auth/callback`,
-   `https://*.exp.direct/auth/callback` e `setlist://auth/callback`.
+   `http://localhost:8081/auth/callback**`,
+   `https://*.exp.direct/auth/callback**` e `setlist://auth/callback**`.
    Para validar pelo Expo Go usando túnel, adicione também
-   `exp://**/--/auth/callback`; esses padrões cobrem os endereços temporários
-   gerados pelo Expo em cada execução. Neste projeto, o `Site URL` fica como
+   `exp://**/--/auth/callback**`; esses padrões cobrem os endereços temporários
+   gerados pelo Expo em cada execução e o parâmetro `sb_flow_id` acrescentado
+   pelo PKCE. Neste projeto, o `Site URL` fica como
    `setlist://auth/callback`, servindo como fallback nativo; os destinos web
    precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
    O endereço HTTPS definitivo do aplicativo será acrescentado na tarefa 11.5.
+   No projeto de desenvolvimento, essa lista já foi aplicada pela Supabase CLI.
+   Antes de repetir a operação em outro ambiente, execute `supabase config diff`
+   e revise o resultado; o `supabase/config.toml` versionado contém valores para
+   desenvolvimento local e não deve ser enviado diretamente sem essa revisão.
 3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
    `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
    correspondentes. Para habilitar Google nativo no Android, cadastre também
@@ -279,6 +286,15 @@ cancelamento explícito da tela nativa apenas encerra a tentativa e não abre o
 navegador sem uma nova ação. A integração nativa exige dependência e configuração
 de build próprias; instalar o pacote JavaScript não altera o funcionamento do
 Expo Go.
+
+No Android e no iOS, a sessão e o verificador temporário gerado pelo PKCE ficam
+no SecureStore para continuar disponíveis quando o navegador devolver o deep
+link ou quando o aplicativo for reaberto. Na web, o Supabase usa o armazenamento
+persistente do navegador. O retorno recebido pelo `WebBrowser` e a rota
+`/auth/callback` podem chegar juntos; o app compartilha a mesma troca do `code`
+para não consumir o código OAuth duas vezes. A renovação automática é pausada
+quando o aplicativo móvel vai para segundo plano e retomada quando volta ao
+primeiro plano.
 
 Para gerar um development build Android com o módulo nativo, o plugin é
 habilitado somente para a plataforma Android. Em uma execução local, use:
@@ -629,6 +645,13 @@ Leia o novo QR code. Nesse modo, computador e aparelho precisam apenas de acesso
 
 #### 8.5. Executar a revisão nas duas plataformas
 
+Depois da tela de splash, o aplicativo verifica a sessão persistida. Sem uma
+sessão autenticada, a primeira tela apresentada é **Entrar**; somente após
+concluir o login e acionar a continuidade o app monta a área protegida e abre
+**Minhas bandas**. Em Android e iOS, a sessão é lida do SecureStore; na web,
+ela é lida do armazenamento persistente do navegador. Sessões expiradas ou que
+não puderem ser renovadas retornam com segurança para **Entrar**.
+
 Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
 
 - abrir a tela **Minhas bandas** e selecionar cada banda demonstrativa;
@@ -649,17 +672,20 @@ O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplic
 
 Com Google e Apple configurados no projeto Supabase conforme a seção de
 provedores, abra **Menu geral → Entrar** e repita o fluxo no navegador e em um
-development build Android/iOS:
+development build Android. A validação nativa do iOS fica registrada como
+pendência futura desta etapa:
 
 1. Escolha Google ou Apple e conclua o login no provedor.
-2. Confirme que o retorno chega à aplicação e abre `Minhas bandas` quando não
-   há convite.
+2. Confirme que o retorno chega à aplicação e exibe a confirmação **Login concluído**.
+   Acione o botão de continuidade para abrir `Minhas bandas` quando
+   não há convite.
 3. Abra um link `/invite/<token>`, entre por um provedor e confirme que a tela
-   informa que o convite foi preservado após o retorno.
+   exibe a confirmação e oferece `Continuar para o convite`, preservando o
+   token sem consumi-lo nesta etapa.
 4. Cancele o login e confirme que a aplicação permanece disponível para tentar
    novamente.
-5. Repita o fluxo depois de atualizar a sessão e registre no PR a plataforma,
-   navegador/provedor, resultado do retorno e qualquer falha de configuração.
+5. Registre no PR a plataforma, navegador/provedor, resultado do retorno e
+   qualquer falha de configuração.
 
 Ao executar com `npx expo start --go --tunnel --clear`, o app monta
 automaticamente um retorno `exp://.../--/auth/callback` no Expo Go e a versão
@@ -672,6 +698,28 @@ o retorno é `setlist://auth/callback` e deve ser mantido na mesma lista.
 O aceite efetivo do convite e a criação de bandas dependem das tarefas 5.4 e
 5.6. Nesta etapa a tela confirma a autenticação e preserva o contexto, sem
 consumir o convite.
+
+#### 8.7. Validar persistência e expiração da sessão
+
+Depois de concluir o login em um development build Android ou no navegador:
+
+1. Feche completamente o aplicativo ou recarregue a página.
+2. Abra novamente o projeto e confirme que a tela **Entrar** não aparece.
+3. Confirme que o app retorna para **Minhas bandas** com a mesma conta.
+4. Coloque o aplicativo em segundo plano e retorne depois de alguns segundos;
+   a sessão deve permanecer válida sem novo login.
+5. Faça logout quando essa ação estiver disponível e confirme que a sessão
+   removida não reaparece após reiniciar.
+
+No Android, o development build pode continuar usando o mesmo APK enquanto o
+Metro fornece alterações JavaScript:
+
+```bash
+npx expo start --dev-client --tunnel --clear
+```
+
+Alterações no módulo nativo, no plugin ou nas credenciais do build ainda exigem
+um novo APK.
 
 ### 9. Publicar a prévia e gerar builds internos
 
@@ -767,6 +815,15 @@ quando a alteração for nativa, conforme as regras acima.
 - **Emulador Android não abre:** inicialize o dispositivo virtual no Android Studio e confirme que `adb devices` o lista.
 - **Atalho de iOS indisponível:** o iOS Simulator e builds locais para iOS exigem macOS e Xcode.
 - **Porta do Expo ocupada:** execute `npx expo start --port 8082` ou escolha outra porta livre.
+- **Google retorna `invalid flow state`:** encerre tentativas antigas do provedor,
+  reinicie o Metro com `npx expo start --go --tunnel --clear` e inicie um novo
+  login. O app evita a troca duplicada do mesmo `code`; se o erro persistir,
+  confirme que o Redirect URL usado está cadastrado no projeto Supabase do
+  ambiente atual.
+- **Aviso de múltiplas instâncias `GoTrueClient`:** recarregue a página após
+  limpar o Metro. O cliente Supabase é compartilhado no contexto do navegador,
+  inclusive durante o Fast Refresh, para que a mesma chave de armazenamento não
+  seja usada por instâncias concorrentes.
 
 #### Android físico e WSL2
 

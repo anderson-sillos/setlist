@@ -25,15 +25,27 @@ describe('tela de retorno OAuth', () => {
   });
 
   it('encaminha para o convite quando a troca de sessão conclui', async () => {
-    mockComplete.mockResolvedValue({ inviteToken: 'invite-demo' });
-    await render(
+    mockComplete.mockResolvedValue({
+      inviteToken: 'invite-demo',
+      session: { user: { email: 'cantora@example.com' } },
+    });
+
+    const view = await render(
       <OAuthCallbackScreen
         code="code"
         inviteToken="invite-demo"
         state="state"
       />,
     );
-
+    await waitFor(() =>
+      expect(view.getByTestId('oauth-success-card')).toBeTruthy(),
+    );
+    expect(view.getByTestId('auth-success-email')).toHaveTextContent(
+      'cantora@example.com',
+    );
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Continuar para o convite' }),
+    );
     await waitFor(() =>
       expect(mockReplace).toHaveBeenCalledWith('/invite/invite-demo?resumed=1'),
     );

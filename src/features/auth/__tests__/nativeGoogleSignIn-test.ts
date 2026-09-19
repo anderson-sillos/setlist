@@ -8,6 +8,13 @@ import {
 } from '@/features/auth/nativeGoogleSignIn';
 import { loadNativeGoogleModule } from '@/features/auth/nativeGoogleModule';
 
+jest.mock('expo-crypto', () => ({
+  CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
+  CryptoEncoding: { HEX: 'hex' },
+  digestStringAsync: jest.fn(async () => 'hashed-nonce'),
+  randomUUID: jest.fn(() => 'raw-nonce'),
+}));
+
 jest.mock('expo-constants', () => ({
   appOwnership: null,
   executionEnvironment: 'standalone',
@@ -199,11 +206,20 @@ describe('Google nativo opcional', () => {
       status: 'authenticated',
     });
     expect(mockGoogleModule.GoogleOneTapSignIn.configure).toHaveBeenCalledWith({
+      nonce: 'hashed-nonce',
       webClientId: 'web-client-id',
     });
     expect(
-      (mockGetSupabaseClient.mock.results[0]?.value as { auth: object }).auth,
-    ).toBeDefined();
+      (
+        mockGetSupabaseClient.mock.results[0]?.value as {
+          auth: { signInWithIdToken: jest.Mock };
+        }
+      ).auth.signInWithIdToken,
+    ).toHaveBeenCalledWith({
+      nonce: 'raw-nonce',
+      provider: 'google',
+      token: 'id-token',
+    });
 
     const logText = mockConsoleInfo.mock.calls
       .map(([event, details]) => JSON.stringify({ event, details }))

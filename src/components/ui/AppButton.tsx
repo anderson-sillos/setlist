@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import type { ReactNode } from 'react';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -10,12 +11,14 @@ type ButtonVariant = 'primary' | 'secondary';
 type AppButtonProps = Omit<PressableProps, 'children'> & {
   icon?: AppIconName;
   label: string;
+  leading?: ReactNode;
   variant?: ButtonVariant;
 };
 
 export function AppButton({
   icon,
   label,
+  leading,
   style,
   variant = 'primary',
   ...props
@@ -33,7 +36,8 @@ export function AppButton({
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      {icon ? <AppIcon color={contentColor} name={icon} size={18} /> : null}
+      {leading ??
+        (icon ? <AppIcon color={contentColor} name={icon} size={18} /> : null)}
       <AppText
         style={styles.label}
         tone={variant === 'primary' ? 'inverse' : 'accent'}

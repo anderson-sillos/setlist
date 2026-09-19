@@ -1,7 +1,12 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
-import type { AuthChangeEvent, Provider, Session } from '@supabase/supabase-js';
+import type {
+  AuthChangeEvent,
+  Provider,
+  Session,
+  SupabaseClient,
+} from '@supabase/supabase-js';
 
 import '@/config/webCrypto';
 import { getSupabaseClient } from '@/data/supabase/client';
@@ -18,6 +23,7 @@ export interface OAuthCallbackParams {
   readonly code?: string;
   readonly error?: string;
   readonly errorDescription?: string;
+  readonly flowId?: string;
   readonly inviteToken?: string;
   readonly state?: string;
 }
@@ -36,6 +42,75 @@ export class AuthFlowError extends Error {
     this.name = 'AuthFlowError';
     this.code = code;
   }
+}
+
+const OAUTH_CODE_CACHE_TTL_MS = 15_000;
+
+/**
+ * No Android, o polyfill do `openAuthSessionAsync` usa uma Custom Tab. A
+ * `BrowserProxyActivity` mantém essa aba em uma tarefa separada e ela pode
+ * permanecer inativa depois que o deep link já voltou para o app. O fluxo de
+ * autenticação não precisa preservar a aba no histórico: sem a proxy e sem
+ * histórico, o Android remove a Custom Tab quando o retorno abre o app.
+ */
+const ANDROID_AUTH_BROWSER_OPTIONS = {
+  createTask: true,
+  showInRecents: false,
+  useProxyActivity: false,
+} as const;
+
+type OAuthExchange = Readonly<{
+  session?: Session;
+}>;
+
+type CachedOAuthExchange = Readonly<{
+  createdAt: number;
+  promise: Promise<OAuthExchange>;
+}>;
+
+/**
+ * No Android, o retorno de openAuthSessionAsync e a rota /auth/callback podem
+ * chegar quase ao mesmo tempo. O código OAuth é de uso único; compartilhar a
+ * mesma Promise impede que os dois caminhos tentem trocá-lo em paralelo e
+ * produzam o erro "invalid flow state".
+ *
+ * O cache é associado ao cliente, não apenas ao código, para não contaminar
+ * testes ou ambientes que criem clientes isolados. Ele expira rapidamente,
+ * servindo somente para absorver a entrega duplicada do deep link.
+ */
+const oauthExchangeCache = new WeakMap<
+  SupabaseClient,
+  Map<string, CachedOAuthExchange>
+>();
+
+function exchangeOAuthCodeOnce(
+  client: SupabaseClient,
+  code: string,
+  flowId?: string,
+): Promise<OAuthExchange> {
+  const now = Date.now();
+  const clientCache = oauthExchangeCache.get(client) ?? new Map();
+  const cached = clientCache.get(code);
+
+  if (cached && now - cached.createdAt < OAUTH_CODE_CACHE_TTL_MS) {
+    return cached.promise;
+  }
+
+  const exchange = flowId
+    ? client.auth.exchangeCodeForSession(code, { flowId })
+    : client.auth.exchangeCodeForSession(code);
+  const promise = exchange.then(({ data, error }) => {
+    if (error) {
+      throw new AuthFlowError('oauth_exchange_failed', error.message);
+    }
+
+    return { session: data.session ?? undefined };
+  });
+
+  clientCache.set(code, { createdAt: now, promise });
+  oauthExchangeCache.set(client, clientCache);
+
+  return promise;
 }
 
 function getAuthRedirectUrl(inviteToken?: string): string {
@@ -58,6 +133,9 @@ function getCallbackParams(url: string): OAuthCallbackParams {
     ),
     inviteToken: getSingleRouteParam(
       queryParams.invite_token as string | string[] | undefined,
+    ),
+    flowId: getSingleRouteParam(
+      queryParams.sb_flow_id as string | string[] | undefined,
     ),
     state: getSingleRouteParam(
       queryParams.state as string | string[] | undefined,
@@ -82,17 +160,16 @@ export async function completeOAuthCallback(
     );
   }
 
-  const { data, error } = await getSupabaseClient().auth.exchangeCodeForSession(
+  const client = getSupabaseClient();
+  const { session } = await exchangeOAuthCodeOnce(
+    client,
     params.code,
+    params.flowId,
   );
-
-  if (error) {
-    throw new AuthFlowError('oauth_exchange_failed', error.message);
-  }
 
   return {
     inviteToken: params.inviteToken,
-    session: data.session ?? undefined,
+    session,
     status: 'authenticated',
   };
 }
@@ -126,7 +203,11 @@ async function signInWithBrowserOAuth(
       );
     }
 
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    const result = await WebBrowser.openAuthSessionAsync(
+      data.url,
+      redirectTo,
+      Platform.OS === 'android' ? ANDROID_AUTH_BROWSER_OPTIONS : undefined,
+    );
     if (result.type !== 'success') {
       return { inviteToken, status: 'cancelled' };
     }

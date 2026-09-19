@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
 import {
   createConfiguredSupabaseClient,
@@ -42,14 +43,24 @@ describe('cliente Supabase', () => {
     expect(createClientMock).toHaveBeenCalledWith(
       'https://development-project.supabase.co',
       'sb_publishable_development_key',
-      {
-        auth: {
+      expect.objectContaining({
+        auth: expect.objectContaining({
           detectSessionInUrl: false,
+          experimental: {
+            appendPkceFlowIdToRedirects: true,
+          },
           flowType: 'pkce',
           persistSession: true,
-        },
-      },
+        }),
+      }),
     );
+
+    const options = createClientMock.mock.calls[0][2];
+    if (Platform.OS === 'web') {
+      expect(options?.auth?.storage).toBeUndefined();
+    } else {
+      expect(options?.auth?.storage).toEqual(expect.any(Object));
+    }
     expect(createClientMock.mock.calls[0]).toHaveLength(3);
   });
 

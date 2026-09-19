@@ -67,6 +67,10 @@ describe('serviço de autenticação social', () => {
   });
 
   it('usa o OAuth pelo navegador quando o Google nativo não está disponível', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
     const { auth } = createAuthMock();
     auth.signInWithOAuth.mockResolvedValue({
       data: { url: 'https://accounts.google.com/oauth' },
@@ -97,6 +101,11 @@ describe('serviço de autenticação social', () => {
     expect(mockOpenAuthSessionAsync).toHaveBeenCalledWith(
       'https://accounts.google.com/oauth',
       'setlist://auth/callback?invite_token=invite-demo',
+      {
+        createTask: true,
+        showInRecents: false,
+        useProxyActivity: false,
+      },
     );
     expect(auth.exchangeCodeForSession).toHaveBeenCalledWith(
       'code-from-provider',
@@ -185,6 +194,51 @@ describe('serviço de autenticação social', () => {
       completeOAuthCallback({ code: 'code' }),
     ).resolves.toMatchObject({ status: 'authenticated' });
     expect(auth.exchangeCodeForSession).toHaveBeenCalledWith('code');
+  });
+
+  it('usa o flowId do callback para selecionar o verifier correto', async () => {
+    const { auth } = createAuthMock();
+    auth.exchangeCodeForSession.mockResolvedValue({
+      data: { session: { user: { id: 'user-1' } } },
+      error: null,
+    });
+
+    await completeOAuthCallback({
+      code: 'flow-code',
+      flowId: '0123456789abcdef0123456789abcdef',
+    });
+
+    expect(auth.exchangeCodeForSession).toHaveBeenCalledWith('flow-code', {
+      flowId: '0123456789abcdef0123456789abcdef',
+    });
+  });
+
+  it('compartilha a troca quando o retorno nativo e a rota chegam juntos', async () => {
+    const { auth } = createAuthMock();
+    let resolveExchange:
+      | ((value: {
+          data: { session: { user: { id: string } } };
+          error: null;
+        }) => void)
+      | undefined;
+    const session = { user: { id: 'user-1' } };
+
+    auth.exchangeCodeForSession.mockReturnValue(
+      new Promise((resolve) => {
+        resolveExchange = resolve;
+      }),
+    );
+
+    const first = completeOAuthCallback({ code: 'same-code' });
+    const second = completeOAuthCallback({ code: 'same-code' });
+
+    resolveExchange?.({ data: { session }, error: null });
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      { session, status: 'authenticated' },
+      { session, status: 'authenticated' },
+    ]);
+    expect(auth.exchangeCodeForSession).toHaveBeenCalledTimes(1);
   });
 
   it('rejeita erro devolvido pelo provedor', async () => {

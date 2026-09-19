@@ -1,4 +1,5 @@
 import * as ExpoConstants from 'expo-constants';
+import * as ExpoCrypto from 'expo-crypto';
 import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 
@@ -120,6 +121,30 @@ function getNativeGoogleAvailability(): NativeGoogleAvailability {
   return { available: true, webClientId };
 }
 
+type GoogleNonce = Readonly<{
+  /** Nonce in its original form, supplied to Supabase for verification. */
+  readonly raw: string;
+  /** SHA-256 hexadecimal nonce supplied to Google's native SDK. */
+  readonly hashed: string;
+}>;
+
+/**
+ * Supabase expects the original nonce and hashes it while validating the ID
+ * Token. Google receives the SHA-256 representation in the native request.
+ * Keeping both values in one attempt prevents the token from being accepted
+ * without nonce verification or from failing with a mismatched nonce.
+ */
+async function createGoogleNonce(): Promise<GoogleNonce> {
+  const raw = ExpoCrypto.randomUUID();
+  const hashed = await ExpoCrypto.digestStringAsync(
+    ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+    raw,
+    { encoding: ExpoCrypto.CryptoEncoding.HEX },
+  );
+
+  return { hashed, raw };
+}
+
 export function isNativeGoogleSignInAvailable(): boolean {
   return getNativeGoogleAvailability().available;
 }
@@ -152,13 +177,18 @@ export async function tryNativeGoogleSignIn(
       typeof import('react-native-nitro-google-signin').GoogleOneTapSignIn.signIn
     >
   >;
+  let nonce: GoogleNonce;
 
   try {
     nativeGoogleLog('module_loading');
     const google = await loadNativeGoogleModule();
 
     nativeGoogleLog('module_loaded');
-    google.GoogleOneTapSignIn.configure({ webClientId });
+    nonce = await createGoogleNonce();
+    google.GoogleOneTapSignIn.configure({
+      nonce: nonce.hashed,
+      webClientId,
+    });
     nativeGoogleLog('configured', { hasWebClientId: true });
     await google.GoogleOneTapSignIn.checkPlayServices();
     nativeGoogleLog('play_services_available');
@@ -202,6 +232,7 @@ export async function tryNativeGoogleSignIn(
 
   nativeGoogleLog('supabase_exchange_started', { hasIdToken: true });
   const { data, error } = await getSupabaseClient().auth.signInWithIdToken({
+    nonce: nonce.raw,
     provider: 'google',
     token: idToken,
   });

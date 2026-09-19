@@ -3,22 +3,28 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type StyleProp,
   type ScrollViewProps,
+  type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, layout, spacing } from '@/theme/tokens';
 
-type ScreenProps = PropsWithChildren<Pick<ScrollViewProps, 'testID'>>;
+type ScreenProps = PropsWithChildren<
+  Pick<ScrollViewProps, 'testID'> & {
+    readonly contentStyle?: StyleProp<ViewStyle>;
+  }
+>;
 
-export function Screen({ children, testID }: ScreenProps) {
+export function Screen({ children, contentStyle, testID }: ScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea} testID={testID}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>{children}</View>
+        <View style={[styles.content, contentStyle]}>{children}</View>
       </ScrollView>
     </SafeAreaView>
   );

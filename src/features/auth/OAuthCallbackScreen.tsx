@@ -6,6 +6,10 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
+import { AuthErrorNotice } from '@/features/auth/AuthErrorNotice';
+import { AuthLoadingState } from '@/features/auth/AuthLoadingState';
+import { AuthSuccessCard } from '@/features/auth/AuthSuccessCard';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import {
   AuthFlowError,
   completeOAuthCallback,
@@ -17,22 +21,30 @@ interface OAuthCallbackScreenProps {
   readonly code?: string;
   readonly error?: string;
   readonly errorDescription?: string;
+  readonly flowId?: string;
   readonly inviteToken?: string;
   readonly state?: string;
 }
 
 type CallbackState =
   | { readonly status: 'loading' }
+  | {
+      readonly email?: string;
+      readonly inviteToken?: string;
+      readonly status: 'success';
+    }
   | { readonly message: string; readonly status: 'error' };
 
 export function OAuthCallbackScreen({
   code,
   error,
   errorDescription,
+  flowId,
   inviteToken,
   state,
 }: OAuthCallbackScreenProps) {
   const router = useRouter();
+  const { setSession } = useAuthSession();
   const [callbackState, setCallbackState] = useState<CallbackState>({
     status: 'loading',
   });
@@ -44,6 +56,7 @@ export function OAuthCallbackScreen({
       code,
       error,
       errorDescription,
+      flowId,
       inviteToken,
       state,
     })
@@ -52,11 +65,14 @@ export function OAuthCallbackScreen({
           return;
         }
 
-        router.replace(
-          (result.inviteToken
-            ? getInvitePath(result.inviteToken, { resumed: true })
-            : '/') as Href,
-        );
+        setCallbackState({
+          email: result.session?.user.email,
+          inviteToken: result.inviteToken,
+          status: 'success',
+        });
+        if (result.session) {
+          setSession(result.session);
+        }
       })
       .catch((callbackError: unknown) => {
         if (!active) {
@@ -75,7 +91,28 @@ export function OAuthCallbackScreen({
     return () => {
       active = false;
     };
-  }, [code, error, errorDescription, inviteToken, router, state]);
+  }, [
+    code,
+    error,
+    errorDescription,
+    flowId,
+    inviteToken,
+    router,
+    setSession,
+    state,
+  ]);
+
+  function handleContinue() {
+    if (callbackState.status !== 'success') {
+      return;
+    }
+
+    router.replace(
+      (callbackState.inviteToken
+        ? getInvitePath(callbackState.inviteToken, { resumed: true })
+        : '/') as Href,
+    );
+  }
 
   return (
     <Screen testID="oauth-callback-screen">
@@ -84,30 +121,40 @@ export function OAuthCallbackScreen({
           Retorno do login
         </AppText>
         <AppText accessibilityRole="header" variant="title">
-          Conferindo acesso…
+          {callbackState.status === 'success'
+            ? 'Tudo certo!'
+            : 'Conferindo acesso…'}
         </AppText>
       </View>
 
-      <Card style={styles.card}>
-        {callbackState.status === 'loading' ? (
-          <AppText tone="muted">
-            Só um instante, estamos conferindo tudo.
+      {callbackState.status === 'loading' ? (
+        <Card style={styles.card}>
+          <AuthLoadingState label="Só um instante, estamos conferindo tudo." />
+        </Card>
+      ) : callbackState.status === 'success' ? (
+        <AuthSuccessCard
+          email={callbackState.email}
+          onContinue={handleContinue}
+          testID="oauth-success-card"
+          withInvite={Boolean(callbackState.inviteToken)}
+        />
+      ) : (
+        <Card style={styles.card}>
+          <AppText accessibilityRole="alert" tone="accent" variant="heading">
+            Não foi possível entrar
           </AppText>
-        ) : (
-          <>
-            <AppText accessibilityRole="alert" tone="accent" variant="heading">
-              Não foi possível entrar
-            </AppText>
-            <AppText tone="muted">{callbackState.message}</AppText>
-            <AppButton
-              icon="back"
-              label="Tentar novamente"
-              onPress={() => router.replace('/auth' as Href)}
-              variant="secondary"
-            />
-          </>
-        )}
-      </Card>
+          <AuthErrorNotice
+            message={callbackState.message}
+            testID="oauth-error"
+          />
+          <AppButton
+            icon="back"
+            label="Tentar novamente"
+            onPress={() => router.replace('/auth' as Href)}
+            variant="secondary"
+          />
+        </Card>
+      )}
     </Screen>
   );
 }

@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AuthGate } from '@/features/auth/AuthGate';
+import { AuthSessionProvider } from '@/features/auth/AuthSessionProvider';
 import { AppProviders } from '@/providers/AppProviders';
 
 export const rootStackScreenOptions = {
@@ -14,10 +16,14 @@ export const rootStackScreenOptions = {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AppProviders>
-        <Stack screenOptions={rootStackScreenOptions} />
-        <StatusBar style="auto" />
-      </AppProviders>
+      <AuthSessionProvider>
+        <AppProviders>
+          <AuthGate>
+            <Stack screenOptions={rootStackScreenOptions} />
+          </AuthGate>
+          <StatusBar style="auto" />
+        </AppProviders>
+      </AuthSessionProvider>
     </SafeAreaProvider>
   );
 }

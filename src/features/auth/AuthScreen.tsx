@@ -1,11 +1,16 @@
 import { Link, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
+import { AuthErrorNotice } from '@/features/auth/AuthErrorNotice';
+import { AuthLoadingState } from '@/features/auth/AuthLoadingState';
+import { AuthProviderIcon } from '@/features/auth/AuthProviderIcon';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
+import { AuthSuccessCard } from '@/features/auth/AuthSuccessCard';
 import {
   AuthFlowError,
   signInWithSocialProvider,
@@ -15,17 +20,23 @@ import {
   getInvitePath,
   getSingleRouteParam,
 } from '@/features/auth/prototypeLinks';
-import { spacing } from '@/theme/tokens';
+import { radii, spacing } from '@/theme/tokens';
 
 type AuthState =
   | { readonly status: 'idle' }
   | { readonly status: 'loading'; readonly provider: SocialAuthProvider }
+  | {
+      readonly email?: string;
+      readonly inviteToken?: string;
+      readonly status: 'success';
+    }
   | { readonly message: string; readonly status: 'error' };
 
 export function AuthScreen() {
   const params = useLocalSearchParams<{ invite_token?: string | string[] }>();
   const router = useRouter();
   const inviteToken = getSingleRouteParam(params.invite_token);
+  const { setSession } = useAuthSession();
   const [authState, setAuthState] = useState<AuthState>({ status: 'idle' });
 
   async function handleSignIn(provider: SocialAuthProvider) {
@@ -43,11 +54,14 @@ export function AuthScreen() {
       }
 
       if (result.status === 'authenticated') {
-        router.replace(
-          (inviteToken
-            ? getInvitePath(inviteToken, { resumed: true })
-            : '/') as Href,
-        );
+        if (result.session) {
+          setSession(result.session);
+        }
+        setAuthState({
+          email: result.session?.user.email,
+          inviteToken: result.inviteToken ?? inviteToken,
+          status: 'success',
+        });
       }
     } catch (error) {
       const message =
@@ -58,75 +72,160 @@ export function AuthScreen() {
     }
   }
 
+  function handleContinue() {
+    if (authState.status !== 'success') {
+      return;
+    }
+
+    router.replace(
+      (authState.inviteToken
+        ? getInvitePath(authState.inviteToken, { resumed: true })
+        : '/') as Href,
+    );
+  }
+
+  const isSuccess = authState.status === 'success';
+
   return (
-    <Screen testID="auth-screen">
-      <View style={styles.header}>
-        <AppText tone="accent" variant="eyebrow">
-          Acesso ao Setlist
-        </AppText>
-        <AppText accessibilityRole="header" variant="title">
-          Entre para continuar
-        </AppText>
-        <AppText tone="muted">
-          Use sua conta Google ou Apple. Você pode entrar mesmo antes de
-          escolher uma banda.
-        </AppText>
-        {inviteToken ? (
-          <AppText tone="accent">
-            O convite foi guardado e volta com você depois do login.
+    <Screen contentStyle={styles.authContent} testID="auth-screen">
+      <View style={styles.authLayout}>
+        <View style={styles.header}>
+          <View style={styles.brand}>
+            <Image
+              accessibilityLabel="Logo do Setlist"
+              accessibilityRole="image"
+              source={require('../../../assets/icons/app-icon-512.png')}
+              style={styles.logo}
+            />
+            <AppText accessibilityRole="header" variant="title">
+              Setlist
+            </AppText>
+          </View>
+          <AppText style={styles.introduction} tone="muted">
+            Organize repertórios, prepare seus shows e leve as letras com você.
           </AppText>
-        ) : null}
+        </View>
+
+        <View style={styles.centerContent}>
+          {isSuccess ? (
+            <AppText style={styles.loginExplanation} tone="muted">
+              Seu acesso está pronto. Confira a confirmação abaixo.
+            </AppText>
+          ) : (
+            <AppText style={styles.loginExplanation} tone="muted">
+              Entre com Google ou Apple. Se ainda não tiver banda, você pode
+              aceitar um convite depois.
+            </AppText>
+          )}
+          {inviteToken && !isSuccess ? (
+            <AppText style={styles.inviteNotice} tone="accent">
+              O convite foi guardado e volta com você depois do login.
+            </AppText>
+          ) : null}
+
+          {isSuccess ? (
+            <AuthSuccessCard
+              email={authState.email}
+              onContinue={handleContinue}
+              withInvite={Boolean(authState.inviteToken)}
+            />
+          ) : (
+            <Card style={styles.card}>
+              {authState.status === 'loading' ? (
+                <AuthLoadingState
+                  label={
+                    authState.provider === 'google'
+                      ? 'Abrindo Google…'
+                      : 'Abrindo Apple…'
+                  }
+                />
+              ) : null}
+              <AppButton
+                disabled={authState.status === 'loading'}
+                leading={<AuthProviderIcon provider="google" size={28} />}
+                label="Continuar com Google"
+                onPress={() => void handleSignIn('google')}
+                testID="auth-google"
+                variant="secondary"
+              />
+              <AppButton
+                disabled={authState.status === 'loading'}
+                leading={<AuthProviderIcon provider="apple" size={28} />}
+                label="Continuar com Apple"
+                onPress={() => void handleSignIn('apple')}
+                testID="auth-apple"
+                variant="secondary"
+              />
+              {authState.status === 'error' ? (
+                <AuthErrorNotice message={authState.message} />
+              ) : null}
+            </Card>
+          )}
+
+          {!isSuccess && inviteToken ? (
+            <Link href={getInvitePath(inviteToken) as Href} replace asChild>
+              <AppButton label="Voltar" variant="secondary" />
+            </Link>
+          ) : null}
+        </View>
+
+        <AppText style={styles.disclaimer} tone="muted" variant="caption">
+          Ao continuar, você concorda com os termos de uso e a política de
+          privacidade do Setlist.
+        </AppText>
       </View>
-
-      <Card style={styles.card}>
-        <AppButton
-          disabled={authState.status === 'loading'}
-          icon="login"
-          label={
-            authState.status === 'loading' && authState.provider === 'google'
-              ? 'Abrindo Google…'
-              : 'Continuar com Google'
-          }
-          onPress={() => void handleSignIn('google')}
-          testID="auth-google"
-        />
-        <AppButton
-          disabled={authState.status === 'loading'}
-          icon="login"
-          label={
-            authState.status === 'loading' && authState.provider === 'apple'
-              ? 'Abrindo Apple…'
-              : 'Continuar com Apple'
-          }
-          onPress={() => void handleSignIn('apple')}
-          testID="auth-apple"
-          variant="secondary"
-        />
-        {authState.status === 'error' ? (
-          <AppText accessibilityRole="alert" tone="accent" testID="auth-error">
-            {authState.message}
-          </AppText>
-        ) : null}
-      </Card>
-
-      <Link
-        href={inviteToken ? (getInvitePath(inviteToken) as Href) : '/'}
-        replace
-        asChild
-      >
-        <AppButton label="Voltar" variant="secondary" />
-      </Link>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  authContent: {
+    flexGrow: 1,
+  },
+  authLayout: {
+    flex: 1,
+  },
+  centerContent: {
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
   header: {
+    alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.xxl,
+    width: '100%',
+  },
+  brand: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  logo: {
+    borderRadius: radii.lg,
+    height: 88,
+    width: 88,
+  },
+  introduction: {
+    maxWidth: 460,
+    textAlign: 'center',
+  },
+  loginExplanation: {
+    maxWidth: 460,
+    textAlign: 'center',
+  },
+  inviteNotice: {
+    textAlign: 'center',
   },
   card: {
     gap: spacing.md,
     marginBottom: spacing.lg,
+    width: '100%',
+  },
+  disclaimer: {
+    marginTop: spacing.xl,
+    maxWidth: 460,
+    textAlign: 'center',
   },
 });

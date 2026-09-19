@@ -1,6 +1,8 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { AuthScreen } from '@/features/auth/AuthScreen';
+import { colors } from '@/theme/tokens';
 
 const mockReplace = jest.fn();
 const mockRouter = { replace: mockReplace };
@@ -30,6 +32,45 @@ describe('tela de autenticação', () => {
     jest.clearAllMocks();
   });
 
+  it('apresenta a identidade do app e orienta o acesso por provedor', async () => {
+    const view = await render(<AuthScreen />);
+
+    expect(view.getByLabelText('Logo do Setlist')).toBeTruthy();
+    expect(view.getByText('Setlist')).toBeTruthy();
+    expect(
+      view.getByText(
+        'Organize repertórios, prepare seus shows e leve as letras com você.',
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByText(
+        'Entre com Google ou Apple. Se ainda não tiver banda, você pode aceitar um convite depois.',
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByText(
+        'Ao continuar, você concorda com os termos de uso e a política de privacidade do Setlist.',
+      ),
+    ).toBeTruthy();
+
+    const buttonStyle = (testID: string) => {
+      const button = view.getByTestId(testID);
+      const style = button.props.style;
+      return StyleSheet.flatten(
+        typeof style === 'function' ? style({ pressed: false }) : style,
+      );
+    };
+
+    expect(buttonStyle('auth-google')).toMatchObject({
+      backgroundColor: colors.surface,
+      borderColor: colors.violet,
+    });
+    expect(buttonStyle('auth-apple')).toMatchObject({
+      backgroundColor: colors.surface,
+      borderColor: colors.violet,
+    });
+  });
+
   it('preserva o convite ao concluir o login', async () => {
     mockSignIn.mockResolvedValue({ status: 'authenticated' });
     const view = await render(<AuthScreen />);
@@ -38,6 +79,12 @@ describe('tela de autenticação', () => {
       view.getByRole('button', { name: 'Continuar com Google' }),
     );
 
+    expect(await view.findByTestId('auth-success-card')).toBeTruthy();
+    expect(view.queryByTestId('auth-success-email')).toBeNull();
+    expect(view.queryByRole('button', { name: 'Voltar' })).toBeNull();
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Continuar para o convite' }),
+    );
     await waitFor(() =>
       expect(mockReplace).toHaveBeenCalledWith('/invite/invite-demo?resumed=1'),
     );
@@ -76,7 +123,29 @@ describe('tela de autenticação', () => {
       view.getByRole('button', { name: 'Continuar com Google' }),
     );
 
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Continuar para Minhas bandas' }),
+    );
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/'));
     expect(mockSignIn).toHaveBeenCalledWith('google', undefined);
+  });
+
+  it('mostra o provedor em carregamento enquanto abre a autenticação', async () => {
+    mockSignIn.mockImplementation(() => new Promise(() => undefined));
+    const view = await render(<AuthScreen />);
+
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Continuar com Google' }),
+    );
+
+    expect(
+      await view.findByRole('progressbar', { name: 'Abrindo Google…' }),
+    ).toBeTruthy();
+    expect(
+      view.getByRole('button', { name: 'Continuar com Google' }),
+    ).toBeDisabled();
+    expect(
+      view.getByRole('button', { name: 'Continuar com Apple' }),
+    ).toBeDisabled();
   });
 });
