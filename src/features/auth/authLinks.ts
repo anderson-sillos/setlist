@@ -1,5 +1,4 @@
 import * as Linking from 'expo-linking';
-import { Platform } from 'react-native';
 
 export function getAuthCallbackPath(inviteToken?: string): string {
   return appendQuery('/auth/callback', [['invite_token', inviteToken]]);
@@ -32,18 +31,20 @@ export function getInvitePath(
 export function getDevelopmentUrl(path: string): string {
   const normalizedPath = path.replace(/^\/+/, '');
 
-  if (
-    Platform.OS === 'web' &&
-    typeof window !== 'undefined' &&
-    window.location?.origin
-  ) {
+  // No navegador, a origem atual é a autoridade para o callback. Não use o
+  // scheme do app (`setlist://`) nem a configuração do Expo para montar uma
+  // URL web: isso pode transformar o host publicado em `https://setlist`.
+  // O teste de `window` também mantém o comportamento correto caso o bundler
+  // entregue um valor inesperado para `Platform.OS`.
+  if (typeof window !== 'undefined' && window.location?.href) {
+    const currentUrl = new URL(window.location.href);
     const basePath = getWebBasePath();
     const pathWithBase = [basePath, normalizedPath]
       .filter(Boolean)
       .join('/')
       .replace(/\/+/g, '/');
 
-    return new URL(`/${pathWithBase}`, window.location.origin).toString();
+    return new URL(`/${pathWithBase}`, currentUrl.origin).toString();
   }
 
   return Linking.createURL(normalizedPath);

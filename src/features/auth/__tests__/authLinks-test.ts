@@ -45,7 +45,9 @@ describe('rotas de convite e OAuth', () => {
 
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
-      value: 'web',
+      // A origem de um navegador deve prevalecer mesmo se o valor de
+      // Platform.OS estiver incorreto no bundle publicado.
+      value: 'android',
     });
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
