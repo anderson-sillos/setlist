@@ -106,7 +106,8 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 ### Autenticação, papéis e convites
 
-- O login será exclusivamente social, com Google e Apple, tanto no cliente nativo quanto na web.
+- O login será exclusivamente social, com Google e Apple. A web continuará usando OAuth com PKCE e navegador; no Android, o Google poderá usar a integração nativa quando o aplicativo estiver em um development build ou build distribuído com o módulo nativo configurado. Expo Go, web, aparelhos sem Google Play Services e builds sem a configuração nativa usarão automaticamente o OAuth pelo navegador como fallback. O cancelamento explícito do diálogo nativo não iniciará outro fluxo sem nova ação da pessoa.
+- O fluxo nativo entregará um ID Token ao Supabase por `signInWithIdToken`; ele não alterará a chave UUID da conta nem criará um mecanismo separado de sessão. A mesma rotina de autenticação preservará o contexto de convite nos dois caminhos.
 - O SecureStore guardará somente os dados necessários para persistir a sessão nos aplicativos móveis. Na web, a sessão usará o adaptador de armazenamento do navegador.
 - Letras, shows e outros dados de negócio não serão armazenados no SecureStore.
 - Nenhuma chave administrativa do Supabase será incluída no cliente.

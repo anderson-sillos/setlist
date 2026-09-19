@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import type { ReactNode } from 'react';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -10,12 +11,15 @@ type ButtonVariant = 'primary' | 'secondary';
 type AppButtonProps = Omit<PressableProps, 'children'> & {
   icon?: AppIconName;
   label: string;
+  leading?: ReactNode;
   variant?: ButtonVariant;
 };
 
 export function AppButton({
+  disabled,
   icon,
   label,
+  leading,
   style,
   variant = 'primary',
   ...props
@@ -24,16 +28,19 @@ export function AppButton({
 
   return (
     <Pressable
+      disabled={disabled}
       {...props}
       accessibilityRole="button"
       style={(state) => [
         styles.base,
         variants[variant],
+        disabled && styles.disabled,
         state.pressed && styles.pressed,
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      {icon ? <AppIcon color={contentColor} name={icon} size={18} /> : null}
+      {leading ??
+        (icon ? <AppIcon color={contentColor} name={icon} size={18} /> : null)}
       <AppText
         style={styles.label}
         tone={variant === 'primary' ? 'inverse' : 'accent'}
@@ -61,6 +68,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.72,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });
 

@@ -3,6 +3,10 @@ import { StyleSheet } from 'react-native';
 
 import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds } from '@/data/demo';
+import {
+  AuthSessionContext,
+  type AuthSessionContextValue,
+} from '@/features/auth/AuthSessionProvider';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
@@ -15,6 +19,11 @@ jest.mock('expo-router', () => ({
     showId: 'show-demo-festival',
     songId: 'song-demo-luzes',
   }),
+  useRouter: () => ({ replace: jest.fn() }),
+}));
+
+jest.mock('expo-splash-screen', () => ({
+  preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('shell de navegação', () => {
@@ -132,11 +141,43 @@ describe('shell de navegação', () => {
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(youtubePrototypeLink.props.accessibilityRole).toBe('tab');
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
+    expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();
+    expect(view.queryByRole('tab', { name: 'Ir para Entrar' })).toBeNull();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
     await waitFor(() =>
       expect(view.queryByTestId('navigation-drawer')).toBeNull(),
     );
+  });
+
+  it('apresenta nome e e-mail da sessão no menu lateral', async () => {
+    const session = {
+      user: {
+        email: 'lucas@example.com',
+        user_metadata: { full_name: 'Lucas Ribeiro' },
+      },
+    } as never;
+    const authSession: AuthSessionContextValue = {
+      session,
+      setSession: jest.fn(),
+      status: 'authenticated',
+    };
+
+    const view = await render(
+      <AuthSessionContext.Provider value={authSession}>
+        <AppProviders>
+          <ShowsScreen
+            bandId={demoIds.primaryBand}
+            viewportHeight={900}
+            viewportWidth={1440}
+          />
+        </AppProviders>
+      </AuthSessionContext.Provider>,
+    );
+
+    expect(await view.findByText('Lucas Ribeiro')).toBeTruthy();
+    expect(view.getByText('lucas@example.com')).toBeTruthy();
+    expect(view.queryByText('Conta de demonstração')).toBeNull();
   });
 
   it('mantém o aviso de conexão compacto abaixo do cabeçalho', async () => {
