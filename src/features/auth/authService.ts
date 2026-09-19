@@ -13,7 +13,7 @@ import { getPublicEnvironment } from '@/config/environment';
 import { getSupabaseClient } from '@/data/supabase/client';
 import {
   getAuthCallbackPath,
-  getDevelopmentUrl,
+  getRuntimeUrl,
   getSingleRouteParam,
 } from '@/features/auth/authLinks';
 import { tryNativeGoogleSignIn } from '@/features/auth/nativeGoogleSignIn';
@@ -139,7 +139,7 @@ function exchangeOAuthCodeOnce(
 }
 
 function getAuthRedirectUrl(inviteToken?: string): string {
-  return getDevelopmentUrl(getAuthCallbackPath(inviteToken));
+  return getRuntimeUrl(getAuthCallbackPath(inviteToken));
 }
 
 function getCallbackParams(url: string): OAuthCallbackParams {

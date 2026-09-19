@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 import {
   getAuthCallbackPath,
-  getDevelopmentUrl,
+  getRuntimeUrl,
   getInvitePath,
   getSingleRouteParam,
 } from '@/features/auth/authLinks';
@@ -34,8 +34,8 @@ describe('rotas de convite e OAuth', () => {
     expect(getSingleRouteParam(undefined)).toBeUndefined();
   });
 
-  it('gera uma URL de desenvolvimento a partir do caminho da rota', () => {
-    expect(getDevelopmentUrl('/invite/demo')).toContain('invite/demo');
+  it('gera uma URL baseada no runtime a partir do caminho da rota', () => {
+    expect(getRuntimeUrl('/invite/demo')).toContain('invite/demo');
   });
 
   it('preserva o base path do bundle web hospedado no callback', () => {
@@ -46,9 +46,7 @@ describe('rotas de convite e OAuth', () => {
 
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
-      // A origem de um navegador deve prevalecer mesmo se o valor de
-      // Platform.OS estiver incorreto no bundle publicado.
-      value: 'android',
+      value: 'web',
     });
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
@@ -75,7 +73,7 @@ describe('rotas de convite e OAuth', () => {
     });
 
     try {
-      expect(getDevelopmentUrl('/auth/callback')).toBe(
+      expect(getRuntimeUrl('/auth/callback')).toBe(
         'https://anderson-sillos.github.io/setlist/app/auth/callback',
       );
     } finally {
@@ -104,6 +102,42 @@ describe('rotas de convite e OAuth', () => {
         Object.defineProperty(globalThis, 'document', {
           configurable: true,
           value: originalDocument,
+        });
+      }
+    }
+  });
+
+  it('ignora uma origem HTTP exposta pelo runtime nativo', () => {
+    const originalPlatform = Platform.OS;
+    const originalWindow = (globalThis as { window?: unknown }).window;
+
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        location: {
+          origin: 'http://ccxifhi-anderson-sillos-8081.exp.direct',
+        },
+      },
+    });
+
+    try {
+      expect(getRuntimeUrl('/auth/callback')).toBe('setlist://auth/callback');
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+
+      if (originalWindow === undefined) {
+        delete (globalThis as { window?: unknown }).window;
+      } else {
+        Object.defineProperty(globalThis, 'window', {
+          configurable: true,
+          value: originalWindow,
         });
       }
     }

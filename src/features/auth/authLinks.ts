@@ -1,4 +1,5 @@
 import * as Linking from 'expo-linking';
+import { Platform } from 'react-native';
 
 export function getAuthCallbackPath(inviteToken?: string): string {
   return appendQuery('/auth/callback', [['invite_token', inviteToken]]);
@@ -28,15 +29,20 @@ export function getInvitePath(
   ]);
 }
 
-export function getDevelopmentUrl(path: string): string {
+export function getRuntimeUrl(path: string): string {
   const normalizedPath = path.replace(/^\/+/, '');
 
   // No navegador, a origem atual é a autoridade para o callback. Não use o
   // scheme do app (`setlist://`) nem a configuração do Expo para montar uma
   // URL web: isso pode transformar o host publicado em `https://setlist`.
-  // O teste de `window` também mantém o comportamento correto caso o bundler
-  // entregue um valor inesperado para `Platform.OS`.
-  if (typeof window !== 'undefined' && window.location?.origin) {
+  // Em runtimes nativos, o Expo Go pode expor um `window.location` parcial
+  // apontando para o túnel HTTP. A origem do navegador só é válida no web;
+  // Android/iOS precisam do deep link gerado pelo `expo-linking`.
+  if (
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    window.location?.origin
+  ) {
     const basePath = getWebBasePath();
     const pathWithBase = [basePath, normalizedPath]
       .filter(Boolean)
