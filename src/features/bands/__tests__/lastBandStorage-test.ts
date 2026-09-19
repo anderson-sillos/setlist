@@ -35,7 +35,7 @@ describe('lastBandStorage', () => {
     await writeLastBandId('band-demo-horizonte');
 
     expect(secureStoreMock.setItemAsync).toHaveBeenCalledWith(
-      'setlist:last-selected-band',
+      'setlist-last-selected-band',
       'band-demo-horizonte',
     );
     expect(await readLastBandId()).toBe('band-demo-horizonte');
@@ -46,7 +46,7 @@ describe('lastBandStorage', () => {
     await clearLastBandId();
 
     expect(secureStoreMock.deleteItemAsync).toHaveBeenCalledWith(
-      'setlist:last-selected-band',
+      'setlist-last-selected-band',
     );
     expect(await readLastBandId()).toBeNull();
   });
@@ -64,7 +64,7 @@ describe('lastBandStorage', () => {
 
     expect(await readLastBandId()).toBe('band-demo-horizonte');
     expect(secureStoreMock.getItemAsync).toHaveBeenCalledWith(
-      'setlist:last-selected-band',
+      'setlist-last-selected-band',
     );
   });
 });

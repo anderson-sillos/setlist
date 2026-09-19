@@ -1,7 +1,9 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-const LAST_BAND_STORAGE_KEY = 'setlist:last-selected-band';
+// SecureStore accepts only alphanumeric characters, dots, hyphens and
+// underscores in keys.
+const LAST_BAND_STORAGE_KEY = 'setlist-last-selected-band';
 
 let fallbackValue: string | null | undefined;
 
@@ -29,7 +31,7 @@ export async function readLastBandId(): Promise<string | null> {
   if (webStorage) {
     try {
       const value = webStorage.getItem(LAST_BAND_STORAGE_KEY);
-      return value;
+      return value ?? fallbackValue ?? null;
     } catch {
       return fallbackValue ?? null;
     }
@@ -41,19 +43,19 @@ export async function readLastBandId(): Promise<string | null> {
 
   try {
     const value = await SecureStore.getItemAsync(LAST_BAND_STORAGE_KEY);
-    return value;
+    return value ?? fallbackValue ?? null;
   } catch {
     return fallbackValue ?? null;
   }
 }
 
 export async function writeLastBandId(bandId: string): Promise<void> {
+  fallbackValue = bandId;
   const webStorage = getWebStorage();
 
   if (webStorage) {
     try {
       webStorage.setItem(LAST_BAND_STORAGE_KEY, bandId);
-      fallbackValue = undefined;
     } catch {
       // The in-memory value keeps the selection available for this process.
       fallbackValue = bandId;
@@ -62,13 +64,11 @@ export async function writeLastBandId(bandId: string): Promise<void> {
   }
 
   if (Platform.OS === 'web') {
-    fallbackValue = bandId;
     return;
   }
 
   try {
     await SecureStore.setItemAsync(LAST_BAND_STORAGE_KEY, bandId);
-    fallbackValue = undefined;
   } catch {
     // SecureStore may be unavailable in Expo Go or a restricted test runtime.
     fallbackValue = bandId;
