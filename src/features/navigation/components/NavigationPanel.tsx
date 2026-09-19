@@ -1,9 +1,11 @@
 import { Link, type Href } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import type { Session } from '@supabase/supabase-js';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { EntityId } from '@/domain';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -90,6 +92,31 @@ function GeneralNavigationAction({
   );
 }
 
+function getAccountSummary(session: Session | null): {
+  readonly name: string;
+  readonly email: string;
+} {
+  if (!session) {
+    return {
+      email: 'Conta de demonstração',
+      name: 'Ana Martins',
+    };
+  }
+
+  const metadata = session.user.user_metadata;
+  const metadataName = ['full_name', 'name', 'preferred_username']
+    .map((key) => metadata[key])
+    .find(
+      (value): value is string =>
+        typeof value === 'string' && Boolean(value.trim()),
+    );
+
+  return {
+    email: session.user.email ?? 'Conta autenticada',
+    name: metadataName ?? session.user.email ?? 'Usuário autenticado',
+  };
+}
+
 export function NavigationPanel({
   activeSection,
   bandId,
@@ -98,6 +125,9 @@ export function NavigationPanel({
   onNavigate,
   onLogout,
 }: NavigationPanelProps) {
+  const { session } = useAuthSession();
+  const account = getAccountSummary(session);
+
   return (
     <ScrollView contentContainerStyle={styles.panel}>
       <View style={styles.brand}>
@@ -115,9 +145,9 @@ export function NavigationPanel({
       </View>
 
       <View style={styles.accountSummary}>
-        <AppText tone="inverse">Ana Martins</AppText>
+        <AppText tone="inverse">{account.name}</AppText>
         <AppText style={styles.muted} variant="caption">
-          Conta de demonstração
+          {account.email}
         </AppText>
       </View>
 

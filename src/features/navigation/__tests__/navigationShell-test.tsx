@@ -3,6 +3,10 @@ import { StyleSheet } from 'react-native';
 
 import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds } from '@/data/demo';
+import {
+  AuthSessionContext,
+  type AuthSessionContextValue,
+} from '@/features/auth/AuthSessionProvider';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
@@ -144,6 +148,36 @@ describe('shell de navegação', () => {
     await waitFor(() =>
       expect(view.queryByTestId('navigation-drawer')).toBeNull(),
     );
+  });
+
+  it('apresenta nome e e-mail da sessão no menu lateral', async () => {
+    const session = {
+      user: {
+        email: 'lucas@example.com',
+        user_metadata: { full_name: 'Lucas Ribeiro' },
+      },
+    } as never;
+    const authSession: AuthSessionContextValue = {
+      session,
+      setSession: jest.fn(),
+      status: 'authenticated',
+    };
+
+    const view = await render(
+      <AuthSessionContext.Provider value={authSession}>
+        <AppProviders>
+          <ShowsScreen
+            bandId={demoIds.primaryBand}
+            viewportHeight={900}
+            viewportWidth={1440}
+          />
+        </AppProviders>
+      </AuthSessionContext.Provider>,
+    );
+
+    expect(await view.findByText('Lucas Ribeiro')).toBeTruthy();
+    expect(view.getByText('lucas@example.com')).toBeTruthy();
+    expect(view.queryByText('Conta de demonstração')).toBeNull();
   });
 
   it('mantém o aviso de conexão compacto abaixo do cabeçalho', async () => {
