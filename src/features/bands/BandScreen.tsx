@@ -9,7 +9,13 @@ import {
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { demoIds } from '@/data/demo';
 import { useBandMembers, useUserBands } from '@/data/queries';
+import {
+  BandMemberMutationError,
+  removeBandMember,
+  updateBandMemberRole,
+} from '@/data/supabase/bandMemberMutations';
 import type { BandMember, BandRole } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getBandSectionHref } from '@/features/navigation/routes';
@@ -19,6 +25,10 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import {
+  BandMemberManagementDialog,
+  type BandMemberManagementAction,
+} from './BandMemberManagementDialog';
 
 const roleLabels: Record<BandRole, string> = {
   editor: 'Editor',
@@ -44,6 +54,14 @@ export function BandScreen({
   )?.membership;
   const canManage = currentMembership?.role === 'owner';
   const [previewNotice, setPreviewNotice] = useState<string | null>(null);
+  const [managedMember, setManagedMember] = useState<BandMember | null>(null);
+  const [memberManagementError, setMemberManagementError] = useState<
+    string | null
+  >(null);
+  const [memberManagementSubmitting, setMemberManagementSubmitting] =
+    useState(false);
+  const isDemoBand =
+    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
   const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
     bandId,
     'band',
@@ -62,6 +80,62 @@ export function BandScreen({
       })),
     [membersQuery.data],
   );
+
+  const openMemberManagement = (member: BandMember) => {
+    if (isDemoBand) {
+      setPreviewNotice(
+        'A administração de integrantes fica disponível ao conectar uma banda real.',
+      );
+      return;
+    }
+
+    setMemberManagementError(null);
+    setManagedMember(member);
+  };
+
+  const closeMemberManagement = () => {
+    if (memberManagementSubmitting) {
+      return;
+    }
+
+    setManagedMember(null);
+    setMemberManagementError(null);
+  };
+
+  const handleMemberManagement = async (action: BandMemberManagementAction) => {
+    if (!managedMember) {
+      return;
+    }
+
+    setMemberManagementError(null);
+    setMemberManagementSubmitting(true);
+
+    try {
+      if (action === 'promote') {
+        await updateBandMemberRole({
+          bandId,
+          memberId: managedMember.id,
+          role: 'owner',
+        });
+      } else {
+        await removeBandMember({
+          bandId,
+          memberId: managedMember.id,
+        });
+      }
+
+      await Promise.all([membersQuery.refetch(), userBandsQuery.refetch()]);
+      setManagedMember(null);
+    } catch (error) {
+      setMemberManagementError(
+        error instanceof BandMemberMutationError
+          ? error.message
+          : 'Não foi possível atualizar os integrantes agora. Tente novamente.',
+      );
+    } finally {
+      setMemberManagementSubmitting(false);
+    }
+  };
 
   return (
     <BandAreaLayout
@@ -100,6 +174,13 @@ export function BandScreen({
         message={previewNotice}
         onClose={() => setPreviewNotice(null)}
       />
+      <BandMemberManagementDialog
+        errorMessage={memberManagementError}
+        isSubmitting={memberManagementSubmitting}
+        member={managedMember}
+        onClose={closeMemberManagement}
+        onConfirm={(action) => void handleMemberManagement(action)}
+      />
       <SectionList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
@@ -112,11 +193,7 @@ export function BandScreen({
             canManage={canManage}
             current={item.userId === currentMembership?.userId}
             member={item}
-            onManage={() =>
-              setPreviewNotice(
-                'A administração de integrantes será conectada ao backend em um próximo incremento.',
-              )
-            }
+            onManage={() => openMemberManagement(item)}
           />
         )}
         renderSectionHeader={({ section }) => (
