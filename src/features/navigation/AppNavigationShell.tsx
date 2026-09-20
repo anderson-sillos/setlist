@@ -4,7 +4,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,6 +14,7 @@ import { BottomNavigation } from '@/features/navigation/components/BottomNavigat
 import { MobileNavigationDrawer } from '@/features/navigation/components/MobileNavigationDrawer';
 import { NavigationPanel } from '@/features/navigation/components/NavigationPanel';
 import { signOut } from '@/features/auth/authService';
+import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { useBandNavigationState } from '@/features/navigation/hooks/useBandNavigationState';
 import { useNavigationDrawer } from '@/features/navigation/hooks/useNavigationDrawer';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
@@ -48,6 +49,14 @@ export function AppNavigationShell({
   viewportWidth,
 }: AppNavigationShellProps) {
   const router = useRouter();
+  const { setLastBand } = useLastBandSelection();
+
+  useEffect(() => {
+    if (bandId) {
+      void setLastBand(bandId);
+    }
+  }, [bandId, setLastBand]);
+
   const handleLogout = useCallback(async () => {
     try {
       await signOut();

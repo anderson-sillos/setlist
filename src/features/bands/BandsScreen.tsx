@@ -1,19 +1,22 @@
-import { Link } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import {
-  DemoActionNotice,
-  ErrorFeedback,
-  LoadingFeedback,
-} from '@/components/feedback';
+import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
 import { demoIds } from '@/data/demo';
+import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
+import {
+  BandCreationDialog,
+  type BandCreationDialogStatus,
+} from '@/features/bands/BandCreationDialog';
+import { useLastBandSelection } from '@/features/bands/LastBandSelection';
+import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -48,10 +51,77 @@ export function BandsScreen({
   viewportHeight,
   viewportWidth,
 }: BandsScreenProps) {
+  const router = useRouter();
   const bandsQuery = useUserBandSummaries();
+  const { clearLastBand, isHydrated, lastBandId, setLastBand } =
+    useLastBandSelection();
   const [search, setSearch] = useState('');
-  const [creationNoticeVisible, setCreationNoticeVisible] = useState(false);
+  const [creationDialogVisible, setCreationDialogVisible] = useState(false);
+  const [creationStatus, setCreationStatus] =
+    useState<BandCreationDialogStatus>('idle');
+  const [creationError, setCreationError] = useState<string | null>(null);
   const normalizedSearch = normalizeForSearch(search);
+
+  const openBand = async (bandId: string) => {
+    await setLastBand(bandId);
+    router.push(getBandSectionHref(bandId, 'shows'));
+  };
+
+  const openCreationDialog = () => {
+    setCreationError(null);
+    setCreationStatus('idle');
+    setCreationDialogVisible(true);
+  };
+
+  const closeCreationDialog = () => {
+    if (creationStatus === 'submitting') {
+      return;
+    }
+
+    setCreationDialogVisible(false);
+    setCreationError(null);
+    setCreationStatus('idle');
+  };
+
+  const handleCreateBand = async ({
+    acceptedTerm,
+    name,
+  }: {
+    readonly acceptedTerm: boolean;
+    readonly name: string;
+  }) => {
+    setCreationError(null);
+    setCreationStatus('submitting');
+
+    try {
+      await createBand({
+        acceptedTerm,
+        name,
+        termVersion: CURRENT_BAND_TERM.version,
+      });
+      await bandsQuery.refetch().catch(() => undefined);
+      setCreationDialogVisible(false);
+      setCreationStatus('idle');
+    } catch (error) {
+      setCreationStatus('error');
+      setCreationError(
+        error instanceof BandCreationError
+          ? error.message
+          : 'Não foi possível criar a banda agora. Tente novamente.',
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (!isHydrated || !bandsQuery.data || !lastBandId) {
+      return;
+    }
+
+    if (!bandsQuery.data.some(({ band }) => band.id === lastBandId)) {
+      void clearLastBand();
+    }
+  }, [bandsQuery.data, clearLastBand, isHydrated, lastBandId]);
+
   const bands = useMemo(
     () =>
       [...(bandsQuery.data ?? [])]
@@ -59,11 +129,11 @@ export function BandsScreen({
           normalizeForSearch(band.name).includes(normalizedSearch),
         )
         .sort((left, right) => {
-          if (left.band.id === demoIds.primaryBand) return -1;
-          if (right.band.id === demoIds.primaryBand) return 1;
+          if (lastBandId && left.band.id === lastBandId) return -1;
+          if (lastBandId && right.band.id === lastBandId) return 1;
           return left.band.name.localeCompare(right.band.name, 'pt-BR');
         }),
-    [bandsQuery.data, normalizedSearch],
+    [bandsQuery.data, lastBandId, normalizedSearch],
   );
 
   return (
@@ -82,7 +152,7 @@ export function BandsScreen({
       headerAction={{
         accessibilityLabel: 'Criar banda',
         label: 'Criar banda',
-        onPress: () => setCreationNoticeVisible(true),
+        onPress: openCreationDialog,
       }}
       scrollable={false}
       testID="bands-screen"
@@ -96,14 +166,15 @@ export function BandsScreen({
         <ErrorFeedback onRetry={() => void bandsQuery.refetch()} />
       ) : null}
 
-      <DemoActionNotice
-        message={
-          creationNoticeVisible
-            ? 'A criação entra junto com o login. Por enquanto, o palco é de demonstração.'
-            : null
-        }
-        onClose={() => setCreationNoticeVisible(false)}
-      />
+      {creationDialogVisible ? (
+        <BandCreationDialog
+          errorMessage={creationError}
+          onClose={closeCreationDialog}
+          onSubmit={(input) => void handleCreateBand(input)}
+          status={creationStatus}
+          visible
+        />
+      ) : null}
 
       <FlatList
         contentContainerStyle={styles.listContent}
@@ -114,7 +185,7 @@ export function BandsScreen({
           !bandsQuery.isPending && !bandsQuery.isError ? (
             normalizedSearch ? (
               <ListEmptyState
-                actionLabel="Limpar filtros"
+                actionLabel="Limpar busca"
                 message="Nem o roadie encontrou essa. Tente outra busca."
                 onAction={() => setSearch('')}
                 title="Nenhuma banda encontrada"
@@ -123,7 +194,7 @@ export function BandsScreen({
               <ListEmptyState
                 actionLabel="Criar banda"
                 message="Crie uma banda ou abra o link de convite que você recebeu."
-                onAction={() => setCreationNoticeVisible(true)}
+                onAction={openCreationDialog}
                 title="Seu palco ainda está vazio"
               />
             )
@@ -131,54 +202,63 @@ export function BandsScreen({
         }
         renderItem={({ item: { band, membership, shows } }) => {
           const nextShow = getNextShow(shows, now);
-          const isLastAccessed = band.id === demoIds.primaryBand;
+          const isLastAccessed = band.id === lastBandId;
+          const isDemoBand =
+            band.id === demoIds.primaryBand ||
+            band.id === demoIds.secondaryBand;
 
           return (
             <View style={styles.rowFrame}>
-              <Link href={getBandSectionHref(band.id, 'shows')} asChild>
-                <Pressable
-                  accessibilityLabel={`Abrir ${band.name}`}
-                  accessibilityRole="link"
-                  style={({ pressed }) => [
-                    styles.bandRow,
-                    isLastAccessed && styles.lastAccessedRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.bandRowLayout}>
-                    <View style={styles.bandRowContent}>
-                      <View style={styles.bandAvatar}>
-                        <AppText tone="inverse" variant="heading">
-                          {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
-                        </AppText>
-                      </View>
-                      <View style={styles.bandCopy}>
-                        <View style={styles.titleLine}>
-                          <AppText variant="heading">{band.name}</AppText>
-                          {isLastAccessed ? (
-                            <View style={styles.lastAccessedBadge}>
-                              <AppText tone="accent" variant="caption">
-                                Última acessada
-                              </AppText>
-                            </View>
-                          ) : null}
-                        </View>
-                        <AppText tone="muted" variant="caption">
-                          {roleLabels[membership.role]}
-                        </AppText>
-                        <AppText variant="caption">
-                          {nextShow
-                            ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
-                            : 'Nenhum próximo show'}
-                        </AppText>
-                      </View>
+              <Pressable
+                accessibilityLabel={`Abrir ${band.name}`}
+                accessibilityRole="link"
+                onPress={() => void openBand(band.id)}
+                style={({ pressed }) => [
+                  styles.bandRow,
+                  isLastAccessed && styles.lastAccessedRow,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.bandRowLayout}>
+                  <View style={styles.bandRowContent}>
+                    <View style={styles.bandAvatar}>
+                      <AppText tone="inverse" variant="heading">
+                        {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
+                      </AppText>
                     </View>
-                    <View style={styles.bandRowNavigation}>
-                      <AppIcon color={colors.violet} name="forward" size={20} />
+                    <View style={styles.bandCopy}>
+                      <View style={styles.titleLine}>
+                        <AppText variant="heading">{band.name}</AppText>
+                        {isLastAccessed ? (
+                          <View style={styles.lastAccessedBadge}>
+                            <AppText tone="accent" variant="caption">
+                              Última acessada
+                            </AppText>
+                          </View>
+                        ) : null}
+                        {isDemoBand ? (
+                          <View style={styles.demoBadge}>
+                            <AppText tone="muted" variant="caption">
+                              Demonstração
+                            </AppText>
+                          </View>
+                        ) : null}
+                      </View>
+                      <AppText tone="muted" variant="caption">
+                        {roleLabels[membership.role]}
+                      </AppText>
+                      <AppText variant="caption">
+                        {nextShow
+                          ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
+                          : 'Nenhum próximo show'}
+                      </AppText>
                     </View>
                   </View>
-                </Pressable>
-              </Link>
+                  <View style={styles.bandRowNavigation}>
+                    <AppIcon color={colors.violet} name="forward" size={20} />
+                  </View>
+                </View>
+              </Pressable>
             </View>
           );
         }}
@@ -255,6 +335,14 @@ const styles = StyleSheet.create({
   lastAccessedBadge: {
     backgroundColor: colors.violetSoft,
     borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  demoBadge: {
+    backgroundColor: colors.paper,
+    borderColor: colors.line,
+    borderRadius: radii.pill,
+    borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },

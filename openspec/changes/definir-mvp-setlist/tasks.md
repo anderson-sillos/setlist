@@ -52,9 +52,9 @@
 
 - [ ] 5.1 Integrar autenticação Google e Apple com Supabase e verificar entrada, retorno e renovação de sessão em web, Android e iOS; usar Google nativo no Android quando houver development build ou build distribuído com o módulo configurado, trocar o ID Token por sessão Supabase, preservar OAuth pelo navegador como fallback no Expo Go, web, ausência de Google Play Services ou configuração nativa e validar `code`, `state` e o contexto de convite nos caminhos aplicáveis
 - [x] 5.2 Implementar persistência de sessão com SecureStore nos aplicativos e armazenamento do navegador na web e verificar restauração e expiração segura
-- [ ] 5.3 Implementar `Minhas bandas`, busca por nome, próximo show, seleção e restauração da última banda autorizada e verificar o fluxo sem banda, a criação e a entrada exclusivamente por link de convite
-- [ ] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
-- [ ] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
+- [x] 5.3 Implementar `Minhas bandas`, busca por nome, próximo show, seleção e restauração da última banda autorizada e verificar o fluxo sem banda, a criação e a entrada exclusivamente por link de convite
+- [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
+- [x] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
 - [ ] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4
 - [ ] 5.7 Implementar promoção e saída de integrantes e verificar que a banda nunca fica sem Owner fora da exceção de exclusão da banda pelo único integrante
 - [ ] 5.8 Implementar exclusão de conta e exclusão de banda restrita ao único integrante, anonimização e limpeza local e verificar os casos de integrante comum, Owner substituível, banda com outros integrantes e único integrante

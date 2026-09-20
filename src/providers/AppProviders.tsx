@@ -2,12 +2,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createContext,
   type PropsWithChildren,
+  useMemo,
   useContext,
   useState,
 } from 'react';
 
 import { createDemoRepositories, demoIds } from '@/data/demo';
+import { createSupabaseBandRepository } from '@/data/supabase';
 import type { AppRepositories, EntityId } from '@/domain';
+import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { NavigationMemoryProvider } from '@/features/navigation/NavigationMemory';
 
 interface AppDataContextValue {
@@ -25,8 +29,25 @@ const AppDataContext = createContext<AppDataContextValue | null>(null);
 export function AppProviders({
   children,
   currentUserId = demoIds.currentUser,
-  repositories = createDemoRepositories(),
+  repositories,
 }: AppProvidersProps) {
+  const { session } = useAuthSession();
+  const demoRepositories = useState(() => createDemoRepositories())[0];
+  const remoteBandRepository = useMemo(
+    () =>
+      createSupabaseBandRepository(demoRepositories.bands, demoIds.currentUser),
+    [demoRepositories],
+  );
+  const sessionUserId = session?.user.id;
+  const resolvedRepositories = useMemo(
+    () =>
+      repositories ??
+      (sessionUserId
+        ? { ...demoRepositories, bands: remoteBandRepository }
+        : demoRepositories),
+    [demoRepositories, remoteBandRepository, repositories, sessionUserId],
+  );
+  const resolvedUserId = sessionUserId ?? currentUserId;
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -41,9 +62,16 @@ export function AppProviders({
   );
 
   return (
-    <AppDataContext.Provider value={{ currentUserId, repositories }}>
+    <AppDataContext.Provider
+      value={{
+        currentUserId: resolvedUserId,
+        repositories: resolvedRepositories,
+      }}
+    >
       <QueryClientProvider client={queryClient}>
-        <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
+        <LastBandSelectionProvider>
+          <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
+        </LastBandSelectionProvider>
       </QueryClientProvider>
     </AppDataContext.Provider>
   );

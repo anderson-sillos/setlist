@@ -95,7 +95,7 @@ select is((select count(*)::integer from public.songs), 1, 'Owner reads songs');
 select is((select count(*)::integer from public.invitations), 1, 'Owner reads invitations');
 select is((select count(*)::integer from public.profiles), 3, 'Owner reads band profiles');
 select ok(
-  public.create_band('Banda criada por Owner', '2026-01') is not null,
+  public.create_band('Banda criada por Owner', '2026-01', true) is not null,
   'authenticated user can create a band through the secure function'
 );
 select is(

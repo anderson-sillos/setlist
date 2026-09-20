@@ -406,7 +406,7 @@ npm run android
 npm run ios
 ```
 
-A rota inicial exibe `Minhas bandas` e permite navegar por Shows, Repertório e Banda usando conteúdo demonstrativo local. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
+A rota inicial exibe `Minhas bandas` e, após o login, consulta as bandas e participações da conta no Supabase. Durante a transição, as bandas demonstrativas continuam disponíveis e aparecem identificadas como `Demonstração`, permitindo navegar pelos Shows e Repertórios de exemplo. Shows, Repertório e demais áreas ainda usam conteúdo demonstrativo até suas respectivas tarefas de integração remota. Sem sessão autenticada, os testes locais continuam usando dados demonstrativos. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
 
 O protótipo técnico do player de referência fica separado da navegação principal. Com a versão web em execução, abra [http://localhost:8081/youtube-prototype](http://localhost:8081/youtube-prototype) para validar o IFrame visível do YouTube, os controles de reproduzir, pausar, buscar dez segundos e a leitura do tempo atual. No Android e no iOS, a mesma rota usa o `react-native-webview` para hospedar o IFrame, enviar comandos pela ponte JavaScript e receber tempo, estado e erros. A validação nativa depende de um aparelho ou simulador e de um build que contenha o módulo nativo.
 
@@ -666,6 +666,14 @@ Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
 - navegar pela setlist e conferir a letra estática da música;
 - testar nas orientações vertical e horizontal e observar se textos e controles permanecem legíveis;
 - registrar modelo do aparelho, versão do sistema, resultado e defeitos encontrados no PR.
+
+Para validar a administração de uma banda real, entre como Owner e abra a tela
+**Banda**. O botão `...` no cabeçalho abre diretamente a edição do nome; nessa
+janela também está a ação de exclusão, que exige digitar o nome completo e só é
+concluída quando o Owner é o único integrante. O botão **Convidar** fica acima
+da lista de membros. Ações equivalentes não aparecem para Editor ou Member.
+Nas bandas marcadas como `Demonstração`, o app exibe apenas um aviso e preserva
+os dados de exemplo.
 
 Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
 

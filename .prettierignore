@@ -6,4 +6,5 @@ dist/
 node_modules/
 openspec/
 package-lock.json
+supabase/.temp/
 docs/apresentacao.html

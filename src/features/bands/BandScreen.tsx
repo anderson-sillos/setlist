@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 
@@ -6,10 +8,22 @@ import {
   ErrorFeedback,
   LoadingFeedback,
 } from '@/components/feedback';
+import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useBandMembers, useUserBands } from '@/data/queries';
+import { demoIds } from '@/data/demo';
+import { useBand, useBandMembers, useUserBands } from '@/data/queries';
+import {
+  BandAdministrationError,
+  deleteBand,
+  updateBandName,
+} from '@/data/supabase/bandAdministrationMutations';
+import {
+  BandMemberMutationError,
+  removeBandMember,
+  updateBandMemberRole,
+} from '@/data/supabase/bandMemberMutations';
 import type { BandMember, BandRole } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getBandSectionHref } from '@/features/navigation/routes';
@@ -19,6 +33,15 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import {
+  BandAdministrationDialog,
+  type BandAdministrationMode,
+} from './BandAdministrationDialog';
+import {
+  BandMemberManagementDialog,
+  type BandMemberManagementAction,
+} from './BandMemberManagementDialog';
+import { useLastBandSelection } from './LastBandSelection';
 
 const roleLabels: Record<BandRole, string> = {
   editor: 'Editor',
@@ -37,13 +60,32 @@ export function BandScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const bandQuery = useBand(bandId);
   const membersQuery = useBandMembers(bandId);
   const userBandsQuery = useUserBands();
+  const { clearLastBand } = useLastBandSelection();
   const currentMembership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
   const canManage = currentMembership?.role === 'owner';
   const [previewNotice, setPreviewNotice] = useState<string | null>(null);
+  const [managedMember, setManagedMember] = useState<BandMember | null>(null);
+  const [memberManagementError, setMemberManagementError] = useState<
+    string | null
+  >(null);
+  const [memberManagementSubmitting, setMemberManagementSubmitting] =
+    useState(false);
+  const [bandAdministrationMode, setBandAdministrationMode] =
+    useState<BandAdministrationMode | null>(null);
+  const [bandAdministrationError, setBandAdministrationError] = useState<
+    string | null
+  >(null);
+  const [bandAdministrationSubmitting, setBandAdministrationSubmitting] =
+    useState(false);
+  const isDemoBand =
+    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
   const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
     bandId,
     'band',
@@ -63,6 +105,138 @@ export function BandScreen({
     [membersQuery.data],
   );
 
+  const openMemberManagement = (member: BandMember) => {
+    if (isDemoBand) {
+      setPreviewNotice(
+        'A administração de integrantes fica disponível ao conectar uma banda real.',
+      );
+      return;
+    }
+
+    setMemberManagementError(null);
+    setManagedMember(member);
+  };
+
+  const closeMemberManagement = () => {
+    if (memberManagementSubmitting) {
+      return;
+    }
+
+    setManagedMember(null);
+    setMemberManagementError(null);
+  };
+
+  const openBandAdministration = () => {
+    if (isDemoBand) {
+      setPreviewNotice(
+        'A administração da banda fica disponível ao conectar uma banda real.',
+      );
+      return;
+    }
+
+    setBandAdministrationError(null);
+    setBandAdministrationMode('rename');
+  };
+
+  const openInviteFlow = () => {
+    setPreviewNotice(
+      'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
+    );
+  };
+
+  const closeBandAdministration = () => {
+    if (bandAdministrationSubmitting) {
+      return;
+    }
+
+    setBandAdministrationMode(null);
+    setBandAdministrationError(null);
+  };
+
+  const handleBandRename = async (name: string) => {
+    setBandAdministrationError(null);
+    setBandAdministrationSubmitting(true);
+
+    try {
+      await updateBandName({ bandId, name });
+      await Promise.all([
+        bandQuery.refetch(),
+        queryClient.invalidateQueries({
+          queryKey: ['bands', 'user'],
+          refetchType: 'all',
+        }),
+      ]);
+      setBandAdministrationMode(null);
+    } catch (error) {
+      setBandAdministrationError(
+        error instanceof BandAdministrationError
+          ? error.message
+          : 'Não foi possível atualizar a banda agora. Tente novamente.',
+      );
+    } finally {
+      setBandAdministrationSubmitting(false);
+    }
+  };
+
+  const handleBandDelete = async () => {
+    setBandAdministrationError(null);
+    setBandAdministrationSubmitting(true);
+
+    try {
+      await deleteBand(bandId);
+      queryClient.removeQueries({ queryKey: ['bands', bandId] });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', 'user'],
+        refetchType: 'all',
+      });
+      await clearLastBand();
+      router.replace('/');
+    } catch (error) {
+      setBandAdministrationError(
+        error instanceof BandAdministrationError
+          ? error.message
+          : 'Não foi possível excluir a banda agora. Tente novamente.',
+      );
+    } finally {
+      setBandAdministrationSubmitting(false);
+    }
+  };
+
+  const handleMemberManagement = async (action: BandMemberManagementAction) => {
+    if (!managedMember) {
+      return;
+    }
+
+    setMemberManagementError(null);
+    setMemberManagementSubmitting(true);
+
+    try {
+      if (action === 'promote') {
+        await updateBandMemberRole({
+          bandId,
+          memberId: managedMember.id,
+          role: 'owner',
+        });
+      } else {
+        await removeBandMember({
+          bandId,
+          memberId: managedMember.id,
+        });
+      }
+
+      await Promise.all([membersQuery.refetch(), userBandsQuery.refetch()]);
+      setManagedMember(null);
+    } catch (error) {
+      setMemberManagementError(
+        error instanceof BandMemberMutationError
+          ? error.message
+          : 'Não foi possível atualizar os integrantes agora. Tente novamente.',
+      );
+    } finally {
+      setMemberManagementSubmitting(false);
+    }
+  };
+
   return (
     <BandAreaLayout
       activeSection="band"
@@ -71,12 +245,10 @@ export function BandScreen({
       headerAction={
         canManage
           ? {
-              accessibilityLabel: 'Convidar integrante',
-              label: 'Convidar',
-              onPress: () =>
-                setPreviewNotice(
-                  'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
-                ),
+              accessibilityLabel: 'Editar banda',
+              icon: 'more',
+              label: 'Editar banda',
+              onPress: openBandAdministration,
             }
           : undefined
       }
@@ -100,10 +272,43 @@ export function BandScreen({
         message={previewNotice}
         onClose={() => setPreviewNotice(null)}
       />
+      <BandMemberManagementDialog
+        errorMessage={memberManagementError}
+        isSubmitting={memberManagementSubmitting}
+        member={managedMember}
+        onClose={closeMemberManagement}
+        onConfirm={(action) => void handleMemberManagement(action)}
+      />
+      <BandAdministrationDialog
+        band={bandQuery.data ?? null}
+        errorMessage={bandAdministrationError}
+        isSubmitting={bandAdministrationSubmitting}
+        key={`${bandQuery.data?.id ?? 'none'}-${bandAdministrationMode ?? 'closed'}`}
+        mode={bandAdministrationMode}
+        onClose={closeBandAdministration}
+        onDelete={() => void handleBandDelete()}
+        onModeChange={(mode) => {
+          setBandAdministrationError(null);
+          setBandAdministrationMode(mode);
+        }}
+        onRename={(name) => void handleBandRename(name)}
+      />
       <SectionList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         keyExtractor={(member) => member.id}
+        ListHeaderComponent={
+          canManage ? (
+            <AppButton
+              accessibilityLabel="Convidar integrante"
+              icon="band"
+              label="Convidar"
+              onPress={openInviteFlow}
+              variant="secondary"
+            />
+          ) : null
+        }
+        ListHeaderComponentStyle={styles.listHeader}
         onScroll={(event) =>
           rememberListScrollOffset(event, rememberScrollOffset)
         }
@@ -112,11 +317,7 @@ export function BandScreen({
             canManage={canManage}
             current={item.userId === currentMembership?.userId}
             member={item}
-            onManage={() =>
-              setPreviewNotice(
-                'A administração de integrantes será conectada ao backend em um próximo incremento.',
-              )
-            }
+            onManage={() => openMemberManagement(item)}
           />
         )}
         renderSectionHeader={({ section }) => (
@@ -190,6 +391,9 @@ function MemberRow({
 }
 
 const styles = StyleSheet.create({
+  listHeader: {
+    marginBottom: spacing.md,
+  },
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,
