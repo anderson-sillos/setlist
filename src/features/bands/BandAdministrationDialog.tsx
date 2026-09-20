@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -26,8 +34,8 @@ export function BandAdministrationDialog({
   isSubmitting,
   mode,
   onClose,
-  onDelete,
   onModeChange,
+  onDelete,
   onRename,
 }: BandAdministrationDialogProps) {
   const [name, setName] = useState(band?.name ?? '');
@@ -46,10 +54,15 @@ export function BandAdministrationDialog({
         <Pressable
           accessibilityLabel="Fechar edição da banda"
           accessibilityRole="button"
+          disabled={isSubmitting}
           onPress={onClose}
           style={styles.scrim}
         />
-        <View style={styles.dialog} testID="band-administration-dialog">
+        <View
+          accessibilityLiveRegion="polite"
+          style={styles.dialog}
+          testID="band-administration-dialog"
+        >
           <View style={styles.header}>
             <AppText accessibilityRole="header" variant="heading">
               {title}
@@ -57,6 +70,8 @@ export function BandAdministrationDialog({
             <Pressable
               accessibilityLabel="Fechar edição da banda"
               accessibilityRole="button"
+              disabled={isSubmitting}
+              hitSlop={spacing.sm}
               onPress={onClose}
               style={({ pressed }) => [
                 styles.closeButton,
@@ -67,97 +82,100 @@ export function BandAdministrationDialog({
             </Pressable>
           </View>
 
-          {mode === 'rename' ? (
-            <View style={styles.actionList}>
-              <AppText tone="muted">
-                O novo nome será exibido para todos os integrantes.
-              </AppText>
-              <TextInput
-                accessibilityLabel="Novo nome da banda"
-                autoCapitalize="words"
-                maxLength={120}
-                onChangeText={setName}
-                placeholder="Nome da banda"
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-                value={name}
-              />
-              {errorMessage ? (
-                <AppText accessibilityRole="alert" style={styles.errorText}>
-                  {errorMessage}
+          <ScrollView
+            contentContainerStyle={styles.formContent}
+            keyboardShouldPersistTaps="handled"
+            style={styles.formScroll}
+          >
+            {mode === 'rename' ? (
+              <>
+                <AppText tone="muted">
+                  O novo nome será exibido para todos os integrantes.
                 </AppText>
-              ) : null}
-              <View style={styles.deleteAction}>
-                <AppButton
-                  accessibilityLabel="Excluir banda"
-                  disabled={isSubmitting}
-                  icon="close"
-                  label="Excluir banda"
-                  onPress={() => {
-                    setConfirmationName('');
-                    onModeChange('delete');
-                  }}
-                  variant="secondary"
-                />
-              </View>
-              <View style={styles.actions}>
-                <AppButton
-                  disabled={isSubmitting}
-                  label="Cancelar"
-                  onPress={onClose}
-                  variant="secondary"
-                />
-                <AppButton
-                  accessibilityLabel="Confirmar novo nome da banda"
-                  disabled={isSubmitting || name.trim().length === 0}
-                  icon="check"
-                  label={isSubmitting ? 'Salvando…' : 'Salvar nome'}
-                  onPress={() => onRename(name)}
-                />
-              </View>
-            </View>
-          ) : null}
+                <View style={styles.fieldGroup}>
+                  <AppText variant="caption">Nome da banda</AppText>
+                  <TextInput
+                    accessibilityLabel="Novo nome da banda"
+                    autoCapitalize="words"
+                    autoFocus
+                    maxLength={120}
+                    onChangeText={setName}
+                    placeholder="Nome da banda"
+                    placeholderTextColor={colors.muted}
+                    style={styles.input}
+                    value={name}
+                  />
+                </View>
+                <View style={styles.deleteAction}>
+                  <AppButton
+                    accessibilityLabel="Excluir banda"
+                    disabled={isSubmitting}
+                    icon="close"
+                    label="Excluir banda"
+                    onPress={() => {
+                      setConfirmationName('');
+                      onModeChange('delete');
+                    }}
+                    variant="secondary"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <AppText>
+                  Esta ação é permanente e remove repertório, shows e
+                  integrantes da banda. Para confirmar, digite exatamente:
+                </AppText>
+                <AppText variant="heading">{band.name}</AppText>
+                <View style={styles.fieldGroup}>
+                  <AppText variant="caption">Confirmação</AppText>
+                  <TextInput
+                    accessibilityLabel="Confirmação do nome da banda"
+                    autoCapitalize="none"
+                    autoFocus
+                    onChangeText={setConfirmationName}
+                    placeholder={band.name}
+                    placeholderTextColor={colors.muted}
+                    style={styles.input}
+                    value={confirmationName}
+                  />
+                </View>
+              </>
+            )}
+            {errorMessage ? (
+              <AppText accessibilityRole="alert" style={styles.errorText}>
+                {errorMessage}
+              </AppText>
+            ) : null}
+          </ScrollView>
 
-          {mode === 'delete' ? (
-            <View style={styles.actionList}>
-              <AppText>
-                Esta ação é permanente e remove repertório, shows e integrantes
-                da banda. Para confirmar, digite exatamente:
-              </AppText>
-              <AppText variant="heading">{band.name}</AppText>
-              <TextInput
-                accessibilityLabel="Confirmação do nome da banda"
-                autoCapitalize="none"
-                onChangeText={setConfirmationName}
-                placeholder={band.name}
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-                value={confirmationName}
+          <View style={styles.actions}>
+            <AppButton
+              disabled={isSubmitting}
+              label={mode === 'rename' ? 'Cancelar' : 'Voltar'}
+              onPress={
+                mode === 'rename' ? onClose : () => onModeChange('rename')
+              }
+              variant="secondary"
+            />
+            {mode === 'rename' ? (
+              <AppButton
+                accessibilityLabel="Confirmar novo nome da banda"
+                disabled={isSubmitting || name.trim().length === 0}
+                icon="check"
+                label={isSubmitting ? 'Salvando…' : 'Salvar nome'}
+                onPress={() => onRename(name)}
               />
-              {errorMessage ? (
-                <AppText accessibilityRole="alert" style={styles.errorText}>
-                  {errorMessage}
-                </AppText>
-              ) : null}
-              <View style={styles.actions}>
-                <AppButton
-                  disabled={isSubmitting}
-                  label="Voltar"
-                  onPress={() => onModeChange('rename')}
-                  variant="secondary"
-                />
-                <AppButton
-                  accessibilityLabel="Confirmar exclusão da banda"
-                  disabled={isSubmitting || !canDelete}
-                  icon="close"
-                  label={
-                    isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'
-                  }
-                  onPress={onDelete}
-                />
-              </View>
-            </View>
-          ) : null}
+            ) : (
+              <AppButton
+                accessibilityLabel="Confirmar exclusão da banda"
+                disabled={isSubmitting || !canDelete}
+                icon="close"
+                label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
+                onPress={onDelete}
+              />
+            )}
+          </View>
         </View>
       </View>
     </Modal>
@@ -165,38 +183,55 @@ export function BandAdministrationDialog({
 }
 
 const styles = StyleSheet.create({
-  actionList: {
-    gap: spacing.md,
-  },
   actions: {
+    borderTopColor: colors.line,
+    borderTopWidth: 1,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.md,
     justifyContent: 'flex-end',
+    padding: spacing.lg,
   },
   closeButton: {
     alignItems: 'center',
+    borderRadius: radii.pill,
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
   },
+  deleteAction: {
+    alignSelf: 'flex-start',
+  },
   dialog: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    gap: spacing.lg,
+    maxHeight: '90%',
     maxWidth: 520,
-    padding: spacing.xl,
+    overflow: 'hidden',
     width: '100%',
-  },
-  deleteAction: {
-    alignSelf: 'flex-start',
   },
   errorText: {
     color: '#b91c1c',
   },
+  fieldGroup: {
+    gap: spacing.xs,
+  },
+  formContent: {
+    gap: spacing.lg,
+    padding: spacing.xl,
+  },
+  formScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+  },
   header: {
     alignItems: 'center',
+    borderBottomColor: colors.line,
+    borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
   },
   input: {
     borderColor: colors.line,
@@ -206,6 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
+    ...(Platform.OS === 'web' ? { outlineWidth: 0 } : {}),
   },
   modalLayer: {
     alignItems: 'center',
