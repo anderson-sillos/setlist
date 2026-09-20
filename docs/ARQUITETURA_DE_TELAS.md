@@ -55,6 +55,7 @@ histórico técnico permanece registrado no handoff e no design.
 | Contexto visual da banda selecionada         | `src/features/navigation/BandAreaLayout.tsx`                                                       |
 | Persistência da última banda autorizada      | `src/features/bands/LastBandSelection.tsx` e `lastBandStorage.ts`                                  |
 | Criação de banda e aceite do termo           | `src/features/bands/BandCreationDialog.tsx`, `legalTerm.ts` e `src/data/supabase/bandMutations.ts` |
+| Consulta remota de bandas e integrantes      | `src/data/supabase/repositories.ts` e `src/providers/AppProviders.tsx`                             |
 | Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                                |
 | Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                                   |
 | Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                          |

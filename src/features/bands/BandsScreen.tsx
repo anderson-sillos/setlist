@@ -98,6 +98,7 @@ export function BandsScreen({
         name,
         termVersion: CURRENT_BAND_TERM.version,
       });
+      await bandsQuery.refetch().catch(() => undefined);
       setCreationStatus('success');
     } catch (error) {
       setCreationStatus('error');
