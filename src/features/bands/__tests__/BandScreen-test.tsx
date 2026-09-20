@@ -91,15 +91,16 @@ describe('<BandScreen />', () => {
     expect(ownerView.getByText('Editores · 1')).toBeTruthy();
     expect(ownerView.getByText('Integrantes · 1')).toBeTruthy();
     expect(ownerView.getByText('Você')).toBeTruthy();
-    expect(ownerView.getByLabelText('Convidar integrante')).toBeTruthy();
     expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
-    expect(ownerView.getByLabelText('Administrar banda')).toBeTruthy();
+    expect(ownerView.getByLabelText('Editar banda')).toBeTruthy();
 
-    await fireEvent.press(ownerView.getByLabelText('Administrar banda'));
+    await fireEvent.press(ownerView.getByLabelText('Editar banda'));
     expect(ownerView.getByText(/A administração da banda fica/)).toBeTruthy();
     await fireEvent.press(
       ownerView.getByLabelText('Fechar aviso de demonstração'),
     );
+
+    expect(ownerView.getByLabelText('Convidar integrante')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Convidar integrante'));
     expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
@@ -139,8 +140,7 @@ describe('<BandScreen />', () => {
     );
 
     expect(await view.findByLabelText('Abrir Banda Inicial')).toBeTruthy();
-    await fireEvent.press(view.getByLabelText('Administrar banda'));
-    await fireEvent.press(view.getByLabelText('Editar nome da banda'));
+    await fireEvent.press(view.getByLabelText('Editar banda'));
     await fireEvent.changeText(
       view.getByLabelText('Novo nome da banda'),
       'Banda Atualizada',
@@ -167,7 +167,7 @@ describe('<BandScreen />', () => {
     );
 
     expect(await view.findByLabelText('Abrir Banda Inicial')).toBeTruthy();
-    await fireEvent.press(view.getByLabelText('Administrar banda'));
+    await fireEvent.press(view.getByLabelText('Editar banda'));
     await fireEvent.press(view.getByLabelText('Excluir banda'));
     await fireEvent.changeText(
       view.getByLabelText('Confirmação do nome da banda'),

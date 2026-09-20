@@ -7,7 +7,7 @@ import { AppText } from '@/components/ui/AppText';
 import type { Band } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
-export type BandAdministrationMode = 'delete' | 'menu' | 'rename';
+export type BandAdministrationMode = 'delete' | 'rename';
 
 interface BandAdministrationDialogProps {
   readonly band: Band | null;
@@ -30,7 +30,7 @@ export function BandAdministrationDialog({
   onModeChange,
   onRename,
 }: BandAdministrationDialogProps) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(band?.name ?? '');
   const [confirmationName, setConfirmationName] = useState('');
 
   if (!band || !mode) {
@@ -38,18 +38,13 @@ export function BandAdministrationDialog({
   }
 
   const canDelete = confirmationName.trim() === band.name;
-  const title =
-    mode === 'menu'
-      ? 'Administrar banda'
-      : mode === 'rename'
-        ? 'Editar nome da banda'
-        : 'Excluir banda';
+  const title = mode === 'rename' ? 'Editar nome da banda' : 'Excluir banda';
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
-          accessibilityLabel="Fechar administração da banda"
+          accessibilityLabel="Fechar edição da banda"
           accessibilityRole="button"
           onPress={onClose}
           style={styles.scrim}
@@ -60,7 +55,7 @@ export function BandAdministrationDialog({
               {title}
             </AppText>
             <Pressable
-              accessibilityLabel="Fechar administração da banda"
+              accessibilityLabel="Fechar edição da banda"
               accessibilityRole="button"
               onPress={onClose}
               style={({ pressed }) => [
@@ -71,34 +66,6 @@ export function BandAdministrationDialog({
               <AppIcon color={colors.muted} name="close" size={20} />
             </Pressable>
           </View>
-
-          {mode === 'menu' ? (
-            <View style={styles.actionList}>
-              <AppText>
-                {band.name} · ações disponíveis para Proprietário
-              </AppText>
-              <AppButton
-                accessibilityLabel="Editar nome da banda"
-                icon="edit"
-                label="Editar nome"
-                onPress={() => {
-                  setName(band.name);
-                  onModeChange('rename');
-                }}
-                variant="secondary"
-              />
-              <AppButton
-                accessibilityLabel="Excluir banda"
-                icon="close"
-                label="Excluir banda"
-                onPress={() => {
-                  setConfirmationName('');
-                  onModeChange('delete');
-                }}
-                variant="secondary"
-              />
-            </View>
-          ) : null}
 
           {mode === 'rename' ? (
             <View style={styles.actionList}>
@@ -120,11 +87,24 @@ export function BandAdministrationDialog({
                   {errorMessage}
                 </AppText>
               ) : null}
+              <View style={styles.deleteAction}>
+                <AppButton
+                  accessibilityLabel="Excluir banda"
+                  disabled={isSubmitting}
+                  icon="close"
+                  label="Excluir banda"
+                  onPress={() => {
+                    setConfirmationName('');
+                    onModeChange('delete');
+                  }}
+                  variant="secondary"
+                />
+              </View>
               <View style={styles.actions}>
                 <AppButton
                   disabled={isSubmitting}
-                  label="Voltar"
-                  onPress={() => onModeChange('menu')}
+                  label="Cancelar"
+                  onPress={onClose}
                   variant="secondary"
                 />
                 <AppButton
@@ -163,7 +143,7 @@ export function BandAdministrationDialog({
                 <AppButton
                   disabled={isSubmitting}
                   label="Voltar"
-                  onPress={() => onModeChange('menu')}
+                  onPress={() => onModeChange('rename')}
                   variant="secondary"
                 />
                 <AppButton
@@ -206,6 +186,9 @@ const styles = StyleSheet.create({
     maxWidth: 520,
     padding: spacing.xl,
     width: '100%',
+  },
+  deleteAction: {
+    alignSelf: 'flex-start',
   },
   errorText: {
     color: '#b91c1c',

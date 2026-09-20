@@ -135,7 +135,13 @@ export function BandScreen({
     }
 
     setBandAdministrationError(null);
-    setBandAdministrationMode('menu');
+    setBandAdministrationMode('rename');
+  };
+
+  const openInviteFlow = () => {
+    setPreviewNotice(
+      'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
+    );
   };
 
   const closeBandAdministration = () => {
@@ -239,12 +245,10 @@ export function BandScreen({
       headerAction={
         canManage
           ? {
-              accessibilityLabel: 'Convidar integrante',
-              label: 'Convidar',
-              onPress: () =>
-                setPreviewNotice(
-                  'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
-                ),
+              accessibilityLabel: 'Editar banda',
+              icon: 'more',
+              label: 'Editar banda',
+              onPress: openBandAdministration,
             }
           : undefined
       }
@@ -279,6 +283,7 @@ export function BandScreen({
         band={bandQuery.data ?? null}
         errorMessage={bandAdministrationError}
         isSubmitting={bandAdministrationSubmitting}
+        key={`${bandQuery.data?.id ?? 'none'}-${bandAdministrationMode ?? 'closed'}`}
         mode={bandAdministrationMode}
         onClose={closeBandAdministration}
         onDelete={() => void handleBandDelete()}
@@ -295,10 +300,10 @@ export function BandScreen({
         ListHeaderComponent={
           canManage ? (
             <AppButton
-              accessibilityLabel="Administrar banda"
-              icon="more"
-              label="Administrar banda"
-              onPress={openBandAdministration}
+              accessibilityLabel="Convidar integrante"
+              icon="band"
+              label="Convidar"
+              onPress={openInviteFlow}
               variant="secondary"
             />
           ) : null

@@ -27,14 +27,14 @@ describe('<BandAdministrationDialog />', () => {
     expect(view.queryByTestId('band-administration-dialog')).toBeNull();
   });
 
-  it('oferece as ações de edição e exclusão no menu do Owner', async () => {
+  it('oferece a exclusão dentro da edição do Owner', async () => {
     const onModeChange = jest.fn();
     const view = await render(
       <BandAdministrationDialog
         band={band}
         errorMessage={null}
         isSubmitting={false}
-        mode="menu"
+        mode="rename"
         onClose={jest.fn()}
         onDelete={jest.fn()}
         onModeChange={onModeChange}
@@ -42,11 +42,9 @@ describe('<BandAdministrationDialog />', () => {
       />,
     );
 
-    await fireEvent.press(view.getByLabelText('Editar nome da banda'));
     await fireEvent.press(view.getByLabelText('Excluir banda'));
 
-    expect(onModeChange).toHaveBeenNthCalledWith(1, 'rename');
-    expect(onModeChange).toHaveBeenNthCalledWith(2, 'delete');
+    expect(onModeChange).toHaveBeenCalledWith('delete');
   });
 
   it('permite editar o nome da banda', async () => {
