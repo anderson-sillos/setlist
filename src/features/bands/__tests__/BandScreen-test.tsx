@@ -23,6 +23,13 @@ describe('<BandScreen />', () => {
     expect(ownerView.getByText('Você')).toBeTruthy();
     expect(ownerView.getByLabelText('Convidar integrante')).toBeTruthy();
     expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
+    expect(ownerView.getByLabelText('Administrar banda')).toBeTruthy();
+
+    await fireEvent.press(ownerView.getByLabelText('Administrar banda'));
+    expect(ownerView.getByText(/A administração da banda fica/)).toBeTruthy();
+    await fireEvent.press(
+      ownerView.getByLabelText('Fechar aviso de demonstração'),
+    );
 
     await fireEvent.press(ownerView.getByLabelText('Convidar integrante'));
     expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();

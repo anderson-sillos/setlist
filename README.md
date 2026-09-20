@@ -667,6 +667,13 @@ Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
 - testar nas orientações vertical e horizontal e observar se textos e controles permanecem legíveis;
 - registrar modelo do aparelho, versão do sistema, resultado e defeitos encontrados no PR.
 
+Para validar a administração de uma banda real, entre como Owner e abra a tela
+**Banda**. A ação **Administrar banda** permite editar o nome e iniciar a
+exclusão; a exclusão exige digitar o nome completo e só é concluída quando o
+Owner é o único integrante. Ações equivalentes não aparecem para Editor ou
+Member. Nas bandas marcadas como `Demonstração`, o app exibe apenas um aviso e
+preserva os dados de exemplo.
+
 Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.

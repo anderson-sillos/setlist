@@ -7,6 +7,11 @@ export {
   removeBandMember,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
+export {
+  BandAdministrationError,
+  deleteBand,
+  updateBandName,
+} from '@/data/supabase/bandAdministrationMutations';
 export { BandCreationError, createBand } from '@/data/supabase/bandMutations';
 export {
   createSupabaseBandRepository,
@@ -21,3 +26,4 @@ export type {
   RemoveBandMemberInput,
   UpdateBandMemberRoleInput,
 } from '@/data/supabase/bandMemberMutations';
+export type { BandAdministrationErrorCode } from '@/data/supabase/bandAdministrationMutations';
