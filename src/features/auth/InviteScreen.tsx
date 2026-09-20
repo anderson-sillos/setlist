@@ -1,10 +1,19 @@
-import { Link, type Href } from 'expo-router';
+import { Link, useRouter, type Href } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
+import {
+  acceptInvitation,
+  getInvitationPreview,
+  InvitationMutationError,
+  type InvitationPreview,
+} from '@/data/supabase/invitationMutations';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
+import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { spacing } from '@/theme/tokens';
 
 interface InviteScreenProps {
@@ -13,17 +22,91 @@ interface InviteScreenProps {
   readonly token?: string;
 }
 
+type InviteState =
+  | { readonly status: 'idle' }
+  | { readonly status: 'loading' }
+  | { readonly message: string; readonly status: 'error' }
+  | { readonly status: 'accepted' };
+
 export function InviteScreen({
   authenticated,
   resumed,
   token,
 }: InviteScreenProps) {
+  const router = useRouter();
+  const { setLastBand } = useLastBandSelection();
+  const { status: authStatus } = useAuthSession();
+  const [preview, setPreview] = useState<InvitationPreview | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [inviteState, setInviteState] = useState<InviteState>({
+    status: 'idle',
+  });
+  const hasAuthenticatedContext =
+    authStatus === 'authenticated' || authenticated === '1' || resumed === '1';
   const authPath = token
     ? ({
         pathname: '/auth',
         params: { invite_token: token },
       } as unknown as Href)
     : ('/auth' as Href);
+
+  useEffect(() => {
+    if (!token || !hasAuthenticatedContext) {
+      return;
+    }
+
+    let active = true;
+
+    void getInvitationPreview(token)
+      .then((nextPreview) => {
+        if (active) {
+          setPreview(nextPreview);
+          setInviteState({ status: 'idle' });
+        }
+      })
+      .catch((error: unknown) => {
+        if (!active) {
+          return;
+        }
+
+        setPreviewError(
+          error instanceof InvitationMutationError
+            ? error.message
+            : 'Esse convite não está mais disponível. Gere outro para seguir o show.',
+        );
+        setInviteState({
+          message: 'Convite indisponível.',
+          status: 'error',
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [hasAuthenticatedContext, token]);
+
+  async function handleAccept() {
+    if (!token) {
+      return;
+    }
+
+    setInviteState({ status: 'loading' });
+
+    try {
+      const bandId = await acceptInvitation(token);
+      await setLastBand(bandId);
+      setInviteState({ status: 'accepted' });
+      router.replace(`/bands/${bandId}/band` as Href);
+    } catch (error) {
+      setInviteState({
+        message:
+          error instanceof InvitationMutationError
+            ? error.message
+            : 'Não foi possível aceitar o convite agora. Tente novamente.',
+        status: 'error',
+      });
+    }
+  }
 
   return (
     <Screen testID="invite-screen">
@@ -35,8 +118,8 @@ export function InviteScreen({
           Você foi convidado
         </AppText>
         <AppText tone="muted">
-          Entre com Google ou Apple para revisar e confirmar sua entrada na
-          banda.
+          Entre e confirme sua entrada. O convite é de uso único e não fica
+          salvo como texto no aparelho.
         </AppText>
       </View>
 
@@ -47,26 +130,60 @@ export function InviteScreen({
             O link não trouxe o identificador necessário para continuar.
           </AppText>
         </Card>
+      ) : hasAuthenticatedContext ? (
+        <Card style={styles.card} testID="invite-details">
+          <AppText variant="heading">
+            {preview?.bandName ?? 'Convite recebido'}
+          </AppText>
+          {preview?.label ? (
+            <AppText tone="muted">Identificação: {preview.label}</AppText>
+          ) : null}
+          <AppText tone="muted">
+            {preview
+              ? `Válido até ${new Date(preview.expiresAt).toLocaleDateString('pt-BR')}.`
+              : 'Conferindo se o convite ainda está no compasso…'}
+          </AppText>
+          {previewError ? (
+            <AppText accessibilityRole="alert" style={styles.errorText}>
+              {previewError}
+            </AppText>
+          ) : null}
+          {inviteState.status === 'accepted' ? (
+            <AppText tone="accent" testID="invite-authenticated">
+              Entrada confirmada. A banda já está no seu repertório.
+            </AppText>
+          ) : (
+            <AppButton
+              disabled={
+                inviteState.status === 'loading' ||
+                Boolean(previewError) ||
+                !preview
+              }
+              icon="check"
+              label={
+                inviteState.status === 'loading'
+                  ? 'Conferindo…'
+                  : 'Aceitar convite'
+              }
+              onPress={() => void handleAccept()}
+            />
+          )}
+          {inviteState.status === 'error' && !previewError ? (
+            <AppText accessibilityRole="alert" style={styles.errorText}>
+              {inviteState.message}
+            </AppText>
+          ) : null}
+        </Card>
       ) : (
         <Card style={styles.card} testID="invite-details">
           <AppText variant="heading">Convite recebido</AppText>
           <AppText tone="muted">
-            O token permanece protegido durante o login e não é salvo como
-            conteúdo do aplicativo.
+            Entre para conferir a banda e confirmar sua entrada. O token fica
+            guardado apenas durante o retorno do login.
           </AppText>
-          <AppText selectable testID="invite-token" variant="heading">
-            {token}
-          </AppText>
-          {authenticated === '1' || resumed === '1' ? (
-            <AppText tone="accent" testID="invite-authenticated">
-              Login concluído. A confirmação de entrada será habilitada na
-              próxima etapa.
-            </AppText>
-          ) : (
-            <Link href={authPath} replace asChild>
-              <AppButton icon="login" label="Entrar para continuar" />
-            </Link>
-          )}
+          <Link href={authPath} replace asChild>
+            <AppButton icon="login" label="Entrar para continuar" />
+          </Link>
         </Card>
       )}
 
@@ -85,5 +202,8 @@ const styles = StyleSheet.create({
   card: {
     gap: spacing.md,
     marginBottom: spacing.lg,
+  },
+  errorText: {
+    color: '#b91c1c',
   },
 });

@@ -1,6 +1,8 @@
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 
+import { getPublicEnvironment } from '@/config/environment';
+
 export function getAuthCallbackPath(inviteToken?: string): string {
   return appendQuery('/auth/callback', [['invite_token', inviteToken]]);
 }
@@ -27,6 +29,26 @@ export function getInvitePath(
   return appendQuery(`/invite/${encodeURIComponent(token)}`, [
     ['resumed', options?.resumed ? '1' : undefined],
   ]);
+}
+
+/**
+ * Retorna o endereço compartilhável do convite. Em produção e em builds
+ * móveis, o endereço HTTPS configurado mantém o link abrível no app associado
+ * ou na versão web. No navegador local, a origem atual continua sendo útil
+ * para validar o fluxo sem duplicar configuração.
+ */
+export function getShareableInviteUrl(token: string): string {
+  const path = getInvitePath(token);
+
+  if (Platform.OS === 'web') {
+    return getRuntimeUrl(path);
+  }
+
+  const webBaseUrl = getPublicEnvironment().webBaseUrl;
+
+  return webBaseUrl
+    ? `${webBaseUrl}/${path.replace(/^\/+/, '')}`
+    : getRuntimeUrl(path);
 }
 
 export function getRuntimeUrl(path: string): string {

@@ -215,6 +215,7 @@ No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar 
 | `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente                  |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                           |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web opcional para Google nativo no Android |
+| `EXPO_PUBLIC_WEB_BASE_URL`             | URL HTTPS pública usada nos links de convite               |
 
 Use dois projetos Supabase hospedados distintos: um para desenvolvimento e outro para produção. Copie de cada painel a **Project URL** e a **Publishable key** para o arquivo do mesmo ambiente. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
 
@@ -374,6 +375,30 @@ npm run supabase:check -- production
 ```
 
 Não execute `db reset --local` apontando para um projeto hospedado, não use `--include-seed` nesses ambientes e não aplique alterações manualmente pelo Table Editor. O `seed.sql` habilita pgTAP somente no banco local; produção e desenvolvimento hospedados devem receber apenas as migrações versionadas. Se o `dry-run` indicar divergência de histórico, interrompa a publicação e revise o projeto antes de usar opções como `--include-all`.
+
+### Convites de banda
+
+Owners podem abrir **Banda > Convidar** para criar vários links de uso único. O
+rótulo é opcional e serve apenas para organização; cada convite vale por sete
+dias, pode ser revogado e pode ser renovado com a geração de um novo link. O
+aplicativo mantém o token bruto somente em memória durante o compartilhamento,
+enquanto o Supabase armazena apenas o hash SHA-256.
+
+Para que o link compartilhado seja HTTPS em um development build ou no Expo Go,
+preencha `EXPO_PUBLIC_WEB_BASE_URL` com a origem pública da versão web do mesmo
+ambiente (por exemplo, `https://anderson-sillos.github.io/setlist/app`). Na web
+em execução local, a origem atual é usada automaticamente. Depois de publicar a
+migração, valide estes fluxos:
+
+1. Crie dois convites com rótulos diferentes e confirme que ambos aparecem na
+   lista do Owner.
+2. Use **Compartilhar link** e abra o endereço em uma janela sem sessão; o
+   token deve sobreviver ao login e retornar à confirmação do convite.
+3. Confirme **Aceitar convite** uma vez e verifique a nova participação como
+   `Integrante`; uma segunda tentativa deve informar que o convite já foi usado.
+4. Revogue um convite ativo e tente abri-lo; a entrada deve ser recusada.
+5. Renove um convite expirado ou revogado e confirme que o novo link funciona
+   sem reativar o anterior.
 
 Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
 

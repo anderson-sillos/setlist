@@ -6,6 +6,10 @@ import {
   deleteBand,
   updateBandName,
 } from '@/data/supabase/bandAdministrationMutations';
+import {
+  createInvitation,
+  listInvitations,
+} from '@/data/supabase/invitationMutations';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
 import { AppProviders } from '@/providers/AppProviders';
@@ -27,8 +31,20 @@ jest.mock('@/data/supabase/bandAdministrationMutations', () => {
   };
 });
 
+jest.mock('@/data/supabase/invitationMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/invitationMutations');
+
+  return {
+    ...actual,
+    createInvitation: jest.fn(),
+    listInvitations: jest.fn(),
+  };
+});
+
 const mockDeleteBand = jest.mocked(deleteBand);
 const mockUpdateBandName = jest.mocked(updateBandName);
+const mockCreateInvitation = jest.mocked(createInvitation);
+const mockListInvitations = jest.mocked(listInvitations);
 
 function createMutableBandRepositories() {
   const owner: BandMember = {
@@ -78,6 +94,7 @@ function createMutableBandRepositories() {
 describe('<BandScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockListInvitations.mockResolvedValue([]);
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
@@ -150,6 +167,37 @@ describe('<BandScreen />', () => {
     await waitFor(() => {
       expect(view.getByLabelText('Abrir Banda Atualizada')).toBeTruthy();
       expect(view.queryByLabelText('Abrir Banda Inicial')).toBeNull();
+    });
+  });
+
+  it('abre a administração de convites para uma banda real', async () => {
+    mockCreateInvitation.mockResolvedValue({
+      id: 'invite-1',
+      token: 'token-1',
+      url: 'https://example.com/invite/token-1',
+    });
+    const state = createMutableBandRepositories();
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(await view.findByLabelText('Convidar integrante'));
+    expect(view.getByTestId('band-invitation-dialog')).toBeTruthy();
+    await fireEvent.changeText(
+      view.getByLabelText('Rótulo do convite'),
+      'Baixista',
+    );
+    await fireEvent.press(view.getByLabelText('Criar convite'));
+
+    await waitFor(() => {
+      expect(mockCreateInvitation).toHaveBeenCalledWith({
+        bandId: 'band-real',
+        label: 'Baixista',
+      });
+      expect(view.getByText('https://example.com/invite/token-1')).toBeTruthy();
     });
   });
 

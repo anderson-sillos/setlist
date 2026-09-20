@@ -95,4 +95,13 @@ describe('parsePublicEnvironment', () => {
       'google-web-client.apps.googleusercontent.com',
     );
   });
+
+  it('normaliza a URL pública dos links de convite', () => {
+    const environment = parsePublicEnvironment({
+      ...validSource,
+      EXPO_PUBLIC_WEB_BASE_URL: 'https://example.com/setlist/',
+    });
+
+    expect(environment.webBaseUrl).toBe('https://example.com/setlist');
+  });
 });

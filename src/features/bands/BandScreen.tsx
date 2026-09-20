@@ -13,7 +13,12 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { demoIds } from '@/data/demo';
-import { useBand, useBandMembers, useUserBands } from '@/data/queries';
+import {
+  useBand,
+  useBandInvitations,
+  useBandMembers,
+  useUserBands,
+} from '@/data/queries';
 import {
   BandAdministrationError,
   deleteBand,
@@ -24,6 +29,13 @@ import {
   removeBandMember,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
+import {
+  createInvitation,
+  InvitationMutationError,
+  renewInvitation,
+  revokeInvitation,
+  type CreatedInvitation,
+} from '@/data/supabase/invitationMutations';
 import type { BandMember, BandRole } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getBandSectionHref } from '@/features/navigation/routes';
@@ -41,6 +53,7 @@ import {
   BandMemberManagementDialog,
   type BandMemberManagementAction,
 } from './BandMemberManagementDialog';
+import { BandInvitationDialog } from './BandInvitationDialog';
 import { useLastBandSelection } from './LastBandSelection';
 
 const roleLabels: Record<BandRole, string> = {
@@ -84,8 +97,12 @@ export function BandScreen({
   >(null);
   const [bandAdministrationSubmitting, setBandAdministrationSubmitting] =
     useState(false);
+  const [invitationDialogVisible, setInvitationDialogVisible] = useState(false);
+  const [invitationError, setInvitationError] = useState<string | null>(null);
+  const [invitationSubmitting, setInvitationSubmitting] = useState(false);
   const isDemoBand =
     bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
+  const invitationsQuery = useBandInvitations(bandId, canManage && !isDemoBand);
   const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
     bandId,
     'band',
@@ -139,9 +156,86 @@ export function BandScreen({
   };
 
   const openInviteFlow = () => {
-    setPreviewNotice(
-      'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
-    );
+    if (isDemoBand) {
+      setPreviewNotice(
+        'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
+      );
+      return;
+    }
+
+    setInvitationError(null);
+    setInvitationDialogVisible(true);
+  };
+
+  const closeInvitationDialog = () => {
+    if (invitationSubmitting) {
+      return;
+    }
+
+    setInvitationDialogVisible(false);
+    setInvitationError(null);
+  };
+
+  const handleCreateInvitation = async (
+    label: string,
+  ): Promise<CreatedInvitation | null> => {
+    setInvitationError(null);
+    setInvitationSubmitting(true);
+
+    try {
+      const created = await createInvitation({ bandId, label });
+      await invitationsQuery.refetch();
+      return created;
+    } catch (error) {
+      setInvitationError(
+        error instanceof InvitationMutationError
+          ? error.message
+          : 'Não foi possível criar o convite agora. Tente novamente.',
+      );
+      return null;
+    } finally {
+      setInvitationSubmitting(false);
+    }
+  };
+
+  const handleRevokeInvitation = async (invitationId: string) => {
+    setInvitationError(null);
+    setInvitationSubmitting(true);
+
+    try {
+      await revokeInvitation(invitationId);
+      await invitationsQuery.refetch();
+    } catch (error) {
+      setInvitationError(
+        error instanceof InvitationMutationError
+          ? error.message
+          : 'Não foi possível revogar o convite agora. Tente novamente.',
+      );
+    } finally {
+      setInvitationSubmitting(false);
+    }
+  };
+
+  const handleRenewInvitation = async (
+    invitationId: string,
+  ): Promise<CreatedInvitation | null> => {
+    setInvitationError(null);
+    setInvitationSubmitting(true);
+
+    try {
+      const renewed = await renewInvitation({ invitationId });
+      await invitationsQuery.refetch();
+      return renewed;
+    } catch (error) {
+      setInvitationError(
+        error instanceof InvitationMutationError
+          ? error.message
+          : 'Não foi possível renovar o convite agora. Tente novamente.',
+      );
+      return null;
+    } finally {
+      setInvitationSubmitting(false);
+    }
   };
 
   const closeBandAdministration = () => {
@@ -292,6 +386,16 @@ export function BandScreen({
           setBandAdministrationMode(mode);
         }}
         onRename={(name) => void handleBandRename(name)}
+      />
+      <BandInvitationDialog
+        errorMessage={invitationError}
+        invitations={invitationsQuery.data ?? []}
+        isSubmitting={invitationSubmitting}
+        onClose={closeInvitationDialog}
+        onCreate={handleCreateInvitation}
+        onRenew={handleRenewInvitation}
+        onRevoke={(invitationId) => void handleRevokeInvitation(invitationId)}
+        visible={invitationDialogVisible}
       />
       <SectionList
         contentContainerStyle={styles.listContent}

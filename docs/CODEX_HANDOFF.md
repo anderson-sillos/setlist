@@ -6,7 +6,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/task-5-3-minhas-bandas`.
+- Branch de trabalho: `feat/task-5-6-convites`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
@@ -127,6 +127,7 @@ openspec validate definir-mvp-setlist --type change --strict
 91. A tarefa 5.5 implementou a administração real de integrantes e da banda. `BandScreen` mantém os grupos de Proprietários, Editores e Integrantes em ordem alfabética, marca a própria pessoa e mostra os controles somente para Owners. Ações de promover para Proprietário e remover integrante usam um diálogo de confirmação que identifica a pessoa; a edição do nome usa o mesmo acesso e a exclusão exige digitar o nome completo, além de ser recusada pelo backend quando há outros integrantes. As mutações chamam o Supabase e traduzem erros de permissão ou do último Owner. Bandas demonstrativas continuam exibindo um aviso sem alterar dados. Foram adicionados testes de mutações, confirmações, ordenação e ausência de controles para Editor e Member, além da função SQL transacional de exclusão. Formatação, lint, TypeScript e 52 suítes (259 testes) passaram; a PR #13 continua aberta.
 92. A revisão da tela de Banda removeu o menu intermediário de administração: o botão `...` no cabeçalho abre diretamente a edição, o botão de exclusão fica nessa janela e `Convidar` foi movido para acima da lista de membros. A lista agora invalida as consultas agregadas após editar ou excluir uma banda. A migração `20260920110000_sync_profile_identity.sql` preenche perfis existentes a partir de `auth.users` e sincroniza nome/e-mail ao criar banda ou aceitar convite, evitando `Usuário removido` quando a identidade está disponível. A migração foi aplicada nos projetos hospedados de desenvolvimento e produção; o lint do schema `public` passou. Formatação, lint, TypeScript, OpenSpec e 52 suítes (261 testes) passaram; a PR #13 continua aberta.
 93. A janela de edição/exclusão da banda passou a usar a mesma estrutura de `BandCreationDialog`: cabeçalho fixo com título e fechar, formulário rolável e rodapé fixo com ações. O padrão deve ser reutilizado nas próximas janelas de edição para manter o comportamento consistente em telas pequenas.
+94. A tarefa 5.6 foi iniciada na branch `feat/task-5-6-convites`. `BandInvitationDialog` permite a Owners criar vários convites com rótulo opcional, compartilhar o link, revogar convites ativos e renovar links expirados ou revogados. O token bruto é gerado com `expo-crypto`, permanece somente em memória e o Supabase armazena apenas o hash. A tela `/invite/[token]` agora consulta uma prévia protegida depois do login, preserva o token durante o OAuth, exige confirmação explícita, consome o convite atomicamente e restaura a banda recém-aceita como contexto. A migração `20260920130000_invitation_preview_and_renewal.sql` adiciona as RPCs de prévia e renovação; `supabase/tests/5.6-invitations.sql` cobre esses contratos. `EXPO_PUBLIC_WEB_BASE_URL` foi documentada para links HTTPS compartilháveis. TypeScript, lint e 53 suítes (267 testes) passaram; falta publicar a nova migração no Supabase de desenvolvimento e realizar a validação manual dos fluxos autenticado, não autenticado, expirado e já utilizado antes de concluir a tarefa.
 
 ## Visão confirmada do produto
 
@@ -289,13 +290,13 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon, splash e consulta de Shows com calendário como filtro de data; integrada à `main`.
 - PR #11: validação antecipada dos riscos técnicos do player YouTube, cronômetro em tempo real e rotas de convite/OAuth; grupo 3 concluído e integrado à `main`.
 - PR #12: fundação do Supabase, autenticação, persistência de sessão e ajustes de ambiente; grupo 4 integrado à `main`.
-- PR #13: implementação de `Minhas bandas`, persistência da última banda e criação de banda com aceite do termo; permanece aberta para revisão.
+- PR #13: implementação de `Minhas bandas`, persistência da última banda e criação de banda com aceite do termo; integrada à `main` após aprovação.
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 5.6: implementar convites com rótulo, compartilhamento,
-confirmação, revogação e renovação. A tarefa 5.1 continua parcialmente aberta
+Validar a tarefa 5.6: publicar a migração de convites no Supabase de
+desenvolvimento e testar criação, compartilhamento, aceite após login,
+revogação, renovação e uso único. A tarefa 5.1 continua parcialmente aberta
 pelo iOS nativo adiado; o OAuth pelo navegador permanece o caminho suportado
-nessa plataforma. A leitura remota de bandas e a administração de integrantes
-já estão disponíveis para validação pelo app; repertório, shows e convites ainda
-devem migrar gradualmente para repositórios Supabase nas tarefas próprias.
+nessa plataforma. Depois da aprovação da tarefa 5.6, seguir para a promoção e
+saída de integrantes (5.7).

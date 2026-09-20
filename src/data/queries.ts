@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { EntityId } from '@/domain';
+import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
 
 export function useUserBands() {
@@ -45,6 +46,14 @@ export function useBandMembers(bandId: EntityId) {
   return useQuery({
     queryKey: ['bands', bandId, 'members'],
     queryFn: () => repositories.bands.listMembers(bandId),
+  });
+}
+
+export function useBandInvitations(bandId: EntityId, enabled = true) {
+  return useQuery({
+    enabled,
+    queryKey: ['bands', bandId, 'invitations'],
+    queryFn: () => listInvitations(bandId),
   });
 }
 

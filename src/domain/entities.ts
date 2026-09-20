@@ -24,6 +24,19 @@ export interface UserBand {
   readonly membership: BandMember;
 }
 
+export type InvitationStatus = 'active' | 'expired' | 'revoked' | 'used';
+
+export interface BandInvitation {
+  readonly id: EntityId;
+  readonly bandId: EntityId;
+  readonly label: string | null;
+  readonly createdAt: IsoDateTime;
+  readonly expiresAt: IsoDateTime;
+  readonly revokedAt: IsoDateTime | null;
+  readonly usedAt: IsoDateTime | null;
+  readonly status: InvitationStatus;
+}
+
 export interface LyricLine {
   readonly id: EntityId;
   readonly text: string;
