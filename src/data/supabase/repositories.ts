@@ -146,6 +146,11 @@ function toBandMember(
 }
 
 export class SupabaseBandRepository implements BandRepository {
+  constructor(
+    private readonly demoRepository?: BandRepository,
+    private readonly demoUserId?: EntityId,
+  ) {}
+
   async listForUser(userId: EntityId): Promise<readonly UserBand[]> {
     const { data: membershipData, error: membershipError } =
       await getSupabaseClient()
@@ -161,7 +166,9 @@ export class SupabaseBandRepository implements BandRepository {
     const bandIds = memberships.map(({ band_id }) => band_id);
 
     if (bandIds.length === 0) {
-      return [];
+      return this.demoRepository && this.demoUserId
+        ? this.demoRepository.listForUser(this.demoUserId)
+        : [];
     }
 
     const { data: bandData, error: bandError } = await getSupabaseClient()
@@ -182,7 +189,7 @@ export class SupabaseBandRepository implements BandRepository {
     );
     const profiles = await loadProfiles([userId]);
 
-    return memberships.flatMap((membership) => {
+    const remoteBands = memberships.flatMap((membership) => {
       const band = bandsById.get(membership.band_id);
 
       return band
@@ -194,6 +201,18 @@ export class SupabaseBandRepository implements BandRepository {
           ]
         : [];
     });
+
+    if (!this.demoRepository || !this.demoUserId) {
+      return remoteBands;
+    }
+
+    const demoBands = await this.demoRepository.listForUser(this.demoUserId);
+    const remoteBandIds = new Set(remoteBands.map(({ band }) => band.id));
+
+    return [
+      ...remoteBands,
+      ...demoBands.filter(({ band }) => !remoteBandIds.has(band.id)),
+    ];
   }
 
   async findById(bandId: EntityId): Promise<Band | null> {
@@ -207,7 +226,11 @@ export class SupabaseBandRepository implements BandRepository {
       throw error;
     }
 
-    return data ? parseBand(data) : null;
+    if (data) {
+      return parseBand(data);
+    }
+
+    return this.demoRepository?.findById(bandId) ?? null;
   }
 
   async listMembers(bandId: EntityId): Promise<readonly BandMember[]> {
@@ -225,10 +248,19 @@ export class SupabaseBandRepository implements BandRepository {
       memberships.map(({ user_id }) => user_id),
     );
 
-    return memberships.map((membership) => toBandMember(membership, profiles));
+    if (memberships.length > 0 || !this.demoRepository) {
+      return memberships.map((membership) =>
+        toBandMember(membership, profiles),
+      );
+    }
+
+    return this.demoRepository.listMembers(bandId);
   }
 }
 
-export function createSupabaseBandRepository(): BandRepository {
-  return new SupabaseBandRepository();
+export function createSupabaseBandRepository(
+  demoRepository?: BandRepository,
+  demoUserId?: EntityId,
+): BandRepository {
+  return new SupabaseBandRepository(demoRepository, demoUserId);
 }

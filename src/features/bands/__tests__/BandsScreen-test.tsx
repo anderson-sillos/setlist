@@ -86,7 +86,10 @@ describe('<BandsScreen />', () => {
         termVersion: CURRENT_BAND_TERM.version,
       });
     });
-    expect(await view.findByText('Banda criada')).toBeTruthy();
+    await waitFor(() =>
+      expect(view.queryByTestId('create-band-dialog')).toBeNull(),
+    );
+    expect(view.getAllByText('Demonstração')).toHaveLength(2);
   });
 
   it('bloqueia a criação quando o termo não foi aceito', async () => {

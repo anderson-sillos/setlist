@@ -34,8 +34,9 @@ export function AppProviders({
   const { session } = useAuthSession();
   const demoRepositories = useState(() => createDemoRepositories())[0];
   const remoteBandRepository = useMemo(
-    () => createSupabaseBandRepository(),
-    [],
+    () =>
+      createSupabaseBandRepository(demoRepositories.bands, demoIds.currentUser),
+    [demoRepositories],
   );
   const sessionUserId = session?.user.id;
   const resolvedRepositories = useMemo(

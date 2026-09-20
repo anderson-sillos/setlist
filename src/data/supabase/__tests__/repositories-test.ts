@@ -124,6 +124,96 @@ describe('repositório de bandas do Supabase', () => {
     expect(from).toHaveBeenCalledTimes(1);
   });
 
+  it('mantém bandas demonstrativas disponíveis durante a migração do backend', async () => {
+    from.mockReturnValueOnce(createQuery({ data: [], error: null }));
+    const demoRepository = {
+      listForUser: jest.fn().mockResolvedValue([
+        {
+          band: {
+            createdAt: '2026-09-20T10:00:00.000Z',
+            id: 'band-demo',
+            name: 'Banda Demonstração',
+            updatedAt: '2026-09-20T10:00:00.000Z',
+          },
+          membership: {
+            bandId: 'band-demo',
+            displayName: 'Pessoa demo',
+            id: 'membership-demo',
+            joinedAt: '2026-09-20T10:00:00.000Z',
+            role: 'owner',
+            userId: 'demo-user',
+          },
+        },
+      ]),
+    };
+
+    await expect(
+      new SupabaseBandRepository(
+        demoRepository as never,
+        'demo-user',
+      ).listForUser('user-1'),
+    ).resolves.toHaveLength(1);
+    expect(demoRepository.listForUser).toHaveBeenCalledWith('demo-user');
+  });
+
+  it('combina bandas remotas e demonstrativas sem duplicar identificadores', async () => {
+    from
+      .mockReturnValueOnce(
+        createQuery({
+          data: [
+            {
+              band_id: 'band-remote',
+              id: 'membership-remote',
+              joined_at: '2026-09-20T10:00:00.000Z',
+              role: 'member',
+              user_id: 'user-1',
+            },
+          ],
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(
+        createQuery({
+          data: [
+            {
+              created_at: '2026-09-20T10:00:00.000Z',
+              id: 'band-remote',
+              name: 'Banda Remota',
+              updated_at: '2026-09-20T10:00:00.000Z',
+            },
+          ],
+          error: null,
+        }),
+      )
+      .mockReturnValueOnce(createQuery({ data: [], error: null }));
+    const demoRepository = {
+      listForUser: jest.fn().mockResolvedValue([
+        {
+          band: { id: 'band-remote' },
+          membership: { bandId: 'band-remote' },
+        },
+        {
+          band: { id: 'band-demo' },
+          membership: { bandId: 'band-demo' },
+        },
+      ]),
+    };
+
+    await expect(
+      new SupabaseBandRepository(
+        demoRepository as never,
+        'demo-user',
+      ).listForUser('user-1'),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        band: expect.objectContaining({ id: 'band-remote' }),
+      }),
+      expect.objectContaining({
+        band: expect.objectContaining({ id: 'band-demo' }),
+      }),
+    ]);
+  });
+
   it('carrega integrantes e usa o e-mail quando o perfil não tem nome', async () => {
     from
       .mockReturnValueOnce(
@@ -194,6 +284,36 @@ describe('repositório de bandas do Supabase', () => {
     await expect(
       new SupabaseBandRepository().findById('band-missing'),
     ).resolves.toBeNull();
+  });
+
+  it('usa a banda demonstrativa como fallback para detalhes e integrantes', async () => {
+    from
+      .mockReturnValueOnce(createSingleQuery({ data: null, error: null }))
+      .mockReturnValueOnce(createQuery({ data: [], error: null }));
+    const demoBand = {
+      createdAt: '2026-09-20T10:00:00.000Z',
+      id: 'band-demo',
+      name: 'Banda Demonstração',
+      updatedAt: '2026-09-20T10:00:00.000Z',
+    };
+    const demoMember = {
+      bandId: 'band-demo',
+      displayName: 'Pessoa demo',
+      id: 'membership-demo',
+      joinedAt: '2026-09-20T10:00:00.000Z',
+      role: 'owner' as const,
+      userId: 'demo-user',
+    };
+    const demoRepository = {
+      findById: jest.fn().mockResolvedValue(demoBand),
+      listMembers: jest.fn().mockResolvedValue([demoMember]),
+    };
+    const repository = new SupabaseBandRepository(demoRepository as never);
+
+    await expect(repository.findById('band-demo')).resolves.toEqual(demoBand);
+    await expect(repository.listMembers('band-demo')).resolves.toEqual([
+      demoMember,
+    ]);
   });
 
   it('converte uma banda específica para a entidade do domínio', async () => {

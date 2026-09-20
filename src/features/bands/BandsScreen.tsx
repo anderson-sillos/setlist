@@ -7,6 +7,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
+import { demoIds } from '@/data/demo';
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
@@ -99,7 +100,8 @@ export function BandsScreen({
         termVersion: CURRENT_BAND_TERM.version,
       });
       await bandsQuery.refetch().catch(() => undefined);
-      setCreationStatus('success');
+      setCreationDialogVisible(false);
+      setCreationStatus('idle');
     } catch (error) {
       setCreationStatus('error');
       setCreationError(
@@ -201,6 +203,9 @@ export function BandsScreen({
         renderItem={({ item: { band, membership, shows } }) => {
           const nextShow = getNextShow(shows, now);
           const isLastAccessed = band.id === lastBandId;
+          const isDemoBand =
+            band.id === demoIds.primaryBand ||
+            band.id === demoIds.secondaryBand;
 
           return (
             <View style={styles.rowFrame}>
@@ -228,6 +233,13 @@ export function BandsScreen({
                           <View style={styles.lastAccessedBadge}>
                             <AppText tone="accent" variant="caption">
                               Última acessada
+                            </AppText>
+                          </View>
+                        ) : null}
+                        {isDemoBand ? (
+                          <View style={styles.demoBadge}>
+                            <AppText tone="muted" variant="caption">
+                              Demonstração
                             </AppText>
                           </View>
                         ) : null}
@@ -323,6 +335,14 @@ const styles = StyleSheet.create({
   lastAccessedBadge: {
     backgroundColor: colors.violetSoft,
     borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  demoBadge: {
+    backgroundColor: colors.paper,
+    borderColor: colors.line,
+    borderRadius: radii.pill,
+    borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },

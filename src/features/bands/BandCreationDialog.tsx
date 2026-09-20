@@ -16,8 +16,7 @@ import { Card } from '@/components/ui/Card';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { CURRENT_BAND_TERM } from './legalTerm';
 
-export type BandCreationDialogStatus =
-  'error' | 'idle' | 'submitting' | 'success';
+export type BandCreationDialogStatus = 'error' | 'idle' | 'submitting';
 
 interface BandCreationDialogProps {
   readonly errorMessage: string | null;
@@ -65,7 +64,7 @@ export function BandCreationDialog({
         >
           <View style={styles.header}>
             <AppText accessibilityRole="header" variant="heading">
-              {status === 'success' ? 'Banda criada' : 'Criar banda'}
+              Criar banda
             </AppText>
             <Pressable
               accessibilityLabel="Fechar janela de criação de banda"
@@ -81,118 +80,96 @@ export function BandCreationDialog({
               <AppIcon color={colors.muted} name="close" size={20} />
             </Pressable>
           </View>
-          {status === 'success' ? (
-            <>
-              <View style={styles.successContent}>
-                <View style={styles.successIcon}>
-                  <AppIcon color={colors.violet} name="check" size={28} />
-                </View>
-                <AppText>
-                  A banda foi criada e o aceite do termo foi registrado com o
-                  horário do servidor.
-                </AppText>
-              </View>
-              <View style={styles.successActions}>
-                <AppButton
-                  label="Voltar para Minhas bandas"
-                  onPress={onClose}
+          <>
+            <ScrollView
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              style={styles.formScroll}
+            >
+              <AppText tone="muted">
+                Dê um nome ao seu palco. Depois você poderá convidar os outros
+                integrantes.
+              </AppText>
+
+              <View style={styles.fieldGroup}>
+                <AppText variant="caption">Nome da banda</AppText>
+                <TextInput
+                  accessibilityLabel="Nome da banda"
+                  autoCapitalize="words"
+                  autoFocus
+                  maxLength={120}
+                  onChangeText={setName}
+                  placeholder="Ex.: Banda Horizonte"
+                  placeholderTextColor={colors.muted}
+                  style={styles.input}
+                  testID="create-band-name"
+                  value={name}
                 />
               </View>
-            </>
-          ) : (
-            <>
-              <ScrollView
-                contentContainerStyle={styles.formContent}
-                keyboardShouldPersistTaps="handled"
-                style={styles.formScroll}
-              >
-                <AppText tone="muted">
-                  Dê um nome ao seu palco. Depois você poderá convidar os outros
-                  integrantes.
-                </AppText>
 
-                <View style={styles.fieldGroup}>
-                  <AppText variant="caption">Nome da banda</AppText>
-                  <TextInput
-                    accessibilityLabel="Nome da banda"
-                    autoCapitalize="words"
-                    autoFocus
-                    maxLength={120}
-                    onChangeText={setName}
-                    placeholder="Ex.: Banda Horizonte"
-                    placeholderTextColor={colors.muted}
-                    style={styles.input}
-                    testID="create-band-name"
-                    value={name}
-                  />
-                </View>
-
-                <Card style={styles.termCard} tone="accent">
-                  <AppText variant="heading">{CURRENT_BAND_TERM.title}</AppText>
-                  <ScrollView
-                    contentContainerStyle={styles.termScrollContent}
-                    nestedScrollEnabled
-                    style={styles.termScroll}
-                  >
-                    <AppText variant="caption">
-                      {CURRENT_BAND_TERM.body}
-                    </AppText>
-                  </ScrollView>
-                  <AppText tone="muted" variant="caption">
-                    Versão {CURRENT_BAND_TERM.version}
-                  </AppText>
-                </Card>
-
-                <Pressable
-                  accessibilityLabel="Aceitar termo de responsabilidade"
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: acceptedTerm }}
-                  onPress={() => setAcceptedTerm((current) => !current)}
-                  style={({ pressed }) => [
-                    styles.acceptanceRow,
-                    pressed && styles.pressed,
-                  ]}
-                  testID="create-band-term-acceptance"
+              <Card style={styles.termCard} tone="accent">
+                <AppText variant="heading">{CURRENT_BAND_TERM.title}</AppText>
+                <ScrollView
+                  contentContainerStyle={styles.termScrollContent}
+                  nestedScrollEnabled
+                  style={styles.termScroll}
                 >
-                  <View
-                    style={[
-                      styles.checkbox,
-                      acceptedTerm && styles.checkboxChecked,
-                    ]}
-                  >
-                    {acceptedTerm ? (
-                      <AppIcon color={colors.surface} name="check" size={16} />
-                    ) : null}
-                  </View>
-                  <AppText style={styles.acceptanceText}>
-                    Li e aceito o termo de responsabilidade pelo conteúdo da
-                    banda.
-                  </AppText>
-                </Pressable>
+                  <AppText variant="caption">{CURRENT_BAND_TERM.body}</AppText>
+                </ScrollView>
+                <AppText tone="muted" variant="caption">
+                  Versão {CURRENT_BAND_TERM.version}
+                </AppText>
+              </Card>
 
-                {errorMessage ? (
-                  <AppText accessibilityRole="alert" style={styles.errorText}>
-                    {errorMessage}
-                  </AppText>
-                ) : null}
-              </ScrollView>
-              <View style={styles.actions}>
-                <AppButton
-                  disabled={isSubmitting}
-                  label="Cancelar"
-                  onPress={onClose}
-                  variant="secondary"
-                />
-                <AppButton
-                  accessibilityLabel="Confirmar criação da banda"
-                  disabled={!canSubmit}
-                  icon="check"
-                  label={isSubmitting ? 'Criando…' : 'Criar banda'}
-                  onPress={() => onSubmit({ acceptedTerm, name })}
-                />
-              </View>
-            </>
-          )}
+              <Pressable
+                accessibilityLabel="Aceitar termo de responsabilidade"
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: acceptedTerm }}
+                onPress={() => setAcceptedTerm((current) => !current)}
+                style={({ pressed }) => [
+                  styles.acceptanceRow,
+                  pressed && styles.pressed,
+                ]}
+                testID="create-band-term-acceptance"
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    acceptedTerm && styles.checkboxChecked,
+                  ]}
+                >
+                  {acceptedTerm ? (
+                    <AppIcon color={colors.surface} name="check" size={16} />
+                  ) : null}
+                </View>
+                <AppText style={styles.acceptanceText}>
+                  Li e aceito o termo de responsabilidade pelo conteúdo da
+                  banda.
+                </AppText>
+              </Pressable>
+
+              {errorMessage ? (
+                <AppText accessibilityRole="alert" style={styles.errorText}>
+                  {errorMessage}
+                </AppText>
+              ) : null}
+            </ScrollView>
+            <View style={styles.actions}>
+              <AppButton
+                disabled={isSubmitting}
+                label="Cancelar"
+                onPress={onClose}
+                variant="secondary"
+              />
+              <AppButton
+                accessibilityLabel="Confirmar criação da banda"
+                disabled={!canSubmit}
+                icon="check"
+                label={isSubmitting ? 'Criando…' : 'Criar banda'}
+                onPress={() => onSubmit({ acceptedTerm, name })}
+              />
+            </View>
+          </>
         </View>
       </View>
     </Modal>
@@ -296,25 +273,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: 0,
-  },
-  successActions: {
-    borderTopColor: colors.line,
-    borderTopWidth: 1,
-    alignItems: 'flex-end',
-    padding: spacing.lg,
-  },
-  successContent: {
-    alignItems: 'center',
-    gap: spacing.lg,
-    padding: spacing.xl,
-  },
-  successIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.pill,
-    height: 56,
-    justifyContent: 'center',
-    width: 56,
   },
   termCard: {
     gap: spacing.sm,
