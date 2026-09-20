@@ -42,41 +42,43 @@ histórico técnico permanece registrado no handoff e no design.
 
 ## Componentes estruturais
 
-| Responsabilidade                             | Arquivo                                                                                  |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Composição da estrutura geral                | `src/features/navigation/AppNavigationShell.tsx`                                         |
-| Cabeçalho fixo                               | `src/features/navigation/components/AppHeader.tsx`                                       |
-| Barra inferior móvel                         | `src/features/navigation/components/BottomNavigation.tsx`                                |
-| Conteúdo do menu lateral                     | `src/features/navigation/components/NavigationPanel.tsx`                                 |
-| Drawer e fundo do menu móvel                 | `src/features/navigation/components/MobileNavigationDrawer.tsx`                          |
-| Estado, animação e gesto do drawer           | `src/features/navigation/hooks/useNavigationDrawer.ts`                                   |
-| Restauração de rota e rolagem da seção       | `src/features/navigation/hooks/useBandNavigationState.ts` e `NavigationMemory.tsx`       |
-| Definição das seções de navegação            | `src/features/navigation/navigationItems.ts`                                             |
-| Contexto visual da banda selecionada         | `src/features/navigation/BandAreaLayout.tsx`                                             |
-| Persistência da última banda autorizada      | `src/features/bands/LastBandSelection.tsx` e `lastBandStorage.ts`                        |
-| Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                      |
-| Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                         |
-| Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                |
-| Cronômetro manual                            | `src/features/stage/useManualTimer.ts`                                                   |
-| Formatação de datas e chaves civis           | `src/utils/dateTime.ts`                                                                  |
-| Formatação de durações                       | `src/utils/duration.ts`                                                                  |
-| Normalização de buscas                       | `src/utils/text.ts`                                                                      |
-| Cálculo de duração da setlist                | `src/domain/setlistDuration.ts`                                                          |
-| Rótulos visuais de Shows e Repertório        | `src/features/shows/showPresentation.ts` e `src/features/repertoire/songPresentation.ts` |
+| Responsabilidade                             | Arquivo                                                                                            |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Composição da estrutura geral                | `src/features/navigation/AppNavigationShell.tsx`                                                   |
+| Cabeçalho fixo                               | `src/features/navigation/components/AppHeader.tsx`                                                 |
+| Barra inferior móvel                         | `src/features/navigation/components/BottomNavigation.tsx`                                          |
+| Conteúdo do menu lateral                     | `src/features/navigation/components/NavigationPanel.tsx`                                           |
+| Drawer e fundo do menu móvel                 | `src/features/navigation/components/MobileNavigationDrawer.tsx`                                    |
+| Estado, animação e gesto do drawer           | `src/features/navigation/hooks/useNavigationDrawer.ts`                                             |
+| Restauração de rota e rolagem da seção       | `src/features/navigation/hooks/useBandNavigationState.ts` e `NavigationMemory.tsx`                 |
+| Definição das seções de navegação            | `src/features/navigation/navigationItems.ts`                                                       |
+| Contexto visual da banda selecionada         | `src/features/navigation/BandAreaLayout.tsx`                                                       |
+| Persistência da última banda autorizada      | `src/features/bands/LastBandSelection.tsx` e `lastBandStorage.ts`                                  |
+| Criação de banda e aceite do termo           | `src/features/bands/BandCreationDialog.tsx`, `legalTerm.ts` e `src/data/supabase/bandMutations.ts` |
+| Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                                |
+| Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                                   |
+| Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                          |
+| Cronômetro manual                            | `src/features/stage/useManualTimer.ts`                                                             |
+| Formatação de datas e chaves civis           | `src/utils/dateTime.ts`                                                                            |
+| Formatação de durações                       | `src/utils/duration.ts`                                                                            |
+| Normalização de buscas                       | `src/utils/text.ts`                                                                                |
+| Cálculo de duração da setlist                | `src/domain/setlistDuration.ts`                                                                    |
+| Rótulos visuais de Shows e Repertório        | `src/features/shows/showPresentation.ts` e `src/features/repertoire/songPresentation.ts`           |
 
 ## Organização dos testes
 
-| Escopo                                      | Local                                                                                       |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Shell responsivo, menu, cabeçalhos e gestos | `src/features/navigation/__tests__/navigationShell-test.tsx`                                |
-| Integração das entradas de rota             | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                          |
-| Memória de rota, rolagem e visão            | `src/features/navigation/__tests__/navigationMemory-test.tsx`                               |
-| Construção e codificação de endereços       | `src/features/navigation/__tests__/navigationRoutes-test.ts`                                |
-| Autenticação, state OAuth e convite         | `src/features/auth/__tests__/`                                                              |
-| Telas de bandas                             | `src/features/bands/__tests__/BandsScreen-test.tsx` e `BandScreen-test.tsx`                 |
-| Seleção persistida de banda                 | `src/features/bands/__tests__/lastBandStorage-test.ts`                                      |
-| Repertório e detalhe da música              | `src/features/repertoire/__tests__/RepertoireScreen-test.tsx` e `SongDetailScreen-test.tsx` |
-| Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`           |
-| Seleção do modo palco                       | `src/features/stage/__tests__/StageHubScreen-test.tsx`                                      |
+| Escopo                                      | Local                                                                                                     |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Shell responsivo, menu, cabeçalhos e gestos | `src/features/navigation/__tests__/navigationShell-test.tsx`                                              |
+| Integração das entradas de rota             | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                                        |
+| Memória de rota, rolagem e visão            | `src/features/navigation/__tests__/navigationMemory-test.tsx`                                             |
+| Construção e codificação de endereços       | `src/features/navigation/__tests__/navigationRoutes-test.ts`                                              |
+| Autenticação, state OAuth e convite         | `src/features/auth/__tests__/`                                                                            |
+| Telas de bandas                             | `src/features/bands/__tests__/BandsScreen-test.tsx` e `BandScreen-test.tsx`                               |
+| Seleção persistida de banda                 | `src/features/bands/__tests__/lastBandStorage-test.ts`                                                    |
+| Criação de banda e aceite do termo          | `src/features/bands/__tests__/BandsScreen-test.tsx` e `src/data/supabase/__tests__/bandMutations-test.ts` |
+| Repertório e detalhe da música              | `src/features/repertoire/__tests__/RepertoireScreen-test.tsx` e `SongDetailScreen-test.tsx`               |
+| Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`                         |
+| Seleção do modo palco                       | `src/features/stage/__tests__/StageHubScreen-test.tsx`                                                    |
 
 Ao criar uma tela, primeiro escolha o domínio responsável, crie o arquivo da tela nele e depois adicione uma entrada pequena em `src/app`. A entrada de rota não deve conter regras de negócio nem estilos da tela.

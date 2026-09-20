@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a implementação da tarefa 5.1 segue em andamento por causa do iOS nativo adiado; o login foi validado manualmente na web, no Expo Go Android e no development build Android com Google nativo. As tarefas 5.2 e 5.3 foram implementadas e validadas manualmente, incluindo restauração da sessão, seleção persistida da última banda autorizada e o fluxo sem banda. A próxima atividade é a tarefa 5.4, enquanto a PR #13 permanece aberta para revisão.
+- Estado atual: a implementação da tarefa 5.1 segue em andamento por causa do iOS nativo adiado; o login foi validado manualmente na web, no Expo Go Android e no development build Android com Google nativo. As tarefas 5.2, 5.3 e 5.4 foram implementadas e a 5.3 foi validada manualmente, incluindo restauração da sessão, seleção persistida da última banda autorizada e o fluxo sem banda. A criação de banda agora exige aceite explícito e grava o usuário, Owner, versão do termo e horário do servidor pela RPC transacional do Supabase. A próxima atividade é a tarefa 5.5, enquanto a PR #13 permanece aberta para revisão.
 
 ## Fontes de verdade
 
@@ -121,6 +121,7 @@ openspec validate definir-mvp-setlist --type change --strict
 85. A correção do OAuth foi validada manualmente com sucesso no Metro web, no Expo Go Android e na prévia publicada no GitHub Pages. O login Google conclui o retorno e cria/restaura a sessão nos três ambientes. A validação nativa no iOS permanece adiada, conforme a decisão da tarefa 5.1.
 86. O último development build Android do EAS (`development-android`, SDK 57, válido até 03/10/2026) foi validado com o Metro atual. O Google nativo ficou disponível no binário e a troca do ID Token por sessão Supabase concluiu com sucesso. As correções posteriores de callback foram JavaScript e puderam ser testadas sem gerar outro APK; a tarefa 5.1 continua parcialmente aberta somente pela validação nativa do iOS.
 87. A tela intermediária `OAuthCallbackScreen` foi removida do fluxo visual. A rota `/auth/callback` continua existindo por ser o destino do Supabase, mas agora usa `OAuthCallbackHandler` para trocar o código e redirecionar diretamente para `Minhas bandas` ou para o convite; falhas retornam ao login com aviso. Foram adicionadas as variáveis opcionais `EXPO_PUBLIC_AUTH_SPLASH_PREVIEW_MS` e `EXPO_PUBLIC_AUTH_GATE_PREVIEW_MS`, limitadas ao desenvolvimento, para revisar separadamente o splash nativo e o carregamento do `AuthGate`.
+88. A tarefa 5.4 foi implementada na branch `feat/task-5-3-minhas-bandas`, mantendo a PR #13 aberta. `BandsScreen` agora abre o formulário de criação com nome, termo vigente (versão `2026-09`) e checkbox desmarcado por padrão; o botão de confirmação permanece bloqueado sem nome e aceite. `src/data/supabase/bandMutations.ts` valida a entrada antes de chamar a RPC `create_band`, normaliza o nome e traduz erros do servidor sem expor detalhes internos. A migração `20260919100000_harden_create_band.sql` troca a assinatura antiga por uma RPC que exige `p_accepted = true`, garante o perfil autenticado, cria a banda e a participação como Owner e registra o aceite com `accepted_at` gerado pelo servidor em uma operação transacional. Testes unitários cobrem o bloqueio sem aceite, o envio da versão, os erros e a resposta da tela; `supabase/tests/5.4-band-creation.sql` cobre perfil, banda, Owner, versão, timestamp, aceite explícito e rejeições. TypeScript, lint, formatação, suíte do app (46 suítes/228 testes) e validação OpenSpec passaram. O lint pgTAP não pôde ser executado porque o banco local não estava iniciado (`127.0.0.1:54322`); deve ser repetido com `supabase start` antes da validação de banco.
 
 ## Visão confirmada do produto
 
@@ -282,10 +283,13 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #9: correção das vulnerabilidades de dependências apontadas pelo GitHub e pelo `npm audit`.
 - PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon, splash e consulta de Shows com calendário como filtro de data; integrada à `main`.
 - PR #11: validação antecipada dos riscos técnicos do player YouTube, cronômetro em tempo real e rotas de convite/OAuth; grupo 3 concluído e integrado à `main`.
+- PR #12: fundação do Supabase, autenticação, persistência de sessão e ajustes de ambiente; grupo 4 integrado à `main`.
+- PR #13: implementação de `Minhas bandas`, persistência da última banda e criação de banda com aceite do termo; permanece aberta para revisão.
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 5.4: implementar a criação de banda com aceite explícito do
-termo de responsabilidade, registrando usuário, banda, versão do termo e
-horário do servidor. A tarefa 5.1 continua parcialmente aberta pelo iOS nativo
-adiado; o OAuth pelo navegador permanece o caminho suportado nessa plataforma.
+Iniciar a tarefa 5.5: implementar integrantes agrupados por papel, identificação
+do próprio usuário e controles administrativos exclusivos do Owner. A tarefa
+5.1 continua parcialmente aberta pelo iOS nativo adiado; o OAuth pelo navegador
+permanece o caminho suportado nessa plataforma. Antes de validar o banco da 5.4,
+iniciar o Supabase local e executar `npm run supabase:test`.

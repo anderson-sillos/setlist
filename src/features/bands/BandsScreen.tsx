@@ -2,18 +2,20 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import {
-  DemoActionNotice,
-  ErrorFeedback,
-  LoadingFeedback,
-} from '@/components/feedback';
+import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
+import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
 import type { BandRole, Show } from '@/domain';
+import {
+  BandCreationDialog,
+  type BandCreationDialogStatus,
+} from '@/features/bands/BandCreationDialog';
 import { useLastBandSelection } from '@/features/bands/LastBandSelection';
+import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -53,12 +55,58 @@ export function BandsScreen({
   const { clearLastBand, isHydrated, lastBandId, setLastBand } =
     useLastBandSelection();
   const [search, setSearch] = useState('');
-  const [creationNoticeVisible, setCreationNoticeVisible] = useState(false);
+  const [creationDialogVisible, setCreationDialogVisible] = useState(false);
+  const [creationStatus, setCreationStatus] =
+    useState<BandCreationDialogStatus>('idle');
+  const [creationError, setCreationError] = useState<string | null>(null);
   const normalizedSearch = normalizeForSearch(search);
 
   const openBand = async (bandId: string) => {
     await setLastBand(bandId);
     router.push(getBandSectionHref(bandId, 'shows'));
+  };
+
+  const openCreationDialog = () => {
+    setCreationError(null);
+    setCreationStatus('idle');
+    setCreationDialogVisible(true);
+  };
+
+  const closeCreationDialog = () => {
+    if (creationStatus === 'submitting') {
+      return;
+    }
+
+    setCreationDialogVisible(false);
+    setCreationError(null);
+    setCreationStatus('idle');
+  };
+
+  const handleCreateBand = async ({
+    acceptedTerm,
+    name,
+  }: {
+    readonly acceptedTerm: boolean;
+    readonly name: string;
+  }) => {
+    setCreationError(null);
+    setCreationStatus('submitting');
+
+    try {
+      await createBand({
+        acceptedTerm,
+        name,
+        termVersion: CURRENT_BAND_TERM.version,
+      });
+      setCreationStatus('success');
+    } catch (error) {
+      setCreationStatus('error');
+      setCreationError(
+        error instanceof BandCreationError
+          ? error.message
+          : 'Não foi possível criar a banda agora. Tente novamente.',
+      );
+    }
   };
 
   useEffect(() => {
@@ -101,7 +149,7 @@ export function BandsScreen({
       headerAction={{
         accessibilityLabel: 'Criar banda',
         label: 'Criar banda',
-        onPress: () => setCreationNoticeVisible(true),
+        onPress: openCreationDialog,
       }}
       scrollable={false}
       testID="bands-screen"
@@ -115,14 +163,15 @@ export function BandsScreen({
         <ErrorFeedback onRetry={() => void bandsQuery.refetch()} />
       ) : null}
 
-      <DemoActionNotice
-        message={
-          creationNoticeVisible
-            ? 'A criação da banda e o aceite do termo entram na próxima etapa. Por enquanto, abra um link de convite recebido.'
-            : null
-        }
-        onClose={() => setCreationNoticeVisible(false)}
-      />
+      {creationDialogVisible ? (
+        <BandCreationDialog
+          errorMessage={creationError}
+          onClose={closeCreationDialog}
+          onSubmit={(input) => void handleCreateBand(input)}
+          status={creationStatus}
+          visible
+        />
+      ) : null}
 
       <FlatList
         contentContainerStyle={styles.listContent}
@@ -142,7 +191,7 @@ export function BandsScreen({
               <ListEmptyState
                 actionLabel="Criar banda"
                 message="Crie uma banda ou abra o link de convite que você recebeu."
-                onAction={() => setCreationNoticeVisible(true)}
+                onAction={openCreationDialog}
                 title="Seu palco ainda está vazio"
               />
             )

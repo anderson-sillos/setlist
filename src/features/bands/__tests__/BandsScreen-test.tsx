@@ -1,7 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { createInMemoryRepositories } from '@/data/in-memory';
+import { BandCreationError, createBand } from '@/data/supabase/bandMutations';
 import { BandsScreen } from '@/features/bands/BandsScreen';
+import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import {
   clearLastBandId,
   readLastBandId,
@@ -14,8 +16,21 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
+jest.mock('@/data/supabase/bandMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/bandMutations');
+
+  return {
+    ...actual,
+    createBand: jest.fn(),
+  };
+});
+
+const mockCreateBand = jest.mocked(createBand);
+
 describe('<BandsScreen />', () => {
   beforeEach(async () => {
+    jest.clearAllMocks();
+    mockCreateBand.mockResolvedValue('band-created-remotely');
     await clearLastBandId();
   });
 
@@ -47,12 +62,82 @@ describe('<BandsScreen />', () => {
     ).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Criar banda'));
-    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
+    expect(view.getByTestId('create-band-dialog')).toBeTruthy();
+    expect(view.getByText(CURRENT_BAND_TERM.title)).toBeTruthy();
     expect(
-      view.getByText(/A criação da banda e o aceite do termo/),
+      view.getByLabelText('Confirmar criação da banda').props
+        .accessibilityState,
+    ).toEqual({
+      disabled: true,
+    });
+    await fireEvent.press(
+      view.getByLabelText('Aceitar termo de responsabilidade'),
+    );
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da banda'),
+      '  Banda Nova  ',
+    );
+    await fireEvent.press(view.getByLabelText('Confirmar criação da banda'));
+
+    await waitFor(() => {
+      expect(mockCreateBand).toHaveBeenCalledWith({
+        acceptedTerm: true,
+        name: '  Banda Nova  ',
+        termVersion: CURRENT_BAND_TERM.version,
+      });
+    });
+    expect(await view.findByText('Banda criada')).toBeTruthy();
+  });
+
+  it('bloqueia a criação quando o termo não foi aceito', async () => {
+    const view = await render(
+      <AppProviders>
+        <BandsScreen />
+      </AppProviders>,
+    );
+
+    await view.findByText('Banda Horizonte');
+    await fireEvent.press(view.getByLabelText('Criar banda'));
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da banda'),
+      'Banda sem aceite',
+    );
+    await fireEvent.press(view.getByLabelText('Confirmar criação da banda'));
+
+    expect(mockCreateBand).not.toHaveBeenCalled();
+    expect(view.queryByText('Banda criada')).toBeNull();
+  });
+
+  it('apresenta uma falha retornada pelo servidor e mantém o formulário', async () => {
+    mockCreateBand.mockRejectedValueOnce(
+      new BandCreationError(
+        'request_failed',
+        'Não foi possível criar a banda agora. Tente novamente.',
+      ),
+    );
+    const view = await render(
+      <AppProviders>
+        <BandsScreen />
+      </AppProviders>,
+    );
+
+    await view.findByText('Banda Horizonte');
+    await fireEvent.press(view.getByLabelText('Criar banda'));
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da banda'),
+      'Banda com erro',
+    );
+    await fireEvent.press(
+      view.getByLabelText('Aceitar termo de responsabilidade'),
+    );
+    await fireEvent.press(view.getByLabelText('Confirmar criação da banda'));
+
+    expect(
+      await view.findByText(
+        'Não foi possível criar a banda agora. Tente novamente.',
+      ),
     ).toBeTruthy();
-    await fireEvent.press(view.getByLabelText('Fechar aviso de demonstração'));
-    expect(view.queryByTestId('demo-action-notice')).toBeNull();
+    expect(view.getByTestId('create-band-dialog')).toBeTruthy();
   });
 
   it('busca bandas pelo nome', async () => {
