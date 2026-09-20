@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
@@ -60,6 +61,7 @@ export function BandScreen({
   viewportWidth,
 }: BandSectionScreenProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const bandQuery = useBand(bandId);
   const membersQuery = useBandMembers(bandId);
   const userBandsQuery = useUserBands();
@@ -151,7 +153,13 @@ export function BandScreen({
 
     try {
       await updateBandName({ bandId, name });
-      await Promise.all([bandQuery.refetch(), userBandsQuery.refetch()]);
+      await Promise.all([
+        bandQuery.refetch(),
+        queryClient.invalidateQueries({
+          queryKey: ['bands', 'user'],
+          refetchType: 'all',
+        }),
+      ]);
       setBandAdministrationMode(null);
     } catch (error) {
       setBandAdministrationError(
@@ -170,6 +178,11 @@ export function BandScreen({
 
     try {
       await deleteBand(bandId);
+      queryClient.removeQueries({ queryKey: ['bands', bandId] });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', 'user'],
+        refetchType: 'all',
+      });
       await clearLastBand();
       router.replace('/');
     } catch (error) {
