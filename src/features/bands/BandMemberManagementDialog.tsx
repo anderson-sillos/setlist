@@ -4,10 +4,12 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
-import type { BandMember } from '@/domain';
+import type { BandMember, BandRole } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
-export type BandMemberManagementAction = 'promote' | 'remove';
+export type BandMemberManagementAction =
+  | { readonly type: 'set-role'; readonly role: BandRole }
+  | { readonly type: 'remove' };
 
 interface BandMemberManagementDialogProps {
   readonly errorMessage: string | null;
@@ -36,7 +38,11 @@ export function BandMemberManagementDialog({
   const selectedAction =
     pendingAction?.memberId === member.id ? pendingAction.action : null;
   const isConfirmation = selectedAction !== null;
-  const actionLabel = selectedAction === 'promote' ? 'promoção' : 'remoção';
+  const actionLabel = selectedAction
+    ? selectedAction.type === 'remove'
+      ? 'remoção'
+      : `alteração para ${roleLabels[selectedAction.role]}`
+    : '';
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
@@ -67,9 +73,9 @@ export function BandMemberManagementDialog({
 
           <AppText>
             {isConfirmation
-              ? selectedAction === 'promote'
-                ? `Promover ${member.displayName} para Proprietário? Essa pessoa passará a administrar a banda.`
-                : `Remover ${member.displayName} da banda? Essa pessoa perderá o acesso ao conteúdo.`
+              ? selectedAction?.type === 'remove'
+                ? `Remover ${member.displayName} da banda? Essa pessoa perderá o acesso ao conteúdo.`
+                : `Alterar ${member.displayName} para ${roleLabels[selectedAction.role]}? As permissões de acesso serão atualizadas.`
               : `Escolha uma ação para ${member.displayName}.`}
           </AppText>
 
@@ -90,7 +96,7 @@ export function BandMemberManagementDialog({
               <AppButton
                 accessibilityLabel={`Confirmar ${actionLabel} de ${member.displayName}`}
                 disabled={isSubmitting}
-                icon={selectedAction === 'promote' ? 'check' : 'close'}
+                icon={selectedAction?.type === 'remove' ? 'close' : 'check'}
                 label={isSubmitting ? 'Salvando…' : 'Confirmar'}
                 onPress={() => {
                   if (selectedAction) {
@@ -101,23 +107,30 @@ export function BandMemberManagementDialog({
             </View>
           ) : (
             <View style={styles.actionList}>
-              {member.role !== 'owner' ? (
+              {roleActions[member.role].map(({ label, role, verb }) => (
                 <AppButton
-                  accessibilityLabel={`Promover ${member.displayName} a proprietário`}
+                  accessibilityLabel={`${verb} ${member.displayName} para ${roleLabels[role].toLocaleLowerCase('pt-BR')}`}
                   icon="check"
-                  label="Promover a Proprietário"
+                  key={role}
+                  label={label}
                   onPress={() =>
-                    setPendingAction({ action: 'promote', memberId: member.id })
+                    setPendingAction({
+                      action: { role, type: 'set-role' },
+                      memberId: member.id,
+                    })
                   }
                   variant="secondary"
                 />
-              ) : null}
+              ))}
               <AppButton
                 accessibilityLabel={`Remover ${member.displayName}`}
                 icon="close"
                 label="Remover integrante"
                 onPress={() =>
-                  setPendingAction({ action: 'remove', memberId: member.id })
+                  setPendingAction({
+                    action: { type: 'remove' },
+                    memberId: member.id,
+                  })
                 }
                 variant="secondary"
               />
@@ -128,6 +141,30 @@ export function BandMemberManagementDialog({
     </Modal>
   );
 }
+
+const roleLabels: Record<BandRole, string> = {
+  editor: 'Editor',
+  member: 'Integrante',
+  owner: 'Proprietário',
+};
+
+const roleActions: Record<
+  BandRole,
+  readonly { label: string; role: BandRole; verb: string }[]
+> = {
+  editor: [
+    { label: 'Promover a Proprietário', role: 'owner', verb: 'Promover' },
+    { label: 'Rebaixar para Integrante', role: 'member', verb: 'Rebaixar' },
+  ],
+  member: [
+    { label: 'Promover a Editor', role: 'editor', verb: 'Promover' },
+    { label: 'Promover a Proprietário', role: 'owner', verb: 'Promover' },
+  ],
+  owner: [
+    { label: 'Rebaixar para Editor', role: 'editor', verb: 'Rebaixar' },
+    { label: 'Rebaixar para Integrante', role: 'member', verb: 'Rebaixar' },
+  ],
+};
 
 const styles = StyleSheet.create({
   actionList: {

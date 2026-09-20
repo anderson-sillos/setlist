@@ -305,11 +305,11 @@ export function BandScreen({
     setMemberManagementSubmitting(true);
 
     try {
-      if (action === 'promote') {
+      if (action.type === 'set-role') {
         await updateBandMemberRole({
           bandId,
           memberId: managedMember.id,
-          role: 'owner',
+          role: action.role,
         });
       } else {
         await removeBandMember({

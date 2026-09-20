@@ -10,6 +10,7 @@ import {
   createInvitation,
   listInvitations,
 } from '@/data/supabase/invitationMutations';
+import { updateBandMemberRole } from '@/data/supabase/bandMemberMutations';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
 import { AppProviders } from '@/providers/AppProviders';
@@ -41,10 +42,20 @@ jest.mock('@/data/supabase/invitationMutations', () => {
   };
 });
 
+jest.mock('@/data/supabase/bandMemberMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/bandMemberMutations');
+
+  return {
+    ...actual,
+    updateBandMemberRole: jest.fn(),
+  };
+});
+
 const mockDeleteBand = jest.mocked(deleteBand);
 const mockUpdateBandName = jest.mocked(updateBandName);
 const mockCreateInvitation = jest.mocked(createInvitation);
 const mockListInvitations = jest.mocked(listInvitations);
+const mockUpdateBandMemberRole = jest.mocked(updateBandMemberRole);
 
 function createMutableBandRepositories() {
   const owner: BandMember = {
@@ -54,6 +65,14 @@ function createMutableBandRepositories() {
     joinedAt: '2026-09-01T12:00:00.000Z',
     role: 'owner',
     userId: 'user-real',
+  };
+  const member: BandMember = {
+    bandId: 'band-real',
+    displayName: 'Membro Real',
+    id: 'membership-member',
+    joinedAt: '2026-09-02T12:00:00.000Z',
+    role: 'member',
+    userId: 'user-member',
   };
   let band: Band | null = {
     createdAt: '2026-09-01T12:00:00.000Z',
@@ -66,7 +85,7 @@ function createMutableBandRepositories() {
     bands: {
       findById: async () => band,
       listForUser: async () => (band ? [{ band, membership: owner }] : []),
-      listMembers: async () => (band ? [owner] : []),
+      listMembers: async () => (band ? [owner, member] : []),
     },
     shows: {
       findById: async () => null,
@@ -95,6 +114,7 @@ describe('<BandScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockListInvitations.mockResolvedValue([]);
+    mockUpdateBandMemberRole.mockResolvedValue(undefined);
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
@@ -198,6 +218,34 @@ describe('<BandScreen />', () => {
         label: 'Baixista',
       });
       expect(view.getByText('https://example.com/invite/token-1')).toBeTruthy();
+    });
+  });
+
+  it('permite promover um integrante para Editor', async () => {
+    const state = createMutableBandRepositories();
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(
+      await view.findByLabelText('Administrar Membro Real'),
+    );
+    await fireEvent.press(
+      view.getByLabelText('Promover Membro Real para editor'),
+    );
+    await fireEvent.press(
+      view.getByLabelText('Confirmar alteração para Editor de Membro Real'),
+    );
+
+    await waitFor(() => {
+      expect(mockUpdateBandMemberRole).toHaveBeenCalledWith({
+        bandId: 'band-real',
+        memberId: 'membership-member',
+        role: 'editor',
+      });
     });
   });
 

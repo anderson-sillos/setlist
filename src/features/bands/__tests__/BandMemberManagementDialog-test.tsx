@@ -12,33 +12,65 @@ const editor = {
 };
 
 describe('<BandMemberManagementDialog />', () => {
-  it('exige confirmação para promover e remover um integrante', async () => {
+  it('oferece promoção para Editor e exige confirmação', async () => {
     const onConfirm = jest.fn();
     const view = await render(
       <BandMemberManagementDialog
         errorMessage={null}
         isSubmitting={false}
-        member={editor}
+        member={{ ...editor, role: 'member' }}
         onClose={jest.fn()}
         onConfirm={onConfirm}
       />,
     );
 
     await fireEvent.press(
-      view.getByLabelText('Promover Bruno Lima a proprietário'),
+      view.getByLabelText('Promover Bruno Lima para editor'),
     );
     expect(
       view.getByText(
-        'Promover Bruno Lima para Proprietário? Essa pessoa passará a administrar a banda.',
+        'Alterar Bruno Lima para Editor? As permissões de acesso serão atualizadas.',
       ),
     ).toBeTruthy();
     await fireEvent.press(
-      view.getByLabelText('Confirmar promoção de Bruno Lima'),
+      view.getByLabelText('Confirmar alteração para Editor de Bruno Lima'),
     );
-    expect(onConfirm).toHaveBeenCalledWith('promote');
+    expect(onConfirm).toHaveBeenCalledWith({
+      role: 'editor',
+      type: 'set-role',
+    });
   });
 
-  it('não oferece promoção para quem já é proprietário', async () => {
+  it('oferece rebaixamento de proprietário quando outro proprietário permanece', async () => {
+    const onConfirm = jest.fn();
+    const view = await render(
+      <BandMemberManagementDialog
+        errorMessage={null}
+        isSubmitting={false}
+        member={{ ...editor, role: 'owner' }}
+        onClose={jest.fn()}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    await fireEvent.press(
+      view.getByLabelText('Rebaixar Bruno Lima para editor'),
+    );
+    expect(
+      view.getByText(
+        'Alterar Bruno Lima para Editor? As permissões de acesso serão atualizadas.',
+      ),
+    ).toBeTruthy();
+    await fireEvent.press(
+      view.getByLabelText('Confirmar alteração para Editor de Bruno Lima'),
+    );
+    expect(onConfirm).toHaveBeenCalledWith({
+      role: 'editor',
+      type: 'set-role',
+    });
+  });
+
+  it('oferece as transições disponíveis para um proprietário', async () => {
     const view = await render(
       <BandMemberManagementDialog
         errorMessage={null}
@@ -49,9 +81,10 @@ describe('<BandMemberManagementDialog />', () => {
       />,
     );
 
+    expect(view.getByLabelText('Rebaixar Bruno Lima para editor')).toBeTruthy();
     expect(
-      view.queryByLabelText('Promover Bruno Lima a proprietário'),
-    ).toBeNull();
+      view.getByLabelText('Rebaixar Bruno Lima para integrante'),
+    ).toBeTruthy();
     expect(view.getByLabelText('Remover Bruno Lima')).toBeTruthy();
   });
 
@@ -81,6 +114,6 @@ describe('<BandMemberManagementDialog />', () => {
     await fireEvent.press(
       view.getByLabelText('Confirmar remoção de Bruno Lima'),
     );
-    expect(onConfirm).toHaveBeenCalledWith('remove');
+    expect(onConfirm).toHaveBeenCalledWith({ type: 'remove' });
   });
 });

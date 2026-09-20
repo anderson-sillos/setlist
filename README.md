@@ -696,7 +696,11 @@ Para validar a administração de uma banda real, entre como Owner e abra a tela
 **Banda**. O botão `...` no cabeçalho abre diretamente a edição do nome; nessa
 janela também está a ação de exclusão, que exige digitar o nome completo e só é
 concluída quando o Owner é o único integrante. O botão **Convidar** fica acima
-da lista de membros. Ações equivalentes não aparecem para Editor ou Member.
+da lista de membros. O menu de cada integrante permite promover Member para
+Editor ou Proprietário, promover Editor para Proprietário e rebaixar Owner ou
+Editor. O backend impede que a banda fique sem nenhum Proprietário; portanto,
+o último Owner só pode ser rebaixado depois que outro integrante for promovido.
+Ações equivalentes não aparecem para Editor ou Member.
 Nas bandas marcadas como `Demonstração`, o app exibe apenas um aviso e preserva
 os dados de exemplo.
 
