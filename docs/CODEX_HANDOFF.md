@@ -310,6 +310,17 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      Universal Links continuará separada, dependendo dos arquivos de associação e
      dos certificados dos builds nativos.
 
+101. A fundação dos links HTTPS foi antecipada. `app.config.ts` declara o App Link
+     Android para `/invite/*` com `autoVerify` e o entitlement
+     `applinks:setlistbr.app.br` para iOS. O workflow passou a executar
+     `scripts/prepare-link-associations.mjs`, que gera `assetlinks.json` e
+     `apple-app-site-association` somente quando as variáveis públicas
+     `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` e `SETLIST_IOS_TEAM_ID` estiverem
+     configuradas. Nenhuma impressão ou Team ID foi inventado no repositório; sem
+     essas variáveis a publicação web continua válida, mas os links permanecem no
+     navegador. A tarefa 11.5 segue pendente até o DNS/HTTPS, os certificados reais,
+     um novo build nativo e a validação em Android e iOS.
+
 ## Próxima ação recomendada
 
 Validar manualmente a tarefa 5.8 na PR #14: excluir uma conta Member e confirmar

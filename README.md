@@ -827,6 +827,45 @@ Depois da propagação, ative **Enforce HTTPS**. A emissão do certificado é fe
 automaticamente pelo GitHub Pages. Não é necessário criar um arquivo `CNAME` no
 repositório porque a publicação usa GitHub Actions.
 
+#### 9.1 Preparar App Links e Universal Links
+
+O `app.config.ts` já declara o Android App Link para
+`https://setlistbr.app.br/invite/<token>` com `autoVerify` e o entitlement iOS
+`applinks:setlistbr.app.br`. A associação só será efetiva depois de um novo build
+nativo e da publicação dos arquivos em `/.well-known` no domínio com HTTPS válido.
+
+O workflow gera esses arquivos durante a exportação quando as seguintes
+**Variables** públicas forem cadastradas em _Settings → Secrets and variables →
+Actions_:
+
+| Variable                                   | Conteúdo                                                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` | Uma ou mais impressões SHA-256 da assinatura Android, separadas por vírgula; inclua as assinaturas dos perfis que serão distribuídos. |
+| `SETLIST_IOS_TEAM_ID`                      | Team ID alfanumérico da conta Apple Developer que assina o bundle `com.andersonsillos.setlist`.                                       |
+
+O script `scripts/prepare-link-associations.mjs` publica então:
+
+- `https://setlistbr.app.br/.well-known/assetlinks.json`, com o pacote Android e
+  as impressões informadas;
+- `https://setlistbr.app.br/.well-known/apple-app-site-association`, limitado às
+  rotas `/invite/*`.
+
+As impressões de assinatura e o Team ID não são chaves de acesso, mas devem ser
+conferidos com os certificados reais do EAS/Play Console e da Apple Developer.
+Sem essas variáveis o workflow mantém a publicação web funcionando e emite um
+aviso, mas os links continuam abrindo no navegador. Depois de configurar as
+variáveis e o DNS, publique novamente, gere um novo build nativo e valide:
+
+```bash
+adb shell pm verify-app-links --re-verify com.andersonsillos.setlist
+adb shell am start -a android.intent.action.VIEW \
+  -d "https://setlistbr.app.br/invite/<token>"
+```
+
+No iOS, instale o novo build e abra um convite HTTPS fora do navegador. A Apple
+mantém a associação em cache; alterações no arquivo podem levar algum tempo para
+serem consultadas pelos dispositivos.
+
 Para que o login funcione nessa versão hospedada, o repositório precisa ter as
 seguintes **Variables** públicas em _Settings → Secrets and variables → Actions_:
 `EXPO_PUBLIC_APP_ENV`, `EXPO_PUBLIC_SUPABASE_URL`,

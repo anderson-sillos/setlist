@@ -43,6 +43,12 @@ jobs:
           test -n "$EXPO_PUBLIC_SUPABASE_URL" || (echo "EXPO_PUBLIC_SUPABASE_URL não configurada nas variáveis do repositório" && exit 1)
           test -n "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" || (echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY não configurada nas variáveis do repositório" && exit 1)
 
+      - name: Preparar associações de links nativos
+        env:
+          SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS: ${{ vars.SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS }}
+          SETLIST_IOS_TEAM_ID: ${{ vars.SETLIST_IOS_TEAM_ID }}
+        run: npm run links:prepare
+
       - name: Exportar aplicação web
         env:
           EXPO_PUBLIC_APP_ENV: ${{ vars.EXPO_PUBLIC_APP_ENV || 'development' }}
