@@ -106,6 +106,10 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 ### Autenticação, papéis e convites
 
+- O domínio web canônico do produto será `https://setlistbr.app.br/`. A aplicação
+  será exportada na raiz desse domínio; a apresentação ficará em
+  `/docs/apresentacao.html`. A prévia do GitHub Pages permanecerá como fallback
+  durante a transição DNS.
 - O login será exclusivamente social, com Google e Apple. A web continuará usando OAuth com PKCE e navegador; no Android, o Google poderá usar a integração nativa quando o aplicativo estiver em um development build ou build distribuído com o módulo nativo configurado. Expo Go, web, aparelhos sem Google Play Services e builds sem a configuração nativa usarão automaticamente o OAuth pelo navegador como fallback. O cancelamento explícito do diálogo nativo não iniciará outro fluxo sem nova ação da pessoa.
 - O fluxo nativo entregará um ID Token ao Supabase por `signInWithIdToken`; ele não alterará a chave UUID da conta nem criará um mecanismo separado de sessão. A mesma rotina de autenticação preservará o contexto de convite nos dois caminhos.
 - O SecureStore guardará somente os dados necessários para persistir a sessão nos aplicativos móveis. Na web, a sessão usará o adaptador de armazenamento do navegador.

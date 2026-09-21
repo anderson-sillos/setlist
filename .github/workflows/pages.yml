@@ -49,16 +49,17 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
-          EXPO_WEB_BASE_URL: /setlist/app
-        run: npm run export:web -- --output-dir dist/app
+          EXPO_PUBLIC_WEB_BASE_URL: https://setlistbr.app.br
+          EXPO_WEB_BASE_URL: .
+        run: npm run export:web -- --output-dir dist
 
       - name: Incluir apresentação e fallback de rotas
         run: |
           mkdir -p pages-site/app pages-site/docs
-          cp -R dist/app/. pages-site/app/
-          cp index.html pages-site/index.html
+          cp -R dist/. pages-site/
+          cp -R dist/. pages-site/app/
           cp docs/apresentacao.html pages-site/docs/apresentacao.html
-          cp pages-site/app/index.html pages-site/404.html
+          cp pages-site/index.html pages-site/404.html
           touch pages-site/.nojekyll
 
       - name: Configurar GitHub Pages

@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a implementação da tarefa 5.1 segue em andamento por causa do iOS nativo adiado; o login foi validado manualmente na web, no Expo Go Android e no development build Android com Google nativo. As tarefas 5.2, 5.3, 5.4, 5.5, 5.6 e 5.7 foram implementadas e validadas manualmente; a 5.8 foi implementada e aguarda validação manual. A 5.3 foi validada incluindo restauração da sessão, seleção persistida da última banda autorizada e o fluxo sem banda. A criação de banda agora exige aceite explícito e grava o usuário, Owner, versão do termo e horário do servidor pela RPC transacional do Supabase; as migrações foram publicadas nos projetos hospedados de desenvolvimento e produção. A consulta de bandas autenticadas usa o repositório remoto, a lista é atualizada após uma nova criação, edição ou exclusão e as bandas demonstrativas permanecem temporariamente disponíveis com identificação visual. A área Banda agrupa integrantes por papel, identifica a própria pessoa e oferece promoção, rebaixamento, remoção, saída voluntária, edição do nome e exclusão reforçada da banda somente para Owners; o botão `...` abre diretamente a edição, enquanto `Convidar` fica junto da lista de membros. A migração de identidade preenche perfis existentes e sincroniza nome/e-mail do provedor para evitar o rótulo `Usuário removido`. As mutações reais passam pelo Supabase e continuam protegidas pelo RLS e pelo bloqueio do último Owner. Repertório, shows e demais áreas seguem demonstrativos até suas tarefas de leitura remota. A validação manual da tarefa 5.8 é o próximo passo; depois seguirá a tarefa 5.9.
+- Estado atual: a implementação da tarefa 5.1 segue em andamento por causa do iOS nativo adiado; o login foi validado manualmente na web, no Expo Go Android e no development build Android com Google nativo. As tarefas 5.2, 5.3, 5.4, 5.5, 5.6 e 5.7 foram implementadas e validadas manualmente; a 5.8 foi implementada e aguarda validação manual. A 5.3 foi validada incluindo restauração da sessão, seleção persistida da última banda autorizada e o fluxo sem banda. A criação de banda agora exige aceite explícito e grava o usuário, Owner, versão do termo e horário do servidor pela RPC transacional do Supabase; as migrações foram publicadas nos projetos hospedados de desenvolvimento e produção. A consulta de bandas autenticadas usa o repositório remoto, a lista é atualizada após uma nova criação, edição ou exclusão e as bandas demonstrativas permanecem temporariamente disponíveis com identificação visual. A área Banda agrupa integrantes por papel, identifica a própria pessoa e oferece promoção, rebaixamento, remoção, saída voluntária, edição do nome e exclusão reforçada da banda somente para Owners; o botão `...` abre diretamente a edição, enquanto `Convidar` fica junto da lista de membros. A migração de identidade preenche perfis existentes e sincroniza nome/e-mail do provedor para evitar o rótulo `Usuário removido`. As mutações reais passam pelo Supabase e continuam protegidas pelo RLS e pelo bloqueio do último Owner. Repertório, shows e demais áreas seguem demonstrativos até suas tarefas de leitura remota. O domínio canônico definido para a publicação web é `https://setlistbr.app.br/`; o Registro.br ainda está concluindo a transição DNS. A validação manual da tarefa 5.8 é o próximo passo; depois seguirá a tarefa 5.9.
 
 ## Fontes de verdade
 
@@ -296,6 +296,19 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #11: validação antecipada dos riscos técnicos do player YouTube, cronômetro em tempo real e rotas de convite/OAuth; grupo 3 concluído e integrado à `main`.
 - PR #12: fundação do Supabase, autenticação, persistência de sessão e ajustes de ambiente; grupo 4 integrado à `main`.
 - PR #13: implementação de `Minhas bandas`, persistência da última banda e criação de banda com aceite do termo; integrada à `main` após aprovação.
+
+100. O domínio canônico da aplicação foi definido como `https://setlistbr.app.br/`.
+     O workflow do GitHub Pages foi ajustado para exportar a aplicação na raiz do
+     artefato, manter a apresentação em `/docs/apresentacao.html`, preservar uma
+     cópia temporária em `/setlist/app/` e injetar
+     `EXPO_PUBLIC_WEB_BASE_URL=https://setlistbr.app.br`. A publicação ficará
+     disponível assim que o DNS do Registro.br concluir a transição. O endereço antigo
+     do GitHub Pages permanece documentado como fallback temporário. Redirect URLs do
+     Supabase passam a documentar `https://setlistbr.app.br/auth/callback**`; a
+     inclusão efetiva nos ambientes hospedados deve ser conferida antes do primeiro
+     login no domínio. A configuração de App Links e Universal Links continuará
+     separada, dependendo dos arquivos de associação e dos certificados dos builds
+     nativos.
 
 ## Próxima ação recomendada
 

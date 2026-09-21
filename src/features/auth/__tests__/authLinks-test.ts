@@ -107,6 +107,62 @@ describe('rotas de convite e OAuth', () => {
     }
   });
 
+  it('mantém o callback na raiz de um domínio personalizado', () => {
+    const originalPlatform = Platform.OS;
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalDocument = (globalThis as { document?: unknown }).document;
+
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'web',
+    });
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        location: {
+          origin: 'https://setlistbr.app.br',
+        },
+      },
+    });
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: {
+        querySelector: () => ({
+          getAttribute: () => '/_expo/static/js/web/entry.js',
+        }),
+      },
+    });
+
+    try {
+      expect(getRuntimeUrl('/auth/callback')).toBe(
+        'https://setlistbr.app.br/auth/callback',
+      );
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+
+      if (originalWindow === undefined) {
+        delete (globalThis as { window?: unknown }).window;
+      } else {
+        Object.defineProperty(globalThis, 'window', {
+          configurable: true,
+          value: originalWindow,
+        });
+      }
+
+      if (originalDocument === undefined) {
+        delete (globalThis as { document?: unknown }).document;
+      } else {
+        Object.defineProperty(globalThis, 'document', {
+          configurable: true,
+          value: originalDocument,
+        });
+      }
+    }
+  });
+
   it('ignora uma origem HTTP exposta pelo runtime nativo', () => {
     const originalPlatform = Platform.OS;
     const originalWindow = (globalThis as { window?: unknown }).window;

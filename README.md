@@ -6,7 +6,7 @@
 
 O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
-[Abrir prévia do aplicativo](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Mapa das telas](docs/ARQUITETURA_DE_TELAS.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
+[Abrir aplicação (domínio em configuração)](https://setlistbr.app.br/) · [Prévia temporária](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://setlistbr.app.br/docs/apresentacao.html) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Mapa das telas](docs/ARQUITETURA_DE_TELAS.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
 
 ## Status do projeto
 
@@ -217,6 +217,12 @@ No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar 
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web opcional para Google nativo no Android |
 | `EXPO_PUBLIC_WEB_BASE_URL`             | URL HTTPS pública usada nos links de convite               |
 
+Enquanto `setlistbr.app.br` aguarda a publicação DNS, mantenha no `.env.local`
+o endereço temporário `https://anderson-sillos.github.io/setlist/app`. Depois
+que o domínio canônico estiver acessível, substitua-o por
+`https://setlistbr.app.br`. A variável `EXPO_WEB_BASE_URL` é exclusiva do
+workflow de exportação web e não deve ser adicionada ao `.env.local`.
+
 Use dois projetos Supabase hospedados distintos: um para desenvolvimento e outro para produção. Copie de cada painel a **Project URL** e a **Publishable key** para o arquivo do mesmo ambiente. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
 
 Para conferir a conexão com o projeto selecionado, execute:
@@ -253,7 +259,8 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    adicione os retornos permitidos usados no desenvolvimento:
    `http://localhost:8081/auth/callback**`,
    `https://*.exp.direct/auth/callback**`,
-   `https://anderson-sillos.github.io/setlist/app/auth/callback**` e
+   `https://anderson-sillos.github.io/setlist/app/auth/callback**`,
+   `https://setlistbr.app.br/auth/callback**` e
    `setlist://auth/callback**`.
    Para validar pelo Expo Go usando túnel, adicione também
    `exp://**/--/auth/callback**`; esses padrões cobrem os endereços temporários
@@ -261,9 +268,11 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    pelo PKCE. Neste projeto, o `Site URL` fica como
    `setlist://auth/callback`, servindo como fallback nativo; os destinos web
    precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
-   A prévia hospedada no GitHub Pages já usa o retorno HTTPS acima; o endereço
-   HTTPS definitivo do aplicativo será revisado na tarefa 11.5. No projeto de
-   desenvolvimento, essa lista já foi aplicada pela Supabase CLI.
+   A prévia hospedada no GitHub Pages usa temporariamente o retorno HTTPS antigo;
+   o endereço canônico do aplicativo será `https://setlistbr.app.br/auth/callback`.
+   A lista anterior já foi aplicada no projeto de desenvolvimento pela Supabase
+   CLI; inclua também o domínio canônico nos ambientes de desenvolvimento e
+   produção antes de publicar o primeiro login por essa URL.
    Antes de repetir a operação em outro ambiente, execute `supabase config diff`
    e revise o resultado; o `supabase/config.toml` versionado contém valores para
    desenvolvimento local e não deve ser enviado diretamente sem essa revisão.
@@ -386,8 +395,8 @@ enquanto o Supabase armazena apenas o hash SHA-256.
 
 Para que o link compartilhado seja HTTPS em um development build ou no Expo Go,
 preencha `EXPO_PUBLIC_WEB_BASE_URL` com a origem pública da versão web do mesmo
-ambiente (por exemplo, `https://anderson-sillos.github.io/setlist/app`). Na web
-em execução local, a origem atual é usada automaticamente. Depois de publicar a
+ambiente. No ambiente canônico, use `https://setlistbr.app.br`; na web em
+execução local, a origem atual é usada automaticamente. Depois de publicar a
 migração, valide estes fluxos:
 
 1. Crie dois convites com rótulos diferentes e confirme que ambos aparecem na
@@ -741,9 +750,10 @@ pendência futura desta etapa:
 Ao executar com `npx expo start --go --tunnel --clear`, o app monta
 automaticamente um retorno `exp://.../--/auth/callback` no Expo Go e a versão
 web usa a origem HTTPS `https://*.exp.direct/auth/callback`; a prévia publicada
-no GitHub Pages usa `https://anderson-sillos.github.io/setlist/app/auth/callback`.
-Se esses padrões não estiverem na lista de Redirect URLs do Supabase, o
-provedor pode ignorar o `redirectTo` e voltar para o `Site URL`
+no GitHub Pages usa temporariamente `https://anderson-sillos.github.io/setlist/app/auth/callback`,
+enquanto o domínio canônico usará `https://setlistbr.app.br/auth/callback`.
+Se esses padrões não estiverem na lista de Redirect URLs do Supabase, o provedor
+pode ignorar o `redirectTo` e voltar para o `Site URL`
 (`setlist://auth/callback`), deixando o login web sem um destino navegável. Em
 um development build ou build interno, o retorno é `setlist://auth/callback` e
 deve ser mantido na mesma lista.
@@ -795,7 +805,26 @@ ser removidos depois da revisão. Reinicie o Metro com `--clear` após alterar o
 
 ### 9. Publicar a prévia e gerar builds internos
 
-A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.
+A aplicação web será publicada na raiz do domínio canônico
+[setlistbr.app.br](https://setlistbr.app.br/) assim que a transição DNS terminar.
+Enquanto isso, a [prévia temporária](https://anderson-sillos.github.io/setlist/app/)
+continua disponível para validação. O workflow [Publicar GitHub Pages](.github/workflows/pages.yml)
+exporta a aplicação para a raiz do artefato, publica a apresentação em
+`/docs/apresentacao.html` e envia ambos após cada envio para `main`.
+`EXPO_WEB_BASE_URL=.` é usado somente durante essa exportação para configurar um
+base path relativo, permitindo que a mesma prévia continue acessível em
+`/setlist/app/` durante a transição; não precisa ser criado no ambiente local.
+O workflow também injeta
+`EXPO_PUBLIC_WEB_BASE_URL=https://setlistbr.app.br` para gerar links públicos do
+ambiente canônico.
+
+Para conectar o domínio personalizado ao GitHub Pages, cadastre
+`setlistbr.app.br` em **Settings → Pages → Custom domain** e configure no
+Registro.br os quatro registros `A` recomendados pelo GitHub. Opcionalmente,
+aponte `www.setlistbr.app.br` por `CNAME` para `anderson-sillos.github.io`.
+Depois da propagação, ative **Enforce HTTPS**. A emissão do certificado é feita
+automaticamente pelo GitHub Pages. Não é necessário criar um arquivo `CNAME` no
+repositório porque a publicação usa GitHub Actions.
 
 Para que o login funcione nessa versão hospedada, o repositório precisa ter as
 seguintes **Variables** públicas em _Settings → Secrets and variables → Actions_:
@@ -1056,4 +1085,4 @@ openspec status --change definir-mvp-setlist
 
 ## Apresentação
 
-A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://anderson-sillos.github.io/setlist/). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html) e possui layout responsivo para navegadores de computadores, Android, iPhone e iPad. Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.
+A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://setlistbr.app.br/docs/apresentacao.html) quando o domínio estiver liberado. Durante a transição DNS, use a [prévia temporária](https://anderson-sillos.github.io/setlist/docs/apresentacao.html). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html) e possui layout responsivo para navegadores de computadores, Android, iPhone e iPad. Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.
