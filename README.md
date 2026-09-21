@@ -270,9 +270,10 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
    A prévia hospedada no GitHub Pages usa temporariamente o retorno HTTPS antigo;
    o endereço canônico do aplicativo será `https://setlistbr.app.br/auth/callback`.
-   A lista anterior já foi aplicada no projeto de desenvolvimento pela Supabase
-   CLI; inclua também o domínio canônico nos ambientes de desenvolvimento e
-   produção antes de publicar o primeiro login por essa URL.
+   A lista foi sincronizada pela Supabase CLI nos projetos hospedados de
+   desenvolvimento e produção, preservando os destinos já existentes. Antes do
+   primeiro login pelo domínio, confirme apenas a propagação do DNS e do
+   certificado HTTPS.
    Antes de repetir a operação em outro ambiente, execute `supabase config diff`
    e revise o resultado; o `supabase/config.toml` versionado contém valores para
    desenvolvimento local e não deve ser enviado diretamente sem essa revisão.

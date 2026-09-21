@@ -303,12 +303,12 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      cópia temporária em `/setlist/app/` e injetar
      `EXPO_PUBLIC_WEB_BASE_URL=https://setlistbr.app.br`. A publicação ficará
      disponível assim que o DNS do Registro.br concluir a transição. O endereço antigo
-     do GitHub Pages permanece documentado como fallback temporário. Redirect URLs do
-     Supabase passam a documentar `https://setlistbr.app.br/auth/callback**`; a
-     inclusão efetiva nos ambientes hospedados deve ser conferida antes do primeiro
-     login no domínio. A configuração de App Links e Universal Links continuará
-     separada, dependendo dos arquivos de associação e dos certificados dos builds
-     nativos.
+     do GitHub Pages permanece documentado como fallback temporário. O Redirect URL
+     `https://setlistbr.app.br/auth/callback**` foi adicionado aos projetos Supabase
+     hospedados de desenvolvimento e produção pela CLI, sem remover os destinos já
+     existentes; o `Site URL` não foi alterado. A configuração de App Links e
+     Universal Links continuará separada, dependendo dos arquivos de associação e
+     dos certificados dos builds nativos.
 
 ## Próxima ação recomendada
 
