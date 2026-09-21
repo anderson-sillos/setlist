@@ -64,6 +64,11 @@ jobs:
           mkdir -p pages-site/app pages-site/docs
           cp -R dist/. pages-site/
           cp -R dist/. pages-site/app/
+          if [ -d public/.well-known ]; then
+            mkdir -p pages-site/.well-known pages-site/app/.well-known
+            cp -R public/.well-known/. pages-site/.well-known/
+            cp -R public/.well-known/. pages-site/app/.well-known/
+          fi
           cp docs/apresentacao.html pages-site/docs/apresentacao.html
           cp pages-site/index.html pages-site/404.html
           touch pages-site/.nojekyll
