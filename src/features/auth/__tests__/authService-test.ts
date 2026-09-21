@@ -5,6 +5,7 @@ import {
   completeOAuthCallback,
   refreshAuthSession,
   signOut,
+  signOutLocally,
   signInWithSocialProvider,
   subscribeToAuthState,
 } from '@/features/auth/authService';
@@ -200,6 +201,25 @@ describe('serviço de autenticação social', () => {
     });
 
     await expect(signOut()).rejects.toMatchObject({
+      code: 'sign_out_failed',
+    });
+  });
+
+  it('limpa somente a sessão local após excluir a conta', async () => {
+    const { auth } = createAuthMock();
+    auth.signOut.mockResolvedValue({ error: null });
+
+    await expect(signOutLocally()).resolves.toBeUndefined();
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
+  });
+
+  it('informa falha ao limpar a sessão local', async () => {
+    const { auth } = createAuthMock();
+    auth.signOut.mockResolvedValue({
+      error: { message: 'local cleanup unavailable' },
+    });
+
+    await expect(signOutLocally()).rejects.toMatchObject({
       code: 'sign_out_failed',
     });
   });

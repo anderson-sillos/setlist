@@ -21,6 +21,7 @@ import {
   Play,
   Plus,
   Search,
+  UserRound,
   Users,
   X,
   type LucideIcon,
@@ -30,6 +31,7 @@ import { colors } from '@/theme/tokens';
 
 const iconComponents = {
   add: Plus,
+  account: UserRound,
   back: ChevronLeft,
   band: Users,
   bands: LayoutGrid,

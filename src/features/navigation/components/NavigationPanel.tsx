@@ -68,6 +68,34 @@ function DisabledGeneralItem({ label }: { readonly label: string }) {
   );
 }
 
+function GeneralNavigationLink({
+  href,
+  icon,
+  label,
+  onNavigate,
+}: {
+  readonly href: Href;
+  readonly icon: AppIconName;
+  readonly label: string;
+  readonly onNavigate?: () => void;
+}) {
+  return (
+    <Link href={href} replace asChild>
+      <Pressable
+        accessibilityLabel={label}
+        accessibilityRole="link"
+        onPress={onNavigate}
+        style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
+      >
+        <View style={styles.sectionContent}>
+          <AppIcon color={colors.surface} name={icon} size={20} />
+          <AppText tone="inverse">{label}</AppText>
+        </View>
+      </Pressable>
+    </Link>
+  );
+}
+
 function GeneralNavigationAction({
   icon,
   label,
@@ -187,7 +215,12 @@ export function NavigationPanel({
           label="Player YouTube (protótipo)"
           onNavigate={onNavigate}
         />
-        <DisabledGeneralItem label="Perfil e conta" />
+        <GeneralNavigationLink
+          href="/account"
+          icon="account"
+          label="Perfil e conta"
+          onNavigate={onNavigate}
+        />
         <DisabledGeneralItem label="Termos e privacidade" />
         <DisabledGeneralItem label="Sobre o Setlist" />
       </View>

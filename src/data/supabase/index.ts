@@ -3,6 +3,10 @@ export {
   getSupabaseClient,
 } from '@/data/supabase/client';
 export {
+  AccountDeletionError,
+  deleteAccount,
+} from '@/data/supabase/accountMutations';
+export {
   BandMemberMutationError,
   leaveBand,
   removeBandMember,
@@ -31,6 +35,7 @@ export type {
   BandCreationErrorCode,
   CreateBandInput,
 } from '@/data/supabase/bandMutations';
+export type { AccountDeletionErrorCode } from '@/data/supabase/accountMutations';
 export type {
   BandMemberMutationErrorCode,
   LeaveBandInput,

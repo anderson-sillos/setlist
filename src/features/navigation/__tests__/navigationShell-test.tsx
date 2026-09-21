@@ -140,6 +140,7 @@ describe('shell de navegação', () => {
     expect(myBandsLink.props.accessibilityRole).toBe('tab');
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(youtubePrototypeLink.props.accessibilityRole).toBe('tab');
+    expect(view.getByLabelText('Perfil e conta')).toBeTruthy();
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
     expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();
     expect(view.queryByRole('tab', { name: 'Ir para Entrar' })).toBeNull();

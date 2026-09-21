@@ -706,6 +706,15 @@ Ações equivalentes não aparecem para Editor ou Member.
 Nas bandas marcadas como `Demonstração`, o app exibe apenas um aviso e preserva
 os dados de exemplo.
 
+Para validar a exclusão de conta, abra **Menu geral → Perfil e conta**. A ação
+exige digitar `EXCLUIR` e remove o perfil, a sessão e a última banda selecionada
+do aparelho. O conteúdo das bandas continua disponível para os demais
+integrantes. Se a conta for o último Proprietário de uma banda com outros
+integrantes, promova outra pessoa antes de tentar novamente; se for o único
+integrante de uma banda, exclua a banda pela edição dela antes de excluir a
+conta. A exclusão da banda exige digitar exatamente o nome completo e só é
+permitida ao único Proprietário integrante.
+
 Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
