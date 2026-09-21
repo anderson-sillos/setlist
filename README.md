@@ -843,6 +843,46 @@ Actions_:
 | `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` | Uma ou mais impressões SHA-256 da assinatura Android, separadas por vírgula; inclua as assinaturas dos perfis que serão distribuídos. |
 | `SETLIST_IOS_TEAM_ID`                      | Team ID alfanumérico da conta Apple Developer que assina o bundle `com.andersonsillos.setlist`.                                       |
 
+Para obter a impressão do Android nos builds EAS atuais:
+
+1. Autentique a CLI e abra o gerenciamento de credenciais Android:
+
+   ```bash
+   npx --yes eas-cli@latest login --browser
+   npx --yes eas-cli@latest whoami
+   npx --yes eas-cli@latest credentials -p android
+   ```
+
+2. Selecione o projeto `@anderson-silloss-team/setlist`, o pacote
+   `com.andersonsillos.setlist` e a credencial usada pelo build. Copie o campo
+   `SHA256 Fingerprint` exatamente como exibido, com letras maiúsculas e dois-pontos.
+3. Em **Settings → Secrets and variables → Actions → Variables**, crie ou edite
+   `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` com esse valor. Não use a SHA-1 do
+   Google OAuth e não coloque aspas.
+4. Se houver mais de uma assinatura válida (por exemplo, EAS para testes e Play
+   App Signing para produção), informe todas separadas por vírgula. A impressão
+   que deve ser incluída é a do certificado que assina o APK instalado no aparelho;
+   na Play Console ela fica em **Release → Setup → App signing → App signing key
+   certificate → SHA-256 certificate fingerprint**.
+5. Execute novamente o workflow de Pages e confirme que o arquivo publicado contém
+   o pacote e as impressões esperadas:
+
+   ```bash
+   gh workflow run pages.yml --ref feat/task-5-6-convites
+   curl -fsSL https://setlistbr.app.br/.well-known/assetlinks.json | jq .
+   ```
+
+Como a declaração `intentFilters` foi adicionada à configuração nativa, gere um
+novo APK depois dessa alteração; o APK anterior não contém o App Link. Após
+instalá-lo, force a verificação no aparelho e abra um convite HTTPS:
+
+```bash
+adb shell pm verify-app-links --re-verify com.andersonsillos.setlist
+adb shell pm get-app-links --user cur com.andersonsillos.setlist
+adb shell am start -a android.intent.action.VIEW \
+  -d "https://setlistbr.app.br/invite/<token>"
+```
+
 O script `scripts/prepare-link-associations.mjs` publica então:
 
 - `https://setlistbr.app.br/.well-known/assetlinks.json`, com o pacote Android e

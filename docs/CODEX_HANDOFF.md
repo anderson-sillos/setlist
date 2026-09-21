@@ -321,6 +321,14 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      navegador. A tarefa 11.5 segue pendente até o DNS/HTTPS, os certificados reais,
      um novo build nativo e a validação em Android e iOS.
 
+102. O README passou a orientar a obtenção do `SHA256 Fingerprint` pelo comando
+     `eas credentials -p android` e o cadastro de
+     `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` nas variáveis públicas do GitHub.
+     A orientação diferencia a assinatura EAS dos builds internos e a chave de
+     assinatura da Play App Signing; múltiplas impressões podem ser informadas
+     separadas por vírgula. O APK anterior à configuração dos intent filters não
+     serve para validar App Links e exigirá novo build.
+
 ## Próxima ação recomendada
 
 Validar manualmente a tarefa 5.8 na PR #14: excluir uma conta Member e confirmar
