@@ -41,6 +41,33 @@ describe('<BandMemberManagementDialog />', () => {
     });
   });
 
+  it('volta para a edição depois de confirmar uma ação', async () => {
+    const onConfirm = jest.fn();
+    const member = { ...editor, role: 'member' as const };
+    const view = await render(
+      <BandMemberManagementDialog
+        errorMessage={null}
+        isSubmitting={false}
+        member={member}
+        onClose={jest.fn()}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    await fireEvent.press(
+      view.getByLabelText('Promover Bruno Lima para editor'),
+    );
+    await fireEvent.press(
+      view.getByLabelText('Confirmar alteração para Editor de Bruno Lima'),
+    );
+
+    expect(view.getByText('Escolha uma ação para Bruno Lima.')).toBeTruthy();
+    expect(view.getByLabelText('Promover Bruno Lima para editor')).toBeTruthy();
+    expect(
+      view.queryByLabelText('Confirmar alteração para Editor de Bruno Lima'),
+    ).toBeNull();
+  });
+
   it('oferece rebaixamento de proprietário quando outro proprietário permanece', async () => {
     const onConfirm = jest.fn();
     const view = await render(

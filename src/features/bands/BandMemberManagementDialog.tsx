@@ -31,6 +31,11 @@ export function BandMemberManagementDialog({
     memberId: string;
   } | null>(null);
 
+  const handleClose = () => {
+    setPendingAction(null);
+    onClose();
+  };
+
   if (!member) {
     return null;
   }
@@ -45,12 +50,17 @@ export function BandMemberManagementDialog({
     : '';
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType="fade"
+      onRequestClose={handleClose}
+      transparent
+      visible
+    >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
           accessibilityLabel="Fechar administração de integrante"
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={handleClose}
           style={styles.scrim}
         />
         <View style={styles.dialog} testID="band-member-management-dialog">
@@ -61,7 +71,7 @@ export function BandMemberManagementDialog({
             <Pressable
               accessibilityLabel="Fechar administração de integrante"
               accessibilityRole="button"
-              onPress={onClose}
+              onPress={handleClose}
               style={({ pressed }) => [
                 styles.closeButton,
                 pressed && styles.pressed,
@@ -100,7 +110,9 @@ export function BandMemberManagementDialog({
                 label={isSubmitting ? 'Salvando…' : 'Confirmar'}
                 onPress={() => {
                   if (selectedAction) {
-                    onConfirm(selectedAction);
+                    const action = selectedAction;
+                    setPendingAction(null);
+                    onConfirm(action);
                   }
                 }}
               />
