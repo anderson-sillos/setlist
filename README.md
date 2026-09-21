@@ -834,9 +834,8 @@ O `app.config.ts` já declara o Android App Link para
 `applinks:setlistbr.app.br`. A associação só será efetiva depois de um novo build
 nativo e da publicação dos arquivos em `/.well-known` no domínio com HTTPS válido.
 
-O workflow gera esses arquivos durante a exportação quando as seguintes
-**Variables** públicas forem cadastradas em _Settings → Secrets and variables →
-Actions_:
+O workflow gera cada arquivo durante a exportação quando a variável pública
+correspondente for cadastrada em _Settings → Secrets and variables → Actions_:
 
 | Variable                                   | Conteúdo                                                                                                                              |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -892,9 +891,11 @@ O script `scripts/prepare-link-associations.mjs` publica então:
 
 As impressões de assinatura e o Team ID não são chaves de acesso, mas devem ser
 conferidos com os certificados reais do EAS/Play Console e da Apple Developer.
-Sem essas variáveis o workflow mantém a publicação web funcionando e emite um
-aviso, mas os links continuam abrindo no navegador. Depois de configurar as
-variáveis e o DNS, publique novamente, gere um novo build nativo e valide:
+Sem `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS`, o App Link Android não será
+gerado; sem `SETLIST_IOS_TEAM_ID`, o AASA iOS não será gerado. A publicação web
+continua funcionando e emite um aviso para a associação que estiver pendente.
+Depois de configurar cada variável e o DNS, publique novamente, gere um novo
+build nativo e valide:
 
 ```bash
 adb shell pm verify-app-links --re-verify com.andersonsillos.setlist

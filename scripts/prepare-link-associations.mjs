@@ -19,25 +19,27 @@ const androidFingerprints = (
   .filter(Boolean);
 const iosTeamId = process.env.SETLIST_IOS_TEAM_ID?.trim().toUpperCase();
 
-if (!androidFingerprints.length || !iosTeamId) {
+if (!androidFingerprints.length && !iosTeamId) {
   console.warn(
-    'Associações nativas não geradas: defina SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS e SETLIST_IOS_TEAM_ID nas variáveis públicas do workflow.',
+    'Associações nativas não geradas: defina SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS ou SETLIST_IOS_TEAM_ID nas variáveis públicas do workflow.',
   );
   process.exit(0);
 }
 
-const invalidFingerprint = androidFingerprints.find(
-  (fingerprint) => !/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/u.test(fingerprint),
-);
-
-if (invalidFingerprint) {
-  console.error(
-    `Fingerprint Android inválida: ${invalidFingerprint}. Use SHA-256 em hexadecimal separado por dois-pontos.`,
+if (androidFingerprints.length) {
+  const invalidFingerprint = androidFingerprints.find(
+    (fingerprint) => !/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/u.test(fingerprint),
   );
-  process.exit(1);
+
+  if (invalidFingerprint) {
+    console.error(
+      `Fingerprint Android inválida: ${invalidFingerprint}. Use SHA-256 em hexadecimal separado por dois-pontos.`,
+    );
+    process.exit(1);
+  }
 }
 
-if (!/^[A-Z0-9]{6,20}$/u.test(iosTeamId)) {
+if (iosTeamId && !/^[A-Z0-9]{6,20}$/u.test(iosTeamId)) {
   console.error(
     'SETLIST_IOS_TEAM_ID inválido. Informe o Team ID alfanumérico da conta Apple Developer.',
   );
@@ -46,41 +48,57 @@ if (!/^[A-Z0-9]{6,20}$/u.test(iosTeamId)) {
 
 await mkdir(outputDirectory, { recursive: true });
 
-const assetLinks = [
-  {
-    relation: ['delegate_permission/common.handle_all_urls'],
-    target: {
-      namespace: 'android_app',
-      package_name: androidPackage,
-      sha256_cert_fingerprints: androidFingerprints,
-    },
-  },
-];
+const files = [];
 
-const appleAppSiteAssociation = {
-  applinks: {
-    details: [
-      {
-        appIDs: [`${iosTeamId}.${iosBundleIdentifier}`],
-        components: [{ '/': '/invite/*' }],
+if (androidFingerprints.length) {
+  const assetLinks = [
+    {
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: androidPackage,
+        sha256_cert_fingerprints: androidFingerprints,
       },
-    ],
-  },
-};
+    },
+  ];
 
-await Promise.all([
-  writeFile(
-    resolve(outputDirectory, 'assetlinks.json'),
-    `${JSON.stringify(assetLinks, null, 2)}\n`,
-    'utf8',
-  ),
-  writeFile(
-    resolve(outputDirectory, 'apple-app-site-association'),
-    `${JSON.stringify(appleAppSiteAssociation, null, 2)}\n`,
-    'utf8',
-  ),
-]);
+  files.push(
+    writeFile(
+      resolve(outputDirectory, 'assetlinks.json'),
+      `${JSON.stringify(assetLinks, null, 2)}\n`,
+      'utf8',
+    ),
+  );
+}
+
+if (iosTeamId) {
+  const appleAppSiteAssociation = {
+    applinks: {
+      details: [
+        {
+          appIDs: [`${iosTeamId}.${iosBundleIdentifier}`],
+          components: [{ '/': '/invite/*' }],
+        },
+      ],
+    },
+  };
+
+  files.push(
+    writeFile(
+      resolve(outputDirectory, 'apple-app-site-association'),
+      `${JSON.stringify(appleAppSiteAssociation, null, 2)}\n`,
+      'utf8',
+    ),
+  );
+}
+
+await Promise.all(files);
 
 console.log(
-  'Associações Android App Links e iOS Universal Links geradas em public/.well-known.',
+  `Associações nativas geradas em public/.well-known: ${[
+    androidFingerprints.length ? 'Android' : '',
+    iosTeamId ? 'iOS' : '',
+  ]
+    .filter(Boolean)
+    .join(' e ')}.`,
 );

@@ -313,13 +313,12 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 101. A fundação dos links HTTPS foi antecipada. `app.config.ts` declara o App Link
      Android para `/invite/*` com `autoVerify` e o entitlement
      `applinks:setlistbr.app.br` para iOS. O workflow passou a executar
-     `scripts/prepare-link-associations.mjs`, que gera `assetlinks.json` e
-     `apple-app-site-association` somente quando as variáveis públicas
-     `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` e `SETLIST_IOS_TEAM_ID` estiverem
-     configuradas. Nenhuma impressão ou Team ID foi inventado no repositório; sem
-     essas variáveis a publicação web continua válida, mas os links permanecem no
-     navegador. A tarefa 11.5 segue pendente até o DNS/HTTPS, os certificados reais,
-     um novo build nativo e a validação em Android e iOS.
+     `scripts/prepare-link-associations.mjs`, que gera `assetlinks.json` quando
+     `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` existir e o AASA quando
+     `SETLIST_IOS_TEAM_ID` existir. Nenhuma impressão ou Team ID foi inventado no
+     repositório; a publicação web continua válida enquanto uma das associações
+     estiver pendente. A tarefa 11.5 segue pendente até o DNS/HTTPS, os certificados
+     reais, um novo build nativo e a validação em Android e iOS.
 
 102. O README passou a orientar a obtenção do `SHA256 Fingerprint` pelo comando
      `eas credentials -p android` e o cadastro de
