@@ -56,7 +56,7 @@
 - [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
 - [x] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
 - [ ] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4
-- [ ] 5.7 Implementar promoção e saída de integrantes e verificar que a banda nunca fica sem Owner fora da exceção de exclusão da banda pelo único integrante
+- [x] 5.7 Implementar promoção e saída de integrantes e verificar que a banda nunca fica sem Owner fora da exceção de exclusão da banda pelo único integrante
 - [ ] 5.8 Implementar exclusão de conta e exclusão de banda restrita ao único integrante, anonimização e limpeza local e verificar os casos de integrante comum, Owner substituível, banda com outros integrantes e único integrante
 - [ ] 5.9 Executar testes ponta a ponta dos papéis e convites nas três plataformas e publicar uma versão interna para revisão desse incremento
 

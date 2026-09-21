@@ -10,7 +10,10 @@ import {
   createInvitation,
   listInvitations,
 } from '@/data/supabase/invitationMutations';
-import { updateBandMemberRole } from '@/data/supabase/bandMemberMutations';
+import {
+  leaveBand,
+  updateBandMemberRole,
+} from '@/data/supabase/bandMemberMutations';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
 import { AppProviders } from '@/providers/AppProviders';
@@ -47,6 +50,7 @@ jest.mock('@/data/supabase/bandMemberMutations', () => {
 
   return {
     ...actual,
+    leaveBand: jest.fn(),
     updateBandMemberRole: jest.fn(),
   };
 });
@@ -56,6 +60,7 @@ const mockUpdateBandName = jest.mocked(updateBandName);
 const mockCreateInvitation = jest.mocked(createInvitation);
 const mockListInvitations = jest.mocked(listInvitations);
 const mockUpdateBandMemberRole = jest.mocked(updateBandMemberRole);
+const mockLeaveBand = jest.mocked(leaveBand);
 
 function createMutableBandRepositories() {
   const owner: BandMember = {
@@ -115,6 +120,7 @@ describe('<BandScreen />', () => {
     jest.clearAllMocks();
     mockListInvitations.mockResolvedValue([]);
     mockUpdateBandMemberRole.mockResolvedValue(undefined);
+    mockLeaveBand.mockResolvedValue(undefined);
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
@@ -129,6 +135,12 @@ describe('<BandScreen />', () => {
     expect(ownerView.getByText('Integrantes · 1')).toBeTruthy();
     expect(ownerView.getByText('Você')).toBeTruthy();
     expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
+    await fireEvent.press(ownerView.getByLabelText('Sair da banda'));
+    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
+    expect(ownerView.getByText(/A saída da banda fica/)).toBeTruthy();
+    await fireEvent.press(
+      ownerView.getByLabelText('Fechar aviso de demonstração'),
+    );
     expect(ownerView.getByLabelText('Editar banda')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Editar banda'));
@@ -246,6 +258,25 @@ describe('<BandScreen />', () => {
         memberId: 'membership-member',
         role: 'editor',
       });
+    });
+  });
+
+  it('permite ao integrante sair da banda com confirmação', async () => {
+    const state = createMutableBandRepositories();
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(await view.findByLabelText('Sair da banda'));
+    expect(view.getByTestId('band-leave-dialog')).toBeTruthy();
+    expect(view.getByText(/Sair de Banda Inicial/)).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Confirmar saída da banda'));
+
+    await waitFor(() => {
+      expect(mockLeaveBand).toHaveBeenCalledWith({ bandId: 'band-real' });
     });
   });
 

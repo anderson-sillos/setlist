@@ -26,6 +26,7 @@ import {
 } from '@/data/supabase/bandAdministrationMutations';
 import {
   BandMemberMutationError,
+  leaveBand,
   removeBandMember,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
@@ -54,6 +55,7 @@ import {
   type BandMemberManagementAction,
 } from './BandMemberManagementDialog';
 import { BandInvitationDialog } from './BandInvitationDialog';
+import { BandLeaveDialog } from './BandLeaveDialog';
 import { useLastBandSelection } from './LastBandSelection';
 
 const roleLabels: Record<BandRole, string> = {
@@ -90,6 +92,9 @@ export function BandScreen({
   >(null);
   const [memberManagementSubmitting, setMemberManagementSubmitting] =
     useState(false);
+  const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
   const [bandAdministrationMode, setBandAdministrationMode] =
     useState<BandAdministrationMode | null>(null);
   const [bandAdministrationError, setBandAdministrationError] = useState<
@@ -141,6 +146,27 @@ export function BandScreen({
 
     setManagedMember(null);
     setMemberManagementError(null);
+  };
+
+  const openLeaveFlow = () => {
+    if (isDemoBand) {
+      setPreviewNotice(
+        'A saída da banda fica disponível ao conectar uma banda real. Por enquanto, o palco segue com os dados de demonstração.',
+      );
+      return;
+    }
+
+    setLeaveError(null);
+    setLeaveDialogVisible(true);
+  };
+
+  const closeLeaveDialog = () => {
+    if (leaveSubmitting) {
+      return;
+    }
+
+    setLeaveDialogVisible(false);
+    setLeaveError(null);
   };
 
   const openBandAdministration = () => {
@@ -331,6 +357,30 @@ export function BandScreen({
     }
   };
 
+  const handleLeaveBand = async () => {
+    setLeaveError(null);
+    setLeaveSubmitting(true);
+
+    try {
+      await leaveBand({ bandId });
+      queryClient.removeQueries({ queryKey: ['bands', bandId] });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', 'user'],
+        refetchType: 'all',
+      });
+      await clearLastBand();
+      router.replace('/');
+    } catch (error) {
+      setLeaveError(
+        error instanceof BandMemberMutationError
+          ? error.message
+          : 'Não foi possível sair da banda agora. Tente novamente.',
+      );
+    } finally {
+      setLeaveSubmitting(false);
+    }
+  };
+
   return (
     <BandAreaLayout
       activeSection="band"
@@ -372,6 +422,14 @@ export function BandScreen({
         member={managedMember}
         onClose={closeMemberManagement}
         onConfirm={(action) => void handleMemberManagement(action)}
+      />
+      <BandLeaveDialog
+        bandName={bandQuery.data?.name ?? 'esta banda'}
+        errorMessage={leaveError}
+        isSubmitting={leaveSubmitting}
+        onClose={closeLeaveDialog}
+        onConfirm={() => void handleLeaveBand()}
+        visible={leaveDialogVisible}
       />
       <BandAdministrationDialog
         band={bandQuery.data ?? null}
@@ -421,6 +479,7 @@ export function BandScreen({
             canManage={canManage}
             current={item.userId === currentMembership?.userId}
             member={item}
+            onLeave={openLeaveFlow}
             onManage={() => openMemberManagement(item)}
           />
         )}
@@ -445,11 +504,13 @@ function MemberRow({
   canManage,
   current,
   member,
+  onLeave,
   onManage,
 }: {
   readonly canManage: boolean;
   readonly current: boolean;
   readonly member: BandMember;
+  readonly onLeave: () => void;
   readonly onManage: () => void;
 }) {
   const initials = member.displayName
@@ -476,7 +537,19 @@ function MemberRow({
             {roleLabels[member.role]}
           </AppText>
         </View>
-        {canManage && !current ? (
+        {current ? (
+          <Pressable
+            accessibilityLabel="Sair da banda"
+            accessibilityRole="button"
+            onPress={onLeave}
+            style={({ pressed }) => [
+              styles.overflowButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon color={colors.violet} name="logout" />
+          </Pressable>
+        ) : canManage ? (
           <Pressable
             accessibilityLabel={`Administrar ${member.displayName}`}
             accessibilityRole="button"

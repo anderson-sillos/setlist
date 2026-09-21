@@ -4,6 +4,7 @@ export {
 } from '@/data/supabase/client';
 export {
   BandMemberMutationError,
+  leaveBand,
   removeBandMember,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
@@ -32,6 +33,7 @@ export type {
 } from '@/data/supabase/bandMutations';
 export type {
   BandMemberMutationErrorCode,
+  LeaveBandInput,
   RemoveBandMemberInput,
   UpdateBandMemberRoleInput,
 } from '@/data/supabase/bandMemberMutations';
