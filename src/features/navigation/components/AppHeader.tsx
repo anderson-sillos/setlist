@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
+import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { NavigationIconButton } from '@/features/navigation/components/NavigationIconButton';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
@@ -61,17 +62,11 @@ export function AppHeader({
       ) : null}
 
       {kind === 'edit' && editActions ? (
-        <Pressable
+        <HeaderButton
           accessibilityLabel="Cancelar edição"
-          accessibilityRole="button"
+          label="Cancelar"
           onPress={editActions.onCancel}
-          style={({ pressed }) => [
-            styles.headerTextButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText tone="accent">Cancelar</AppText>
-        </Pressable>
+        />
       ) : null}
 
       <View style={styles.headerCopy}>
@@ -86,51 +81,60 @@ export function AppHeader({
       </View>
 
       {kind === 'edit' && editActions ? (
-        <Pressable
+        <HeaderButton
           accessibilityLabel="Salvar edição"
-          accessibilityRole="button"
           accessibilityState={{ disabled: editActions.saveDisabled }}
           disabled={editActions.saveDisabled}
+          label="Salvar"
           onPress={editActions.onSave}
-          style={({ pressed }) => [
-            styles.headerTextButton,
-            editActions.saveDisabled && styles.disabled,
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText tone="accent">Salvar</AppText>
-        </Pressable>
+          variant="primary"
+        />
       ) : null}
 
       {kind !== 'edit' && headerAction ? (
-        headerAction.showLabel ? (
-          <AppButton
-            accessibilityLabel={headerAction.accessibilityLabel}
-            icon={headerAction.icon}
-            label={headerAction.label}
-            onPress={headerAction.onPress}
-            style={styles.labeledHeaderAction}
-            variant="secondary"
-          />
-        ) : (
-          <Pressable
-            accessibilityLabel={headerAction.accessibilityLabel}
-            accessibilityRole="button"
-            onPress={headerAction.onPress}
-            style={({ pressed }) => [
-              headerAction.icon ? styles.iconButton : styles.headerTextButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            {headerAction.icon ? (
-              <AppIcon color={colors.violet} name={headerAction.icon} />
-            ) : (
-              <AppText tone="accent">{headerAction.label}</AppText>
-            )}
-          </Pressable>
-        )
+        <HeaderButton
+          accessibilityLabel={headerAction.accessibilityLabel}
+          icon={headerAction.icon}
+          label={headerAction.label}
+          onPress={headerAction.onPress}
+        />
       ) : null}
     </View>
+  );
+}
+
+interface HeaderButtonProps {
+  readonly accessibilityLabel: string;
+  readonly accessibilityState?: {
+    readonly disabled?: boolean;
+  };
+  readonly disabled?: boolean;
+  readonly icon?: AppIconName;
+  readonly label: string;
+  readonly onPress: () => void;
+  readonly variant?: 'primary' | 'secondary';
+}
+
+function HeaderButton({
+  accessibilityLabel,
+  accessibilityState,
+  disabled,
+  icon,
+  label,
+  onPress,
+  variant = 'secondary',
+}: HeaderButtonProps) {
+  return (
+    <AppButton
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={accessibilityState}
+      disabled={disabled}
+      icon={icon}
+      label={label}
+      onPress={onPress}
+      style={styles.headerActionButton}
+      variant={variant}
+    />
   );
 }
 
@@ -158,17 +162,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
   },
-  headerTextButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerActionButton: {
     minHeight: layout.minimumTouchTarget,
-    paddingHorizontal: spacing.sm,
-  },
-  labeledHeaderAction: {
     paddingHorizontal: spacing.md,
-  },
-  disabled: {
-    opacity: 0.45,
   },
   pressed: {
     opacity: 0.7,

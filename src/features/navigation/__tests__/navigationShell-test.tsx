@@ -17,6 +17,7 @@ import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
 import { AppProviders } from '@/providers/AppProviders';
+import { colors, radii } from '@/theme/tokens';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -86,6 +87,16 @@ describe('shell de navegação', () => {
       expect(view.getByTestId('app-header')).toBeTruthy();
       expect(view.getByTestId('screen-static-area')).toBeTruthy();
       expect(view.getByTestId('shows-list')).toBeTruthy();
+      const headerAction = view.getByRole('button', {
+        name: 'Criar novo show',
+      });
+      expect(headerAction).toBeTruthy();
+      expect(StyleSheet.flatten(headerAction.props.style)).toMatchObject({
+        borderColor: colors.violet,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        minHeight: 48,
+      });
 
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();

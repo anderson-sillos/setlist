@@ -397,3 +397,11 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      Supabase foi bloqueada pela escrita de telemetria fora da área permitida;
      nenhum estado remoto foi alterado. A próxima etapa é a classificação dos
      estados de letra da tarefa 6.3.
+
+108. Os botões de ação do cabeçalho foram padronizados no componente
+     compartilhado `src/features/navigation/components/AppHeader.tsx`. Ações
+     contextuais de bandas, shows e repertório agora usam o mesmo botão
+     contornado com ícone, rótulo, altura, raio e espaçamento; `Salvar` mantém
+     apenas a variante primária para indicar a ação principal. `Criar banda`
+     também recebeu o ícone de inclusão. A validação completa permaneceu verde
+     com 67 suítes e 357 testes, e a PR #15 continua aberta para revisão.

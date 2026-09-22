@@ -190,7 +190,6 @@ export function RepertoireScreen({
               accessibilityLabel: 'Adicionar música ao repertório',
               icon: 'add',
               label: 'Adicionar música',
-              showLabel: true,
               onPress: () => {
                 if (isDemoBand) {
                   setDemoNotice(
