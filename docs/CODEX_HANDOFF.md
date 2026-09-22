@@ -436,3 +436,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      Observações invada o bloco de Letra. As instruções da letra foram
      reorganizadas em um guia visual compacto com exemplos de `# Refrão` e
      `---`. A validação passou com 68 suítes e 362 testes.
+
+112. Os campos de duração foram retirados da linha de Tom/BPM e passaram para
+     uma linha própria imediatamente após `Artista/Banda`. O grupo ocupa no
+     máximo toda a largura disponível (`100%`), com inputs internos flexíveis
+     para não ultrapassar o limite em telas estreitas. A suíte de tela e a
+     verificação de tipos continuam aprovadas.

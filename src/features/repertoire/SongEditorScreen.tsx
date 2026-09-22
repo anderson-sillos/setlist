@@ -200,6 +200,13 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
               value={values.originalArtist}
             />
 
+            <SongDurationFieldView
+              containerStyle={styles.durationField}
+              error={fieldErrors.duration}
+              onChangeText={(value) => setField('duration', value)}
+              value={values.duration}
+            />
+
             <View style={styles.inlineFields}>
               <SongEditorFieldView
                 containerStyle={styles.smallField}
@@ -217,12 +224,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
                 onChangeText={(value) => setField('bpm', value)}
                 placeholder="Ex.: 120"
                 value={values.bpm}
-              />
-              <SongDurationFieldView
-                containerStyle={styles.durationField}
-                error={fieldErrors.duration}
-                onChangeText={(value) => setField('duration', value)}
-                value={values.duration}
               />
             </View>
 
@@ -500,6 +501,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.sm,
+    maxWidth: '100%',
+    width: '100%',
   },
   durationPart: {
     alignItems: 'center',
@@ -517,7 +520,10 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
   },
   durationField: {
-    flexGrow: 1.5,
-    flexBasis: 156,
+    alignSelf: 'stretch',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxWidth: '100%',
+    width: '100%',
   },
 });
