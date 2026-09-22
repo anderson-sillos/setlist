@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/data/supabase/client';
+import { demoIds } from '@/data/demo';
 import { SupabaseSongRepository } from '@/data/supabase/songRepository';
 
 jest.mock('@/data/supabase/client', () => ({
@@ -118,14 +119,17 @@ describe('repositório de músicas do Supabase', () => {
 
     await expect(
       new SupabaseSongRepository(demoRepository as never).listByBandId(
-        'band-demo',
+        demoIds.primaryBand,
         { includeArchived: true },
       ),
     ).resolves.toEqual([demoSong]);
     expect(query.is).not.toHaveBeenCalled();
-    expect(demoRepository.listByBandId).toHaveBeenCalledWith('band-demo', {
-      includeArchived: true,
-    });
+    expect(demoRepository.listByBandId).toHaveBeenCalledWith(
+      demoIds.primaryBand,
+      {
+        includeArchived: true,
+      },
+    );
   });
 
   it('não substitui uma lista remota válida por dados demo', async () => {
@@ -156,6 +160,25 @@ describe('repositório de músicas do Supabase', () => {
     ).resolves.toBeNull();
     expect(query.eq).toHaveBeenNthCalledWith(1, 'band_id', 'band-real');
     expect(query.eq).toHaveBeenNthCalledWith(2, 'id', 'song-real');
+  });
+
+  it('resolve músicas demonstrativas sem consultar o Supabase', async () => {
+    const demoRepository = {
+      findById: jest.fn().mockResolvedValue({ id: demoIds.stageSong }),
+    };
+
+    await expect(
+      new SupabaseSongRepository(demoRepository as never).findById(
+        demoIds.primaryBand,
+        demoIds.stageSong,
+      ),
+    ).resolves.toEqual({ id: demoIds.stageSong });
+
+    expect(from).not.toHaveBeenCalled();
+    expect(demoRepository.findById).toHaveBeenCalledWith(
+      demoIds.primaryBand,
+      demoIds.stageSong,
+    );
   });
 
   it('propaga falhas de leitura e rejeita respostas inválidas', async () => {

@@ -8,6 +8,7 @@ import type {
   SongListOptions,
   SongRepository,
 } from '@/domain';
+import { isDemoBandId } from '@/data/demo';
 import { getSupabaseClient } from '@/data/supabase/client';
 
 const lyricStatuses: readonly LyricStatus[] = [
@@ -163,6 +164,10 @@ export class SupabaseSongRepository implements SongRepository {
     bandId: EntityId,
     options: SongListOptions = {},
   ): Promise<readonly Song[]> {
+    if (isDemoBandId(bandId)) {
+      return this.demoRepository?.listByBandId(bandId, options) ?? [];
+    }
+
     let query = getSupabaseClient()
       .from('songs')
       .select('*')
@@ -188,6 +193,10 @@ export class SupabaseSongRepository implements SongRepository {
   }
 
   async findById(bandId: EntityId, songId: EntityId): Promise<Song | null> {
+    if (isDemoBandId(bandId)) {
+      return this.demoRepository?.findById(bandId, songId) ?? null;
+    }
+
     const { data, error } = await getSupabaseClient()
       .from('songs')
       .select('*')

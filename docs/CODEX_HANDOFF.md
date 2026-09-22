@@ -452,3 +452,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      conta, ignora acentos e duplicatas e permite selecionar uma sugestão;
      o cache é invalidado após criar ou editar uma música. A validação completa
      passou com 70 suítes e 365 testes.
+
+114. O repositório remoto não consulta mais o Supabase para IDs de bandas
+     demonstrativas (`band-demo-horizonte` e `band-demo-aurora`): músicas,
+     detalhes e integrantes desses IDs são resolvidos pelo repositório demo.
+     Isso evita erros `22P02` de UUID ao montar as sugestões de
+     `originalArtist` para o autocomplete em sessões autenticadas.
