@@ -310,7 +310,11 @@ function SongEditorFieldView({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.muted}
-        style={[styles.input, multiline && styles.multilineInput]}
+        style={[
+          styles.input,
+          multiline && styles.multilineInput,
+          multiline && Platform.OS === 'web' && styles.multilineInputWeb,
+        ]}
         value={value}
       />
       {error ? (
@@ -377,6 +381,14 @@ const styles = StyleSheet.create({
     minHeight: 112,
     paddingVertical: spacing.md,
     textAlignVertical: 'top',
+  },
+  multilineInputWeb: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 120,
+    maxHeight: 120,
+    minHeight: 120,
+    width: '100%',
   },
   smallField: {
     flexGrow: 1,

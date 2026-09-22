@@ -79,7 +79,10 @@ describe('<SongEditorScreen />', () => {
     mockCreateSong.mockResolvedValue('song-created');
     mockRandomUUID
       .mockReturnValueOnce('new-block')
-      .mockReturnValueOnce('new-line');
+      .mockReturnValueOnce('new-line')
+      .mockReturnValueOnce('new-blank-line')
+      .mockReturnValueOnce('new-refrain')
+      .mockReturnValueOnce('new-refrain-line');
     const view = await render(
       <AppProviders repositories={repositories}>
         <SongEditorScreen bandId={bandId} />
@@ -93,11 +96,9 @@ describe('<SongEditorScreen />', () => {
     );
     await fireEvent.changeText(view.getByLabelText('BPM'), '110');
     await fireEvent.changeText(view.getByLabelText('Duração'), '3:45');
-    await fireEvent.press(view.getByLabelText('Adicionar bloco à letra'));
-    await fireEvent.press(view.getByLabelText('Adicionar linha ao bloco 1'));
     await fireEvent.changeText(
-      view.getByLabelText('Linha 1 do bloco 1'),
-      'A rua acende devagar',
+      view.getByLabelText('Letra completa'),
+      '# Verso\nA rua acende devagar\n---\n# Refrão\nLevanta a voz',
     );
     await fireEvent.press(view.getByText('Salvar música'));
 
@@ -113,12 +114,28 @@ describe('<SongEditorScreen />', () => {
           blocks: [
             {
               id: 'new-block',
-              name: null,
+              name: 'Verso',
               lines: [
                 {
                   id: 'new-line',
                   startTimeMs: null,
                   text: 'A rua acende devagar',
+                },
+                {
+                  id: 'new-blank-line',
+                  startTimeMs: null,
+                  text: '',
+                },
+              ],
+            },
+            {
+              id: 'new-refrain',
+              name: 'Refrão',
+              lines: [
+                {
+                  id: 'new-refrain-line',
+                  startTimeMs: null,
+                  text: 'Levanta a voz',
                 },
               ],
             },

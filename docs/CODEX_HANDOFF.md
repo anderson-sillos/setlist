@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1 e 6.2 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor de blocos/linhas e persistência atômica. `npm run validate` passou com 67 suítes e 357 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é a classificação de letras da 6.3; iOS/Apple segue como pendência futura.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1 e 6.2 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores e persistência atômica. `npm run validate` passou com 68 suítes e 361 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é a classificação de letras da 6.3; iOS/Apple segue como pendência futura.
 
 ## Fontes de verdade
 
@@ -414,3 +414,15 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      acessibilidade; `Salvar` usa `check`, `Cancelar` usa `close` e ações sem
      ícone explícito usam `more` como fallback. A validação completa passou com
      67 suítes e 357 testes.
+
+110. A edição de letras foi simplificada para um único campo multilinha em
+     `LyricDocumentEditor`, permitindo colar ou digitar a música inteira. Linhas
+     iniciadas por `#` nomeiam blocos e uma linha `---` representa uma linha
+     vazia; `lyricEditorText.ts` converte esse formato para o documento JSONB,
+     preservando IDs e tempos existentes por posição. O campo mantém um rascunho
+     local durante a digitação para não apagar quebras de linha intermediárias.
+     O campo multiline de `Observações` recebeu dimensões explícitas somente na
+     web, evitando que seu layout invada o bloco de letra. Foram adicionados
+     testes de serialização, parsing, preservação de identidade e edição de
+     formulário; a validação completa passou com 68 suítes e 361 testes,
+     além do export web e da validação estrita do change OpenSpec.
