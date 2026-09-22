@@ -41,12 +41,29 @@ export function LyricDocumentEditor({
         <AppText accessibilityRole="header" variant="heading">
           Letra
         </AppText>
-        <AppText tone="muted">
-          Cole ou digite a letra completa. Use{' '}
-          <AppText style={styles.marker}># Nome do bloco</AppText> para separar
-          blocos e <AppText style={styles.marker}>---</AppText> para inserir uma
-          linha em branco.
+        <AppText tone="muted">Cole ou digite a letra completa abaixo.</AppText>
+      </View>
+
+      <View style={styles.guide}>
+        <AppText style={styles.guideTitle} variant="caption">
+          Formato rápido
         </AppText>
+        <View style={styles.guideRow}>
+          <AppText style={styles.marker} variant="caption">
+            # Refrão
+          </AppText>
+          <AppText tone="muted" variant="caption">
+            cria um novo bloco da música
+          </AppText>
+        </View>
+        <View style={styles.guideRow}>
+          <AppText style={styles.marker} variant="caption">
+            ---
+          </AppText>
+          <AppText tone="muted" variant="caption">
+            mantém uma linha em branco
+          </AppText>
+        </View>
       </View>
 
       <View style={styles.inputFrame}>
@@ -68,7 +85,7 @@ export function LyricDocumentEditor({
         <View style={styles.inputHint}>
           <AppIcon color={colors.muted} name="music" size={16} />
           <AppText tone="muted" variant="caption">
-            Os marcadores não aparecem na letra apresentada à banda.
+            Os marcadores são removidos na apresentação da letra.
           </AppText>
         </View>
       </View>
@@ -83,11 +100,37 @@ const styles = StyleSheet.create({
   sectionHeading: {
     gap: spacing.xs,
   },
-  marker: {
-    color: colors.violet,
+  guide: {
+    backgroundColor: colors.violetSoft,
+    borderColor: colors.line,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    gap: spacing.xs,
+    padding: spacing.sm,
+  },
+  guideRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  guideTitle: {
+    color: colors.violetDark,
     fontWeight: '700',
   },
+  marker: {
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    color: colors.violet,
+    fontWeight: '700',
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
   inputFrame: {
+    alignSelf: 'stretch',
     backgroundColor: colors.paper,
     borderColor: colors.line,
     borderRadius: radii.md,

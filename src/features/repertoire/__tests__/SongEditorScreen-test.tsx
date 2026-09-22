@@ -95,7 +95,11 @@ describe('<SongEditorScreen />', () => {
       '  Nova faixa  ',
     );
     await fireEvent.changeText(view.getByLabelText('BPM'), '110');
-    await fireEvent.changeText(view.getByLabelText('Duração'), '3:45');
+    await fireEvent.changeText(view.getByLabelText('Minutos da duração'), '3');
+    await fireEvent.changeText(
+      view.getByLabelText('Segundos da duração'),
+      '45',
+    );
     await fireEvent.changeText(
       view.getByLabelText('Letra completa'),
       '# Verso\nA rua acende devagar\n---\n# Refrão\nLevanta a voz',

@@ -36,9 +36,12 @@ import {
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { LyricDocumentEditor } from './LyricDocumentEditor';
 import {
+  durationFromParts,
+  durationToParts,
   emptySongEditorValues,
   parseSongEditorValues,
   songToEditorValues,
+  type DurationParts,
   type SongEditorErrors,
   type SongEditorField,
   type SongEditorValues,
@@ -215,12 +218,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
                 placeholder="Ex.: 120"
                 value={values.bpm}
               />
-              <SongEditorFieldView
+              <SongDurationFieldView
                 containerStyle={styles.durationField}
                 error={fieldErrors.duration}
-                label="Duração"
                 onChangeText={(value) => setField('duration', value)}
-                placeholder="mm:ss ou h:mm:ss"
                 value={values.duration}
               />
             </View>
@@ -326,12 +327,111 @@ function SongEditorFieldView({
   );
 }
 
+interface SongDurationFieldViewProps {
+  readonly containerStyle?: StyleProp<ViewStyle>;
+  readonly error?: string;
+  readonly onChangeText: (value: string) => void;
+  readonly value: string;
+}
+
+function SongDurationFieldView({
+  containerStyle,
+  error,
+  onChangeText,
+  value,
+}: SongDurationFieldViewProps) {
+  const parts = durationToParts(value);
+
+  const updatePart = (part: keyof DurationParts, nextValue: string) => {
+    onChangeText(
+      durationFromParts({
+        ...parts,
+        [part]: nextValue.replace(/\D/g, ''),
+      }),
+    );
+  };
+
+  return (
+    <View style={[styles.field, containerStyle]}>
+      <AppText variant="caption">Duração</AppText>
+      <View style={styles.durationParts}>
+        <DurationPartInput
+          accessibilityLabel="Horas da duração"
+          maxLength={3}
+          onChangeText={(nextValue) => updatePart('hours', nextValue)}
+          placeholder="00"
+          value={parts.hours}
+          suffix="h"
+        />
+        <DurationPartInput
+          accessibilityLabel="Minutos da duração"
+          maxLength={2}
+          onChangeText={(nextValue) => updatePart('minutes', nextValue)}
+          placeholder="00"
+          value={parts.minutes}
+          suffix="min"
+        />
+        <DurationPartInput
+          accessibilityLabel="Segundos da duração"
+          maxLength={2}
+          onChangeText={(nextValue) => updatePart('seconds', nextValue)}
+          placeholder="00"
+          value={parts.seconds}
+          suffix="s"
+        />
+      </View>
+      {error ? (
+        <AppText accessibilityRole="alert" style={styles.fieldError}>
+          {error}
+        </AppText>
+      ) : null}
+    </View>
+  );
+}
+
+interface DurationPartInputProps {
+  readonly accessibilityLabel: string;
+  readonly maxLength: number;
+  readonly onChangeText: (value: string) => void;
+  readonly placeholder: string;
+  readonly suffix: string;
+  readonly value: string;
+}
+
+function DurationPartInput({
+  accessibilityLabel,
+  maxLength,
+  onChangeText,
+  placeholder,
+  suffix,
+  value,
+}: DurationPartInputProps) {
+  return (
+    <View style={styles.durationPart}>
+      <TextInput
+        accessibilityLabel={accessibilityLabel}
+        keyboardType="number-pad"
+        maxLength={maxLength}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.muted}
+        style={[styles.input, styles.durationPartInput]}
+        value={value}
+      />
+      <AppText style={styles.durationSuffix} tone="muted" variant="caption">
+        {suffix}
+      </AppText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   editor: {
     flex: 1,
     minHeight: 0,
   },
   formContent: {
+    alignItems: 'stretch',
     alignSelf: 'center',
     gap: spacing.lg,
     maxWidth: layout.contentMaxWidth,
@@ -350,7 +450,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   field: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 0,
     gap: spacing.xs,
     minWidth: 160,
   },
@@ -383,6 +484,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   multilineInputWeb: {
+    alignSelf: 'stretch',
     flexGrow: 0,
     flexShrink: 0,
     height: 120,
@@ -393,6 +495,26 @@ const styles = StyleSheet.create({
   smallField: {
     flexGrow: 1,
     flexBasis: 88,
+  },
+  durationParts: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  durationPart: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexGrow: 1,
+    minWidth: 0,
+  },
+  durationPartInput: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: spacing.xs,
+    textAlign: 'center',
+  },
+  durationSuffix: {
+    marginLeft: spacing.xs,
   },
   durationField: {
     flexGrow: 1.5,

@@ -1,4 +1,6 @@
 import {
+  durationFromParts,
+  durationToParts,
   emptySongEditorValues,
   parseSongEditorValues,
   songToEditorValues,
@@ -6,6 +8,25 @@ import {
 import { demoRepositoryData } from '@/data/demo';
 
 describe('formulário de música', () => {
+  it('separa e recompõe a duração por horas, minutos e segundos', () => {
+    expect(durationToParts('1:02:03')).toEqual({
+      hours: '1',
+      minutes: '02',
+      seconds: '03',
+    });
+    expect(durationToParts('3:45')).toEqual({
+      hours: '',
+      minutes: '3',
+      seconds: '45',
+    });
+    expect(durationFromParts({ hours: '1', minutes: '2', seconds: '3' })).toBe(
+      '1:02:03',
+    );
+    expect(durationFromParts({ hours: '', minutes: '3', seconds: '45' })).toBe(
+      '3:45',
+    );
+  });
+
   it('exige título e aceita os campos opcionais vazios', () => {
     const result = parseSongEditorValues(emptySongEditorValues);
 

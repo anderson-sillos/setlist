@@ -17,6 +17,12 @@ export type SongEditorField = keyof SongEditorValues;
 
 export type SongEditorErrors = Partial<Record<SongEditorField, string>>;
 
+export interface DurationParts {
+  readonly hours: string;
+  readonly minutes: string;
+  readonly seconds: string;
+}
+
 export type SongEditorParseResult =
   | { readonly errors: SongEditorErrors; readonly song: SongWriteInput }
   | { readonly errors: SongEditorErrors; readonly song: null };
@@ -31,10 +37,58 @@ export const emptySongEditorValues: SongEditorValues = {
   youtubeReference: '',
 };
 
+export function durationToParts(value: string): DurationParts {
+  const parts = value.trim().split(':');
+
+  if (!value.trim()) {
+    return { hours: '', minutes: '', seconds: '' };
+  }
+
+  if (parts.length === 3) {
+    return {
+      hours: parts[0] ?? '',
+      minutes: parts[1] ?? '',
+      seconds: parts[2] ?? '',
+    };
+  }
+
+  if (parts.length === 2) {
+    return {
+      hours: '',
+      minutes: parts[0] ?? '',
+      seconds: parts[1] ?? '',
+    };
+  }
+
+  return { hours: '', minutes: parts[0] ?? '', seconds: '' };
+}
+
+export function durationFromParts(parts: DurationParts): string {
+  const hours = parts.hours.trim();
+  const minutes = parts.minutes.trim();
+  const seconds = parts.seconds.trim();
+
+  if (!hours && !minutes && !seconds) {
+    return '';
+  }
+
+  const normalizedMinutes = minutes || '0';
+  const normalizedSeconds = seconds || '0';
+
+  if (hours) {
+    return `${hours}:${normalizedMinutes.padStart(2, '0')}:${normalizedSeconds.padStart(2, '0')}`;
+  }
+
+  return `${normalizedMinutes}:${normalizedSeconds.padStart(2, '0')}`;
+}
+
 export function songToEditorValues(song: Song): SongEditorValues {
   return {
     bpm: song.bpm === null ? '' : String(song.bpm),
-    duration: formatDuration(song.estimatedDurationMs),
+    duration:
+      song.estimatedDurationMs === null
+        ? ''
+        : formatDuration(song.estimatedDurationMs),
     musicalKey: song.musicalKey ?? '',
     notes: song.notes ?? '',
     originalArtist: song.originalArtist ?? '',
@@ -96,7 +150,8 @@ export function parseSongEditorValues(
   }
 
   if (durationMs === undefined) {
-    errors.duration = 'Use mm:ss ou h:mm:ss, por exemplo 3:45.';
+    errors.duration =
+      'Informe uma duração válida em horas, minutos e segundos.';
   }
 
   if (youtubeText && (!youtubeReference || youtubeText.length > 2048)) {

@@ -15,7 +15,7 @@ describe('<LyricDocumentEditor />', () => {
     );
 
     expect(view.getByLabelText('Letra completa')).toBeTruthy();
-    expect(view.getByText(/# Nome do bloco/)).toBeTruthy();
+    expect(view.getByText('Formato rápido')).toBeTruthy();
 
     await fireEvent.changeText(
       view.getByLabelText('Letra completa'),
