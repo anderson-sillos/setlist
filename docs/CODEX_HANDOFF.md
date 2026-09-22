@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1 e 6.2 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores e persistência atômica. `npm run validate` passou com 68 suítes e 362 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é a classificação de letras da 6.3; iOS/Apple segue como pendência futura.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1 e 6.2 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores, duração assistida e autocomplete de artistas originais. `npm run validate` passou com 70 suítes e 365 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é a classificação de letras da 6.3; iOS/Apple segue como pendência futura.
 
 ## Fontes de verdade
 
@@ -442,3 +442,13 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      máximo toda a largura disponível (`100%`), com inputs internos flexíveis
      para não ultrapassar o limite em telas estreitas. A suíte de tela e a
      verificação de tipos continuam aprovadas.
+
+113. A duração agora usa o componente reutilizável `SpinButton`, com campo
+     numérico acessível e controles verticais de incrementar/decrementar,
+     respeitando limites de horas, minutos e segundos. Os três componentes
+     ocupam partes iguais da largura disponível. `AutocompleteField` foi criado
+     para o Artista/Banda: ao focar ou digitar, ele filtra valores distintos de
+     `originalArtist` encontrados nas músicas dos repertórios das bandas da
+     conta, ignora acentos e duplicatas e permite selecionar uma sugestão;
+     o cache é invalidado após criar ou editar uma música. A validação completa
+     passou com 70 suítes e 365 testes.

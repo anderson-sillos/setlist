@@ -17,14 +17,16 @@ import {
   LoadingFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
+import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
+import { SpinButton } from '@/components/ui/SpinButton';
 import {
   createSong,
   SongMutationError,
   updateSong,
 } from '@/data/supabase/songMutations';
-import { useSong, useUserBands } from '@/data/queries';
+import { useSong, useUserBands, useUserRepertoireSongs } from '@/data/queries';
 import { demoIds } from '@/data/demo';
 import type { EntityId, LyricDocument } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
@@ -58,6 +60,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const userBandsQuery = useUserBands();
+  const userRepertoireSongsQuery = useUserRepertoireSongs();
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
   const [editedValues, setEditedValues] = useState<{
     readonly songId: EntityId | null;
@@ -79,6 +82,13 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const isLoading =
     userBandsQuery.isPending || (Boolean(songId) && songQuery.isPending);
+  const originalArtistOptions = Array.from(
+    new Set(
+      userRepertoireSongsQuery.data
+        ?.map(({ originalArtist }) => originalArtist?.trim() ?? '')
+        .filter(Boolean) ?? [],
+    ),
+  );
   const title = songId ? 'Editar música' : 'Nova música';
   const values =
     editedValues?.songId === (songId ?? null)
@@ -117,6 +127,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         await queryClient.invalidateQueries({
           queryKey: ['bands', bandId, 'songs'],
         });
+        await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
         router.back();
       } else {
         const createdSongId = await createSong({
@@ -127,6 +138,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         await queryClient.invalidateQueries({
           queryKey: ['bands', bandId, 'songs'],
         });
+        await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
         router.replace(getSongHref(bandId, createdSongId));
       }
     } catch (error) {
@@ -192,10 +204,12 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
               placeholder="Ex.: A rua acende devagar"
               value={values.title}
             />
-            <SongEditorFieldView
+            <AutocompleteField
+              accessibilityLabel="Artista/Banda"
               error={fieldErrors.originalArtist}
               label="Artista/Banda"
               onChangeText={(value) => setField('originalArtist', value)}
+              options={originalArtistOptions}
               placeholder="Ex.: Artista original"
               value={values.originalArtist}
             />
@@ -358,25 +372,19 @@ function SongDurationFieldView({
       <View style={styles.durationParts}>
         <DurationPartInput
           accessibilityLabel="Horas da duração"
-          maxLength={3}
           onChangeText={(nextValue) => updatePart('hours', nextValue)}
-          placeholder="00"
           value={parts.hours}
           suffix="h"
         />
         <DurationPartInput
           accessibilityLabel="Minutos da duração"
-          maxLength={2}
           onChangeText={(nextValue) => updatePart('minutes', nextValue)}
-          placeholder="00"
           value={parts.minutes}
           suffix="min"
         />
         <DurationPartInput
           accessibilityLabel="Segundos da duração"
-          maxLength={2}
           onChangeText={(nextValue) => updatePart('seconds', nextValue)}
-          placeholder="00"
           value={parts.seconds}
           suffix="s"
         />
@@ -392,31 +400,26 @@ function SongDurationFieldView({
 
 interface DurationPartInputProps {
   readonly accessibilityLabel: string;
-  readonly maxLength: number;
   readonly onChangeText: (value: string) => void;
-  readonly placeholder: string;
   readonly suffix: string;
   readonly value: string;
 }
 
 function DurationPartInput({
   accessibilityLabel,
-  maxLength,
   onChangeText,
-  placeholder,
   suffix,
   value,
 }: DurationPartInputProps) {
   return (
     <View style={styles.durationPart}>
-      <TextInput
+      <SpinButton
         accessibilityLabel={accessibilityLabel}
-        keyboardType="number-pad"
-        maxLength={maxLength}
+        decrementLabel={`Diminuir ${accessibilityLabel.toLowerCase()}`}
+        incrementLabel={`Aumentar ${accessibilityLabel.toLowerCase()}`}
+        max={suffix === 'h' ? 999 : 59}
+        maxLength={suffix === 'h' ? 3 : 2}
         onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.muted}
-        style={[styles.input, styles.durationPartInput]}
         value={value}
       />
       <AppText style={styles.durationSuffix} tone="muted" variant="caption">
@@ -507,14 +510,10 @@ const styles = StyleSheet.create({
   durationPart: {
     alignItems: 'center',
     flexDirection: 'row',
-    flexGrow: 1,
-    minWidth: 0,
-  },
-  durationPartInput: {
     flex: 1,
+    flexBasis: 0,
+    maxWidth: '100%',
     minWidth: 0,
-    paddingHorizontal: spacing.xs,
-    textAlign: 'center',
   },
   durationSuffix: {
     marginLeft: spacing.xs,

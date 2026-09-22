@@ -1,0 +1,28 @@
+import { fireEvent, render } from '@testing-library/react-native';
+
+import { AutocompleteField } from '@/components/ui/AutocompleteField';
+
+describe('<AutocompleteField />', () => {
+  it('filtra as bandas e preenche o campo ao selecionar uma sugestão', async () => {
+    const onChangeText = jest.fn();
+    const view = await render(
+      <AutocompleteField
+        accessibilityLabel="Artista/Banda"
+        label="Artista/Banda"
+        onChangeText={onChangeText}
+        options={['Banda Horizonte', 'Trio Aurora']}
+        placeholder="Ex.: Artista original"
+        value="aur"
+      />,
+    );
+
+    await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+
+    expect(view.getByLabelText('Usar Trio Aurora')).toBeTruthy();
+    expect(view.queryByLabelText('Usar Banda Horizonte')).toBeNull();
+
+    await fireEvent.press(view.getByLabelText('Usar Trio Aurora'));
+
+    expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+  });
+});
