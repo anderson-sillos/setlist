@@ -86,7 +86,9 @@ begin
   insert into auth.users (id, aud, role, email)
   values (test_user_id, 'authenticated', 'authenticated', 'task-4-3@example.test');
   insert into public.profiles (id, display_name)
-  values (test_user_id, 'Teste 4.3');
+  values (test_user_id, 'Teste 4.3')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
   insert into public.bands (id, name)
   values (test_band_id, 'Banda de teste 4.3');
 end;

@@ -10,7 +10,6 @@ import { AuthErrorNotice } from '@/features/auth/AuthErrorNotice';
 import { AuthLoadingState } from '@/features/auth/AuthLoadingState';
 import { AuthProviderIcon } from '@/features/auth/AuthProviderIcon';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
-import { AuthSuccessCard } from '@/features/auth/AuthSuccessCard';
 import {
   AuthFlowError,
   signInWithSocialProvider,
@@ -22,11 +21,6 @@ import { radii, spacing } from '@/theme/tokens';
 type AuthState =
   | { readonly status: 'idle' }
   | { readonly status: 'loading'; readonly provider: SocialAuthProvider }
-  | {
-      readonly email?: string;
-      readonly inviteToken?: string;
-      readonly status: 'success';
-    }
   | { readonly message: string; readonly status: 'error' };
 
 export function AuthScreen() {
@@ -65,11 +59,12 @@ export function AuthScreen() {
         if (result.session) {
           setSession(result.session);
         }
-        setAuthState({
-          email: result.session?.user.email,
-          inviteToken: result.inviteToken ?? inviteToken,
-          status: 'success',
-        });
+        const nextInviteToken = result.inviteToken ?? inviteToken;
+        router.replace(
+          (nextInviteToken
+            ? getInvitePath(nextInviteToken, { resumed: true })
+            : '/') as Href,
+        );
       }
     } catch (error) {
       const message =
@@ -79,20 +74,6 @@ export function AuthScreen() {
       setAuthState({ message, status: 'error' });
     }
   }
-
-  function handleContinue() {
-    if (authState.status !== 'success') {
-      return;
-    }
-
-    router.replace(
-      (authState.inviteToken
-        ? getInvitePath(authState.inviteToken, { resumed: true })
-        : '/') as Href,
-    );
-  }
-
-  const isSuccess = authState.status === 'success';
 
   return (
     <Screen contentStyle={styles.authContent} testID="auth-screen">
@@ -115,62 +96,48 @@ export function AuthScreen() {
         </View>
 
         <View style={styles.centerContent}>
-          {isSuccess ? (
-            <AppText style={styles.loginExplanation} tone="muted">
-              Seu acesso está pronto. Confira a confirmação abaixo.
-            </AppText>
-          ) : (
-            <AppText style={styles.loginExplanation} tone="muted">
-              Entre com sua conta Google. O acesso com Apple chegará em breve.
-              Se ainda não tiver banda, você pode aceitar um convite depois.
-            </AppText>
-          )}
-          {inviteToken && !isSuccess ? (
+          <AppText style={styles.loginExplanation} tone="muted">
+            Entre com sua conta Google. O acesso com Apple chegará em breve. Se
+            ainda não tiver banda, você pode aceitar um convite depois.
+          </AppText>
+          {inviteToken ? (
             <AppText style={styles.inviteNotice} tone="accent">
               O convite foi guardado e volta com você depois do login.
             </AppText>
           ) : null}
 
-          {isSuccess ? (
-            <AuthSuccessCard
-              email={authState.email}
-              onContinue={handleContinue}
-              withInvite={Boolean(authState.inviteToken)}
+          <Card style={styles.card}>
+            {authState.status === 'loading' ? (
+              <AuthLoadingState
+                label={
+                  authState.provider === 'google'
+                    ? 'Abrindo Google…'
+                    : 'Abrindo Apple…'
+                }
+              />
+            ) : null}
+            <AppButton
+              disabled={authState.status === 'loading'}
+              leading={<AuthProviderIcon provider="google" size={28} />}
+              label="Continuar com Google"
+              onPress={() => void handleSignIn('google')}
+              testID="auth-google"
+              variant="secondary"
             />
-          ) : (
-            <Card style={styles.card}>
-              {authState.status === 'loading' ? (
-                <AuthLoadingState
-                  label={
-                    authState.provider === 'google'
-                      ? 'Abrindo Google…'
-                      : 'Abrindo Apple…'
-                  }
-                />
-              ) : null}
-              <AppButton
-                disabled={authState.status === 'loading'}
-                leading={<AuthProviderIcon provider="google" size={28} />}
-                label="Continuar com Google"
-                onPress={() => void handleSignIn('google')}
-                testID="auth-google"
-                variant="secondary"
-              />
-              <AppButton
-                disabled
-                leading={<AuthProviderIcon provider="apple" size={28} />}
-                label="Continuar com Apple (em breve)"
-                onPress={() => undefined}
-                testID="auth-apple"
-                variant="secondary"
-              />
-              {authState.status === 'error' ? (
-                <AuthErrorNotice message={authState.message} />
-              ) : null}
-            </Card>
-          )}
+            <AppButton
+              disabled
+              leading={<AuthProviderIcon provider="apple" size={28} />}
+              label="Continuar com Apple (em breve)"
+              onPress={() => undefined}
+              testID="auth-apple"
+              variant="secondary"
+            />
+            {authState.status === 'error' ? (
+              <AuthErrorNotice message={authState.message} />
+            ) : null}
+          </Card>
 
-          {!isSuccess && inviteToken ? (
+          {inviteToken ? (
             <Link href={getInvitePath(inviteToken) as Href} replace asChild>
               <AppButton label="Voltar" variant="secondary" />
             </Link>

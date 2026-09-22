@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -16,6 +17,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import type { BandInvitation } from '@/domain';
 import type { CreatedInvitation } from '@/data/supabase/invitationMutations';
+import { formatDateOnly } from '@/utils/dateTime';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 interface BandInvitationDialogProps {
@@ -35,6 +37,24 @@ const statusLabels = {
   revoked: 'Revogado',
   used: 'Utilizado',
 } as const;
+
+function formatInvitationStatus(invitation: BandInvitation): string {
+  const date =
+    invitation.status === 'used'
+      ? invitation.usedAt
+        ? formatDateOnly(invitation.usedAt)
+        : null
+      : formatDateOnly(invitation.expiresAt);
+
+  if (!date) {
+    return statusLabels[invitation.status];
+  }
+
+  const dateDescription =
+    invitation.status === 'used' ? 'aceito em' : 'válido até';
+
+  return `${statusLabels[invitation.status]} · ${dateDescription} ${date}`;
+}
 
 export function BandInvitationDialog({
   errorMessage,
@@ -87,7 +107,13 @@ export function BandInvitationDialog({
       transparent
       visible={visible}
     >
-      <View accessibilityViewIsModal style={styles.modalLayer}>
+      <KeyboardAvoidingView
+        accessibilityViewIsModal
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+        style={styles.modalLayer}
+        testID="band-invitation-keyboard-layout"
+      >
         <Pressable
           accessibilityLabel="Fechar convites tocando fora"
           accessibilityRole="button"
@@ -181,10 +207,7 @@ export function BandInvitationDialog({
                   <View style={styles.invitationCopy}>
                     <AppText>{invitation.label ?? 'Sem rótulo'}</AppText>
                     <AppText tone="muted" variant="caption">
-                      {statusLabels[invitation.status]} · válido até{' '}
-                      {new Date(invitation.expiresAt).toLocaleDateString(
-                        'pt-BR',
-                      )}
+                      {formatInvitationStatus(invitation)}
                     </AppText>
                   </View>
                   {invitation.status === 'active' ? (
@@ -218,7 +241,7 @@ export function BandInvitationDialog({
             <AppButton label="Fechar" onPress={onClose} variant="secondary" />
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

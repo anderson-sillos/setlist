@@ -1,6 +1,6 @@
 begin;
 
-select plan(12);
+select plan(15);
 
 select is(
   (select count(*)::integer
@@ -22,12 +22,17 @@ select is(
 do $$
 declare
   owner_id uuid := '00000000-0000-0000-0000-000000000075';
+  invitee_id uuid := '00000000-0000-0000-0000-000000000077';
   band_id uuid := '00000000-0000-0000-0000-000000000076';
 begin
   insert into auth.users (id, aud, role, email)
-  values (owner_id, 'authenticated', 'authenticated', 'task-5-6-owner@example.test');
+  values
+    (owner_id, 'authenticated', 'authenticated', 'task-5-6-owner@example.test'),
+    (invitee_id, 'authenticated', 'authenticated', 'task-5-6-invitee@example.test');
   insert into public.profiles (id, display_name)
-  values (owner_id, 'Owner 5.6');
+  values (owner_id, 'Owner 5.6')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
   insert into public.bands (id, name)
   values (band_id, 'Banda de teste 5.6');
   insert into public.band_members (band_id, user_id, role)
@@ -37,6 +42,11 @@ begin
     band_id,
     'convite-task-5-6-preview',
     'Tecladista'
+  );
+  perform public.create_invitation(
+    band_id,
+    'convite-task-5-6-replay',
+    'Retorno'
   );
 end;
 $$;
@@ -107,6 +117,36 @@ select ok(
     where token_hash in ('convite-task-5-6-preview', 'convite-task-5-6-renovado')
   ),
   'raw tokens never appear in invitation storage'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-0000-0000-000000000077',
+  true
+);
+select public.accept_invitation('convite-task-5-6-replay');
+select is(
+  (select already_accepted
+   from public.get_invitation_preview('convite-task-5-6-replay')),
+  true,
+  'a person can resolve their own previously accepted invitation'
+);
+select is(
+  (select band_id
+   from public.get_invitation_preview('convite-task-5-6-replay')),
+  '00000000-0000-0000-0000-000000000076'::uuid,
+  'the replay resolution points to the band the person joined'
+);
+select set_config(
+  'request.jwt.claim.sub',
+  '00000000-0000-0000-0000-000000000075',
+  true
+);
+select throws_ok(
+  $$select * from public.get_invitation_preview('convite-task-5-6-replay')$$,
+  'P0001',
+  null,
+  'a consumed invitation cannot be resolved by another person'
 );
 
 select * from finish();

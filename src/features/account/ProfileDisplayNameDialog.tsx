@@ -15,30 +15,32 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
-interface AccountDeletionDialogProps {
+interface ProfileDisplayNameDialogProps {
   readonly errorMessage: string | null;
+  readonly initialName: string;
   readonly isSubmitting: boolean;
   readonly onClose: () => void;
-  readonly onConfirm: () => void;
+  readonly onSave: (name: string) => void;
   readonly visible: boolean;
 }
 
-const CONFIRMATION_TEXT = 'EXCLUIR';
-
-export function AccountDeletionDialog({
+export function ProfileDisplayNameDialog({
   errorMessage,
+  initialName,
   isSubmitting,
   onClose,
-  onConfirm,
+  onSave,
   visible,
-}: AccountDeletionDialogProps) {
-  const [confirmation, setConfirmation] = useState('');
+}: ProfileDisplayNameDialogProps) {
+  const [draftName, setDraftName] = useState(initialName);
 
   if (!visible) {
     return null;
   }
 
-  const canDelete = confirmation.trim().toUpperCase() === CONFIRMATION_TEXT;
+  const normalizedName = draftName.trim();
+  const normalizedLength = Array.from(normalizedName).length;
+  const canSave = normalizedLength > 0 && normalizedLength <= 120;
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
@@ -46,11 +48,11 @@ export function AccountDeletionDialog({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
         style={styles.keyboardAvoidingView}
-        testID="account-deletion-keyboard-layout"
+        testID="profile-display-name-keyboard-layout"
       >
         <View accessibilityViewIsModal style={styles.modalLayer}>
           <Pressable
-            accessibilityLabel="Fechar exclusão da conta"
+            accessibilityLabel="Fechar edição do nome"
             accessibilityRole="button"
             disabled={isSubmitting}
             onPress={onClose}
@@ -59,14 +61,14 @@ export function AccountDeletionDialog({
           <View
             accessibilityLiveRegion="polite"
             style={styles.dialog}
-            testID="account-deletion-dialog"
+            testID="profile-display-name-dialog"
           >
             <View style={styles.header}>
               <AppText accessibilityRole="header" variant="heading">
-                Excluir conta
+                Editar nome de exibição
               </AppText>
               <Pressable
-                accessibilityLabel="Fechar exclusão da conta"
+                accessibilityLabel="Fechar edição do nome"
                 accessibilityRole="button"
                 disabled={isSubmitting}
                 hitSlop={spacing.sm}
@@ -85,29 +87,27 @@ export function AccountDeletionDialog({
               keyboardShouldPersistTaps="handled"
               style={styles.formScroll}
             >
-              <AppText>
-                Esta ação é permanente. Seu perfil e sua sessão serão removidos.
-                O conteúdo das bandas continuará disponível para os demais
-                integrantes.
-              </AppText>
               <AppText tone="muted">
-                Se você for o único integrante de uma banda, exclua essa banda
-                antes de excluir a conta.
+                Esse é o nome que aparece para você e para os integrantes das
+                suas bandas.
               </AppText>
               <View style={styles.fieldGroup}>
-                <AppText variant="caption">
-                  Digite {CONFIRMATION_TEXT} para confirmar
-                </AppText>
+                <AppText variant="caption">Nome</AppText>
                 <TextInput
-                  accessibilityLabel="Confirmação da exclusão da conta"
-                  autoCapitalize="characters"
+                  accessibilityLabel="Nome de exibição"
+                  autoCapitalize="words"
                   autoFocus
-                  onChangeText={setConfirmation}
-                  placeholder={CONFIRMATION_TEXT}
+                  maxLength={240}
+                  onChangeText={setDraftName}
+                  placeholder="Como devemos chamar você?"
                   placeholderTextColor={colors.muted}
+                  returnKeyType="done"
                   style={styles.input}
-                  value={confirmation}
+                  value={draftName}
                 />
+                <AppText style={styles.characterCount} variant="caption">
+                  {normalizedLength}/120
+                </AppText>
               </View>
               {errorMessage ? (
                 <AppText accessibilityRole="alert" style={styles.errorText}>
@@ -121,14 +121,16 @@ export function AccountDeletionDialog({
                 disabled={isSubmitting}
                 label="Cancelar"
                 onPress={onClose}
+                style={styles.actionButton}
                 variant="secondary"
               />
               <AppButton
-                accessibilityLabel="Confirmar exclusão da conta"
-                disabled={isSubmitting || !canDelete}
-                icon="close"
-                label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
-                onPress={onConfirm}
+                accessibilityLabel="Salvar nome de exibição"
+                disabled={!canSave || isSubmitting}
+                icon="check"
+                label={isSubmitting ? 'Salvando…' : 'Salvar'}
+                onPress={() => onSave(normalizedName)}
+                style={styles.actionButton}
               />
             </View>
           </View>
@@ -139,81 +141,80 @@ export function AccountDeletionDialog({
 }
 
 const styles = StyleSheet.create({
-  actions: {
-    borderTopColor: colors.line,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    justifyContent: 'flex-end',
-    padding: spacing.lg,
-  },
-  closeButton: {
-    alignItems: 'center',
-    borderRadius: radii.pill,
-    height: layout.minimumTouchTarget,
-    justifyContent: 'center',
-    width: layout.minimumTouchTarget,
-  },
-  content: {
-    gap: spacing.lg,
-    padding: spacing.xl,
-  },
-  dialog: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    maxHeight: '90%',
-    maxWidth: 520,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  errorText: {
-    color: '#b91c1c',
-  },
-  fieldGroup: {
-    gap: spacing.xs,
-  },
-  formScroll: {
-    flexGrow: 0,
-    flexShrink: 1,
-  },
-  header: {
-    alignItems: 'center',
-    borderBottomColor: colors.line,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  input: {
-    borderColor: colors.line,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    color: colors.ink,
-    fontSize: 16,
-    minHeight: layout.minimumTouchTarget,
-    paddingHorizontal: spacing.md,
-    ...(Platform.OS === 'web' ? { outlineWidth: 0 } : {}),
-  },
   keyboardAvoidingView: {
     flex: 1,
+    justifyContent: 'center',
   },
   modalLayer: {
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    padding: spacing.xl,
+    padding: spacing.lg,
+  },
+  scrim: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(11, 16, 32, 0.6)',
+  },
+  dialog: {
+    backgroundColor: colors.paper,
+    borderColor: colors.line,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    gap: spacing.md,
+    maxHeight: '85%',
+    maxWidth: layout.contentMaxWidth,
+    padding: spacing.lg,
+    width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  closeButton: {
+    alignItems: 'center',
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  formScroll: {
+    flexShrink: 1,
+  },
+  content: {
+    gap: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  fieldGroup: {
+    gap: spacing.xs,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    color: colors.ink,
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  characterCount: {
+    alignSelf: 'flex-end',
+    color: colors.muted,
+  },
+  errorText: {
+    color: colors.violetDark,
+  },
+  actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+    minWidth: 120,
   },
   pressed: {
     opacity: 0.72,
-  },
-  scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
   },
 });

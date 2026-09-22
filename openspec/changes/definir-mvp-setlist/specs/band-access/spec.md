@@ -49,6 +49,44 @@ O sistema SHALL permitir que uma pessoa participe de várias bandas e SHALL limi
 - **WHEN** uma pessoa retorna à aplicação e ainda participa da última banda selecionada
 - **THEN** o sistema restaura essa banda como contexto ativo
 
+### Requirement: Perfil sincronizado e nome de exibição canônico
+O sistema SHALL sincronizar os dados básicos da identidade autenticada para `profiles` e SHALL usar `profiles.display_name` como fonte canônica para apresentar integrantes em toda a aplicação. O nome de exibição SHALL poder ser personalizado pela própria pessoa e MUST NOT ser sobrescrito por sincronizações posteriores do provedor.
+
+#### Scenario: Sincronizar a identidade do provedor
+- **WHEN** o provedor cria ou atualiza nome, e-mail ou avatar na identidade autenticada
+- **THEN** o sistema atualiza em `profiles` os dados de origem, e-mail e avatar e usa o nome do provedor como nome de exibição apenas enquanto a pessoa não tiver escolhido um nome próprio
+
+#### Scenario: Personalizar nome de exibição
+- **WHEN** uma pessoa autenticada salva um nome de exibição válido no próprio perfil
+- **THEN** o sistema persiste `profiles.display_name`, marca o nome como personalizado e preserva esse valor após novos logins ou atualizações do provedor
+
+#### Scenario: Tentar editar o perfil de outra pessoa
+- **WHEN** uma pessoa tenta alterar o perfil ou o nome de exibição de outro usuário
+- **THEN** o backend rejeita a operação e mantém inalterados os dados do perfil de destino
+
+#### Scenario: Exibir identidade da pessoa
+- **WHEN** a aplicação mostra a pessoa autenticada no menu, em Perfil e conta ou em uma lista de integrantes
+- **THEN** ela usa o nome e o avatar consultados de `profiles`, sem substituir o nome pelo valor da sessão ou dos metadados do provedor
+
+#### Scenario: Alinhar identidade no menu lateral
+- **WHEN** o menu lateral apresenta avatar, nome e e-mail da pessoa
+- **THEN** o avatar fica centralizado verticalmente junto à coluna de texto e o e-mail começa alinhado à esquerda com o nome
+
+#### Scenario: Manter nome e e-mail no mesmo bloco
+- **WHEN** o menu lateral mostra o nome e o e-mail junto ao avatar em uma tela estreita
+- **THEN** ambos permanecem em uma coluna de texto agrupada, com o e-mail abaixo do nome e alinhado à sua esquerda
+
+### Requirement: Formulários acessíveis com o teclado móvel
+O sistema SHALL manter campos de texto, conteúdo rolável e ações dos formulários acessíveis quando o teclado virtual estiver aberto em um aplicativo móvel.
+
+#### Scenario: Abrir o teclado em formulário de criação, edição ou confirmação
+- **WHEN** uma pessoa foca um campo de texto em um formulário do aplicativo móvel
+- **THEN** a janela se ajusta ao teclado e permite rolar o formulário para alcançar o campo e suas ações sem sobreposição
+
+#### Scenario: Avatar ausente ou indisponível
+- **WHEN** um perfil não possui URL de avatar ou a imagem não pode ser carregada
+- **THEN** a aplicação mostra iniciais ao lado do nome sem quebrar a linha ou a navegação
+
 ### Requirement: Consulta de Minhas bandas
 O sistema SHALL apresentar as participações em uma lista rolável, SHALL destacar primeiro a última banda acessada e SHALL permitir busca por nome sem oferecer filtros adicionais.
 
@@ -79,6 +117,10 @@ O sistema SHALL aplicar os papéis Owner, Editor e Member tanto na interface qua
 - **WHEN** um Editor tenta convidar ou remover integrante, alterar papel, promover Owner, excluir ou administrar a banda
 - **THEN** o sistema rejeita a operação
 
+#### Scenario: Criador abre uma banda recém-criada
+- **WHEN** o Owner abre os detalhes da banda logo após criá-la
+- **THEN** a aplicação atualiza a participação e apresenta as opções de manutenção e convite permitidas ao Owner
+
 #### Scenario: Member tenta alterar conteúdo
 - **WHEN** um Member tenta criar, alterar, arquivar ou excluir conteúdo compartilhado
 - **THEN** o sistema rejeita a operação e mantém acesso somente de leitura, download móvel e modo palco
@@ -98,12 +140,20 @@ O sistema SHALL permitir que Owners mantenham vários links de convite ativos si
 - **WHEN** uma pessoa não autenticada abre um convite em aplicativo ou navegador
 - **THEN** o sistema preserva o convite durante o login e retoma sua confirmação depois da autenticação
 
+#### Scenario: Reabrir um convite já aceito pela mesma pessoa
+- **WHEN** o aplicativo restaura após reinicialização um link de convite que já foi aceito pela pessoa autenticada, cuja participação ainda está ativa
+- **THEN** o backend reconhece o aceite apenas para essa pessoa e a aplicação remove a rota obsoleta, direcionando-a para `Minhas bandas` sem reapresentar o erro de convite utilizado
+
+#### Scenario: Consultar um convite já aceito
+- **WHEN** um Owner consulta o histórico de convites e um convite está utilizado
+- **THEN** a aplicação mostra a data de aceite quando disponível em `used_at`, não mostra a data de expiração e omite qualquer data se o aceite não tiver timestamp
+
 #### Scenario: Abrir convite no dispositivo disponível
 - **WHEN** uma pessoa abre o link HTTPS de um convite
 - **THEN** o sistema abre o aplicativo associado quando possível ou continua o fluxo na versão web
 
 #### Scenario: Recusar convite indisponível
-- **WHEN** uma pessoa tenta aceitar um convite expirado, revogado ou já utilizado
+- **WHEN** uma pessoa tenta aceitar um convite expirado, revogado ou já utilizado por outra pessoa
 - **THEN** o sistema não cria participação e informa que o convite não está mais disponível
 
 #### Scenario: Substituir convite indisponível
@@ -158,6 +208,10 @@ O sistema MUST permitir a exclusão de uma banda somente quando o Owner solicita
 #### Scenario: Tentar excluir banda com outros integrantes
 - **WHEN** um Owner tenta excluir uma banda que ainda possui outros integrantes
 - **THEN** o sistema bloqueia a operação e orienta a transferência de responsabilidades ou a remoção prévia dos demais integrantes
+
+#### Scenario: Confirmar exclusão com o teclado aberto no Android
+- **WHEN** o Owner digita o nome da banda no campo de confirmação em um aparelho Android
+- **THEN** a janela se ajusta ao teclado e permite rolar o formulário para manter o campo e as ações acessíveis
 
 ### Requirement: Exclusão de conta e preservação do conteúdo
 O sistema SHALL oferecer exclusão de conta dentro da aplicação, remover os dados pessoais e as sessões da pessoa e preservar o conteúdo pertencente às bandas remanescentes.

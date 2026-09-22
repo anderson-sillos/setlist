@@ -61,6 +61,8 @@ describe('<BandInvitationDialog />', () => {
       />,
     );
 
+    expect(view.getByTestId('band-invitation-keyboard-layout')).toBeTruthy();
+
     await fireEvent.changeText(
       view.getByLabelText('Rótulo do convite'),
       '  Vocalista  ',
@@ -73,6 +75,28 @@ describe('<BandInvitationDialog />', () => {
     expect(onRevoke).toHaveBeenCalledWith('invite-active');
     await fireEvent.press(view.getByLabelText('Renovar convite'));
     await waitFor(() => expect(onRenew).toHaveBeenCalledWith('invite-expired'));
+    expect(view.getByText('Utilizado · aceito em 20/09/2026')).toBeTruthy();
+    expect(view.getByText(/Ativo · válido até 20\/09\/2099/)).toBeTruthy();
+  });
+
+  it('não mostra datas de convites utilizados sem data de aceite', async () => {
+    const usedInvitation = { ...invitations[2], usedAt: null };
+    const view = await render(
+      <BandInvitationDialog
+        errorMessage={null}
+        invitations={[usedInvitation]}
+        isSubmitting={false}
+        onClose={jest.fn()}
+        onCreate={jest.fn(async () => null)}
+        onRenew={jest.fn(async () => null)}
+        onRevoke={jest.fn()}
+        visible
+      />,
+    );
+
+    expect(view.getByText('Utilizado')).toBeTruthy();
+    expect(view.queryByText(/aceito em|válido até/)).toBeNull();
+    expect(view.queryByText(/2099/)).toBeNull();
   });
 
   it('mostra estado vazio e erro sem expor ações quando está submetendo', async () => {

@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a implementação da tarefa 5.1 segue em andamento por causa do iOS nativo adiado; o login foi validado manualmente na web, no Expo Go Android e no development build Android com Google nativo. As tarefas 5.2, 5.3, 5.4, 5.5, 5.6 e 5.7 foram implementadas e validadas manualmente; a 5.8 foi implementada e aguarda validação manual. A 5.3 foi validada incluindo restauração da sessão, seleção persistida da última banda autorizada e o fluxo sem banda. A criação de banda agora exige aceite explícito e grava o usuário, Owner, versão do termo e horário do servidor pela RPC transacional do Supabase; as migrações foram publicadas nos projetos hospedados de desenvolvimento e produção. A consulta de bandas autenticadas usa o repositório remoto, a lista é atualizada após uma nova criação, edição ou exclusão e as bandas demonstrativas permanecem temporariamente disponíveis com identificação visual. A área Banda agrupa integrantes por papel, identifica a própria pessoa e oferece promoção, rebaixamento, remoção, saída voluntária, edição do nome e exclusão reforçada da banda somente para Owners; o botão `...` abre diretamente a edição, enquanto `Convidar` fica junto da lista de membros. A migração de identidade preenche perfis existentes e sincroniza nome/e-mail do provedor para evitar o rótulo `Usuário removido`. As mutações reais passam pelo Supabase e continuam protegidas pelo RLS e pelo bloqueio do último Owner. Repertório, shows e demais áreas seguem demonstrativos até suas tarefas de leitura remota. O domínio canônico definido para a publicação web é `https://setlistbr.app.br/`; o Registro.br ainda está concluindo a transição DNS. A validação manual da tarefa 5.8 é o próximo passo; depois seguirá a tarefa 5.9.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.6 cobre convite de uso único, retorno ao app, descarte de deep link já aceito e exibição da data de aceite; a 5.8 cobre exclusão de conta/banda, proteção do último Owner e limpeza; a 5.9 sincroniza e permite editar o perfil, usando `profiles` como identidade canônica. O layout do menu e o ajuste de formulários ao teclado foram validados no Android. As migrações recentes foram aplicadas ao Supabase de desenvolvimento; produção permaneceu intocada. `npm run validate` passou com 60 suítes e 326 testes; a suíte SQL local passou com 13 arquivos e 253 testes, e o Supabase local foi desligado após os testes. O callback OAuth web foi corrigido, publicado no GitHub Pages e validado manualmente sem o 404 do bundle. O PR #14 segue aberto até a integração final. Permanecem futuras a validação do provedor Apple/iOS na tarefa 5.1, a execução ponta a ponta multiplataforma da 5.10 e as atividades dos grupos seguintes.
 
 ## Fontes de verdade
 
@@ -280,6 +280,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Preferir squash merge, pois o repositório não aceita rebase merge.
 - Atualizar este handoff ao final de cada grupo quando estado, decisões, riscos ou próximos passos mudarem.
 - Não misturar mudanças não relacionadas no mesmo commit ou PR.
+- Após testes locais aprovados de alterações do Supabase, conferir o remoto de desenvolvimento vinculado com `npx --yes supabase@latest db push --linked --dry-run`, aplicar as migrações pendentes com `npx --yes supabase@latest db push --linked` e confirmar novamente que não restam pendências. Não publicar no projeto de produção sem pedido explícito.
+- Iniciar o Supabase local somente quando necessário e executar `npx --yes supabase@latest stop` ao terminar seu uso.
 
 ## Histórico de PRs relevante
 
@@ -336,19 +338,42 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      hidratação e o fluxo OAuth. O workflow agora injeta em cada HTML exportado um
      `<base>` dinâmico: `/` no domínio canônico, `/app/` na cópia de conveniência e
      `/setlist/app/` na prévia `github.io`, incluindo o `404.html`. Assim as rotas
-     aninhadas devem buscar os bundles no diretório correto. A publicação e a
-     validação dos caminhos de callback/invite ainda precisam ser feitas após o
-     próximo deploy.
+     aninhadas buscam os bundles no diretório correto. A atualização está incluída
+     na PR #14 e será publicada pelo workflow do Pages após a integração em `main`.
+
+104. A rodada final da PR #14 adicionou a sincronização de perfil por meio da
+     migração `20260922120000_sync_editable_profiles.sql`, edição de nome de
+     exibição, avatar com fallback por iniciais e uso de `profiles` como identidade
+     canônica. A migração `20260922130000_resolve_accepted_invitation_replay.sql`
+     resolve a reabertura do deep link de um convite já aceito pela mesma pessoa e
+     a lista de convites exibe `used_at` em vez da expiração. O menu agora mantém
+     nome e e-mail na mesma coluna ao lado do avatar. O teclado virtual reposiciona
+     formulários móveis existentes de criação, edição e confirmação; a confirmação
+     de exclusão da banda mantém o campo e as ações acessíveis. O usuário validou
+     manualmente os ajustes visuais e de teclado no Android. O projeto passou em
+     `npm run validate` (60 suítes, 326 testes), `git diff --check` e
+     `openspec validate definir-mvp-setlist --type change --strict`; as migrações
+     foram aplicadas ao Supabase de desenvolvimento e um dry-run confirmou que o
+     remoto estava atualizado. Após a validação manual, as tarefas 5.8 e 5.9 foram
+     concluídas; a tarefa 5.10, de testes ponta a ponta nas três plataformas,
+     continua no roadmap.
+
+105. A tentativa de eliminar o 404 em `/auth/callback` apenas inserindo um `<base>`
+     dinâmico ainda permitia que o navegador descobrisse antecipadamente o `src`
+     relativo `./_expo/...` e requisitasse `/auth/_expo/...`. O script
+     `scripts/prepare-pages-html.mjs` agora substitui o `src` estático por um
+     carregador que calcula o caminho antes de criar a tag do bundle, preservando
+     o domínio canônico, `/app/` e a prévia `github.io`. O commit `785af60` foi
+     publicado pelo workflow `35741870191`; o HTML ao vivo resolve diretamente o
+     bundle na raiz, que responde `200`, e o usuário validou manualmente o login
+     publicado sem o 404.
 
 ## Próxima ação recomendada
 
-Validar no navegador Android que `/auth/callback` e `/invite/<token>` carregam seus
-bundles após o deploy; depois, testar o link no dev-client e conferir o estado com
-`adb shell pm get-app-links com.andersonsillos.setlist`. Se o navegador continuar
-abrindo em vez do app, comparar o certificado SHA-256 do APK instalado com o
-`assetlinks.json`. A tarefa 11.5 continua pendente da validação nativa Android e da
-configuração/build/validação iOS. Também permanece a validação manual da tarefa
-5.8: excluir uma conta Member e confirmar que a banda e seu conteúdo permanecem;
-excluir uma conta Owner quando outro Owner permanece; confirmar o bloqueio do
-último Owner; excluir uma banda solo e depois a conta; e confirmar a limpeza local
-e o retorno ao login. Depois da aprovação da tarefa 5.8, seguir para a tarefa 5.9.
+Concluir a PR #14 por squash mantendo o histórico do handoff. As tarefas 5.8 e
+5.9 estão concluídas; permanecem pendentes a habilitação/validação do provedor
+Apple e do login no iOS (5.1), os
+testes ponta a ponta de papéis e convites nas três plataformas (5.10) e Android
+App Links/configuração e validação iOS (11.5). O change OpenSpec
+`definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
+contém os grupos futuros de repertório, shows, modo palco e offline.

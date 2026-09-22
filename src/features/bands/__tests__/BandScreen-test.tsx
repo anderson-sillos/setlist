@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { demoIds } from '@/data/demo';
+import { createBand } from '@/data/supabase/bandMutations';
 import type { AppRepositories, Band, BandMember } from '@/domain';
 import {
   deleteBand,
@@ -35,6 +36,15 @@ jest.mock('@/data/supabase/bandAdministrationMutations', () => {
   };
 });
 
+jest.mock('@/data/supabase/bandMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/bandMutations');
+
+  return {
+    ...actual,
+    createBand: jest.fn(),
+  };
+});
+
 jest.mock('@/data/supabase/invitationMutations', () => {
   const actual = jest.requireActual('@/data/supabase/invitationMutations');
 
@@ -57,6 +67,7 @@ jest.mock('@/data/supabase/bandMemberMutations', () => {
 
 const mockDeleteBand = jest.mocked(deleteBand);
 const mockUpdateBandName = jest.mocked(updateBandName);
+const mockCreateBand = jest.mocked(createBand);
 const mockCreateInvitation = jest.mocked(createInvitation);
 const mockListInvitations = jest.mocked(listInvitations);
 const mockUpdateBandMemberRole = jest.mocked(updateBandMemberRole);
@@ -110,6 +121,49 @@ function createMutableBandRepositories() {
       if (band) {
         band = { ...band, name };
       }
+    },
+    repositories,
+  };
+}
+
+function createNewBandRepositories() {
+  let band: Band | null = null;
+  let owner: BandMember | null = null;
+
+  const repositories: AppRepositories = {
+    bands: {
+      findById: async (bandId) => (band?.id === bandId ? band : null),
+      listForUser: async (userId) =>
+        band && owner?.userId === userId ? [{ band, membership: owner }] : [],
+      listMembers: async (bandId) =>
+        band?.id === bandId && owner ? [owner] : [],
+    },
+    shows: {
+      findById: async () => null,
+      listByBandId: async () => [],
+    },
+    songs: {
+      findById: async () => null,
+      listByBandId: async () => [],
+    },
+  };
+
+  return {
+    addBand: (id: string, name: string) => {
+      band = {
+        createdAt: '2026-09-22T12:00:00.000Z',
+        id,
+        name,
+        updatedAt: '2026-09-22T12:00:00.000Z',
+      };
+      owner = {
+        bandId: id,
+        displayName: 'Owner Real',
+        id: 'membership-created',
+        joinedAt: '2026-09-22T12:00:00.000Z',
+        role: 'owner',
+        userId: 'user-real',
+      };
     },
     repositories,
   };
@@ -200,6 +254,43 @@ describe('<BandScreen />', () => {
       expect(view.getByLabelText('Abrir Banda Atualizada')).toBeTruthy();
       expect(view.queryByLabelText('Abrir Banda Inicial')).toBeNull();
     });
+  });
+
+  it('atualiza as permissões ao abrir uma banda recém-criada', async () => {
+    const state = createNewBandRepositories();
+    mockCreateBand.mockImplementation(async ({ name }) => {
+      state.addBand('band-created-remotely', name.trim());
+      return 'band-created-remotely';
+    });
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandsScreen />
+        <BandScreen bandId="band-created-remotely" />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Seu palco ainda está vazio')).toBeTruthy();
+    expect(view.queryByLabelText('Editar banda')).toBeNull();
+    await fireEvent.press(view.getAllByLabelText('Criar banda')[0]);
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da banda'),
+      'Banda Nova',
+    );
+    await fireEvent.press(
+      view.getByLabelText('Aceitar termo de responsabilidade'),
+    );
+    await fireEvent.press(view.getByLabelText('Confirmar criação da banda'));
+
+    await waitFor(() => {
+      expect(mockCreateBand).toHaveBeenCalled();
+      expect(view.getByLabelText('Editar banda')).toBeTruthy();
+      expect(view.getByLabelText('Convidar integrante')).toBeTruthy();
+      expect(view.getByLabelText('Abrir Banda Nova')).toBeTruthy();
+    });
+
+    await fireEvent.press(view.getByLabelText('Editar banda'));
+    expect(view.getByLabelText('Novo nome da banda')).toBeTruthy();
   });
 
   it('abre a administração de convites para uma banda real', async () => {

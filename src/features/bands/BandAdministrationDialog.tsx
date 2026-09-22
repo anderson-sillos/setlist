@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -50,7 +51,13 @@ export function BandAdministrationDialog({
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
-      <View accessibilityViewIsModal style={styles.modalLayer}>
+      <KeyboardAvoidingView
+        accessibilityViewIsModal
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+        style={styles.modalLayer}
+        testID="band-administration-keyboard-layout"
+      >
         <Pressable
           accessibilityLabel="Fechar edição da banda"
           accessibilityRole="button"
@@ -86,6 +93,7 @@ export function BandAdministrationDialog({
             contentContainerStyle={styles.formContent}
             keyboardShouldPersistTaps="handled"
             style={styles.formScroll}
+            testID="band-administration-form-scroll"
           >
             {mode === 'rename' ? (
               <>
@@ -177,7 +185,7 @@ export function BandAdministrationDialog({
             )}
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

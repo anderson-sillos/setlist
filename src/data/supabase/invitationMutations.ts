@@ -22,6 +22,7 @@ export type CreateInvitationInput = {
 };
 
 export type InvitationPreview = {
+  readonly alreadyAccepted: boolean;
   readonly bandId: EntityId;
   readonly bandName: string;
   readonly label: string | null;
@@ -251,6 +252,7 @@ export async function getInvitationPreview(
   }
 
   return {
+    alreadyAccepted: value.already_accepted === true,
     bandId: value.band_id,
     bandName: value.band_name,
     expiresAt: value.expires_at,

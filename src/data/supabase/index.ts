@@ -31,6 +31,11 @@ export {
   createSupabaseBandRepository,
   SupabaseBandRepository,
 } from '@/data/supabase/repositories';
+export {
+  getUserProfile,
+  ProfileMutationError,
+  updateMyDisplayName,
+} from '@/data/supabase/profileMutations';
 export type {
   BandCreationErrorCode,
   CreateBandInput,
@@ -49,3 +54,7 @@ export type {
   InvitationMutationErrorCode,
   InvitationPreview,
 } from '@/data/supabase/invitationMutations';
+export type {
+  ProfileErrorCode,
+  UserProfile,
+} from '@/data/supabase/profileMutations';

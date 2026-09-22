@@ -12,6 +12,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { demoIds } from '@/data/demo';
 import {
   useBand,
@@ -513,21 +514,13 @@ function MemberRow({
   readonly onLeave: () => void;
   readonly onManage: () => void;
 }) {
-  const initials = member.displayName
-    .split(' ')
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toLocaleUpperCase('pt-BR');
-
   return (
     <View style={styles.rowFrame}>
       <View style={styles.memberRow}>
-        <View style={styles.memberAvatar}>
-          <AppText tone="accent" variant="caption">
-            {initials}
-          </AppText>
-        </View>
+        <UserAvatar
+          avatarUrl={member.avatarUrl}
+          displayName={member.displayName}
+        />
         <View style={styles.rowCopy}>
           <View style={styles.rowTitleLine}>
             <AppText>{member.displayName}</AppText>
@@ -613,14 +606,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     minHeight: 68,
     padding: spacing.md,
-  },
-  memberAvatar: {
-    alignItems: 'center',
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.pill,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
   },
   overflowButton: {
     alignItems: 'center',

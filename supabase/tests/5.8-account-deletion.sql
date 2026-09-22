@@ -41,7 +41,9 @@ begin
     (other_owner_id, 'Other Owner 5.8'),
     (blocked_owner_id, 'Blocked Owner 5.8'),
     (blocked_member_id, 'Blocked Member 5.8'),
-    (solo_owner_id, 'Solo Owner 5.8');
+    (solo_owner_id, 'Solo Owner 5.8')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
 
   insert into public.bands (id, name)
   values
@@ -91,6 +93,7 @@ select lives_ok(
   $$select public.delete_account()$$,
   'a Member can delete their account'
 );
+reset role;
 select is(
   (select count(*)::integer from auth.users
    where id = '00000000-0000-0000-0000-000000000261'),
@@ -137,6 +140,7 @@ select is(
   'invitation references are anonymized'
 );
 
+set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '00000000-0000-0000-0000-000000000262',
@@ -146,6 +150,7 @@ select lives_ok(
   $$select public.delete_account()$$,
   'an Owner can delete their account when another Owner remains'
 );
+reset role;
 select is(
   (select count(*)::integer from public.bands
    where id = '00000000-0000-0000-0000-000000000268'),
@@ -153,6 +158,7 @@ select is(
   'the band remains after an Owner leaves by account deletion'
 );
 
+set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '00000000-0000-0000-0000-000000000264',
@@ -184,6 +190,7 @@ select lives_ok(
   $$select public.delete_account()$$,
   'the solo Owner can delete the account after the band'
 );
+reset role;
 select is(
   (select count(*)::integer from auth.users
    where id = '00000000-0000-0000-0000-000000000266'),

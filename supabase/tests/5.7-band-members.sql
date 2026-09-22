@@ -27,7 +27,9 @@ begin
   values
     (owner_id, 'Owner 5.7'),
     (other_owner_id, 'Other Owner 5.7'),
-    (member_id, 'Member 5.7');
+    (member_id, 'Member 5.7')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
   insert into public.bands (id, name)
   values (band_id, 'Banda de teste 5.7');
   insert into public.band_members (band_id, user_id, role)
@@ -48,6 +50,7 @@ select lives_ok(
   $$select public.leave_band('00000000-0000-0000-0000-000000000173')$$,
   'a Member can leave a band'
 );
+reset role;
 select is(
   (select count(*)::integer
    from public.band_members
@@ -55,6 +58,7 @@ select is(
   2,
   'leaving removes only the current membership'
 );
+set local role authenticated;
 select throws_ok(
   $$select public.leave_band('00000000-0000-0000-0000-000000000173')$$,
   'P0001',
@@ -106,6 +110,7 @@ select lives_ok(
   $$select public.leave_band('00000000-0000-0000-0000-000000000173')$$,
   'the remaining non-owner can leave'
 );
+reset role;
 select is(
   (select count(*)::integer
    from public.band_members

@@ -1,4 +1,5 @@
 import { Link, useRouter, type Href } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -14,6 +15,7 @@ import {
 } from '@/data/supabase/invitationMutations';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { useLastBandSelection } from '@/features/bands/LastBandSelection';
+import { useAppData } from '@/providers/AppProviders';
 import { spacing } from '@/theme/tokens';
 
 interface InviteScreenProps {
@@ -33,7 +35,9 @@ export function InviteScreen({
   resumed,
   token,
 }: InviteScreenProps) {
-  const router = useRouter();
+  const { replace: replaceRoute } = useRouter();
+  const queryClient = useQueryClient();
+  const { currentUserId } = useAppData();
   const { setLastBand } = useLastBandSelection();
   const { status: authStatus } = useAuthSession();
   const [preview, setPreview] = useState<InvitationPreview | null>(null);
@@ -59,10 +63,18 @@ export function InviteScreen({
 
     void getInvitationPreview(token)
       .then((nextPreview) => {
-        if (active) {
-          setPreview(nextPreview);
-          setInviteState({ status: 'idle' });
+        if (!active) {
+          return;
         }
+
+        if (nextPreview.alreadyAccepted) {
+          replaceRoute('/' as Href);
+          return;
+        }
+
+        setPreview(nextPreview);
+        setPreviewError(null);
+        setInviteState({ status: 'idle' });
       })
       .catch((error: unknown) => {
         if (!active) {
@@ -83,7 +95,7 @@ export function InviteScreen({
     return () => {
       active = false;
     };
-  }, [hasAuthenticatedContext, token]);
+  }, [hasAuthenticatedContext, replaceRoute, token]);
 
   async function handleAccept() {
     if (!token) {
@@ -94,9 +106,13 @@ export function InviteScreen({
 
     try {
       const bandId = await acceptInvitation(token);
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', 'user', currentUserId],
+        refetchType: 'all',
+      });
       await setLastBand(bandId);
       setInviteState({ status: 'accepted' });
-      router.replace(`/bands/${bandId}/band` as Href);
+      replaceRoute(`/bands/${bandId}/band` as Href);
     } catch (error) {
       setInviteState({
         message:

@@ -225,6 +225,7 @@ describe('convites da banda no Supabase', () => {
       .mockResolvedValueOnce({
         data: [
           {
+            already_accepted: false,
             band_id: 'band-1',
             band_name: 'Banda Horizonte',
             expires_at: '2099-09-20T10:00:00.000Z',
@@ -236,6 +237,7 @@ describe('convites da banda no Supabase', () => {
       .mockResolvedValueOnce({ data: 'band-1', error: null });
 
     await expect(getInvitationPreview('token-uuid')).resolves.toEqual({
+      alreadyAccepted: false,
       bandId: 'band-1',
       bandName: 'Banda Horizonte',
       expiresAt: '2099-09-20T10:00:00.000Z',
@@ -257,6 +259,23 @@ describe('convites da banda no Supabase', () => {
 
     await expect(getInvitationPreview('token-uuid')).resolves.toEqual(
       expect.objectContaining({ label: null }),
+    );
+  });
+
+  it('identifica quando a própria pessoa já aceitou o convite', async () => {
+    rpc.mockResolvedValue({
+      data: {
+        already_accepted: true,
+        band_id: 'band-1',
+        band_name: 'Banda Horizonte',
+        expires_at: '2099-09-20T10:00:00.000Z',
+        label: null,
+      },
+      error: null,
+    });
+
+    await expect(getInvitationPreview('token-uuid')).resolves.toEqual(
+      expect.objectContaining({ alreadyAccepted: true }),
     );
   });
 

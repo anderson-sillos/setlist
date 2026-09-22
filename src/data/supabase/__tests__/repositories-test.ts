@@ -101,6 +101,7 @@ describe('repositório de bandas do Supabase', () => {
           updatedAt: '2026-09-20T10:00:00.000Z',
         },
         membership: {
+          avatarUrl: null,
           bandId: 'band-1',
           displayName: 'Ana Martins',
           id: 'membership-1',
@@ -233,7 +234,12 @@ describe('repositório de bandas do Supabase', () => {
       .mockReturnValueOnce(
         createQuery({
           data: [
-            { display_name: null, email: 'member@example.com', id: 'user-1' },
+            {
+              avatar_url: 'https://img.example.test/member.png',
+              display_name: 'Member Profile',
+              email: 'member@example.com',
+              id: 'user-1',
+            },
           ],
           error: null,
         }),
@@ -243,8 +249,9 @@ describe('repositório de bandas do Supabase', () => {
       new SupabaseBandRepository().listMembers('band-1'),
     ).resolves.toEqual([
       {
+        avatarUrl: 'https://img.example.test/member.png',
         bandId: 'band-1',
-        displayName: 'member@example.com',
+        displayName: 'Member Profile',
         id: 'membership-1',
         joinedAt: '2026-09-20T10:00:00.000Z',
         role: 'member',
@@ -274,7 +281,10 @@ describe('repositório de bandas do Supabase', () => {
     await expect(
       new SupabaseBandRepository().listMembers('band-1'),
     ).resolves.toEqual([
-      expect.objectContaining({ displayName: 'Usuário removido' }),
+      expect.objectContaining({
+        avatarUrl: null,
+        displayName: 'Usuário removido',
+      }),
     ]);
   });
 
