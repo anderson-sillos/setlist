@@ -71,6 +71,7 @@ jobs:
           fi
           cp docs/apresentacao.html pages-site/docs/apresentacao.html
           cp pages-site/index.html pages-site/404.html
+          find pages-site -type f -name '*.html' ! -path 'pages-site/docs/*' -print0 | xargs -0 -r node scripts/prepare-pages-html.mjs
           touch pages-site/.nojekyll
 
       - name: Configurar GitHub Pages

@@ -312,13 +312,13 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 101. A fundação dos links HTTPS foi antecipada. `app.config.ts` declara o App Link
      Android para `/invite/*` com `autoVerify` e o entitlement
-     `applinks:setlistbr.app.br` para iOS. O workflow passou a executar
+     `applinks:setlistbr.app.br` para iOS. O workflow executa
      `scripts/prepare-link-associations.mjs`, que gera `assetlinks.json` quando
      `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` existir e o AASA quando
-     `SETLIST_IOS_TEAM_ID` existir. Nenhuma impressão ou Team ID foi inventado no
-     repositório; a publicação web continua válida enquanto uma das associações
-     estiver pendente. A tarefa 11.5 segue pendente até o DNS/HTTPS, os certificados
-     reais, um novo build nativo e a validação em Android e iOS.
+     `SETLIST_IOS_TEAM_ID` existir. O DNS e HTTPS do domínio canônico estão ativos;
+     o endpoint Android retorna JSON válido e a API Digital Asset Links reconhece
+     pacote e fingerprint. A tarefa 11.5 segue pendente até a validação no app
+     Android instalado e a configuração/build/validação iOS.
 
 102. O README passou a orientar a obtenção do `SHA256 Fingerprint` pelo comando
      `eas credentials -p android` e o cadastro de
@@ -326,14 +326,29 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      A orientação diferencia a assinatura EAS dos builds internos e a chave de
      assinatura da Play App Signing; múltiplas impressões podem ser informadas
      separadas por vírgula. O APK anterior à configuração dos intent filters não
-     serve para validar App Links e exigirá novo build.
+     serve para validar App Links e exige novo build.
+
+103. A validação web do retorno OAuth em `/auth/callback` encontrou um defeito no
+     fallback do GitHub Pages: o HTML renderizado no servidor usava caminhos
+     relativos `./_expo`, que, em URLs aninhadas, eram requisitados em
+     `/auth/_expo/...` ou `/invite/_expo/...` e retornavam 404. A tela HTML inicial
+     mostrava “Conferindo seu acesso…”, mas o bundle não carregava para completar a
+     hidratação e o fluxo OAuth. O workflow agora injeta em cada HTML exportado um
+     `<base>` dinâmico: `/` no domínio canônico, `/app/` na cópia de conveniência e
+     `/setlist/app/` na prévia `github.io`, incluindo o `404.html`. Assim as rotas
+     aninhadas devem buscar os bundles no diretório correto. A publicação e a
+     validação dos caminhos de callback/invite ainda precisam ser feitas após o
+     próximo deploy.
 
 ## Próxima ação recomendada
 
-Validar manualmente a tarefa 5.8 na PR #14: excluir uma conta Member e confirmar
-que a banda e seu conteúdo permanecem; excluir uma conta Owner quando outro
-Owner permanece; confirmar o bloqueio do último Owner; excluir uma banda solo e
-depois a conta; e confirmar a limpeza local e o retorno ao login. A tarefa 5.1
-continua parcialmente aberta pelo iOS nativo adiado; o OAuth pelo navegador
-permanece o caminho suportado nessa plataforma. Depois da aprovação da tarefa
-5.8, seguir para os testes ponta a ponta da tarefa 5.9.
+Validar no navegador Android que `/auth/callback` e `/invite/<token>` carregam seus
+bundles após o deploy; depois, testar o link no dev-client e conferir o estado com
+`adb shell pm get-app-links com.andersonsillos.setlist`. Se o navegador continuar
+abrindo em vez do app, comparar o certificado SHA-256 do APK instalado com o
+`assetlinks.json`. A tarefa 11.5 continua pendente da validação nativa Android e da
+configuração/build/validação iOS. Também permanece a validação manual da tarefa
+5.8: excluir uma conta Member e confirmar que a banda e seu conteúdo permanecem;
+excluir uma conta Owner quando outro Owner permanece; confirmar o bloqueio do
+último Owner; excluir uma banda solo e depois a conta; e confirmar a limpeza local
+e o retorno ao login. Depois da aprovação da tarefa 5.8, seguir para a tarefa 5.9.
