@@ -1,4 +1,6 @@
 import {
+  ArrowDown,
+  ArrowUp,
   ArrowUpDown,
   CalendarCheck,
   CalendarDays,
@@ -21,6 +23,7 @@ import {
   Play,
   Plus,
   Search,
+  Trash2,
   UserRound,
   Users,
   X,
@@ -32,6 +35,8 @@ import { colors } from '@/theme/tokens';
 const iconComponents = {
   add: Plus,
   account: UserRound,
+  moveDown: ArrowDown,
+  moveUp: ArrowUp,
   back: ChevronLeft,
   band: Users,
   bands: LayoutGrid,
@@ -55,6 +60,7 @@ const iconComponents = {
   shows: CalendarDays,
   stage: Play,
   sort: ArrowUpDown,
+  remove: Trash2,
 } satisfies Record<string, LucideIcon>;
 
 export type AppIconName = keyof typeof iconComponents;

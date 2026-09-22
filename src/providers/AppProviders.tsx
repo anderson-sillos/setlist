@@ -9,7 +9,10 @@ import {
 } from 'react';
 
 import { createDemoRepositories, demoIds } from '@/data/demo';
-import { createSupabaseBandRepository } from '@/data/supabase';
+import {
+  createSupabaseBandRepository,
+  createSupabaseSongRepository,
+} from '@/data/supabase';
 import type { AppRepositories, EntityId } from '@/domain';
 import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -39,14 +42,28 @@ export function AppProviders({
       createSupabaseBandRepository(demoRepositories.bands, demoIds.currentUser),
     [demoRepositories],
   );
+  const remoteSongRepository = useMemo(
+    () => createSupabaseSongRepository(demoRepositories.songs),
+    [demoRepositories],
+  );
   const sessionUserId = session?.user.id;
   const resolvedRepositories = useMemo(
     () =>
       repositories ??
       (sessionUserId
-        ? { ...demoRepositories, bands: remoteBandRepository }
+        ? {
+            ...demoRepositories,
+            bands: remoteBandRepository,
+            songs: remoteSongRepository,
+          }
         : demoRepositories),
-    [demoRepositories, remoteBandRepository, repositories, sessionUserId],
+    [
+      demoRepositories,
+      remoteBandRepository,
+      remoteSongRepository,
+      repositories,
+      sessionUserId,
+    ],
   );
   const resolvedUserId = sessionUserId ?? currentUserId;
   const [queryClient] = useState(

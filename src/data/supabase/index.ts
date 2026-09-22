@@ -32,6 +32,15 @@ export {
   SupabaseBandRepository,
 } from '@/data/supabase/repositories';
 export {
+  createSupabaseSongRepository,
+  SupabaseSongRepository,
+} from '@/data/supabase/songRepository';
+export {
+  createSong,
+  SongMutationError,
+  updateSong,
+} from '@/data/supabase/songMutations';
+export {
   getUserProfile,
   ProfileMutationError,
   updateMyDisplayName,
@@ -48,6 +57,10 @@ export type {
   UpdateBandMemberRoleInput,
 } from '@/data/supabase/bandMemberMutations';
 export type { BandAdministrationErrorCode } from '@/data/supabase/bandAdministrationMutations';
+export type {
+  SongMutationErrorCode,
+  SongWriteInput,
+} from '@/data/supabase/songMutations';
 export type {
   CreateInvitationInput,
   CreatedInvitation,

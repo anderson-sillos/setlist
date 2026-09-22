@@ -66,10 +66,11 @@ export function useSongs(bandId: EntityId, includeArchived = false) {
   });
 }
 
-export function useSong(bandId: EntityId, songId: EntityId) {
+export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
   const { repositories } = useAppData();
 
   return useQuery({
+    enabled,
     queryKey: ['bands', bandId, 'songs', songId],
     queryFn: () => repositories.songs.findById(bandId, songId),
   });

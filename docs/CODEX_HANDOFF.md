@@ -6,7 +6,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/task-5-6-convites`.
+- Branch de trabalho: `feat/task-6-1-repertoire`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.6 cobre convite de uso único, retorno ao app, descarte de deep link já aceito e exibição da data de aceite; a 5.8 cobre exclusão de conta/banda, proteção do último Owner e limpeza; a 5.9 sincroniza e permite editar o perfil, usando `profiles` como identidade canônica. O layout do menu e o ajuste de formulários ao teclado foram validados no Android. As migrações recentes foram aplicadas ao Supabase de desenvolvimento; produção permaneceu intocada. `npm run validate` passou com 60 suítes e 326 testes; a suíte SQL local passou com 13 arquivos e 253 testes, e o Supabase local foi desligado após os testes. O callback OAuth web foi corrigido, publicado no GitHub Pages e validado manualmente sem o 404 do bundle. O PR #14 segue aberto até a integração final. Permanecem futuras a validação do provedor Apple/iOS na tarefa 5.1, a execução ponta a ponta multiplataforma da 5.10 e as atividades dos grupos seguintes.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1 e 6.2 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor de blocos/linhas e persistência atômica. `npm run validate` passou com 67 suítes e 357 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é a classificação de letras da 6.3; iOS/Apple segue como pendência futura.
 
 ## Fontes de verdade
 
@@ -370,10 +370,30 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Concluir a PR #14 por squash mantendo o histórico do handoff. As tarefas 5.8 e
-5.9 estão concluídas; permanecem pendentes a habilitação/validação do provedor
-Apple e do login no iOS (5.1), os
-testes ponta a ponta de papéis e convites nas três plataformas (5.10) e Android
-App Links/configuração e validação iOS (11.5). O change OpenSpec
+Implementar a tarefa 6.3 em `feat/task-6-1-repertoire`: consolidar a
+classificação `Sem letra`, `Letra estática`, `Sincronização incompleta` e
+`Sincronizada` na consulta e nos testes, preparando a validação manual 6.7.
+Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
+validação iOS dos links nativos prevista em 11.5. O change OpenSpec
 `definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
-contém os grupos futuros de repertório, shows, modo palco e offline.
+contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
+
+106. Após a validação manual informada pelo usuário, a tarefa 5.10 foi dividida:
+     5.10.1 (papéis e convites na web e Android, com publicação interna) foi
+     concluída; 5.10.2 (iOS) permanece adiada até existir build e ambiente de
+     validação disponíveis. O PR #14 já foi integrado em `main` por squash no
+     commit `4603c69`. A nova branch `feat/task-6-1-repertoire`, baseada nesse
+     `main`, inicia a implementação do repertório real da tarefa 6.1.
+
+107. As tarefas 6.1 e 6.2 foram implementadas na branch
+     `feat/task-6-1-repertoire`. O botão `Adicionar música` passou a aparecer
+     como ação secundária explícita no cabeçalho para Owner/Editor, com bloqueio
+     para Member e bandas demo. A tela de edição grava metadados e letra online;
+     `LyricDocumentEditor` permite adicionar, remover, nomear e reordenar blocos
+     e linhas, mantendo identificadores e tempos, e a mutação envia letra e
+     `lyric_status` derivados em uma única atualização. TypeScript, lint,
+     formatação e `npm run validate` passaram com 67 suítes e 357 testes. A
+     validação SQL local não foi executada porque a inicialização do CLI do
+     Supabase foi bloqueada pela escrita de telemetria fora da área permitida;
+     nenhum estado remoto foi alterado. A próxima etapa é a classificação dos
+     estados de letra da tarefa 6.3.

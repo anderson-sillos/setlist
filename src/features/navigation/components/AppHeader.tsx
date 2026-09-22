@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { NavigationIconButton } from '@/features/navigation/components/NavigationIconButton';
@@ -102,21 +103,32 @@ export function AppHeader({
       ) : null}
 
       {kind !== 'edit' && headerAction ? (
-        <Pressable
-          accessibilityLabel={headerAction.accessibilityLabel}
-          accessibilityRole="button"
-          onPress={headerAction.onPress}
-          style={({ pressed }) => [
-            headerAction.icon ? styles.iconButton : styles.headerTextButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          {headerAction.icon ? (
-            <AppIcon color={colors.violet} name={headerAction.icon} />
-          ) : (
-            <AppText tone="accent">{headerAction.label}</AppText>
-          )}
-        </Pressable>
+        headerAction.showLabel ? (
+          <AppButton
+            accessibilityLabel={headerAction.accessibilityLabel}
+            icon={headerAction.icon}
+            label={headerAction.label}
+            onPress={headerAction.onPress}
+            style={styles.labeledHeaderAction}
+            variant="secondary"
+          />
+        ) : (
+          <Pressable
+            accessibilityLabel={headerAction.accessibilityLabel}
+            accessibilityRole="button"
+            onPress={headerAction.onPress}
+            style={({ pressed }) => [
+              headerAction.icon ? styles.iconButton : styles.headerTextButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            {headerAction.icon ? (
+              <AppIcon color={colors.violet} name={headerAction.icon} />
+            ) : (
+              <AppText tone="accent">{headerAction.label}</AppText>
+            )}
+          </Pressable>
+        )
       ) : null}
     </View>
   );
@@ -151,6 +163,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.sm,
+  },
+  labeledHeaderAction: {
+    paddingHorizontal: spacing.md,
   },
   disabled: {
     opacity: 0.45,

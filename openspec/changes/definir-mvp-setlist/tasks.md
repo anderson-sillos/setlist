@@ -69,12 +69,13 @@
   - [x] 5.9.4 Usar nome e avatar de `profiles` no menu lateral e nas linhas de integrantes; mostrar iniciais como fallback e testar imagem ausente/indisponível e atualização de consultas
   - [x] 5.9.5 Centralizar verticalmente o avatar junto à coluna do nome e e-mail no menu lateral, mantendo ambos os textos alinhados à esquerda; verificar estrutura e alinhamento
   - [x] 5.9.6 Agrupar nome e e-mail em uma coluna explícita junto ao avatar, sem quebra ou desalinhamento entre os dois textos em telas estreitas
-- [ ] 5.10 Executar testes ponta a ponta dos papéis e convites nas três plataformas e publicar uma versão interna para revisão desse incremento
+- [x] 5.10.1 Executar testes ponta a ponta dos papéis e convites na web e Android, publicar a versão interna desse incremento e validar manualmente os fluxos
+- [ ] 5.10.2 Executar os testes ponta a ponta dos papéis e convites no iOS e publicar uma versão interna para revisão dessa plataforma; atividade adiada até a disponibilidade do build iOS
 
 ## 6. Repertório e letras estáticas
 
-- [ ] 6.1 Implementar lista rolável, busca, filtros agrupados, ordenações, detalhes orientados à letra, criação e edição online de músicas e verificar metadados, referência externa do YouTube, permissões e campos obrigatórios por papel
-- [ ] 6.2 Implementar o editor de letra com blocos e linhas identificáveis e reordenáveis e verificar persistência atômica do documento completo
+- [x] 6.1 Implementar lista rolável, busca, filtros agrupados, ordenações, detalhes orientados à letra, criação e edição online de músicas e verificar metadados, referência externa do YouTube, permissões e campos obrigatórios por papel
+- [x] 6.2 Implementar o editor de letra com blocos e linhas identificáveis e reordenáveis e verificar persistência atômica do documento completo
 - [ ] 6.3 Implementar a classificação Sem letra, Letra estática, Sincronização incompleta e Sincronizada e verificar todos os estados com testes unitários
 - [ ] 6.4 Exigir aceite do termo vigente antes da primeira edição de cada Owner ou Editor e verificar que leitura e modo palco continuam disponíveis sem aceite
 - [ ] 6.5 Implementar arquivamento e restauração de músicas e verificar preservação em shows existentes e exclusão das opções para novas setlists

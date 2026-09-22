@@ -441,7 +441,7 @@ npm run android
 npm run ios
 ```
 
-A rota inicial exibe `Minhas bandas` e, após o login, consulta as bandas e participações da conta no Supabase. Durante a transição, as bandas demonstrativas continuam disponíveis e aparecem identificadas como `Demonstração`, permitindo navegar pelos Shows e Repertórios de exemplo. Shows, Repertório e demais áreas ainda usam conteúdo demonstrativo até suas respectivas tarefas de integração remota. Sem sessão autenticada, os testes locais continuam usando dados demonstrativos. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
+A rota inicial exibe `Minhas bandas` e, após o login, consulta as bandas e participações da conta no Supabase. Durante a transição, as bandas demonstrativas continuam disponíveis e aparecem identificadas como `Demonstração`. O Repertório de bandas conectadas consulta e salva no Supabase os metadados, a referência externa do YouTube e a letra estruturada em blocos e linhas; Owners e Editors podem adicionar e editar, enquanto Members e bandas de demonstração permanecem somente para leitura. Shows, setlists, sincronização temporal e modo palco ainda estão em incrementos posteriores. Sem sessão autenticada, os testes locais continuam usando dados demonstrativos. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
 
 O protótipo técnico do player de referência fica separado da navegação principal. Com a versão web em execução, abra [http://localhost:8081/youtube-prototype](http://localhost:8081/youtube-prototype) para validar o IFrame visível do YouTube, os controles de reproduzir, pausar, buscar dez segundos e a leitura do tempo atual. No Android e no iOS, a mesma rota usa o `react-native-webview` para hospedar o IFrame, enviar comandos pela ponte JavaScript e receber tempo, estado e erros. A validação nativa depende de um aparelho ou simulador e de um build que contenha o módulo nativo.
 
@@ -1160,7 +1160,8 @@ openspec status --change definir-mvp-setlist
 
 ## Próximas etapas
 
-- concluir as migrações de músicas, shows, convites e políticas de acesso do Supabase;
+- concluir as migrações e integrações remanescentes de shows, convites e políticas de acesso do Supabase;
+- validar manualmente o cadastro e a edição de músicas e letras estruturadas no repertório conectado;
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 

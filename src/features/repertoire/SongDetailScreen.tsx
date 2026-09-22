@@ -1,4 +1,5 @@
 import { Link, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -13,14 +14,20 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { demoIds } from '@/data/demo';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { getBandSectionHref, getSongHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getSongEditHref,
+  getSongHref,
+} from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
+import { normalizeYoutubeReference } from '@/utils/youtubeReference';
 import { lyricStatusLabels } from './songPresentation';
 
 interface SongDetailScreenProps {
@@ -38,6 +45,7 @@ export function SongDetailScreen({
   viewportHeight,
   viewportWidth,
 }: SongDetailScreenProps) {
+  const router = useRouter();
   const window = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
   const songQuery = useSong(bandId, songId);
@@ -48,6 +56,9 @@ export function SongDetailScreen({
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
+  const isDemoBand =
+    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
+  const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
 
   return (
     <BandAreaLayout
@@ -111,9 +122,11 @@ export function SongDetailScreen({
                   icon="edit"
                   label="Editar"
                   onPress={() =>
-                    setDemoNotice(
-                      'O editor chega no incremento do repertório. A permissão já está conferida.',
-                    )
+                    isDemoBand
+                      ? setDemoNotice(
+                          'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
+                        )
+                      : router.push(getSongEditHref(bandId, songId))
                   }
                   style={styles.editButton}
                   variant="secondary"
@@ -212,12 +225,8 @@ export function SongDetailScreen({
                 </View>
               ) : null}
 
-              {song.youtubeReference ? (
-                <Link
-                  href={song.youtubeReference as Href}
-                  target="_blank"
-                  asChild
-                >
+              {youtubeReference ? (
+                <Link href={youtubeReference as Href} target="_blank" asChild>
                   <AppButton
                     accessibilityLabel="Abrir referência no YouTube"
                     icon="externalLink"

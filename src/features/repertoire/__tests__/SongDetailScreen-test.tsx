@@ -69,7 +69,9 @@ describe('<SongDetailScreen />', () => {
     await fireEvent.press(view.getByLabelText('Editar música'));
 
     expect(view.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(view.getByText(/O editor chega/)).toBeTruthy();
+    expect(
+      view.getByText(/músicas de demonstração são só para consulta/i),
+    ).toBeTruthy();
   });
 
   it('oculta ações de edição dos detalhes para integrante', async () => {

@@ -1,6 +1,8 @@
 import { demoIds } from '@/data/demo';
 import {
   getBandSectionHref,
+  getSongCreateHref,
+  getSongEditHref,
   getShowHref,
   getSongHref,
   getStageHref,
@@ -28,6 +30,12 @@ describe('rotas da navegação', () => {
     );
     expect(getSongHref(demoIds.primaryBand, demoIds.stageSong)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}`,
+    );
+    expect(getSongCreateHref(demoIds.primaryBand)).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/new`,
+    );
+    expect(getSongEditHref(demoIds.primaryBand, demoIds.stageSong)).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/edit`,
     );
     expect(getStageHref(demoIds.primaryBand, demoIds.readyShow)).toBe(
       `/bands/${demoIds.primaryBand}/shows/${demoIds.readyShow}/stage`,

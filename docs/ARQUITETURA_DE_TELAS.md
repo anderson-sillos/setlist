@@ -17,20 +17,22 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 
 ## Mapa de rotas e telas
 
-| Rota                                   | Tela                      | Arquivo                                        |
-| -------------------------------------- | ------------------------- | ---------------------------------------------- |
-| `/`                                    | Minhas bandas             | `src/features/bands/BandsScreen.tsx`           |
-| `/account`                             | Perfil e conta            | `src/features/account/AccountScreen.tsx`       |
-| `/auth`                                | Login social              | `src/features/auth/AuthScreen.tsx`             |
-| `/auth/callback`                       | Retorno OAuth             | `src/features/auth/OAuthCallbackHandler.tsx`   |
-| `/invite/[token]`                      | Convite e autenticação    | `src/features/auth/InviteScreen.tsx`           |
-| `/bands/[bandId]/band`                 | Banda e integrantes       | `src/features/bands/BandScreen.tsx`            |
-| `/bands/[bandId]/repertoire`           | Repertório                | `src/features/repertoire/RepertoireScreen.tsx` |
-| `/bands/[bandId]/repertoire/[songId]`  | Detalhes da música        | `src/features/repertoire/SongDetailScreen.tsx` |
-| `/bands/[bandId]/shows`                | Shows                     | `src/features/shows/ShowsScreen.tsx`           |
-| `/bands/[bandId]/shows/[showId]`       | Detalhes do show          | `src/features/shows/ShowDetailScreen.tsx`      |
-| `/bands/[bandId]/stage`                | Seleção para o modo palco | `src/features/stage/StageHubScreen.tsx`        |
-| `/bands/[bandId]/shows/[showId]/stage` | Execução do modo palco    | `src/features/stage/StageScreen.tsx`           |
+| Rota                                       | Tela                      | Arquivo                                        |
+| ------------------------------------------ | ------------------------- | ---------------------------------------------- |
+| `/`                                        | Minhas bandas             | `src/features/bands/BandsScreen.tsx`           |
+| `/account`                                 | Perfil e conta            | `src/features/account/AccountScreen.tsx`       |
+| `/auth`                                    | Login social              | `src/features/auth/AuthScreen.tsx`             |
+| `/auth/callback`                           | Retorno OAuth             | `src/features/auth/OAuthCallbackHandler.tsx`   |
+| `/invite/[token]`                          | Convite e autenticação    | `src/features/auth/InviteScreen.tsx`           |
+| `/bands/[bandId]/band`                     | Banda e integrantes       | `src/features/bands/BandScreen.tsx`            |
+| `/bands/[bandId]/repertoire`               | Repertório                | `src/features/repertoire/RepertoireScreen.tsx` |
+| `/bands/[bandId]/repertoire/new`           | Nova música               | `src/features/repertoire/SongEditorScreen.tsx` |
+| `/bands/[bandId]/repertoire/[songId]`      | Detalhes da música        | `src/features/repertoire/SongDetailScreen.tsx` |
+| `/bands/[bandId]/repertoire/[songId]/edit` | Edição da música          | `src/features/repertoire/SongEditorScreen.tsx` |
+| `/bands/[bandId]/shows`                    | Shows                     | `src/features/shows/ShowsScreen.tsx`           |
+| `/bands/[bandId]/shows/[showId]`           | Detalhes do show          | `src/features/shows/ShowDetailScreen.tsx`      |
+| `/bands/[bandId]/stage`                    | Seleção para o modo palco | `src/features/stage/StageHubScreen.tsx`        |
+| `/bands/[bandId]/shows/[showId]/stage`     | Execução do modo palco    | `src/features/stage/StageScreen.tsx`           |
 
 O protótipo técnico `/youtube-prototype` fica fora da navegação principal e serve somente para validar a integração web do player do YouTube antes da implementação no detalhe da música.
 
@@ -58,6 +60,7 @@ histórico técnico permanece registrado no handoff e no design.
 | Criação de banda e aceite do termo           | `src/features/bands/BandCreationDialog.tsx`, `legalTerm.ts` e `src/data/supabase/bandMutations.ts`              |
 | Perfil, exclusão de conta e limpeza local    | `src/features/account/AccountScreen.tsx`, `AccountDeletionDialog.tsx` e `src/data/supabase/accountMutations.ts` |
 | Consulta remota de bandas e integrantes      | `src/data/supabase/repositories.ts` e `src/providers/AppProviders.tsx`                                          |
+| Consulta remota e edição de músicas          | `src/data/supabase/songRepository.ts`, `songMutations.ts` e `src/providers/AppProviders.tsx`                    |
 | Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                                             |
 | Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                                                |
 | Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                                       |
@@ -70,19 +73,19 @@ histórico técnico permanece registrado no handoff e no design.
 
 ## Organização dos testes
 
-| Escopo                                      | Local                                                                                                     |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Shell responsivo, menu, cabeçalhos e gestos | `src/features/navigation/__tests__/navigationShell-test.tsx`                                              |
-| Integração das entradas de rota             | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                                        |
-| Memória de rota, rolagem e visão            | `src/features/navigation/__tests__/navigationMemory-test.tsx`                                             |
-| Construção e codificação de endereços       | `src/features/navigation/__tests__/navigationRoutes-test.ts`                                              |
-| Autenticação, state OAuth e convite         | `src/features/auth/__tests__/`                                                                            |
-| Telas de bandas                             | `src/features/bands/__tests__/BandsScreen-test.tsx` e `BandScreen-test.tsx`                               |
-| Seleção persistida de banda                 | `src/features/bands/__tests__/lastBandStorage-test.ts`                                                    |
-| Criação de banda e aceite do termo          | `src/features/bands/__tests__/BandsScreen-test.tsx` e `src/data/supabase/__tests__/bandMutations-test.ts` |
-| Perfil e exclusão de conta                  | `src/features/account/__tests__/` e `src/data/supabase/__tests__/accountMutations-test.ts`                |
-| Repertório e detalhe da música              | `src/features/repertoire/__tests__/RepertoireScreen-test.tsx` e `SongDetailScreen-test.tsx`               |
-| Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`                         |
-| Seleção do modo palco                       | `src/features/stage/__tests__/StageHubScreen-test.tsx`                                                    |
+| Escopo                                      | Local                                                                                                                |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Shell responsivo, menu, cabeçalhos e gestos | `src/features/navigation/__tests__/navigationShell-test.tsx`                                                         |
+| Integração das entradas de rota             | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                                                   |
+| Memória de rota, rolagem e visão            | `src/features/navigation/__tests__/navigationMemory-test.tsx`                                                        |
+| Construção e codificação de endereços       | `src/features/navigation/__tests__/navigationRoutes-test.ts`                                                         |
+| Autenticação, state OAuth e convite         | `src/features/auth/__tests__/`                                                                                       |
+| Telas de bandas                             | `src/features/bands/__tests__/BandsScreen-test.tsx` e `BandScreen-test.tsx`                                          |
+| Seleção persistida de banda                 | `src/features/bands/__tests__/lastBandStorage-test.ts`                                                               |
+| Criação de banda e aceite do termo          | `src/features/bands/__tests__/BandsScreen-test.tsx` e `src/data/supabase/__tests__/bandMutations-test.ts`            |
+| Perfil e exclusão de conta                  | `src/features/account/__tests__/` e `src/data/supabase/__tests__/accountMutations-test.ts`                           |
+| Repertório, detalhe e editor da música      | `src/features/repertoire/__tests__/`, `src/data/supabase/__tests__/songRepository-test.ts` e `songMutations-test.ts` |
+| Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`                                    |
+| Seleção do modo palco                       | `src/features/stage/__tests__/StageHubScreen-test.tsx`                                                               |
 
 Ao criar uma tela, primeiro escolha o domínio responsável, crie o arquivo da tela nele e depois adicione uma entrada pequena em `src/app`. A entrada de rota não deve conter regras de negócio nem estilos da tela.

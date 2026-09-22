@@ -14,6 +14,7 @@ export interface HeaderAction {
   readonly icon?: AppIconName;
   readonly label: string;
   readonly onPress: () => void;
+  readonly showLabel?: boolean;
 }
 
 export interface EditActions {
