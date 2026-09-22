@@ -1,7 +1,6 @@
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -48,23 +47,18 @@ export function AppHeader({
 
       {kind === 'detail' && backHref ? (
         <Link href={backHref} asChild>
-          <Pressable
+          <HeaderIconButton
             accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
-            accessibilityRole="link"
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <AppIcon name="back" />
-          </Pressable>
+            icon="back"
+            role="link"
+          />
         </Link>
       ) : null}
 
       {kind === 'edit' && editActions ? (
-        <HeaderButton
+        <HeaderIconButton
           accessibilityLabel="Cancelar edição"
-          label="Cancelar"
+          icon="close"
           onPress={editActions.onCancel}
         />
       ) : null}
@@ -81,21 +75,21 @@ export function AppHeader({
       </View>
 
       {kind === 'edit' && editActions ? (
-        <HeaderButton
+        <HeaderIconButton
           accessibilityLabel="Salvar edição"
           accessibilityState={{ disabled: editActions.saveDisabled }}
+          color={editActions.saveDisabled ? colors.muted : colors.violet}
           disabled={editActions.saveDisabled}
-          label="Salvar"
+          icon="check"
           onPress={editActions.onSave}
-          variant="primary"
         />
       ) : null}
 
       {kind !== 'edit' && headerAction ? (
-        <HeaderButton
+        <HeaderIconButton
           accessibilityLabel={headerAction.accessibilityLabel}
-          icon={headerAction.icon}
-          label={headerAction.label}
+          color={colors.violet}
+          icon={headerAction.icon ?? 'more'}
           onPress={headerAction.onPress}
         />
       ) : null}
@@ -103,38 +97,43 @@ export function AppHeader({
   );
 }
 
-interface HeaderButtonProps {
+interface HeaderIconButtonProps {
   readonly accessibilityLabel: string;
   readonly accessibilityState?: {
     readonly disabled?: boolean;
   };
+  readonly color?: string;
   readonly disabled?: boolean;
   readonly icon?: AppIconName;
-  readonly label: string;
-  readonly onPress: () => void;
-  readonly variant?: 'primary' | 'secondary';
+  readonly onPress?: () => void;
+  readonly role?: 'button' | 'link';
 }
 
-function HeaderButton({
+function HeaderIconButton({
   accessibilityLabel,
   accessibilityState,
+  color = colors.ink,
   disabled,
   icon,
-  label,
   onPress,
-  variant = 'secondary',
-}: HeaderButtonProps) {
+  role = 'button',
+}: HeaderIconButtonProps) {
   return (
-    <AppButton
+    <Pressable
       accessibilityLabel={accessibilityLabel}
+      accessibilityRole={role}
       accessibilityState={accessibilityState}
       disabled={disabled}
-      icon={icon}
-      label={label}
+      hitSlop={8}
       onPress={onPress}
-      style={styles.headerActionButton}
-      variant={variant}
-    />
+      style={({ pressed }) => [
+        styles.iconButton,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
+    >
+      {icon ? <AppIcon color={color} name={icon} /> : null}
+    </Pressable>
   );
 }
 
@@ -162,9 +161,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
   },
-  headerActionButton: {
-    minHeight: layout.minimumTouchTarget,
-    paddingHorizontal: spacing.md,
+  disabled: {
+    opacity: 0.45,
   },
   pressed: {
     opacity: 0.7,

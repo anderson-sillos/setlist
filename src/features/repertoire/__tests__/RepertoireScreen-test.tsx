@@ -157,7 +157,7 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Repertório vazio');
-    expect(view.getByText('Adicionar música')).toBeTruthy();
+    expect(view.getByLabelText('Adicionar música ao repertório')).toBeTruthy();
     await fireEvent.press(
       view.getByLabelText('Adicionar música ao repertório'),
     );

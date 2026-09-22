@@ -405,3 +405,12 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      apenas a variante primária para indicar a ação principal. `Criar banda`
      também recebeu o ícone de inclusão. A validação completa permaneceu verde
      com 67 suítes e 357 testes, e a PR #15 continua aberta para revisão.
+
+109. Após a revisão visual, as ações do cabeçalho deixaram de usar botões
+     contornados com texto. Menu, voltar, adicionar, editar, mais opções,
+     cancelar e salvar agora usam controles circulares somente com ícone,
+     área de toque de 48 px, `hitSlop` e o mesmo feedback de pressão dos
+     controles de navegação. Os rótulos completos continuam nos atributos de
+     acessibilidade; `Salvar` usa `check`, `Cancelar` usa `close` e ações sem
+     ícone explícito usam `more` como fallback. A validação completa passou com
+     67 suítes e 357 testes.

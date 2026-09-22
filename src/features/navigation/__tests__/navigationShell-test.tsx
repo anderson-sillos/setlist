@@ -17,7 +17,6 @@ import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
 import { AppProviders } from '@/providers/AppProviders';
-import { colors, radii } from '@/theme/tokens';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -92,10 +91,10 @@ describe('shell de navegação', () => {
       });
       expect(headerAction).toBeTruthy();
       expect(StyleSheet.flatten(headerAction.props.style)).toMatchObject({
-        borderColor: colors.violet,
-        borderRadius: radii.md,
-        borderWidth: 1,
-        minHeight: 48,
+        alignItems: 'center',
+        height: 48,
+        justifyContent: 'center',
+        width: 48,
       });
 
       if (presentation === 'bottom-navigation') {
