@@ -17,6 +17,7 @@ type BandMemberRow = {
 };
 
 type ProfileRow = {
+  readonly avatar_url: string | null;
   readonly display_name: string | null;
   readonly email: string | null;
   readonly id: string;
@@ -98,6 +99,7 @@ function parseProfile(value: unknown): ProfileRow {
   }
 
   return {
+    avatar_url: readNullableString(value, 'avatar_url'),
     display_name: readNullableString(value, 'display_name'),
     email: readNullableString(value, 'email'),
     id: readString(value, 'id'),
@@ -113,7 +115,7 @@ async function loadProfiles(
 
   const { data, error } = await getSupabaseClient()
     .from('profiles')
-    .select('id, display_name, email')
+    .select('id, display_name, email, avatar_url')
     .in('id', userIds);
 
   if (error) {
@@ -137,6 +139,7 @@ function toBandMember(
 
   return {
     bandId: membership.band_id,
+    avatarUrl: profile?.avatar_url ?? null,
     displayName: profile?.display_name ?? profile?.email ?? 'Usuário removido',
     id: membership.id,
     joinedAt: membership.joined_at,

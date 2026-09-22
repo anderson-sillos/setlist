@@ -75,7 +75,7 @@ describe('tela de autenticação', () => {
     ).toBeDisabled();
   });
 
-  it('preserva o convite ao concluir o login', async () => {
+  it('retorna diretamente ao convite ao concluir o login', async () => {
     mockSignIn.mockResolvedValue({ status: 'authenticated' });
     const view = await render(<AuthScreen />);
 
@@ -83,15 +83,10 @@ describe('tela de autenticação', () => {
       view.getByRole('button', { name: 'Continuar com Google' }),
     );
 
-    expect(await view.findByTestId('auth-success-card')).toBeTruthy();
-    expect(view.queryByTestId('auth-success-email')).toBeNull();
-    expect(view.queryByRole('button', { name: 'Voltar' })).toBeNull();
-    await fireEvent.press(
-      view.getByRole('button', { name: 'Continuar para o convite' }),
-    );
     await waitFor(() =>
       expect(mockReplace).toHaveBeenCalledWith('/invite/invite-demo?resumed=1'),
     );
+    expect(view.queryByText('Login concluído')).toBeNull();
     expect(mockSignIn).toHaveBeenCalledWith('google', 'invite-demo');
   });
 
@@ -115,7 +110,7 @@ describe('tela de autenticação', () => {
     );
   });
 
-  it('volta para a raiz quando entra sem convite', async () => {
+  it('retorna diretamente à raiz quando entra sem convite', async () => {
     const routerModule = jest.requireMock('expo-router') as {
       useLocalSearchParams: jest.Mock;
     };
@@ -127,10 +122,8 @@ describe('tela de autenticação', () => {
       view.getByRole('button', { name: 'Continuar com Google' }),
     );
 
-    await fireEvent.press(
-      view.getByRole('button', { name: 'Continuar para Minhas bandas' }),
-    );
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/'));
+    expect(view.queryByText('Login concluído')).toBeNull();
     expect(mockSignIn).toHaveBeenCalledWith('google', undefined);
   });
 

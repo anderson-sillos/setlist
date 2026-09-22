@@ -63,6 +63,7 @@ describe('<BandsScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Criar banda'));
     expect(view.getByTestId('create-band-dialog')).toBeTruthy();
+    expect(view.getByTestId('band-creation-keyboard-layout')).toBeTruthy();
     expect(view.getByText(CURRENT_BAND_TERM.title)).toBeTruthy();
     expect(
       view.getByLabelText('Confirmar criação da banda').props

@@ -73,7 +73,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - A autenticação e o perfil existirão independentemente da participação em uma banda.
 - O usuário sem banda selecionada verá o espaço neutro `Minhas bandas`, no qual poderá criar uma banda, aguardar um convite ou abrir externamente o link de um convite recebido. Não haverá colagem manual nem leitura de QR Code para convites no MVP.
 - Ao reabrir a aplicação, a última banda selecionada será restaurada se a participação continuar ativa; caso contrário, será exibido `Minhas bandas`.
-- No celular e no tablet em modo retrato, a navegação frequente da banda usará uma barra inferior fixa, compacta e com largura total para Shows, Repertório, Palco e Banda. Os quatro botões terão largura compacta uniforme, ficarão centralizados nos dois eixos e serão distribuídos horizontalmente com o mesmo espaço livre entre eles e nas duas extremidades, sem encostar nas bordas da tela. Palco abrirá uma seleção de shows antes da experiência de execução. Um menu lateral reunirá identificação do usuário, acesso a `Minhas bandas`, perfil e conta, termos gerais e privacidade, informações sobre o Setlist e saída.
+- No celular e no tablet em modo retrato, a navegação frequente da banda usará uma barra inferior fixa, compacta e com largura total para Shows, Repertório, Palco e Banda. Os quatro botões terão largura compacta uniforme, ficarão centralizados nos dois eixos e serão distribuídos horizontalmente com o mesmo espaço livre entre eles e nas duas extremidades, sem encostar nas bordas da tela. Palco abrirá uma seleção de shows antes da experiência de execução. Um menu lateral reunirá identificação do usuário, acesso a `Minhas bandas`, perfil e conta, termos gerais e privacidade, informações sobre o Setlist e saída. A identidade terá o avatar centralizado verticalmente ao lado de um único contêiner de texto em coluna; nome e e-mail ficarão alinhados à esquerda, com o e-mail abaixo do nome mesmo em telas estreitas.
 - No tablet em modo paisagem e no computador, o menu lateral ficará permanente e substituirá a barra inferior. A versão web voltará automaticamente ao padrão mobile quando a largura disponível diminuir.
 - Cada tela terá cabeçalho fixo. Telas principais mostrarão menu, título, banda ativa e no máximo uma ação contextual; detalhes substituirão o menu pelo botão voltar; criação e edição mostrarão somente as ações necessárias para cancelar e salvar.
 - A barra inferior permanecerá visível nas telas principais, na seleção de shows para o Palco e nos detalhes em consulta, preservando a pilha, os filtros, a ordenação e a posição da rolagem de cada seção. Ela ficará oculta em criação, edição, autenticação, confirmação de convite e durante a execução em modo palco.
@@ -106,6 +106,10 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 ### Autenticação, papéis e convites
 
+- O domínio web canônico do produto será `https://setlistbr.app.br/`. A aplicação
+  será exportada na raiz desse domínio; a apresentação ficará em
+  `/docs/apresentacao.html`. A prévia do GitHub Pages permanecerá como fallback
+  durante a transição DNS.
 - O login será exclusivamente social, com Google e Apple. A web continuará usando OAuth com PKCE e navegador; no Android, o Google poderá usar a integração nativa quando o aplicativo estiver em um development build ou build distribuído com o módulo nativo configurado. Expo Go, web, aparelhos sem Google Play Services e builds sem a configuração nativa usarão automaticamente o OAuth pelo navegador como fallback. O cancelamento explícito do diálogo nativo não iniciará outro fluxo sem nova ação da pessoa.
 - O fluxo nativo entregará um ID Token ao Supabase por `signInWithIdToken`; ele não alterará a chave UUID da conta nem criará um mecanismo separado de sessão. A mesma rotina de autenticação preservará o contexto de convite nos dois caminhos.
 - O SecureStore guardará somente os dados necessários para persistir a sessão nos aplicativos móveis. Na web, a sessão usará o adaptador de armazenamento do navegador.
@@ -117,10 +121,25 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Member terá acesso de leitura, download nos aplicativos móveis e modo palco.
 - Uma banda poderá ter vários Owners. O último Owner não poderá sair, excluir a conta nem perder o papel até promover outro integrante, exceto quando for o único integrante e excluir antes a própria banda com confirmação reforçada.
 - A área Banda agrupará Proprietários, Editores e Integrantes, ordenará cada grupo alfabeticamente e não terá busca ou filtros no MVP. Somente Owners verão controles de administração e de convite.
-- O convite será um link HTTPS de uso único, revogável, não vinculado a um e-mail e com validade padrão de sete dias. A banda poderá manter vários convites ativos, identificados opcionalmente por um rótulo que não vincula nem restringe o destinatário.
-- O token bruto do convite não será armazenado; o banco manterá seu hash. A aceitação ocorrerá por uma função protegida e adicionará o usuário inicialmente como Member.
+- O convite será um link HTTPS de uso único, revogável, não vinculado a um e-mail e com validade padrão de sete dias. A banda poderá manter vários convites ativos, identificados opcionalmente por um rótulo que não vincula nem restringe o destinatário. No histórico, convites utilizados mostrarão a data de aceite (`used_at`) em vez da expiração; se não houver timestamp de aceite, não será exibida uma data.
+- O token bruto do convite não será armazenado; o banco manterá seu hash. A aceitação ocorrerá por uma função protegida e adicionará o usuário inicialmente como Member. Após o aceite, a rota com token será substituída. Se Android restaurar um deep link obsoleto, o backend só reconhecerá a aceitação anterior para a mesma pessoa autenticada, e o app a enviará a `Minhas bandas` sem tratar o próprio aceite como erro nem persistir o token localmente.
 - O link abrirá o aplicativo instalado quando houver associação válida e, nos demais casos, a versão web. O token será preservado durante o login, mas a entrada na banda exigirá confirmação após a autenticação.
 - URLs de desenvolvimento e produção serão configuradas separadamente. Um esquema como `setlist://` será o retorno alternativo nativo, e o endereço HTTPS definitivo será configurável.
+
+### Perfil e identidade exibida
+
+- `public.profiles` será a fonte canônica da identidade apresentada pelo Setlist: nome de exibição, e-mail e avatar. A interface não lerá o nome diretamente dos metadados do provedor.
+- Um gatilho do banco sincronizará de `auth.users` o nome informado pelo provedor, e-mail e URL do avatar na criação e em atualizações de identidade. `provider_display_name` guardará o nome de origem e `display_name_source` distinguirá o valor vindo do provedor de um nome escolhido pela pessoa.
+- Na primeira sincronização, `display_name` será preenchido pelo nome do provedor e, na ausência dele, pelo e-mail. Atualizações posteriores do provedor atualizarão o nome exibido somente enquanto `display_name_source` continuar `provider`; uma edição do usuário trocará a origem para `user` e preservará sua escolha nos próximos logins.
+- A edição atualizará apenas o próprio perfil por uma função RPC autenticada, validando o nome no servidor. A aplicação não terá permissão para alterar diretamente os campos sincronizados do provedor.
+- Menu lateral, Perfil e conta e linhas de integrantes consultarão nome e avatar em `profiles`. O avatar exibirá a imagem do provedor quando disponível e iniciais como alternativa quando ausente ou indisponível.
+- Mudanças do perfil invalidarão o perfil atual e as consultas de integrantes já carregadas, para que o nome novo apareça sem reiniciar o aplicativo.
+
+### Formulários e teclado móvel
+
+- Os formulários móveis de criação, edição e confirmação que contenham campos de texto ajustarão sua área útil quando o teclado abrir e manterão conteúdo e ações alcançáveis por rolagem.
+- Os diálogos usarão comportamento de prevenção de sobreposição adequado à plataforma; no Android, o espaço da janela será reduzido com o teclado, enquanto o formulário permanece rolável.
+- Campos de busca não são formulários de edição e permanecem sujeitos ao comportamento normal de rolagem da tela.
 
 ### Exclusão de conta
 
@@ -129,6 +148,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - A exclusão será bloqueada enquanto o usuário for o último Owner de uma banda com outros integrantes.
 - Se for o único integrante, o usuário poderá excluir a banda e seu conteúdo mediante confirmação reforçada antes de excluir a própria conta.
 - A exclusão direta de uma banda também será permitida somente ao seu único integrante e Owner, sempre com confirmação reforçada.
+- A confirmação de exclusão da banda seguirá o comportamento geral dos formulários com teclado, mantendo o campo de confirmação e as ações acessíveis sem cobrir o conteúdo.
 
 ### Responsabilidade pelo conteúdo das letras
 

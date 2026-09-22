@@ -12,8 +12,14 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { demoIds } from '@/data/demo';
-import { useBand, useBandMembers, useUserBands } from '@/data/queries';
+import {
+  useBand,
+  useBandInvitations,
+  useBandMembers,
+  useUserBands,
+} from '@/data/queries';
 import {
   BandAdministrationError,
   deleteBand,
@@ -21,9 +27,17 @@ import {
 } from '@/data/supabase/bandAdministrationMutations';
 import {
   BandMemberMutationError,
+  leaveBand,
   removeBandMember,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
+import {
+  createInvitation,
+  InvitationMutationError,
+  renewInvitation,
+  revokeInvitation,
+  type CreatedInvitation,
+} from '@/data/supabase/invitationMutations';
 import type { BandMember, BandRole } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getBandSectionHref } from '@/features/navigation/routes';
@@ -41,6 +55,8 @@ import {
   BandMemberManagementDialog,
   type BandMemberManagementAction,
 } from './BandMemberManagementDialog';
+import { BandInvitationDialog } from './BandInvitationDialog';
+import { BandLeaveDialog } from './BandLeaveDialog';
 import { useLastBandSelection } from './LastBandSelection';
 
 const roleLabels: Record<BandRole, string> = {
@@ -77,6 +93,9 @@ export function BandScreen({
   >(null);
   const [memberManagementSubmitting, setMemberManagementSubmitting] =
     useState(false);
+  const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
   const [bandAdministrationMode, setBandAdministrationMode] =
     useState<BandAdministrationMode | null>(null);
   const [bandAdministrationError, setBandAdministrationError] = useState<
@@ -84,8 +103,12 @@ export function BandScreen({
   >(null);
   const [bandAdministrationSubmitting, setBandAdministrationSubmitting] =
     useState(false);
+  const [invitationDialogVisible, setInvitationDialogVisible] = useState(false);
+  const [invitationError, setInvitationError] = useState<string | null>(null);
+  const [invitationSubmitting, setInvitationSubmitting] = useState(false);
   const isDemoBand =
     bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
+  const invitationsQuery = useBandInvitations(bandId, canManage && !isDemoBand);
   const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
     bandId,
     'band',
@@ -126,6 +149,27 @@ export function BandScreen({
     setMemberManagementError(null);
   };
 
+  const openLeaveFlow = () => {
+    if (isDemoBand) {
+      setPreviewNotice(
+        'A saída da banda fica disponível ao conectar uma banda real. Por enquanto, o palco segue com os dados de demonstração.',
+      );
+      return;
+    }
+
+    setLeaveError(null);
+    setLeaveDialogVisible(true);
+  };
+
+  const closeLeaveDialog = () => {
+    if (leaveSubmitting) {
+      return;
+    }
+
+    setLeaveDialogVisible(false);
+    setLeaveError(null);
+  };
+
   const openBandAdministration = () => {
     if (isDemoBand) {
       setPreviewNotice(
@@ -139,9 +183,86 @@ export function BandScreen({
   };
 
   const openInviteFlow = () => {
-    setPreviewNotice(
-      'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
-    );
+    if (isDemoBand) {
+      setPreviewNotice(
+        'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
+      );
+      return;
+    }
+
+    setInvitationError(null);
+    setInvitationDialogVisible(true);
+  };
+
+  const closeInvitationDialog = () => {
+    if (invitationSubmitting) {
+      return;
+    }
+
+    setInvitationDialogVisible(false);
+    setInvitationError(null);
+  };
+
+  const handleCreateInvitation = async (
+    label: string,
+  ): Promise<CreatedInvitation | null> => {
+    setInvitationError(null);
+    setInvitationSubmitting(true);
+
+    try {
+      const created = await createInvitation({ bandId, label });
+      await invitationsQuery.refetch();
+      return created;
+    } catch (error) {
+      setInvitationError(
+        error instanceof InvitationMutationError
+          ? error.message
+          : 'Não foi possível criar o convite agora. Tente novamente.',
+      );
+      return null;
+    } finally {
+      setInvitationSubmitting(false);
+    }
+  };
+
+  const handleRevokeInvitation = async (invitationId: string) => {
+    setInvitationError(null);
+    setInvitationSubmitting(true);
+
+    try {
+      await revokeInvitation(invitationId);
+      await invitationsQuery.refetch();
+    } catch (error) {
+      setInvitationError(
+        error instanceof InvitationMutationError
+          ? error.message
+          : 'Não foi possível revogar o convite agora. Tente novamente.',
+      );
+    } finally {
+      setInvitationSubmitting(false);
+    }
+  };
+
+  const handleRenewInvitation = async (
+    invitationId: string,
+  ): Promise<CreatedInvitation | null> => {
+    setInvitationError(null);
+    setInvitationSubmitting(true);
+
+    try {
+      const renewed = await renewInvitation({ invitationId });
+      await invitationsQuery.refetch();
+      return renewed;
+    } catch (error) {
+      setInvitationError(
+        error instanceof InvitationMutationError
+          ? error.message
+          : 'Não foi possível renovar o convite agora. Tente novamente.',
+      );
+      return null;
+    } finally {
+      setInvitationSubmitting(false);
+    }
   };
 
   const closeBandAdministration = () => {
@@ -211,11 +332,11 @@ export function BandScreen({
     setMemberManagementSubmitting(true);
 
     try {
-      if (action === 'promote') {
+      if (action.type === 'set-role') {
         await updateBandMemberRole({
           bandId,
           memberId: managedMember.id,
-          role: 'owner',
+          role: action.role,
         });
       } else {
         await removeBandMember({
@@ -234,6 +355,30 @@ export function BandScreen({
       );
     } finally {
       setMemberManagementSubmitting(false);
+    }
+  };
+
+  const handleLeaveBand = async () => {
+    setLeaveError(null);
+    setLeaveSubmitting(true);
+
+    try {
+      await leaveBand({ bandId });
+      queryClient.removeQueries({ queryKey: ['bands', bandId] });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', 'user'],
+        refetchType: 'all',
+      });
+      await clearLastBand();
+      router.replace('/');
+    } catch (error) {
+      setLeaveError(
+        error instanceof BandMemberMutationError
+          ? error.message
+          : 'Não foi possível sair da banda agora. Tente novamente.',
+      );
+    } finally {
+      setLeaveSubmitting(false);
     }
   };
 
@@ -279,6 +424,14 @@ export function BandScreen({
         onClose={closeMemberManagement}
         onConfirm={(action) => void handleMemberManagement(action)}
       />
+      <BandLeaveDialog
+        bandName={bandQuery.data?.name ?? 'esta banda'}
+        errorMessage={leaveError}
+        isSubmitting={leaveSubmitting}
+        onClose={closeLeaveDialog}
+        onConfirm={() => void handleLeaveBand()}
+        visible={leaveDialogVisible}
+      />
       <BandAdministrationDialog
         band={bandQuery.data ?? null}
         errorMessage={bandAdministrationError}
@@ -292,6 +445,16 @@ export function BandScreen({
           setBandAdministrationMode(mode);
         }}
         onRename={(name) => void handleBandRename(name)}
+      />
+      <BandInvitationDialog
+        errorMessage={invitationError}
+        invitations={invitationsQuery.data ?? []}
+        isSubmitting={invitationSubmitting}
+        onClose={closeInvitationDialog}
+        onCreate={handleCreateInvitation}
+        onRenew={handleRenewInvitation}
+        onRevoke={(invitationId) => void handleRevokeInvitation(invitationId)}
+        visible={invitationDialogVisible}
       />
       <SectionList
         contentContainerStyle={styles.listContent}
@@ -317,6 +480,7 @@ export function BandScreen({
             canManage={canManage}
             current={item.userId === currentMembership?.userId}
             member={item}
+            onLeave={openLeaveFlow}
             onManage={() => openMemberManagement(item)}
           />
         )}
@@ -341,28 +505,22 @@ function MemberRow({
   canManage,
   current,
   member,
+  onLeave,
   onManage,
 }: {
   readonly canManage: boolean;
   readonly current: boolean;
   readonly member: BandMember;
+  readonly onLeave: () => void;
   readonly onManage: () => void;
 }) {
-  const initials = member.displayName
-    .split(' ')
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toLocaleUpperCase('pt-BR');
-
   return (
     <View style={styles.rowFrame}>
       <View style={styles.memberRow}>
-        <View style={styles.memberAvatar}>
-          <AppText tone="accent" variant="caption">
-            {initials}
-          </AppText>
-        </View>
+        <UserAvatar
+          avatarUrl={member.avatarUrl}
+          displayName={member.displayName}
+        />
         <View style={styles.rowCopy}>
           <View style={styles.rowTitleLine}>
             <AppText>{member.displayName}</AppText>
@@ -372,7 +530,19 @@ function MemberRow({
             {roleLabels[member.role]}
           </AppText>
         </View>
-        {canManage && !current ? (
+        {current ? (
+          <Pressable
+            accessibilityLabel="Sair da banda"
+            accessibilityRole="button"
+            onPress={onLeave}
+            style={({ pressed }) => [
+              styles.overflowButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon color={colors.violet} name="logout" />
+          </Pressable>
+        ) : canManage ? (
           <Pressable
             accessibilityLabel={`Administrar ${member.displayName}`}
             accessibilityRole="button"
@@ -436,14 +606,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     minHeight: 68,
     padding: spacing.md,
-  },
-  memberAvatar: {
-    alignItems: 'center',
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.pill,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
   },
   overflowButton: {
     alignItems: 'center',

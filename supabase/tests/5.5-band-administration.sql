@@ -13,7 +13,9 @@ begin
     (owner_id, 'authenticated', 'authenticated', 'task-5-5-owner@example.test'),
     (member_id, 'authenticated', 'authenticated', 'task-5-5-member@example.test');
   insert into public.profiles (id, display_name)
-  values (owner_id, 'Owner 5.5'), (member_id, 'Member 5.5');
+  values (owner_id, 'Owner 5.5'), (member_id, 'Member 5.5')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
   insert into public.bands (id, name)
   values (band_id, 'Banda 5.5');
   insert into public.band_members (band_id, user_id, role)

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
@@ -52,6 +53,7 @@ export function BandsScreen({
   viewportWidth,
 }: BandsScreenProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const bandsQuery = useUserBandSummaries();
   const { clearLastBand, isHydrated, lastBandId, setLastBand } =
     useLastBandSelection();
@@ -94,12 +96,21 @@ export function BandsScreen({
     setCreationStatus('submitting');
 
     try {
-      await createBand({
+      const createdBandId = await createBand({
         acceptedTerm,
         name,
         termVersion: CURRENT_BAND_TERM.version,
       });
-      await bandsQuery.refetch().catch(() => undefined);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['bands', 'user'],
+          refetchType: 'all',
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['bands', createdBandId],
+          refetchType: 'all',
+        }),
+      ]).catch(() => undefined);
       setCreationDialogVisible(false);
       setCreationStatus('idle');
     } catch (error) {

@@ -1,4 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { BandAdministrationDialog } from '@/features/bands/BandAdministrationDialog';
 
@@ -97,6 +98,32 @@ describe('<BandAdministrationDialog />', () => {
     await fireEvent.press(view.getByLabelText('Confirmar exclusão da banda'));
 
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('ajusta a janela ao teclado e mantém o formulário rolável', async () => {
+    const view = await render(
+      <BandAdministrationDialog
+        band={band}
+        errorMessage={null}
+        isSubmitting={false}
+        mode="delete"
+        onClose={jest.fn()}
+        onDelete={jest.fn()}
+        onModeChange={jest.fn()}
+        onRename={jest.fn()}
+      />,
+    );
+
+    const keyboardLayout = view.getByTestId(
+      'band-administration-keyboard-layout',
+    );
+    expect(keyboardLayout).toBeTruthy();
+    expect(view.getByLabelText('Confirmação do nome da banda')).toBeTruthy();
+    const formScroll = view.getByTestId('band-administration-form-scroll');
+    expect(formScroll.props.keyboardShouldPersistTaps).toBe('handled');
+    expect(StyleSheet.flatten(formScroll.props.style)).toMatchObject({
+      flexShrink: 1,
+    });
   });
 
   it('exibe o erro retornado ao salvar o nome', async () => {

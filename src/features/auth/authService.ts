@@ -309,6 +309,21 @@ export async function signOut(): Promise<void> {
   }
 }
 
+/**
+ * Remove somente a sessão local. É usado depois de uma exclusão de conta,
+ * quando a sessão remota já não existe para receber um sign-out global.
+ */
+export async function signOutLocally(): Promise<void> {
+  const { error } = await getSupabaseClient().auth.signOut({ scope: 'local' });
+
+  if (error) {
+    throw new AuthFlowError(
+      'sign_out_failed',
+      'Não foi possível limpar a sessão local. Tente novamente.',
+    );
+  }
+}
+
 export function subscribeToAuthState(
   callback: (event: AuthChangeEvent, session: Session | null) => void,
 ): { unsubscribe: () => void } {

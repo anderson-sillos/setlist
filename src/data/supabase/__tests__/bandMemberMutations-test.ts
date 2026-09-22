@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '@/data/supabase/client';
 import {
   BandMemberMutationError,
+  leaveBand,
   removeBandMember,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
@@ -16,6 +17,7 @@ describe('administração de integrantes no Supabase', () => {
   const update = jest.fn();
   const remove = jest.fn();
   const eq = jest.fn();
+  const rpc = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -23,7 +25,7 @@ describe('administração de integrantes no Supabase', () => {
     update.mockReturnValue({ eq });
     remove.mockReturnValue({ eq });
     from.mockReturnValue({ delete: remove, update });
-    mockGetSupabaseClient.mockReturnValue({ from } as never);
+    mockGetSupabaseClient.mockReturnValue({ from, rpc } as never);
   });
 
   it('promove um integrante para proprietário', async () => {
@@ -83,6 +85,26 @@ describe('administração de integrantes no Supabase', () => {
       code: 'request_failed',
       message:
         'Não foi possível atualizar os integrantes agora. Tente novamente.',
+    });
+  });
+
+  it('solicita a saída da banda pela função transacional', async () => {
+    rpc.mockResolvedValue({ error: null });
+
+    await expect(leaveBand({ bandId: 'band-1' })).resolves.toBeUndefined();
+
+    expect(rpc).toHaveBeenCalledWith('leave_band', {
+      p_band_id: 'band-1',
+    });
+  });
+
+  it('traduz a proteção do último proprietário ao sair', async () => {
+    rpc.mockResolvedValue({ error: { message: 'LAST_OWNER_REQUIRED' } });
+
+    await expect(leaveBand({ bandId: 'band-1' })).rejects.toMatchObject<
+      Partial<BandMemberMutationError>
+    >({
+      code: 'last_owner',
     });
   });
 });

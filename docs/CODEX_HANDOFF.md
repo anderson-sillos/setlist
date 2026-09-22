@@ -6,7 +6,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/task-5-3-minhas-bandas`.
+- Branch de trabalho: `feat/task-5-6-convites`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a implementação da tarefa 5.1 segue em andamento por causa do iOS nativo adiado; o login foi validado manualmente na web, no Expo Go Android e no development build Android com Google nativo. As tarefas 5.2, 5.3, 5.4 e 5.5 foram implementadas; a 5.3 foi validada manualmente, incluindo restauração da sessão, seleção persistida da última banda autorizada e o fluxo sem banda. A criação de banda agora exige aceite explícito e grava o usuário, Owner, versão do termo e horário do servidor pela RPC transacional do Supabase; as migrações foram publicadas nos projetos hospedados de desenvolvimento e produção. A consulta de bandas autenticadas usa o repositório remoto, a lista é atualizada após uma nova criação, edição ou exclusão e as bandas demonstrativas permanecem temporariamente disponíveis com identificação visual. A área Banda agrupa integrantes por papel, identifica a própria pessoa e oferece promoção, remoção, edição do nome e exclusão reforçada da banda somente para Owners; o botão `...` abre diretamente a edição, enquanto `Convidar` fica junto da lista de membros. A migração de identidade preenche perfis existentes e sincroniza nome/e-mail do provedor para evitar o rótulo `Usuário removido`. As mutações reais passam pelo Supabase e continuam protegidas pelo RLS e pelo bloqueio do último Owner. Repertório, shows e demais áreas seguem demonstrativos até suas tarefas de leitura remota. A próxima atividade é a tarefa 5.6, enquanto a PR #13 permanece aberta para revisão.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.6 cobre convite de uso único, retorno ao app, descarte de deep link já aceito e exibição da data de aceite; a 5.8 cobre exclusão de conta/banda, proteção do último Owner e limpeza; a 5.9 sincroniza e permite editar o perfil, usando `profiles` como identidade canônica. O layout do menu e o ajuste de formulários ao teclado foram validados no Android. As migrações recentes foram aplicadas ao Supabase de desenvolvimento; produção permaneceu intocada. `npm run validate` passou com 60 suítes e 326 testes; a suíte SQL local passou com 13 arquivos e 253 testes, e o Supabase local foi desligado após os testes. O callback OAuth web foi corrigido, publicado no GitHub Pages e validado manualmente sem o 404 do bundle. O PR #14 segue aberto até a integração final. Permanecem futuras a validação do provedor Apple/iOS na tarefa 5.1, a execução ponta a ponta multiplataforma da 5.10 e as atividades dos grupos seguintes.
 
 ## Fontes de verdade
 
@@ -127,6 +127,12 @@ openspec validate definir-mvp-setlist --type change --strict
 91. A tarefa 5.5 implementou a administração real de integrantes e da banda. `BandScreen` mantém os grupos de Proprietários, Editores e Integrantes em ordem alfabética, marca a própria pessoa e mostra os controles somente para Owners. Ações de promover para Proprietário e remover integrante usam um diálogo de confirmação que identifica a pessoa; a edição do nome usa o mesmo acesso e a exclusão exige digitar o nome completo, além de ser recusada pelo backend quando há outros integrantes. As mutações chamam o Supabase e traduzem erros de permissão ou do último Owner. Bandas demonstrativas continuam exibindo um aviso sem alterar dados. Foram adicionados testes de mutações, confirmações, ordenação e ausência de controles para Editor e Member, além da função SQL transacional de exclusão. Formatação, lint, TypeScript e 52 suítes (259 testes) passaram; a PR #13 continua aberta.
 92. A revisão da tela de Banda removeu o menu intermediário de administração: o botão `...` no cabeçalho abre diretamente a edição, o botão de exclusão fica nessa janela e `Convidar` foi movido para acima da lista de membros. A lista agora invalida as consultas agregadas após editar ou excluir uma banda. A migração `20260920110000_sync_profile_identity.sql` preenche perfis existentes a partir de `auth.users` e sincroniza nome/e-mail ao criar banda ou aceitar convite, evitando `Usuário removido` quando a identidade está disponível. A migração foi aplicada nos projetos hospedados de desenvolvimento e produção; o lint do schema `public` passou. Formatação, lint, TypeScript, OpenSpec e 52 suítes (261 testes) passaram; a PR #13 continua aberta.
 93. A janela de edição/exclusão da banda passou a usar a mesma estrutura de `BandCreationDialog`: cabeçalho fixo com título e fechar, formulário rolável e rodapé fixo com ações. O padrão deve ser reutilizado nas próximas janelas de edição para manter o comportamento consistente em telas pequenas.
+94. A tarefa 5.6 foi iniciada na branch `feat/task-5-6-convites` e está em revisão na PR #14. `BandInvitationDialog` permite a Owners criar vários convites com rótulo opcional, compartilhar o link, revogar convites ativos e renovar links expirados ou revogados. O token bruto é gerado com `expo-crypto`, permanece somente em memória e o Supabase armazena apenas o hash. A tela `/invite/[token]` agora consulta uma prévia protegida depois do login, preserva o token durante o OAuth, exige confirmação explícita, consome o convite atomicamente e restaura a banda recém-aceita como contexto. A migração `20260920130000_invitation_preview_and_renewal.sql` adiciona as RPCs de prévia e renovação; `supabase/tests/5.6-invitations.sql` cobre esses contratos. `EXPO_PUBLIC_WEB_BASE_URL` foi documentada para links HTTPS compartilháveis. A migração foi publicada no projeto Supabase de desenvolvimento e o lint do schema `public` passou. TypeScript, lint, formatação e 54 suítes (280 testes) passaram; falta a validação manual dos fluxos autenticado, não autenticado, expirado, revogado e já utilizado antes de concluir a tarefa.
+95. A revisão da administração de integrantes na mesma PR #14 incluiu transições completas de papel na interface: Member pode ser promovido a Editor ou Proprietário; Editor pode ser promovido a Proprietário ou rebaixado a Member; e outro Owner pode ser rebaixado a Editor ou Member. Cada transição exige confirmação. A atualização continua usando `updateBandMemberRole` e o gatilho `prevent_last_owner_change` bloqueia qualquer rebaixamento que deixaria uma banda com outros integrantes sem Owner. Foram adicionados testes do diálogo e do fluxo integrado de promoção para Editor. A saída de integrantes e a validação manual do convite continuam pendentes.
+96. Corrigido o estado do `BandMemberManagementDialog`: depois de confirmar ou fechar uma ação, a seleção pendente é limpa. Ao abrir novamente a administração do mesmo integrante, o diálogo volta corretamente à lista de ações em vez de exibir diretamente a confirmação. O cenário foi coberto por teste de regressão; a validação completa passou com 54 suítes e 283 testes.
+97. A tarefa 5.7 foi concluída na PR #14. A área Banda agora oferece a saída voluntária pelo próprio integrante, com confirmação e retorno para `Minhas bandas`. `leaveBand` chama a RPC transacional `leave_band`, publicada na migração `20260920150000_leave_band.sql`; a função valida a sessão e a participação antes de excluir somente o vínculo atual, enquanto `prevent_last_owner_change` impede que a banda fique sem Owner. O diálogo e o fluxo integrado foram cobertos por testes, e o Supabase de desenvolvimento passou pelo `db push` e pelo lint do schema público. A suíte pgTAP remota não pôde ser executada porque o projeto hospedado não possui a extensão pgTAP habilitada; o teste versionado permanece preparado para o ambiente local.
+98. A tarefa 5.6 foi validada manualmente e concluída na PR #14. Foram conferidos os fluxos de convite autenticado e não autenticado, preservação do token durante o login, aceite único, convite expirado, convite revogado e renovação. Links HTTPS continuam sendo o formato compartilhável recomendado para abrir no navegador; `exp://.../--/invite/<token>` é um deep link do Expo Go e não deve ser tratado como URL do Chrome. A próxima atividade é a tarefa 5.8, que tratará exclusão de conta e exclusão de banda com as regras de anonimização e proteção do último Owner.
+99. A implementação da tarefa 5.8 foi iniciada na PR #14. A migração `20260920160000_delete_account.sql` adiciona a RPC `delete_account`, bloqueando a exclusão quando a pessoa é o último Owner de uma banda com outros integrantes ou ainda possui uma banda solo; após a validação das regras, o perfil é removido, as referências históricas são anonimizadas, as participações são limpas por cascata, o conteúdo das bandas permanece e o usuário de `auth.users` é excluído. A tela `Perfil e conta` está disponível no menu lateral, exige digitar `EXCLUIR`, limpa a sessão local e a última banda após sucesso e apresenta erros diretos para as restrições de Owner. A exclusão da banda solo continua na edição da banda, exigindo o nome completo. Foram adicionados testes unitários do diálogo, tela, mutação e autenticação, além de `supabase/tests/5.8-account-deletion.sql`; a suíte do app passou com 58 suítes e 305 testes. A migração foi publicada nos projetos hospedados de desenvolvimento e produção e o lint do schema `public` passou. A suíte pgTAP remota continua impedida pela ausência da extensão no projeto hospedado; restam os cenários manuais para concluir a tarefa.
 
 ## Visão confirmada do produto
 
@@ -274,6 +280,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - Preferir squash merge, pois o repositório não aceita rebase merge.
 - Atualizar este handoff ao final de cada grupo quando estado, decisões, riscos ou próximos passos mudarem.
 - Não misturar mudanças não relacionadas no mesmo commit ou PR.
+- Após testes locais aprovados de alterações do Supabase, conferir o remoto de desenvolvimento vinculado com `npx --yes supabase@latest db push --linked --dry-run`, aplicar as migrações pendentes com `npx --yes supabase@latest db push --linked` e confirmar novamente que não restam pendências. Não publicar no projeto de produção sem pedido explícito.
+- Iniciar o Supabase local somente quando necessário e executar `npx --yes supabase@latest stop` ao terminar seu uso.
 
 ## Histórico de PRs relevante
 
@@ -289,13 +297,83 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 - PR #10: segunda rodada de melhorias de UI, reorganização das telas, identidade visual, favicon, splash e consulta de Shows com calendário como filtro de data; integrada à `main`.
 - PR #11: validação antecipada dos riscos técnicos do player YouTube, cronômetro em tempo real e rotas de convite/OAuth; grupo 3 concluído e integrado à `main`.
 - PR #12: fundação do Supabase, autenticação, persistência de sessão e ajustes de ambiente; grupo 4 integrado à `main`.
-- PR #13: implementação de `Minhas bandas`, persistência da última banda e criação de banda com aceite do termo; permanece aberta para revisão.
+- PR #13: implementação de `Minhas bandas`, persistência da última banda e criação de banda com aceite do termo; integrada à `main` após aprovação.
+
+100. O domínio canônico da aplicação foi definido como `https://setlistbr.app.br/`.
+     O workflow do GitHub Pages foi ajustado para exportar a aplicação na raiz do
+     artefato, manter a apresentação em `/docs/apresentacao.html`, preservar uma
+     cópia temporária em `/setlist/app/` e injetar
+     `EXPO_PUBLIC_WEB_BASE_URL=https://setlistbr.app.br`. A publicação ficará
+     disponível assim que o DNS do Registro.br concluir a transição. O endereço antigo
+     do GitHub Pages permanece documentado como fallback temporário. O Redirect URL
+     `https://setlistbr.app.br/auth/callback**` foi adicionado aos projetos Supabase
+     hospedados de desenvolvimento e produção pela CLI, sem remover os destinos já
+     existentes; o `Site URL` não foi alterado. A configuração de App Links e
+     Universal Links continuará separada, dependendo dos arquivos de associação e
+     dos certificados dos builds nativos.
+
+101. A fundação dos links HTTPS foi antecipada. `app.config.ts` declara o App Link
+     Android para `/invite/*` com `autoVerify` e o entitlement
+     `applinks:setlistbr.app.br` para iOS. O workflow executa
+     `scripts/prepare-link-associations.mjs`, que gera `assetlinks.json` quando
+     `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` existir e o AASA quando
+     `SETLIST_IOS_TEAM_ID` existir. O DNS e HTTPS do domínio canônico estão ativos;
+     o endpoint Android retorna JSON válido e a API Digital Asset Links reconhece
+     pacote e fingerprint. A tarefa 11.5 segue pendente até a validação no app
+     Android instalado e a configuração/build/validação iOS.
+
+102. O README passou a orientar a obtenção do `SHA256 Fingerprint` pelo comando
+     `eas credentials -p android` e o cadastro de
+     `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` nas variáveis públicas do GitHub.
+     A orientação diferencia a assinatura EAS dos builds internos e a chave de
+     assinatura da Play App Signing; múltiplas impressões podem ser informadas
+     separadas por vírgula. O APK anterior à configuração dos intent filters não
+     serve para validar App Links e exige novo build.
+
+103. A validação web do retorno OAuth em `/auth/callback` encontrou um defeito no
+     fallback do GitHub Pages: o HTML renderizado no servidor usava caminhos
+     relativos `./_expo`, que, em URLs aninhadas, eram requisitados em
+     `/auth/_expo/...` ou `/invite/_expo/...` e retornavam 404. A tela HTML inicial
+     mostrava “Conferindo seu acesso…”, mas o bundle não carregava para completar a
+     hidratação e o fluxo OAuth. O workflow agora injeta em cada HTML exportado um
+     `<base>` dinâmico: `/` no domínio canônico, `/app/` na cópia de conveniência e
+     `/setlist/app/` na prévia `github.io`, incluindo o `404.html`. Assim as rotas
+     aninhadas buscam os bundles no diretório correto. A atualização está incluída
+     na PR #14 e será publicada pelo workflow do Pages após a integração em `main`.
+
+104. A rodada final da PR #14 adicionou a sincronização de perfil por meio da
+     migração `20260922120000_sync_editable_profiles.sql`, edição de nome de
+     exibição, avatar com fallback por iniciais e uso de `profiles` como identidade
+     canônica. A migração `20260922130000_resolve_accepted_invitation_replay.sql`
+     resolve a reabertura do deep link de um convite já aceito pela mesma pessoa e
+     a lista de convites exibe `used_at` em vez da expiração. O menu agora mantém
+     nome e e-mail na mesma coluna ao lado do avatar. O teclado virtual reposiciona
+     formulários móveis existentes de criação, edição e confirmação; a confirmação
+     de exclusão da banda mantém o campo e as ações acessíveis. O usuário validou
+     manualmente os ajustes visuais e de teclado no Android. O projeto passou em
+     `npm run validate` (60 suítes, 326 testes), `git diff --check` e
+     `openspec validate definir-mvp-setlist --type change --strict`; as migrações
+     foram aplicadas ao Supabase de desenvolvimento e um dry-run confirmou que o
+     remoto estava atualizado. Após a validação manual, as tarefas 5.8 e 5.9 foram
+     concluídas; a tarefa 5.10, de testes ponta a ponta nas três plataformas,
+     continua no roadmap.
+
+105. A tentativa de eliminar o 404 em `/auth/callback` apenas inserindo um `<base>`
+     dinâmico ainda permitia que o navegador descobrisse antecipadamente o `src`
+     relativo `./_expo/...` e requisitasse `/auth/_expo/...`. O script
+     `scripts/prepare-pages-html.mjs` agora substitui o `src` estático por um
+     carregador que calcula o caminho antes de criar a tag do bundle, preservando
+     o domínio canônico, `/app/` e a prévia `github.io`. O commit `785af60` foi
+     publicado pelo workflow `35741870191`; o HTML ao vivo resolve diretamente o
+     bundle na raiz, que responde `200`, e o usuário validou manualmente o login
+     publicado sem o 404.
 
 ## Próxima ação recomendada
 
-Iniciar a tarefa 5.6: implementar convites com rótulo, compartilhamento,
-confirmação, revogação e renovação. A tarefa 5.1 continua parcialmente aberta
-pelo iOS nativo adiado; o OAuth pelo navegador permanece o caminho suportado
-nessa plataforma. A leitura remota de bandas e a administração de integrantes
-já estão disponíveis para validação pelo app; repertório, shows e convites ainda
-devem migrar gradualmente para repositórios Supabase nas tarefas próprias.
+Concluir a PR #14 por squash mantendo o histórico do handoff. As tarefas 5.8 e
+5.9 estão concluídas; permanecem pendentes a habilitação/validação do provedor
+Apple e do login no iOS (5.1), os
+testes ponta a ponta de papéis e convites nas três plataformas (5.10) e Android
+App Links/configuração e validação iOS (11.5). O change OpenSpec
+`definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
+contém os grupos futuros de repertório, shows, modo palco e offline.

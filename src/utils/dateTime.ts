@@ -12,6 +12,21 @@ export function formatShowDate(startsAt: string): string {
   }).format(new Date(startsAt));
 }
 
+export function formatDateOnly(value: string): string | null {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(APP_LOCALE, {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: APP_TIME_ZONE,
+    year: 'numeric',
+  }).format(date);
+}
+
 export function formatShowListDate(startsAt: string): string {
   const date = new Date(startsAt);
   const weekday = new Intl.DateTimeFormat(APP_LOCALE, {

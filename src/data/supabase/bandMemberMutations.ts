@@ -12,6 +12,10 @@ export type RemoveBandMemberInput = {
   readonly memberId: EntityId;
 };
 
+export type LeaveBandInput = {
+  readonly bandId: EntityId;
+};
+
 export type BandMemberMutationErrorCode =
   'last_owner' | 'permission_denied' | 'request_failed';
 
@@ -79,6 +83,16 @@ export async function removeBandMember({
     .delete()
     .eq('band_id', bandId)
     .eq('id', memberId);
+
+  if (error) {
+    throw mapSupabaseError(error.message);
+  }
+}
+
+export async function leaveBand({ bandId }: LeaveBandInput): Promise<void> {
+  const { error } = await getSupabaseClient().rpc('leave_band', {
+    p_band_id: bandId,
+  });
 
   if (error) {
     throw mapSupabaseError(error.message);

@@ -6,7 +6,7 @@
 
 O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e acompanharem letras sincronizadas durante uma apresentação. A proposta combina preparação colaborativa em Android, iOS e web, operação simples no palco e disponibilidade offline nos aplicativos móveis.
 
-[Abrir prévia do aplicativo](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://anderson-sillos.github.io/setlist/) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Mapa das telas](docs/ARQUITETURA_DE_TELAS.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
+[Abrir aplicação (domínio em configuração)](https://setlistbr.app.br/) · [Prévia temporária](https://anderson-sillos.github.io/setlist/app/) · [Visualizar apresentação](https://setlistbr.app.br/docs/apresentacao.html) · [Acompanhar tarefas](openspec/changes/definir-mvp-setlist/tasks.md) · [Mapa das telas](docs/ARQUITETURA_DE_TELAS.md) · [Proposta do MVP](openspec/changes/definir-mvp-setlist/proposal.md) · [Decisões de arquitetura](openspec/changes/definir-mvp-setlist/design.md) · [Handoff do Codex](docs/CODEX_HANDOFF.md)
 
 ## Status do projeto
 
@@ -215,6 +215,13 @@ No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar 
 | `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente                  |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                           |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web opcional para Google nativo no Android |
+| `EXPO_PUBLIC_WEB_BASE_URL`             | URL HTTPS pública usada nos links de convite               |
+
+Enquanto `setlistbr.app.br` aguarda a publicação DNS, mantenha no `.env.local`
+o endereço temporário `https://anderson-sillos.github.io/setlist/app`. Depois
+que o domínio canônico estiver acessível, substitua-o por
+`https://setlistbr.app.br`. A variável `EXPO_WEB_BASE_URL` é exclusiva do
+workflow de exportação web e não deve ser adicionada ao `.env.local`.
 
 Use dois projetos Supabase hospedados distintos: um para desenvolvimento e outro para produção. Copie de cada painel a **Project URL** e a **Publishable key** para o arquivo do mesmo ambiente. Não use `NODE_ENV` para selecionar arquivos `.env`, pois o Expo também controla essa variável durante exportações.
 
@@ -252,7 +259,8 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    adicione os retornos permitidos usados no desenvolvimento:
    `http://localhost:8081/auth/callback**`,
    `https://*.exp.direct/auth/callback**`,
-   `https://anderson-sillos.github.io/setlist/app/auth/callback**` e
+   `https://anderson-sillos.github.io/setlist/app/auth/callback**`,
+   `https://setlistbr.app.br/auth/callback**` e
    `setlist://auth/callback**`.
    Para validar pelo Expo Go usando túnel, adicione também
    `exp://**/--/auth/callback**`; esses padrões cobrem os endereços temporários
@@ -260,9 +268,12 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    pelo PKCE. Neste projeto, o `Site URL` fica como
    `setlist://auth/callback`, servindo como fallback nativo; os destinos web
    precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
-   A prévia hospedada no GitHub Pages já usa o retorno HTTPS acima; o endereço
-   HTTPS definitivo do aplicativo será revisado na tarefa 11.5. No projeto de
-   desenvolvimento, essa lista já foi aplicada pela Supabase CLI.
+   A prévia hospedada no GitHub Pages usa temporariamente o retorno HTTPS antigo;
+   o endereço canônico do aplicativo será `https://setlistbr.app.br/auth/callback`.
+   A lista foi sincronizada pela Supabase CLI nos projetos hospedados de
+   desenvolvimento e produção, preservando os destinos já existentes. Antes do
+   primeiro login pelo domínio, confirme apenas a propagação do DNS e do
+   certificado HTTPS.
    Antes de repetir a operação em outro ambiente, execute `supabase config diff`
    e revise o resultado; o `supabase/config.toml` versionado contém valores para
    desenvolvimento local e não deve ser enviado diretamente sem essa revisão.
@@ -374,6 +385,30 @@ npm run supabase:check -- production
 ```
 
 Não execute `db reset --local` apontando para um projeto hospedado, não use `--include-seed` nesses ambientes e não aplique alterações manualmente pelo Table Editor. O `seed.sql` habilita pgTAP somente no banco local; produção e desenvolvimento hospedados devem receber apenas as migrações versionadas. Se o `dry-run` indicar divergência de histórico, interrompa a publicação e revise o projeto antes de usar opções como `--include-all`.
+
+### Convites de banda
+
+Owners podem abrir **Banda > Convidar** para criar vários links de uso único. O
+rótulo é opcional e serve apenas para organização; cada convite vale por sete
+dias, pode ser revogado e pode ser renovado com a geração de um novo link. O
+aplicativo mantém o token bruto somente em memória durante o compartilhamento,
+enquanto o Supabase armazena apenas o hash SHA-256.
+
+Para que o link compartilhado seja HTTPS em um development build ou no Expo Go,
+preencha `EXPO_PUBLIC_WEB_BASE_URL` com a origem pública da versão web do mesmo
+ambiente. No ambiente canônico, use `https://setlistbr.app.br`; na web em
+execução local, a origem atual é usada automaticamente. Depois de publicar a
+migração, valide estes fluxos:
+
+1. Crie dois convites com rótulos diferentes e confirme que ambos aparecem na
+   lista do Owner.
+2. Use **Compartilhar link** e abra o endereço em uma janela sem sessão; o
+   token deve sobreviver ao login e retornar à confirmação do convite.
+3. Confirme **Aceitar convite** uma vez e verifique a nova participação como
+   `Integrante`; uma segunda tentativa deve informar que o convite já foi usado.
+4. Revogue um convite ativo e tente abri-lo; a entrada deve ser recusada.
+5. Renove um convite expirado ou revogado e confirme que o novo link funciona
+   sem reativar o anterior.
 
 Para conferir a conexão usando diretamente as variáveis cadastradas no EAS, sem criar um arquivo local, execute:
 
@@ -671,9 +706,24 @@ Para validar a administração de uma banda real, entre como Owner e abra a tela
 **Banda**. O botão `...` no cabeçalho abre diretamente a edição do nome; nessa
 janela também está a ação de exclusão, que exige digitar o nome completo e só é
 concluída quando o Owner é o único integrante. O botão **Convidar** fica acima
-da lista de membros. Ações equivalentes não aparecem para Editor ou Member.
+da lista de membros. O menu de cada integrante permite promover Member para
+Editor ou Proprietário, promover Editor para Proprietário e rebaixar Owner ou
+Editor. O backend impede que a banda fique sem nenhum Proprietário; portanto,
+o último Owner só pode ser rebaixado depois que outro integrante for promovido.
+A própria pessoa também pode usar o ícone de saída na sua linha para sair da
+banda, com confirmação; a mesma proteção impede a saída do último Owner.
+Ações equivalentes não aparecem para Editor ou Member.
 Nas bandas marcadas como `Demonstração`, o app exibe apenas um aviso e preserva
 os dados de exemplo.
+
+Para validar a exclusão de conta, abra **Menu geral → Perfil e conta**. A ação
+exige digitar `EXCLUIR` e remove o perfil, a sessão e a última banda selecionada
+do aparelho. O conteúdo das bandas continua disponível para os demais
+integrantes. Se a conta for o último Proprietário de uma banda com outros
+integrantes, promova outra pessoa antes de tentar novamente; se for o único
+integrante de uma banda, exclua a banda pela edição dela antes de excluir a
+conta. A exclusão da banda exige digitar exatamente o nome completo e só é
+permitida ao único Proprietário integrante.
 
 Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
 
@@ -701,9 +751,10 @@ pendência futura desta etapa:
 Ao executar com `npx expo start --go --tunnel --clear`, o app monta
 automaticamente um retorno `exp://.../--/auth/callback` no Expo Go e a versão
 web usa a origem HTTPS `https://*.exp.direct/auth/callback`; a prévia publicada
-no GitHub Pages usa `https://anderson-sillos.github.io/setlist/app/auth/callback`.
-Se esses padrões não estiverem na lista de Redirect URLs do Supabase, o
-provedor pode ignorar o `redirectTo` e voltar para o `Site URL`
+no GitHub Pages usa temporariamente `https://anderson-sillos.github.io/setlist/app/auth/callback`,
+enquanto o domínio canônico usará `https://setlistbr.app.br/auth/callback`.
+Se esses padrões não estiverem na lista de Redirect URLs do Supabase, o provedor
+pode ignorar o `redirectTo` e voltar para o `Site URL`
 (`setlist://auth/callback`), deixando o login web sem um destino navegável. Em
 um development build ou build interno, o retorno é `setlist://auth/callback` e
 deve ser mantido na mesma lista.
@@ -755,7 +806,106 @@ ser removidos depois da revisão. Reinicie o Metro com `--clear` após alterar o
 
 ### 9. Publicar a prévia e gerar builds internos
 
-A prévia web é publicada em [anderson-sillos.github.io/setlist/app/](https://anderson-sillos.github.io/setlist/app/). O workflow [Publicar GitHub Pages](.github/workflows/pages.yml) exporta a aplicação para `/setlist/app`, preserva a apresentação na raiz do site e publica ambas após cada envio para `main`. A variável `EXPO_WEB_BASE_URL` é usada somente nessa exportação para ajustar os caminhos do GitHub Pages; não precisa ser criada no ambiente local.
+A aplicação web será publicada na raiz do domínio canônico
+[setlistbr.app.br](https://setlistbr.app.br/) assim que a transição DNS terminar.
+Enquanto isso, a [prévia temporária](https://anderson-sillos.github.io/setlist/app/)
+continua disponível para validação. O workflow [Publicar GitHub Pages](.github/workflows/pages.yml)
+exporta a aplicação para a raiz do artefato, publica a apresentação em
+`/docs/apresentacao.html` e envia ambos após cada envio para `main`.
+`EXPO_WEB_BASE_URL=.` é usado somente durante essa exportação para configurar um
+base path relativo, permitindo que a mesma prévia continue acessível em
+`/setlist/app/` durante a transição; não precisa ser criado no ambiente local.
+O workflow também injeta
+`EXPO_PUBLIC_WEB_BASE_URL=https://setlistbr.app.br` para gerar links públicos do
+ambiente canônico.
+
+Para conectar o domínio personalizado ao GitHub Pages, cadastre
+`setlistbr.app.br` em **Settings → Pages → Custom domain** e configure no
+Registro.br os quatro registros `A` recomendados pelo GitHub. Opcionalmente,
+aponte `www.setlistbr.app.br` por `CNAME` para `anderson-sillos.github.io`.
+Depois da propagação, ative **Enforce HTTPS**. A emissão do certificado é feita
+automaticamente pelo GitHub Pages. Não é necessário criar um arquivo `CNAME` no
+repositório porque a publicação usa GitHub Actions.
+
+#### 9.1 Preparar App Links e Universal Links
+
+O `app.config.ts` já declara o Android App Link para
+`https://setlistbr.app.br/invite/<token>` com `autoVerify` e o entitlement iOS
+`applinks:setlistbr.app.br`. A associação só será efetiva depois de um novo build
+nativo e da publicação dos arquivos em `/.well-known` no domínio com HTTPS válido.
+
+O workflow gera cada arquivo durante a exportação quando a variável pública
+correspondente for cadastrada em _Settings → Secrets and variables → Actions_:
+
+| Variable                                   | Conteúdo                                                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` | Uma ou mais impressões SHA-256 da assinatura Android, separadas por vírgula; inclua as assinaturas dos perfis que serão distribuídos. |
+| `SETLIST_IOS_TEAM_ID`                      | Team ID alfanumérico da conta Apple Developer que assina o bundle `com.andersonsillos.setlist`.                                       |
+
+Para obter a impressão do Android nos builds EAS atuais:
+
+1. Autentique a CLI e abra o gerenciamento de credenciais Android:
+
+   ```bash
+   npx --yes eas-cli@latest login --browser
+   npx --yes eas-cli@latest whoami
+   npx --yes eas-cli@latest credentials -p android
+   ```
+
+2. Selecione o projeto `@anderson-silloss-team/setlist`, o pacote
+   `com.andersonsillos.setlist` e a credencial usada pelo build. Copie o campo
+   `SHA256 Fingerprint` exatamente como exibido, com letras maiúsculas e dois-pontos.
+3. Em **Settings → Secrets and variables → Actions → Variables**, crie ou edite
+   `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS` com esse valor. Não use a SHA-1 do
+   Google OAuth e não coloque aspas.
+4. Se houver mais de uma assinatura válida (por exemplo, EAS para testes e Play
+   App Signing para produção), informe todas separadas por vírgula. A impressão
+   que deve ser incluída é a do certificado que assina o APK instalado no aparelho;
+   na Play Console ela fica em **Release → Setup → App signing → App signing key
+   certificate → SHA-256 certificate fingerprint**.
+5. Execute novamente o workflow de Pages e confirme que o arquivo publicado contém
+   o pacote e as impressões esperadas:
+
+   ```bash
+   gh workflow run pages.yml --ref feat/task-5-6-convites
+   curl -fsSL https://setlistbr.app.br/.well-known/assetlinks.json | jq .
+   ```
+
+Como a declaração `intentFilters` foi adicionada à configuração nativa, gere um
+novo APK depois dessa alteração; o APK anterior não contém o App Link. Após
+instalá-lo, force a verificação no aparelho e abra um convite HTTPS:
+
+```bash
+adb shell pm verify-app-links --re-verify com.andersonsillos.setlist
+adb shell pm get-app-links --user cur com.andersonsillos.setlist
+adb shell am start -a android.intent.action.VIEW \
+  -d "https://setlistbr.app.br/invite/<token>"
+```
+
+O script `scripts/prepare-link-associations.mjs` publica então:
+
+- `https://setlistbr.app.br/.well-known/assetlinks.json`, com o pacote Android e
+  as impressões informadas;
+- `https://setlistbr.app.br/.well-known/apple-app-site-association`, limitado às
+  rotas `/invite/*`.
+
+As impressões de assinatura e o Team ID não são chaves de acesso, mas devem ser
+conferidos com os certificados reais do EAS/Play Console e da Apple Developer.
+Sem `SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS`, o App Link Android não será
+gerado; sem `SETLIST_IOS_TEAM_ID`, o AASA iOS não será gerado. A publicação web
+continua funcionando e emite um aviso para a associação que estiver pendente.
+Depois de configurar cada variável e o DNS, publique novamente, gere um novo
+build nativo e valide:
+
+```bash
+adb shell pm verify-app-links --re-verify com.andersonsillos.setlist
+adb shell am start -a android.intent.action.VIEW \
+  -d "https://setlistbr.app.br/invite/<token>"
+```
+
+No iOS, instale o novo build e abra um convite HTTPS fora do navegador. A Apple
+mantém a associação em cache; alterações no arquivo podem levar algum tempo para
+serem consultadas pelos dispositivos.
 
 Para que o login funcione nessa versão hospedada, o repositório precisa ter as
 seguintes **Variables** públicas em _Settings → Secrets and variables → Actions_:
@@ -1016,4 +1166,4 @@ openspec status --change definir-mvp-setlist
 
 ## Apresentação
 
-A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://anderson-sillos.github.io/setlist/). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html) e possui layout responsivo para navegadores de computadores, Android, iPhone e iPad. Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.
+A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://setlistbr.app.br/docs/apresentacao.html) quando o domínio estiver liberado. Durante a transição DNS, use a [prévia temporária](https://anderson-sillos.github.io/setlist/docs/apresentacao.html). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html) e possui layout responsivo para navegadores de computadores, Android, iPhone e iPad. Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.

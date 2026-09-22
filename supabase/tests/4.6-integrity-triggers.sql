@@ -64,7 +64,9 @@ begin
   values
     (owner_id, 'Owner 4.6'),
     (member_id, 'Member 4.6'),
-    (guest_id, 'Guest 4.6');
+    (guest_id, 'Guest 4.6')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
   insert into public.bands (id, name)
   values
     (band_id, 'Banda de teste 4.6'),

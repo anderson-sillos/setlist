@@ -28,6 +28,7 @@
 - [x] 2.11 Implementar os componentes compartilhados de carregamento, erro, indisponibilidade, conexão e mensagens temporárias e aplicar o guia de tom e voz com testes de acessibilidade e variações controladas
 - [x] 2.12 Validar as melhorias em celular, tablet e computador, publicar nova prévia web e build interno Android e aguardar aprovação antes de encerrar o grupo de UX/UI
 - [x] 2.13 Discutir, registrar, implementar e validar uma nova rodada de melhorias de UI em celular, tablet e computador, incluindo a reorganização de Shows como lista única, calendário usado como filtro adicional de data com botão de acesso direto, contagem independente de período, estado e data, uso automático de `Todos` em período e estado ao selecionar uma data, restauração do padrão e fechamento do painel por `Limpar`, ícones nos controles de Shows e Repertório, avisos de ações demonstrativas em popup, detalhes do show com data padronizada, quantidade de músicas, durações coerentes e edição junto à Setlist, detalhes da música com status compartilhados, duração padronizada e ações iconográficas e dados demonstrativos ampliados com repertórios de diferentes artistas e shows distribuídos por mais datas, após revisão e aprovação explícitas
+  - [x] 2.13.1 Aplicar ajuste responsivo ao teclado em todos os formulários existentes de criação, edição e confirmação com campos de texto e verificar que os campos e as ações permanecem acessíveis
 
 ## 3. Validação antecipada dos riscos técnicos
 
@@ -54,11 +55,21 @@
 - [x] 5.2 Implementar persistência de sessão com SecureStore nos aplicativos e armazenamento do navegador na web e verificar restauração e expiração segura
 - [x] 5.3 Implementar `Minhas bandas`, busca por nome, próximo show, seleção e restauração da última banda autorizada e verificar o fluxo sem banda, a criação e a entrada exclusivamente por link de convite
 - [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
+  - [x] 5.4.1 Atualizar os caches de participações e detalhes após a criação e verificar que o Owner vê as opções de manutenção ao abrir a nova banda
 - [x] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
-- [ ] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4
-- [ ] 5.7 Implementar promoção e saída de integrantes e verificar que a banda nunca fica sem Owner fora da exceção de exclusão da banda pelo único integrante
-- [ ] 5.8 Implementar exclusão de conta e exclusão de banda restrita ao único integrante, anonimização e limpeza local e verificar os casos de integrante comum, Owner substituível, banda com outros integrantes e único integrante
-- [ ] 5.9 Executar testes ponta a ponta dos papéis e convites nas três plataformas e publicar uma versão interna para revisão desse incremento
+- [x] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4, descartando contexto obsoleto após a aceitação e exibindo a data de aceite em vez da expiração quando disponível
+  - [x] 5.6.1 Detectar o replay do deep link de um convite já aceito pela mesma pessoa, remover a rota obsoleta para direcionar a `Minhas bandas` e manter indisponível um convite consumido por outra pessoa
+  - [x] 5.6.2 Na lista de convites, substituir a data de expiração pela data de aceite para convites utilizados e não exibir data quando `used_at` estiver ausente; verificar ambos os casos
+- [x] 5.7 Implementar promoção e saída de integrantes e verificar que a banda nunca fica sem Owner fora da exceção de exclusão da banda pelo único integrante
+- [x] 5.8 Implementar exclusão de conta e exclusão de banda restrita ao único integrante, anonimização e limpeza local e verificar os casos de integrante comum, Owner substituível, banda com outros integrantes e único integrante
+- [x] 5.9 Implementar perfil sincronizado e editável: sincronizar identidade, e-mail e avatar de `auth.users` para `profiles` sem sobrescrever um nome de exibição personalizado; permitir que cada pessoa edite seu próprio `display_name`; usar os dados de `profiles` no menu, em Perfil e conta e nas listas de integrantes, com avatar e alternativa por iniciais
+  - [x] 5.9.1 Criar migração idempotente para rastrear a origem do nome e sincronizar `auth.users` nas inserções/atualizações; validar preenchimento, preservação de nome personalizado, avatar/e-mail e autorização somente do próprio perfil com testes de banco/RLS
+  - [x] 5.9.2 Implementar consulta e atualização de perfil pela camada de dados, validação local e chamada à RPC segura, com testes unitários das respostas e erros
+  - [x] 5.9.3 Atualizar Perfil e conta para ler `profiles` e permitir editar o nome de exibição, cobrindo estados de validação, carregamento, sucesso e falha
+  - [x] 5.9.4 Usar nome e avatar de `profiles` no menu lateral e nas linhas de integrantes; mostrar iniciais como fallback e testar imagem ausente/indisponível e atualização de consultas
+  - [x] 5.9.5 Centralizar verticalmente o avatar junto à coluna do nome e e-mail no menu lateral, mantendo ambos os textos alinhados à esquerda; verificar estrutura e alinhamento
+  - [x] 5.9.6 Agrupar nome e e-mail em uma coluna explícita junto ao avatar, sem quebra ou desalinhamento entre os dois textos em telas estreitas
+- [ ] 5.10 Executar testes ponta a ponta dos papéis e convites nas três plataformas e publicar uma versão interna para revisão desse incremento
 
 ## 6. Repertório e letras estáticas
 

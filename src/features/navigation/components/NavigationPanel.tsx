@@ -1,11 +1,12 @@
 import { Link, type Href } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import type { Session } from '@supabase/supabase-js';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import type { EntityId } from '@/domain';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
+import { useCurrentProfile } from '@/features/account/useCurrentProfile';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -68,6 +69,34 @@ function DisabledGeneralItem({ label }: { readonly label: string }) {
   );
 }
 
+function GeneralNavigationLink({
+  href,
+  icon,
+  label,
+  onNavigate,
+}: {
+  readonly href: Href;
+  readonly icon: AppIconName;
+  readonly label: string;
+  readonly onNavigate?: () => void;
+}) {
+  return (
+    <Link href={href} replace asChild>
+      <Pressable
+        accessibilityLabel={label}
+        accessibilityRole="link"
+        onPress={onNavigate}
+        style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
+      >
+        <View style={styles.sectionContent}>
+          <AppIcon color={colors.surface} name={icon} size={20} />
+          <AppText tone="inverse">{label}</AppText>
+        </View>
+      </Pressable>
+    </Link>
+  );
+}
+
 function GeneralNavigationAction({
   icon,
   label,
@@ -92,31 +121,6 @@ function GeneralNavigationAction({
   );
 }
 
-function getAccountSummary(session: Session | null): {
-  readonly name: string;
-  readonly email: string;
-} {
-  if (!session) {
-    return {
-      email: 'Conta de demonstração',
-      name: 'Ana Martins',
-    };
-  }
-
-  const metadata = session.user.user_metadata;
-  const metadataName = ['full_name', 'name', 'preferred_username']
-    .map((key) => metadata[key])
-    .find(
-      (value): value is string =>
-        typeof value === 'string' && Boolean(value.trim()),
-    );
-
-  return {
-    email: session.user.email ?? 'Conta autenticada',
-    name: metadataName ?? session.user.email ?? 'Usuário autenticado',
-  };
-}
-
 export function NavigationPanel({
   activeSection,
   bandId,
@@ -126,7 +130,26 @@ export function NavigationPanel({
   onLogout,
 }: NavigationPanelProps) {
   const { session } = useAuthSession();
-  const account = getAccountSummary(session);
+  const profileQuery = useCurrentProfile();
+  const account = session
+    ? {
+        avatarUrl: profileQuery.data?.avatarUrl,
+        email:
+          profileQuery.data?.email ??
+          (profileQuery.isLoading
+            ? 'Carregando perfil…'
+            : 'E-mail não disponível'),
+        name:
+          profileQuery.data?.displayName ??
+          (profileQuery.isLoading
+            ? 'Carregando perfil…'
+            : 'Perfil indisponível'),
+      }
+    : {
+        avatarUrl: null,
+        email: 'Conta de demonstração',
+        name: 'Ana Martins',
+      };
 
   return (
     <ScrollView contentContainerStyle={styles.panel}>
@@ -145,10 +168,32 @@ export function NavigationPanel({
       </View>
 
       <View style={styles.accountSummary}>
-        <AppText tone="inverse">{account.name}</AppText>
-        <AppText style={styles.muted} variant="caption">
-          {account.email}
-        </AppText>
+        <View
+          style={styles.accountIdentity}
+          testID="navigation-account-identity"
+        >
+          <UserAvatar
+            avatarUrl={account.avatarUrl}
+            displayName={account.name}
+            size={36}
+          />
+          <View style={styles.accountCopy} testID="navigation-account-copy">
+            <AppText
+              numberOfLines={2}
+              style={styles.accountName}
+              tone="inverse"
+            >
+              {account.name}
+            </AppText>
+            <AppText
+              numberOfLines={1}
+              style={[styles.muted, styles.accountEmail]}
+              variant="caption"
+            >
+              {account.email}
+            </AppText>
+          </View>
+        </View>
       </View>
 
       <SidebarNavigationLink
@@ -187,7 +232,12 @@ export function NavigationPanel({
           label="Player YouTube (protótipo)"
           onNavigate={onNavigate}
         />
-        <DisabledGeneralItem label="Perfil e conta" />
+        <GeneralNavigationLink
+          href="/account"
+          icon="account"
+          label="Perfil e conta"
+          onNavigate={onNavigate}
+        />
         <DisabledGeneralItem label="Termos e privacidade" />
         <DisabledGeneralItem label="Sobre o Setlist" />
       </View>
@@ -236,6 +286,28 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     gap: spacing.xs,
     padding: spacing.md,
+  },
+  accountIdentity: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  accountCopy: {
+    alignItems: 'flex-start',
+    flex: 1,
+    flexDirection: 'column',
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  accountName: {
+    alignSelf: 'stretch',
+    flexShrink: 1,
+    minWidth: 0,
+    textAlign: 'left',
+  },
+  accountEmail: {
+    alignSelf: 'stretch',
+    textAlign: 'left',
   },
   bandNavigation: {
     gap: spacing.sm,

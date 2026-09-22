@@ -10,7 +10,7 @@ select is(
        'profiles', 'bands', 'band_members', 'legal_acceptances', 'songs',
        'shows', 'show_blocks', 'show_items', 'invitations'
      )),
-  29,
+  27,
   'all business tables have explicit RLS policies'
 );
 select is(
@@ -50,7 +50,9 @@ begin
     (owner_id, 'Owner 4.7'),
     (editor_id, 'Editor 4.7'),
     (member_id, 'Member 4.7'),
-    (outsider_id, 'Outsider 4.7');
+    (outsider_id, 'Outsider 4.7')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
   insert into public.bands (id, name)
   values (band_id, 'Banda de teste 4.7');
   insert into public.band_members (band_id, user_id, role)

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createContext,
   type PropsWithChildren,
+  useEffect,
   useMemo,
   useContext,
   useState,
@@ -60,6 +61,14 @@ export function AppProviders({
         },
       }),
   );
+
+  useEffect(() => {
+    if (sessionUserId) {
+      void queryClient.invalidateQueries({
+        queryKey: ['profiles', sessionUserId],
+      });
+    }
+  }, [queryClient, session, sessionUserId]);
 
   return (
     <AppDataContext.Provider

@@ -1,8 +1,14 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds } from '@/data/demo';
+import { getUserProfile } from '@/data/supabase/profileMutations';
 import {
   AuthSessionContext,
   type AuthSessionContextValue,
@@ -25,6 +31,12 @@ jest.mock('expo-router', () => ({
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('@/data/supabase/profileMutations', () => ({
+  getUserProfile: jest.fn(),
+}));
+
+const mockGetUserProfile = jest.mocked(getUserProfile);
 
 describe('shell de navegação', () => {
   it('troca de tela sem animação e mantém os gestos de navegação', () => {
@@ -140,6 +152,7 @@ describe('shell de navegação', () => {
     expect(myBandsLink.props.accessibilityRole).toBe('tab');
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(youtubePrototypeLink.props.accessibilityRole).toBe('tab');
+    expect(view.getByLabelText('Perfil e conta')).toBeTruthy();
     expect(view.getByText('Conta de demonstração')).toBeTruthy();
     expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();
     expect(view.queryByRole('tab', { name: 'Ir para Entrar' })).toBeNull();
@@ -151,8 +164,15 @@ describe('shell de navegação', () => {
   });
 
   it('apresenta nome e e-mail da sessão no menu lateral', async () => {
+    mockGetUserProfile.mockResolvedValue({
+      avatarUrl: 'https://img.example.test/lucas.png',
+      displayName: 'Lucas no perfil',
+      email: 'profile-lucas@example.com',
+      userId: 'user-lucas',
+    });
     const session = {
       user: {
+        id: 'user-lucas',
         email: 'lucas@example.com',
         user_metadata: { full_name: 'Lucas Ribeiro' },
       },
@@ -175,8 +195,36 @@ describe('shell de navegação', () => {
       </AuthSessionContext.Provider>,
     );
 
-    expect(await view.findByText('Lucas Ribeiro')).toBeTruthy();
-    expect(view.getByText('lucas@example.com')).toBeTruthy();
+    expect(await view.findByText('Lucas no perfil')).toBeTruthy();
+    expect(view.getByText('profile-lucas@example.com')).toBeTruthy();
+    const accountIdentity = view.getByTestId('navigation-account-identity');
+    const accountIdentityStyle = StyleSheet.flatten(
+      accountIdentity.props.style,
+    );
+    expect(accountIdentityStyle).toMatchObject({
+      alignItems: 'center',
+      flexDirection: 'row',
+    });
+    const accountCopyView = view.getByTestId('navigation-account-copy');
+    expect(StyleSheet.flatten(accountCopyView.props.style)).toMatchObject({
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+    });
+    const accountCopy = within(accountCopyView);
+    expect(accountCopy.getByText('Lucas no perfil')).toBeTruthy();
+    expect(accountCopy.getByText('profile-lucas@example.com')).toBeTruthy();
+    expect(
+      StyleSheet.flatten(accountCopy.getByText('Lucas no perfil').props.style),
+    ).toMatchObject({ textAlign: 'left' });
+    expect(
+      StyleSheet.flatten(
+        accountCopy.getByText('profile-lucas@example.com').props.style,
+      ),
+    ).toMatchObject({ textAlign: 'left' });
+    expect(view.queryByText('Lucas Ribeiro')).toBeNull();
+    expect(view.getByTestId('user-avatar-image').props.source).toEqual({
+      uri: 'https://img.example.test/lucas.png',
+    });
     expect(view.queryByText('Conta de demonstração')).toBeNull();
   });
 

@@ -1,4 +1,5 @@
 import {
+  formatDateOnly,
   formatDateFilter,
   formatRelativeUpdate,
   formatShowDate,
@@ -23,6 +24,11 @@ describe('formatação de datas e horários', () => {
     );
     expect(formatShowTime('2026-09-19T21:00:00-03:00')).toBe('21h');
     expect(formatShowTime('2026-09-19T21:30:00-03:00')).toBe('21h30');
+  });
+
+  it('formata datas simples no fuso do aplicativo e ignora valores inválidos', () => {
+    expect(formatDateOnly('2026-09-20T11:00:00.000Z')).toBe('20/09/2026');
+    expect(formatDateOnly('não é uma data')).toBeNull();
   });
 
   it('formata o rótulo de uma data selecionada', () => {

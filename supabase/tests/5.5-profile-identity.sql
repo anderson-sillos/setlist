@@ -31,7 +31,8 @@ begin
       '{"name":"Member 5.5"}'::jsonb
     );
   insert into public.profiles (id)
-  values (owner_id), (member_id);
+  values (owner_id), (member_id)
+  on conflict (id) do nothing;
   insert into public.bands (id, name)
   values (band_id, 'Banda de perfis 5.5');
   insert into public.band_members (band_id, user_id, role)

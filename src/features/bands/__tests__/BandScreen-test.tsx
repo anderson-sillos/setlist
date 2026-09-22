@@ -1,11 +1,20 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { demoIds } from '@/data/demo';
+import { createBand } from '@/data/supabase/bandMutations';
 import type { AppRepositories, Band, BandMember } from '@/domain';
 import {
   deleteBand,
   updateBandName,
 } from '@/data/supabase/bandAdministrationMutations';
+import {
+  createInvitation,
+  listInvitations,
+} from '@/data/supabase/invitationMutations';
+import {
+  leaveBand,
+  updateBandMemberRole,
+} from '@/data/supabase/bandMemberMutations';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
 import { AppProviders } from '@/providers/AppProviders';
@@ -27,8 +36,42 @@ jest.mock('@/data/supabase/bandAdministrationMutations', () => {
   };
 });
 
+jest.mock('@/data/supabase/bandMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/bandMutations');
+
+  return {
+    ...actual,
+    createBand: jest.fn(),
+  };
+});
+
+jest.mock('@/data/supabase/invitationMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/invitationMutations');
+
+  return {
+    ...actual,
+    createInvitation: jest.fn(),
+    listInvitations: jest.fn(),
+  };
+});
+
+jest.mock('@/data/supabase/bandMemberMutations', () => {
+  const actual = jest.requireActual('@/data/supabase/bandMemberMutations');
+
+  return {
+    ...actual,
+    leaveBand: jest.fn(),
+    updateBandMemberRole: jest.fn(),
+  };
+});
+
 const mockDeleteBand = jest.mocked(deleteBand);
 const mockUpdateBandName = jest.mocked(updateBandName);
+const mockCreateBand = jest.mocked(createBand);
+const mockCreateInvitation = jest.mocked(createInvitation);
+const mockListInvitations = jest.mocked(listInvitations);
+const mockUpdateBandMemberRole = jest.mocked(updateBandMemberRole);
+const mockLeaveBand = jest.mocked(leaveBand);
 
 function createMutableBandRepositories() {
   const owner: BandMember = {
@@ -38,6 +81,14 @@ function createMutableBandRepositories() {
     joinedAt: '2026-09-01T12:00:00.000Z',
     role: 'owner',
     userId: 'user-real',
+  };
+  const member: BandMember = {
+    bandId: 'band-real',
+    displayName: 'Membro Real',
+    id: 'membership-member',
+    joinedAt: '2026-09-02T12:00:00.000Z',
+    role: 'member',
+    userId: 'user-member',
   };
   let band: Band | null = {
     createdAt: '2026-09-01T12:00:00.000Z',
@@ -50,7 +101,7 @@ function createMutableBandRepositories() {
     bands: {
       findById: async () => band,
       listForUser: async () => (band ? [{ band, membership: owner }] : []),
-      listMembers: async () => (band ? [owner] : []),
+      listMembers: async () => (band ? [owner, member] : []),
     },
     shows: {
       findById: async () => null,
@@ -75,9 +126,55 @@ function createMutableBandRepositories() {
   };
 }
 
+function createNewBandRepositories() {
+  let band: Band | null = null;
+  let owner: BandMember | null = null;
+
+  const repositories: AppRepositories = {
+    bands: {
+      findById: async (bandId) => (band?.id === bandId ? band : null),
+      listForUser: async (userId) =>
+        band && owner?.userId === userId ? [{ band, membership: owner }] : [],
+      listMembers: async (bandId) =>
+        band?.id === bandId && owner ? [owner] : [],
+    },
+    shows: {
+      findById: async () => null,
+      listByBandId: async () => [],
+    },
+    songs: {
+      findById: async () => null,
+      listByBandId: async () => [],
+    },
+  };
+
+  return {
+    addBand: (id: string, name: string) => {
+      band = {
+        createdAt: '2026-09-22T12:00:00.000Z',
+        id,
+        name,
+        updatedAt: '2026-09-22T12:00:00.000Z',
+      };
+      owner = {
+        bandId: id,
+        displayName: 'Owner Real',
+        id: 'membership-created',
+        joinedAt: '2026-09-22T12:00:00.000Z',
+        role: 'owner',
+        userId: 'user-real',
+      };
+    },
+    repositories,
+  };
+}
+
 describe('<BandScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockListInvitations.mockResolvedValue([]);
+    mockUpdateBandMemberRole.mockResolvedValue(undefined);
+    mockLeaveBand.mockResolvedValue(undefined);
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
@@ -92,6 +189,12 @@ describe('<BandScreen />', () => {
     expect(ownerView.getByText('Integrantes · 1')).toBeTruthy();
     expect(ownerView.getByText('Você')).toBeTruthy();
     expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
+    await fireEvent.press(ownerView.getByLabelText('Sair da banda'));
+    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
+    expect(ownerView.getByText(/A saída da banda fica/)).toBeTruthy();
+    await fireEvent.press(
+      ownerView.getByLabelText('Fechar aviso de demonstração'),
+    );
     expect(ownerView.getByLabelText('Editar banda')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Editar banda'));
@@ -150,6 +253,121 @@ describe('<BandScreen />', () => {
     await waitFor(() => {
       expect(view.getByLabelText('Abrir Banda Atualizada')).toBeTruthy();
       expect(view.queryByLabelText('Abrir Banda Inicial')).toBeNull();
+    });
+  });
+
+  it('atualiza as permissões ao abrir uma banda recém-criada', async () => {
+    const state = createNewBandRepositories();
+    mockCreateBand.mockImplementation(async ({ name }) => {
+      state.addBand('band-created-remotely', name.trim());
+      return 'band-created-remotely';
+    });
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandsScreen />
+        <BandScreen bandId="band-created-remotely" />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Seu palco ainda está vazio')).toBeTruthy();
+    expect(view.queryByLabelText('Editar banda')).toBeNull();
+    await fireEvent.press(view.getAllByLabelText('Criar banda')[0]);
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da banda'),
+      'Banda Nova',
+    );
+    await fireEvent.press(
+      view.getByLabelText('Aceitar termo de responsabilidade'),
+    );
+    await fireEvent.press(view.getByLabelText('Confirmar criação da banda'));
+
+    await waitFor(() => {
+      expect(mockCreateBand).toHaveBeenCalled();
+      expect(view.getByLabelText('Editar banda')).toBeTruthy();
+      expect(view.getByLabelText('Convidar integrante')).toBeTruthy();
+      expect(view.getByLabelText('Abrir Banda Nova')).toBeTruthy();
+    });
+
+    await fireEvent.press(view.getByLabelText('Editar banda'));
+    expect(view.getByLabelText('Novo nome da banda')).toBeTruthy();
+  });
+
+  it('abre a administração de convites para uma banda real', async () => {
+    mockCreateInvitation.mockResolvedValue({
+      id: 'invite-1',
+      token: 'token-1',
+      url: 'https://example.com/invite/token-1',
+    });
+    const state = createMutableBandRepositories();
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(await view.findByLabelText('Convidar integrante'));
+    expect(view.getByTestId('band-invitation-dialog')).toBeTruthy();
+    await fireEvent.changeText(
+      view.getByLabelText('Rótulo do convite'),
+      'Baixista',
+    );
+    await fireEvent.press(view.getByLabelText('Criar convite'));
+
+    await waitFor(() => {
+      expect(mockCreateInvitation).toHaveBeenCalledWith({
+        bandId: 'band-real',
+        label: 'Baixista',
+      });
+      expect(view.getByText('https://example.com/invite/token-1')).toBeTruthy();
+    });
+  });
+
+  it('permite promover um integrante para Editor', async () => {
+    const state = createMutableBandRepositories();
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(
+      await view.findByLabelText('Administrar Membro Real'),
+    );
+    await fireEvent.press(
+      view.getByLabelText('Promover Membro Real para editor'),
+    );
+    await fireEvent.press(
+      view.getByLabelText('Confirmar alteração para Editor de Membro Real'),
+    );
+
+    await waitFor(() => {
+      expect(mockUpdateBandMemberRole).toHaveBeenCalledWith({
+        bandId: 'band-real',
+        memberId: 'membership-member',
+        role: 'editor',
+      });
+    });
+  });
+
+  it('permite ao integrante sair da banda com confirmação', async () => {
+    const state = createMutableBandRepositories();
+
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={state.repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(await view.findByLabelText('Sair da banda'));
+    expect(view.getByTestId('band-leave-dialog')).toBeTruthy();
+    expect(view.getByText(/Sair de Banda Inicial/)).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Confirmar saída da banda'));
+
+    await waitFor(() => {
+      expect(mockLeaveBand).toHaveBeenCalledWith({ bandId: 'band-real' });
     });
   });
 
