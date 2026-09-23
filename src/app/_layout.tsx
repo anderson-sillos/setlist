@@ -1,6 +1,8 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthGate } from '@/features/auth/AuthGate';
@@ -17,6 +19,12 @@ export const rootStackScreenOptions = {
 };
 
 export default function RootLayout() {
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.title = 'Setlist';
+    }
+  }, []);
+
   return (
     <SafeAreaProvider>
       <AuthSessionProvider>

@@ -504,3 +504,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      segue normalizando a duração no salvamento. Isso permite informar, por
      exemplo, `45` em minutos ou segundos sem o segundo dígito ser bloqueado
      pelo `maxLength`.
+
+123. Na versão web, o `RootLayout` define o título do documento como `Setlist`
+     para manter o nome do app na aba do navegador. Todos os campos
+     `TextInput` agora removem o contorno visual automático de foco no web,
+     incluindo os campos de nome de exibição e de letra completa que ainda
+     não tinham essa regra. A alteração visual manual do título da música foi
+     mantida em `20px`.

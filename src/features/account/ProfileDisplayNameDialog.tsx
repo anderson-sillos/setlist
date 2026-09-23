@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    ...(Platform.OS === 'web' ? { outlineWidth: 0 } : {}),
   },
   characterCount: {
     alignSelf: 'flex-end',
