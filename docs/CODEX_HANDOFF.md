@@ -558,3 +558,6 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 131. O `+` das composições `Music2 +` e `Users +` recebeu selo e traço
      maiores, preservando a proporção responsiva para manter a ação de criação
      visualmente destacada nos headers móveis e web.
+
+132. A espessura do traço do `+` foi ampliada proporcionalmente, sem alterar
+     o tamanho do selo composto.

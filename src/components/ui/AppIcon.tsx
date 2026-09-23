@@ -125,7 +125,7 @@ export function AppIcon({
             color={color}
             height={badgeSize * 0.86}
             size={badgeSize * 0.86}
-            strokeWidth={Math.max(1.75, strokeWidth)}
+            strokeWidth={Math.max(2.4, strokeWidth * 1.2)}
             width={badgeSize * 0.86}
           />
         </View>
