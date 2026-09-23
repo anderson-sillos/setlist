@@ -71,7 +71,12 @@ export function AutocompleteField({
     });
   }, [options, value]);
 
-  const showSuggestions = focused && suggestions.length > 1;
+  const normalizedValue = normalizeForSearch(value);
+  const hasDifferentSingleSuggestion =
+    suggestions.length === 1 &&
+    normalizeForSearch(suggestions[0] ?? '') !== normalizedValue;
+  const showSuggestions =
+    focused && (suggestions.length > 1 || hasDifferentSingleSuggestion);
 
   return (
     <View style={[styles.field, containerStyle]}>

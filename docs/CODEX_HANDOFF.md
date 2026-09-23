@@ -542,3 +542,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      demais telas. O botão secundário que ficava junto ao título foi removido;
      as mensagens de bloqueio para bandas de demonstração e as permissões de
      edição permanecem iguais.
+
+129. O autocomplete oculta uma única sugestão somente quando ela já é igual
+     ao valor preenchido, usando comparação normalizada. Se houver uma única
+     opção diferente, ela continua sendo exibida para seleção; com duas ou
+     mais opções a lista permanece disponível normalmente.

@@ -98,7 +98,8 @@ describe('<SongEditorScreen />', () => {
       '  Nova faixa  ',
     );
     await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
-    expect(view.queryByLabelText('Usar Artista do repertório')).toBeNull();
+    expect(view.getByLabelText('Usar Artista do repertório')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Usar Artista do repertório'));
     await fireEvent.changeText(view.getByLabelText('BPM'), '110');
     await fireEvent.changeText(view.getByLabelText('Minutos da duração'), '3');
     await fireEvent.changeText(

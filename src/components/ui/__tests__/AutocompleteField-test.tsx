@@ -47,7 +47,24 @@ describe('<AutocompleteField />', () => {
     expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
   });
 
-  it('não exibe a lista quando existe somente uma sugestão', async () => {
+  it('não exibe a lista quando a única sugestão já está preenchida', async () => {
+    const view = await render(
+      <AutocompleteField
+        accessibilityLabel="Artista/Banda"
+        label="Artista/Banda"
+        onChangeText={jest.fn()}
+        options={['Trio Aurora']}
+        placeholder="Ex.: Artista original"
+        value="Trio Aurora"
+      />,
+    );
+
+    await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+
+    expect(view.queryByLabelText('Usar Trio Aurora')).toBeNull();
+  });
+
+  it('exibe a única sugestão quando ela é diferente do valor preenchido', async () => {
     const view = await render(
       <AutocompleteField
         accessibilityLabel="Artista/Banda"
@@ -61,7 +78,7 @@ describe('<AutocompleteField />', () => {
 
     await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
 
-    expect(view.queryByLabelText('Usar Trio Aurora')).toBeNull();
+    expect(view.getByLabelText('Usar Trio Aurora')).toBeTruthy();
   });
 
   it('não exibe a lista quando não existem sugestões', async () => {
