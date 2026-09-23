@@ -1,8 +1,16 @@
 import { useRef } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+
+type SpinButtonInputRef = TextInput & {
+  readonly setNativeProps?: (props: {
+    selection: { end: number; start: number };
+  }) => void;
+  readonly setSelection?: (start: number, end: number) => void;
+  readonly setSelectionRange?: (start: number, end: number) => void;
+};
 
 interface SpinButtonProps {
   readonly accessibilityLabel: string;
@@ -38,12 +46,20 @@ export function SpinButton({
     const baseValue = numericValue ?? min;
     const nextValue = Math.min(max, Math.max(min, baseValue + amount));
     const nextText = String(nextValue);
+    const input = inputRef.current as SpinButtonInputRef | null;
 
     onChangeText(nextText);
-    inputRef.current?.focus();
-    inputRef.current?.setNativeProps({
-      selection: { end: nextText.length, start: 0 },
-    });
+    input?.focus();
+
+    if (Platform.OS === 'web') {
+      input?.setSelectionRange?.(0, nextText.length);
+    } else if (input?.setSelection) {
+      input.setSelection(0, nextText.length);
+    } else {
+      input?.setNativeProps?.({
+        selection: { end: nextText.length, start: 0 },
+      });
+    }
   };
 
   return (

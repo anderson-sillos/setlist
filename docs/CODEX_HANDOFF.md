@@ -478,3 +478,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      receber foco (`selectTextOnFocus`). Os controles de incrementar e
      decrementar também devolvem o foco ao campo e selecionam o novo valor,
      permitindo substituí-lo pelo teclado sem precisar apagá-lo antes.
+
+119. A seleção acionada pelos controles do `SpinButton` foi tornada
+     compatível com todas as plataformas: no web usa `setSelectionRange` no
+     elemento HTML, enquanto no Android/iOS usa `setSelection`, com fallback
+     nativo opcional. Isso evita chamar `setNativeProps` em referências do
+     React Native Web, que não oferecem esse método.
