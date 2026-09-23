@@ -468,3 +468,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 116. Os nomes dos blocos na visualização da letra usam opacidade `0.55`,
      mantendo os títulos identificáveis, mas com menos destaque que as linhas
      da música.
+
+117. No web, o menu lateral desfoca o elemento ativo antes de ocultar o
+     `Modal` ao fechar ou navegar. Isso evita avisos de acessibilidade
+     `aria-hidden` quando um link ou botão do menu ainda retém foco durante a
+     troca de tela, inclusive ao acessar as telas de edição do repertório.
