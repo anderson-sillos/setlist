@@ -473,3 +473,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      `Modal` ao fechar ou navegar. Isso evita avisos de acessibilidade
      `aria-hidden` quando um link ou botão do menu ainda retém foco durante a
      troca de tela, inclusive ao acessar as telas de edição do repertório.
+
+118. O componente `SpinButton` seleciona automaticamente todo o conteúdo ao
+     receber foco (`selectTextOnFocus`). Os controles de incrementar e
+     decrementar também devolvem o foco ao campo e selecionam o novo valor,
+     permitindo substituí-lo pelo teclado sem precisar apagá-lo antes.

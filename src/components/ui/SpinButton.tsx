@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -24,6 +25,7 @@ export function SpinButton({
   onChangeText,
   value,
 }: SpinButtonProps) {
+  const inputRef = useRef<TextInput>(null);
   const numericValue = value.trim() ? Number(value) : null;
   const canDecrement = numericValue !== null && numericValue > min;
   const canIncrement = numericValue === null || numericValue < max;
@@ -35,8 +37,13 @@ export function SpinButton({
 
     const baseValue = numericValue ?? min;
     const nextValue = Math.min(max, Math.max(min, baseValue + amount));
+    const nextText = String(nextValue);
 
-    onChangeText(String(nextValue));
+    onChangeText(nextText);
+    inputRef.current?.focus();
+    inputRef.current?.setNativeProps({
+      selection: { end: nextText.length, start: 0 },
+    });
   };
 
   return (
@@ -49,6 +56,8 @@ export function SpinButton({
         onChangeText={(nextValue) => onChangeText(nextValue.replace(/\D/g, ''))}
         placeholder="00"
         placeholderTextColor={colors.muted}
+        ref={inputRef}
+        selectTextOnFocus
         style={styles.input}
         value={value}
       />
