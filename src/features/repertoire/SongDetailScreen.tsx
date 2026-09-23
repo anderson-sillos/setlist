@@ -1,7 +1,12 @@
-import { Link, type Href } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import {
+  Linking,
+  Platform,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import {
   DemoActionNotice,
@@ -46,8 +51,8 @@ export function SongDetailScreen({
   viewportWidth,
 }: SongDetailScreenProps) {
   const router = useRouter();
-  const window = useWindowDimensions();
-  const layoutMode = getLayoutMode(viewportWidth ?? window.width);
+  const dimensions = useWindowDimensions();
+  const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
@@ -59,6 +64,18 @@ export function SongDetailScreen({
   const isDemoBand =
     bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
   const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
+  const openYoutubeReference = () => {
+    if (!youtubeReference) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(youtubeReference, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    void Linking.openURL(youtubeReference);
+  };
 
   return (
     <BandAreaLayout
@@ -109,7 +126,11 @@ export function SongDetailScreen({
           <Card style={styles.compactHeader}>
             <View style={styles.titleLine}>
               <View style={styles.titleCopy}>
-                <AppText accessibilityRole="header" variant="title">
+                <AppText
+                  accessibilityRole="header"
+                  style={styles.songTitle}
+                  variant="title"
+                >
                   {song.title}
                 </AppText>
                 <AppText tone="muted">
@@ -164,98 +185,90 @@ export function SongDetailScreen({
             </View>
           </Card>
 
-          <View
-            style={[
-              styles.detailColumns,
-              layoutMode !== 'phone' && styles.detailColumnsWide,
-            ]}
-          >
-            <Card style={styles.lyricCard} tone="dark">
-              <AppText
-                accessibilityRole="header"
-                tone="inverse"
-                variant="eyebrow"
-              >
-                Letra
-              </AppText>
-              {song.lyrics.blocks.length === 0 ? (
-                <AppText tone="inverse">Sem letra cadastrada</AppText>
-              ) : null}
-              {song.lyrics.blocks.map((block) => (
-                <View key={block.id} style={styles.lyricBlock}>
-                  {block.name ? (
-                    <AppText style={styles.lyricBlockName} tone="inverse">
-                      {block.name}
-                    </AppText>
-                  ) : null}
-                  {block.lines.map((line) =>
-                    line.kind === 'separator' ? (
-                      <View
-                        accessibilityLabel="Linha de separação"
-                        accessible
-                        key={line.id}
-                        style={styles.lyricSeparator}
-                        testID={`lyric-separator-${line.id}`}
-                      />
-                    ) : (
-                      <AppText
-                        key={line.id}
-                        style={[
-                          styles.lyricLine,
-                          line.text.length === 0 && styles.lyricBlankLine,
-                          line.bold && styles.lyricLineBold,
-                        ]}
-                        tone="inverse"
-                      >
-                        {line.text}
-                      </AppText>
-                    ),
-                  )}
-                </View>
-              ))}
-            </Card>
-
-            <Card style={styles.secondaryCard}>
-              <AppText accessibilityRole="header" variant="heading">
-                Informações
-              </AppText>
-              <View style={styles.metadataGrid}>
-                <View style={styles.metadataItem}>
-                  <AppText tone="muted" variant="caption">
-                    Tom
-                  </AppText>
-                  <AppText>{song.musicalKey ?? '—'}</AppText>
-                </View>
-                <View style={styles.metadataItem}>
-                  <AppText tone="muted" variant="caption">
-                    BPM
-                  </AppText>
-                  <AppText>{song.bpm ?? '—'}</AppText>
-                </View>
+          <Card style={styles.secondaryCard}>
+            <AppText accessibilityRole="header" variant="heading">
+              Informações
+            </AppText>
+            <View style={styles.metadataGrid}>
+              <View style={styles.metadataItem}>
+                <AppText tone="muted" variant="caption">
+                  Tom
+                </AppText>
+                <AppText>{song.musicalKey ?? '—'}</AppText>
               </View>
+              <View style={styles.metadataItem}>
+                <AppText tone="muted" variant="caption">
+                  BPM
+                </AppText>
+                <AppText>{song.bpm ?? '—'}</AppText>
+              </View>
+            </View>
 
-              {song.notes ? (
-                <View style={styles.notes}>
-                  <AppText accessibilityRole="header" variant="heading">
-                    Observações
+            {song.notes ? (
+              <View style={styles.notes}>
+                <AppText accessibilityRole="header" variant="heading">
+                  Observações
+                </AppText>
+                <AppText>{song.notes}</AppText>
+              </View>
+            ) : null}
+
+            {youtubeReference ? (
+              <AppButton
+                accessibilityLabel="Abrir referência no YouTube"
+                icon="externalLink"
+                label="Abrir no YouTube"
+                onPress={openYoutubeReference}
+                style={styles.youtubeButton}
+                variant="secondary"
+              />
+            ) : null}
+          </Card>
+
+          <Card style={styles.lyricCard} tone="dark">
+            <AppText
+              accessibilityRole="header"
+              tone="inverse"
+              variant="eyebrow"
+            >
+              Letra
+            </AppText>
+            {song.lyrics.blocks.length === 0 ? (
+              <AppText tone="inverse">Sem letra cadastrada</AppText>
+            ) : null}
+            {song.lyrics.blocks.map((block) => (
+              <View key={block.id} style={styles.lyricBlock}>
+                {block.name ? (
+                  <AppText style={styles.lyricBlockName} tone="inverse">
+                    {block.name}
                   </AppText>
-                  <AppText>{song.notes}</AppText>
-                </View>
-              ) : null}
-
-              {youtubeReference ? (
-                <Link href={youtubeReference as Href} target="_blank" asChild>
-                  <AppButton
-                    accessibilityLabel="Abrir referência no YouTube"
-                    icon="externalLink"
-                    label="Abrir no YouTube"
-                    style={styles.youtubeButton}
-                    variant="secondary"
-                  />
-                </Link>
-              ) : null}
-            </Card>
-          </View>
+                ) : null}
+                {block.lines.map((line) =>
+                  line.kind === 'separator' ? (
+                    <View
+                      accessibilityLabel="Linha de separação"
+                      accessible
+                      key={line.id}
+                      style={styles.lyricSeparator}
+                      testID={`lyric-separator-${line.id}`}
+                    />
+                  ) : (
+                    <AppText
+                      key={line.id}
+                      style={[
+                        styles.lyricLine,
+                        line.text.length === 0 && styles.lyricBlankLine,
+                        line.bold && styles.lyricLineBold,
+                      ]}
+                      tone="inverse"
+                    >
+                      {line.text}
+                    </AppText>
+                  ),
+                )}
+              </View>
+            ))}
+          </Card>
         </View>
       ) : null}
     </BandAreaLayout>
@@ -269,6 +282,10 @@ const styles = StyleSheet.create({
   compactHeader: {
     gap: spacing.md,
     padding: spacing.lg,
+  },
+  songTitle: {
+    fontSize: 28,
+    lineHeight: 34,
   },
   titleLine: {
     alignItems: 'center',
@@ -298,17 +315,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
   },
-  detailColumns: {
-    gap: spacing.lg,
-  },
-  detailColumnsWide: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-  },
   lyricCard: {
-    flex: 1.45,
     gap: spacing.xl,
     minWidth: 0,
+    width: '100%',
   },
   lyricBlock: {
     gap: spacing.sm,
@@ -335,9 +345,9 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   secondaryCard: {
-    flex: 0.75,
     gap: spacing.lg,
     minWidth: 0,
+    width: '100%',
   },
   metadataGrid: {
     flexDirection: 'row',

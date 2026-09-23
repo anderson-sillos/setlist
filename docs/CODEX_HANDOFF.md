@@ -490,3 +490,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      podia reaplicar a seleção após o primeiro caractere digitado. O
      `SpinButton` agora seleciona o valor diretamente no evento de foco e ao
      usar `+`/`−`, permitindo editar vários dígitos normalmente pelo teclado.
+
+121. A tela de detalhes da música passou a apresentar o título com tipografia
+     menor e organiza verticalmente, em largura total, os blocos de título,
+     informações/observações e letra. O botão de referência do YouTube abre
+     uma nova janela no web (`noopener,noreferrer`) e usa o navegador externo
+     nas plataformas nativas. A validação passou com 70 suítes e 370 testes.

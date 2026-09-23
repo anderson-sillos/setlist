@@ -1,4 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -72,6 +73,53 @@ describe('<SongDetailScreen />', () => {
     expect(
       view.getByText(/músicas de demonstração são só para consulta/i),
     ).toBeTruthy();
+  });
+
+  it('abre a referência do YouTube em uma nova janela no web', async () => {
+    const originalPlatform = Platform.OS;
+    const originalOpen = Object.getOwnPropertyDescriptor(window, 'open');
+    const openWindow = jest.fn(() => null);
+
+    Object.defineProperty(window, 'open', {
+      configurable: true,
+      value: openWindow,
+      writable: true,
+    });
+
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'web',
+    });
+
+    try {
+      const view = await render(
+        <AppProviders>
+          <SongDetailScreen
+            bandId={demoIds.primaryBand}
+            songId={demoIds.stageSong}
+          />
+        </AppProviders>,
+      );
+
+      await view.findByText('A rua acende devagar');
+      await fireEvent.press(view.getByLabelText('Abrir referência no YouTube'));
+
+      expect(openWindow).toHaveBeenCalledWith(
+        'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+        '_blank',
+        'noopener,noreferrer',
+      );
+    } finally {
+      if (originalOpen) {
+        Object.defineProperty(window, 'open', originalOpen);
+      } else {
+        delete (window as { open?: unknown }).open;
+      }
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
   });
 
   it('renderiza os blocos e os formatos cadastrados na letra', async () => {
