@@ -561,3 +561,6 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 
 132. A espessura do traço do `+` foi ampliada proporcionalmente, sem alterar
      o tamanho do selo composto.
+
+133. O traço do `+` nos ícones compostos foi dobrado novamente, mantendo o
+     selo no mesmo tamanho para preservar a composição visual.
