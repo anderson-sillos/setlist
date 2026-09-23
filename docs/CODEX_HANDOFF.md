@@ -496,3 +496,11 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      informações/observações e letra. O botão de referência do YouTube abre
      uma nova janela no web (`noopener,noreferrer`) e usa o navegador externo
      nas plataformas nativas. A validação passou com 70 suítes e 370 testes.
+
+122. A edição dos campos de duração usa `durationFromEditorParts`, que mantém
+     os dígitos exatamente como estão sendo digitados e não adiciona zeros à
+     esquerda entre uma tecla e outra. A função `durationFromParts` continua
+     disponível para a recomposição normalizada, e a validação do formulário
+     segue normalizando a duração no salvamento. Isso permite informar, por
+     exemplo, `45` em minutos ou segundos sem o segundo dígito ser bloqueado
+     pelo `maxLength`.

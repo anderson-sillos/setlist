@@ -38,7 +38,7 @@ import {
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { LyricDocumentEditor } from './LyricDocumentEditor';
 import {
-  durationFromParts,
+  durationFromEditorParts,
   durationToParts,
   emptySongEditorValues,
   parseSongEditorValues,
@@ -359,7 +359,7 @@ function SongDurationFieldView({
 
   const updatePart = (part: keyof DurationParts, nextValue: string) => {
     onChangeText(
-      durationFromParts({
+      durationFromEditorParts({
         ...parts,
         [part]: nextValue.replace(/\D/g, ''),
       }),

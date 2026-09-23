@@ -82,6 +82,30 @@ export function durationFromParts(parts: DurationParts): string {
   return `${normalizedMinutes}:${normalizedSeconds.padStart(2, '0')}`;
 }
 
+/**
+ * Recompõe a duração enquanto o usuário ainda está editando os campos
+ * separados, preservando um único dígito para que o próximo possa ser
+ * digitado sem estourar o maxLength do input.
+ */
+export function durationFromEditorParts(parts: DurationParts): string {
+  const hours = parts.hours.trim();
+  const minutes = parts.minutes.trim();
+  const seconds = parts.seconds.trim();
+
+  if (!hours && !minutes && !seconds) {
+    return '';
+  }
+
+  const normalizedMinutes = minutes || '0';
+  const normalizedSeconds = seconds || '0';
+
+  if (hours) {
+    return `${hours}:${normalizedMinutes}:${normalizedSeconds}`;
+  }
+
+  return `${normalizedMinutes}:${normalizedSeconds}`;
+}
+
 export function songToEditorValues(song: Song): SongEditorValues {
   return {
     bpm: song.bpm === null ? '' : String(song.bpm),

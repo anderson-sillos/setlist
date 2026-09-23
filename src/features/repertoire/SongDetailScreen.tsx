@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   songTitle: {
-    fontSize: 28,
+    fontSize: 20,
     lineHeight: 34,
   },
   titleLine: {

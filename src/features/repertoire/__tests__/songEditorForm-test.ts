@@ -1,4 +1,5 @@
 import {
+  durationFromEditorParts,
   durationFromParts,
   durationToParts,
   emptySongEditorValues,
@@ -25,6 +26,9 @@ describe('formulário de música', () => {
     expect(durationFromParts({ hours: '', minutes: '3', seconds: '45' })).toBe(
       '3:45',
     );
+    expect(
+      durationFromEditorParts({ hours: '1', minutes: '2', seconds: '3' }),
+    ).toBe('1:2:3');
   });
 
   it('exige título e aceita os campos opcionais vazios', () => {
