@@ -25,4 +25,25 @@ describe('<AutocompleteField />', () => {
 
     expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
   });
+
+  it('permite selecionar uma sugestão mesmo quando o campo perde o foco', async () => {
+    const onChangeText = jest.fn();
+    const view = await render(
+      <AutocompleteField
+        accessibilityLabel="Artista/Banda"
+        label="Artista/Banda"
+        onChangeText={onChangeText}
+        options={['Banda Horizonte', 'Trio Aurora']}
+        placeholder="Ex.: Artista original"
+        value="aur"
+      />,
+    );
+
+    const input = view.getByLabelText('Artista/Banda');
+    await fireEvent(input, 'focus');
+    await fireEvent(input, 'blur');
+    await fireEvent.press(view.getByLabelText('Usar Trio Aurora'));
+
+    expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+  });
 });

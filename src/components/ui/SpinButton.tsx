@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -34,7 +34,11 @@ export function SpinButton({
   value,
 }: SpinButtonProps) {
   const inputRef = useRef<TextInput>(null);
-  const numericValue = value.trim() ? Number(value) : null;
+  const pendingFocusValueRef = useRef<string | null>(null);
+  const [focused, setFocused] = useState(false);
+  const [draftValue, setDraftValue] = useState(value);
+  const inputValue = focused ? draftValue : value;
+  const numericValue = inputValue.trim() ? Number(inputValue) : null;
   const canDecrement = numericValue !== null && numericValue > min;
   const canIncrement = numericValue === null || numericValue < max;
 
@@ -65,6 +69,8 @@ export function SpinButton({
     const nextValue = Math.min(max, Math.max(min, baseValue + amount));
     const nextText = String(nextValue);
 
+    pendingFocusValueRef.current = focused ? null : nextText;
+    setDraftValue(nextText);
     onChangeText(nextText);
     inputRef.current?.focus();
     selectInputValue(nextText);
@@ -77,13 +83,27 @@ export function SpinButton({
         accessibilityRole="spinbutton"
         keyboardType="number-pad"
         maxLength={maxLength}
-        onChangeText={(nextValue) => onChangeText(nextValue.replace(/\D/g, ''))}
-        onFocus={() => selectInputValue(value)}
+        onChangeText={(nextValue) => {
+          const sanitizedValue = nextValue.replace(/\D/g, '');
+          setDraftValue(sanitizedValue);
+          onChangeText(sanitizedValue);
+        }}
+        onFocus={() => {
+          setFocused(true);
+          const valueToSelect = pendingFocusValueRef.current ?? value;
+          pendingFocusValueRef.current = null;
+          setDraftValue(valueToSelect);
+          selectInputValue(valueToSelect);
+        }}
+        onBlur={() => {
+          setFocused(false);
+          setDraftValue(value);
+        }}
         placeholder="00"
         placeholderTextColor={colors.muted}
         ref={inputRef}
         style={styles.input}
-        value={value}
+        value={inputValue}
       />
       <View style={styles.controls}>
         <Pressable

@@ -517,3 +517,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      `input` e `textarea` focados em todas as rotas. As regras `outlineWidth`
      duplicadas foram removidas dos componentes individuais, mantendo a
      aparência consistente do app web.
+
+125. O `AutocompleteField` passou a manter o foco e a lista de sugestões ao
+     selecionar uma opção, além de aguardar brevemente o `blur` antes de
+     desmontar a lista. Isso evita que o clique seja perdido no web e permite
+     continuar editando o artista no Android. O `SpinButton` mantém um rascunho
+     local durante o foco, impedindo que a normalização temporária para `0`
+     insira um zero à esquerda e bloqueie a digitação do segundo dígito.

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -33,7 +33,24 @@ export function AutocompleteField({
   placeholder,
   value,
 }: AutocompleteFieldProps) {
+  const inputRef = useRef<TextInput>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [focused, setFocused] = useState(false);
+
+  const clearBlurTimeout = () => {
+    if (blurTimeoutRef.current !== null) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+  };
+
+  useEffect(
+    () => () => {
+      clearBlurTimeout();
+    },
+    [],
+  );
+
   const suggestions = useMemo(() => {
     const query = normalizeForSearch(value);
     const seen = new Set<string>();
@@ -69,10 +86,20 @@ export function AutocompleteField({
         autoCapitalize="sentences"
         autoCorrect={false}
         onChangeText={onChangeText}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => {
+          clearBlurTimeout();
+          setFocused(true);
+        }}
+        onBlur={() => {
+          clearBlurTimeout();
+          blurTimeoutRef.current = setTimeout(() => {
+            blurTimeoutRef.current = null;
+            setFocused(false);
+          }, 150);
+        }}
         placeholder={placeholder}
         placeholderTextColor={colors.muted}
+        ref={inputRef}
         style={styles.input}
         value={value}
       />
@@ -84,8 +111,10 @@ export function AutocompleteField({
               accessibilityRole="button"
               key={suggestion}
               onPress={() => {
+                clearBlurTimeout();
                 onChangeText(suggestion);
-                setFocused(false);
+                setFocused(true);
+                inputRef.current?.focus();
               }}
               style={({ pressed }) => [
                 styles.suggestion,

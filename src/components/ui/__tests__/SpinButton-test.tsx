@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { SpinButton } from '@/components/ui/SpinButton';
@@ -42,5 +43,38 @@ describe('<SpinButton />', () => {
 
     expect(onChangeText).toHaveBeenCalledTimes(1);
     expect(onChangeText).toHaveBeenCalledWith('1');
+  });
+
+  it('mantém o campo vazio durante a edição mesmo se o pai normalizar para zero', async () => {
+    const onChangeText = jest.fn();
+    function ControlledSpinButton() {
+      const [value, setValue] = useState('45');
+
+      return (
+        <SpinButton
+          accessibilityLabel="Segundos da duração"
+          max={59}
+          maxLength={2}
+          onChangeText={(nextValue) => {
+            onChangeText(nextValue);
+            setValue(nextValue || '0');
+          }}
+          value={value}
+        />
+      );
+    }
+
+    const view = await render(<ControlledSpinButton />);
+    const input = view.getByLabelText('Segundos da duração');
+
+    await fireEvent(input, 'focus');
+    await fireEvent.changeText(input, '');
+    await fireEvent.changeText(input, '2');
+    await fireEvent.changeText(input, '23');
+
+    expect(onChangeText).toHaveBeenNthCalledWith(1, '');
+    expect(onChangeText).toHaveBeenNthCalledWith(2, '2');
+    expect(onChangeText).toHaveBeenNthCalledWith(3, '23');
+    expect(view.getByLabelText('Segundos da duração').props.value).toBe('23');
   });
 });
