@@ -64,6 +64,22 @@ export function LyricDocumentEditor({
             mantém uma linha em branco
           </AppText>
         </View>
+        <View style={styles.guideRow}>
+          <AppText style={styles.marker} variant="caption">
+            **Texto**
+          </AppText>
+          <AppText tone="muted" variant="caption">
+            destaca a linha em negrito
+          </AppText>
+        </View>
+        <View style={styles.guideRow}>
+          <AppText style={styles.marker} variant="caption">
+            ***
+          </AppText>
+          <AppText tone="muted" variant="caption">
+            insere uma linha de separação
+          </AppText>
+        </View>
       </View>
 
       <View style={styles.inputFrame}>
@@ -73,7 +89,7 @@ export function LyricDocumentEditor({
           multiline
           onChangeText={handleTextChange}
           placeholder={
-            '# Verso\nDigite ou cole a letra completa aqui…\n---\n# Refrão'
+            '# Verso\nDigite ou cole a letra completa aqui…\n**Linha em destaque**\n---\n***\n# Refrão'
           }
           placeholderTextColor={colors.muted}
           scrollEnabled

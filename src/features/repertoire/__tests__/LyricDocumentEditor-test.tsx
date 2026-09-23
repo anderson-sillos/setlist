@@ -8,7 +8,7 @@ jest.mock('expo-crypto', () => ({
 }));
 
 describe('<LyricDocumentEditor />', () => {
-  it('permite colar a letra completa usando marcadores de bloco e linha vazia', async () => {
+  it('permite colar a letra completa usando os marcadores de formatação', async () => {
     const onChange = jest.fn();
     const view = await render(
       <LyricDocumentEditor document={{ blocks: [] }} onChange={onChange} />,
@@ -19,7 +19,7 @@ describe('<LyricDocumentEditor />', () => {
 
     await fireEvent.changeText(
       view.getByLabelText('Letra completa'),
-      '# Verso\nPrimeira linha\n---\nSegunda linha\n# Refrão\nVolta pra casa',
+      '# Verso\n**Primeira linha**\n---\n***\n# Refrão\nVolta pra casa',
     );
 
     expect(onChange).toHaveBeenLastCalledWith({
@@ -29,6 +29,7 @@ describe('<LyricDocumentEditor />', () => {
           name: 'Verso',
           lines: [
             {
+              bold: true,
               id: expect.any(String),
               startTimeMs: null,
               text: 'Primeira linha',
@@ -36,8 +37,9 @@ describe('<LyricDocumentEditor />', () => {
             { id: expect.any(String), startTimeMs: null, text: '' },
             {
               id: expect.any(String),
+              kind: 'separator',
               startTimeMs: null,
-              text: 'Segunda linha',
+              text: '',
             },
           ],
         },

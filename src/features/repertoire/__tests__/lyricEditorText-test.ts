@@ -50,4 +50,43 @@ describe('texto da letra estruturada', () => {
       ],
     });
   });
+
+  it('serializa e interpreta destaque em negrito e linhas de separação', () => {
+    const document: LyricDocument = {
+      blocks: [
+        {
+          id: 'verse',
+          name: 'Verso',
+          lines: [
+            {
+              bold: true,
+              id: 'line-1',
+              startTimeMs: null,
+              text: 'Linha importante',
+            },
+            {
+              id: 'separator-1',
+              kind: 'separator',
+              startTimeMs: null,
+              text: '',
+            },
+          ],
+        },
+      ],
+    };
+
+    const serialized = lyricDocumentToText(document);
+
+    expect(serialized).toBe('# Verso\n**Linha importante**\n***');
+    expect(parseLyricText(serialized, { blocks: [] })).toMatchObject({
+      blocks: [
+        {
+          lines: [
+            { bold: true, text: 'Linha importante' },
+            { kind: 'separator', text: '' },
+          ],
+        },
+      ],
+    });
+  });
 });

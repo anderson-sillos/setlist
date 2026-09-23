@@ -75,6 +75,8 @@ function toDatabaseLyrics(document: LyricDocument) {
         !line.id.trim() ||
         lineIds.has(line.id) ||
         typeof line.text !== 'string' ||
+        (line.kind !== undefined && line.kind !== 'separator') ||
+        (line.bold !== undefined && typeof line.bold !== 'boolean') ||
         (line.startTimeMs !== null &&
           (!Number.isSafeInteger(line.startTimeMs) || line.startTimeMs < 0))
       ) {

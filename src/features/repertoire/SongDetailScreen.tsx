@@ -188,11 +188,29 @@ export function SongDetailScreen({
                       {block.name}
                     </AppText>
                   ) : null}
-                  {block.lines.map((line) => (
-                    <AppText key={line.id} tone="inverse">
-                      {line.text}
-                    </AppText>
-                  ))}
+                  {block.lines.map((line) =>
+                    line.kind === 'separator' ? (
+                      <View
+                        accessibilityLabel="Linha de separação"
+                        accessible
+                        key={line.id}
+                        style={styles.lyricSeparator}
+                        testID={`lyric-separator-${line.id}`}
+                      />
+                    ) : (
+                      <AppText
+                        key={line.id}
+                        style={[
+                          styles.lyricLine,
+                          line.text.length === 0 && styles.lyricBlankLine,
+                          line.bold && styles.lyricLineBold,
+                        ]}
+                        tone="inverse"
+                      >
+                        {line.text}
+                      </AppText>
+                    ),
+                  )}
                 </View>
               ))}
             </Card>
@@ -298,6 +316,22 @@ const styles = StyleSheet.create({
   lyricBlockName: {
     fontWeight: '800',
     marginBottom: spacing.xs,
+    opacity: 0.72,
+  },
+  lyricLine: {
+    minHeight: 24,
+  },
+  lyricBlankLine: {
+    minHeight: spacing.md,
+  },
+  lyricLineBold: {
+    fontWeight: '800',
+  },
+  lyricSeparator: {
+    borderTopColor: colors.muted,
+    borderTopWidth: 1,
+    marginVertical: spacing.sm,
+    minHeight: 1,
     opacity: 0.72,
   },
   secondaryCard: {

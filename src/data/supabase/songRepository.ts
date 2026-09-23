@@ -79,6 +79,8 @@ function parseLyricLine(value: unknown): LyricLine {
   }
 
   const startTimeMs = value.startTimeMs;
+  const kind = value.kind;
+  const bold = value.bold;
 
   if (
     startTimeMs !== null &&
@@ -86,6 +88,14 @@ function parseLyricLine(value: unknown): LyricLine {
     (typeof startTimeMs !== 'number' || !Number.isSafeInteger(startTimeMs))
   ) {
     throw new Error('Resposta inválida do Supabase: startTimeMs.');
+  }
+
+  if (kind !== undefined && kind !== 'separator') {
+    throw new Error('Resposta inválida do Supabase: kind.');
+  }
+
+  if (bold !== undefined && typeof bold !== 'boolean') {
+    throw new Error('Resposta inválida do Supabase: bold.');
   }
 
   if (typeof value.text !== 'string') {
@@ -96,6 +106,8 @@ function parseLyricLine(value: unknown): LyricLine {
     id: readString(value, 'id'),
     startTimeMs: (startTimeMs as number | null | undefined) ?? null,
     text: value.text,
+    ...(kind === 'separator' ? { kind: 'separator' as const } : {}),
+    ...(bold === true ? { bold: true } : {}),
   };
 }
 

@@ -74,6 +74,60 @@ describe('<SongDetailScreen />', () => {
     ).toBeTruthy();
   });
 
+  it('renderiza os blocos e os formatos cadastrados na letra', async () => {
+    const formattedSong = {
+      ...demoRepositoryData.songs[0],
+      id: 'song-with-formatted-lyrics',
+      lyrics: {
+        blocks: [
+          {
+            id: 'formatted-verse',
+            name: 'Verso',
+            lines: [
+              {
+                bold: true,
+                id: 'bold-line',
+                startTimeMs: null,
+                text: 'Linha em destaque',
+              },
+              {
+                id: 'separator-line',
+                kind: 'separator' as const,
+                startTimeMs: null,
+                text: '',
+              },
+              { id: 'blank-line', startTimeMs: null, text: '' },
+            ],
+          },
+        ],
+      },
+    };
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      songs: [formattedSong],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={formattedSong.id}
+        />
+      </AppProviders>,
+    );
+
+    const boldLine = await view.findByText('Linha em destaque');
+
+    expect(view.getByText('Verso')).toBeTruthy();
+    expect(view.getByTestId('lyric-separator-separator-line')).toBeTruthy();
+    expect(boldLine.props.style).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining([
+          expect.objectContaining({ fontWeight: '800' }),
+        ]),
+      ]),
+    );
+  });
+
   it('oculta ações de edição dos detalhes para integrante', async () => {
     const view = await render(
       <AppProviders currentUserId="user-demo-carla">

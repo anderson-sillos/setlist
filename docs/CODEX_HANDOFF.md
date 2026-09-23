@@ -458,3 +458,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      detalhes e integrantes desses IDs são resolvidos pelo repositório demo.
      Isso evita erros `22P02` de UUID ao montar as sugestões de
      `originalArtist` para o autocomplete em sessões autenticadas.
+
+115. A edição e a visualização da letra preservam novos formatos de linha:
+     `**texto**` aplica negrito e `***` cria uma linha de separação; o marcador
+     `---` continua representando uma linha em branco. A tela de detalhes
+     renderiza esses formatos dentro de cada bloco, e a validação inclui a
+     serialização, a leitura e a apresentação desses marcadores.

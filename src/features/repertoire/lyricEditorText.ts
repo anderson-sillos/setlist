@@ -4,21 +4,34 @@ import type { LyricBlock, LyricDocument, LyricLine } from '@/domain';
 
 export const lyricBlockMarker = '#';
 export const lyricBlankLineMarker = '---';
+export const lyricBoldMarker = '**';
+export const lyricSeparatorMarker = '***';
+
+interface ParsedLyricLine {
+  readonly bold?: boolean;
+  readonly kind?: 'separator';
+  readonly text: string;
+}
 
 function createLine(
-  text: string,
+  parsedLine: ParsedLyricLine,
   previousLine: LyricLine | undefined,
 ): LyricLine {
   return {
     id: previousLine?.id ?? ExpoCrypto.randomUUID(),
-    startTimeMs: previousLine?.startTimeMs ?? null,
-    text,
+    startTimeMs:
+      parsedLine.kind === 'separator'
+        ? null
+        : (previousLine?.startTimeMs ?? null),
+    text: parsedLine.text,
+    ...(parsedLine.bold ? { bold: true } : {}),
+    ...(parsedLine.kind === 'separator' ? { kind: 'separator' as const } : {}),
   };
 }
 
 function createBlock(
   name: string | null,
-  lines: readonly string[],
+  lines: readonly ParsedLyricLine[],
   previousBlock: LyricBlock | undefined,
 ): LyricBlock {
   return {
@@ -36,9 +49,19 @@ export function lyricDocumentToText(document: LyricDocument): string {
       const header = block.name
         ? `${lyricBlockMarker} ${block.name}`
         : lyricBlockMarker;
-      const lines = block.lines.map(({ text }) =>
-        text.trim().length > 0 ? text : lyricBlankLineMarker,
-      );
+      const lines = block.lines.map((line) => {
+        if (line.kind === 'separator') {
+          return lyricSeparatorMarker;
+        }
+
+        if (line.text.trim().length === 0) {
+          return lyricBlankLineMarker;
+        }
+
+        return line.bold
+          ? `${lyricBoldMarker}${line.text}${lyricBoldMarker}`
+          : line.text;
+      });
 
       return [header, ...lines].join('\n');
     })
@@ -49,8 +72,11 @@ export function parseLyricText(
   text: string,
   previousDocument: LyricDocument,
 ): LyricDocument {
-  const blocks: { name: string | null; lines: string[] }[] = [];
-  let current = { name: null as string | null, lines: [] as string[] };
+  const blocks: { name: string | null; lines: ParsedLyricLine[] }[] = [];
+  let current = {
+    name: null as string | null,
+    lines: [] as ParsedLyricLine[],
+  };
 
   const pushCurrent = () => {
     if (current.lines.length > 0 || current.name !== null) {
@@ -68,13 +94,24 @@ export function parseLyricText(
       continue;
     }
 
+    if (line.trim() === lyricSeparatorMarker) {
+      current.lines.push({ kind: 'separator', text: '' });
+      continue;
+    }
+
     if (line.trim() === lyricBlankLineMarker) {
-      current.lines.push('');
+      current.lines.push({ text: '' });
       continue;
     }
 
     if (line.trim().length > 0) {
-      current.lines.push(line);
+      const boldMatch = line.match(/^\*\*(.*)\*\*$/);
+
+      if (boldMatch && boldMatch[1]?.trim().length > 0) {
+        current.lines.push({ bold: true, text: boldMatch[1] });
+      } else {
+        current.lines.push({ text: line });
+      }
     }
   }
   pushCurrent();
