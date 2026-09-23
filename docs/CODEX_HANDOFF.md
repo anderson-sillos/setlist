@@ -511,3 +511,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      incluindo os campos de nome de exibição e de letra completa que ainda
      não tinham essa regra. A alteração visual manual do título da música foi
      mantida em `20px`.
+
+124. A remoção do contorno de foco dos campos web foi centralizada no
+     documento `src/app/+html.tsx`, aplicando `outline: none !important` a
+     `input` e `textarea` focados em todas as rotas. As regras `outlineWidth`
+     duplicadas foram removidas dos componentes individuais, mantendo a
+     aparência consistente do app web.

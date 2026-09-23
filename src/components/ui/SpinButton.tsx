@@ -140,7 +140,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     minWidth: 0,
-    outlineWidth: 0,
     paddingHorizontal: spacing.xs,
     textAlign: 'center',
   },

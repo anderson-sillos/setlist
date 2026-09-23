@@ -165,7 +165,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     padding: spacing.md,
     width: '100%',
-    ...(Platform.OS === 'web' ? { outlineWidth: 0 } : {}),
     ...(Platform.OS === 'web' ? { maxHeight: 280, minHeight: 280 } : {}),
   },
   inputHint: {

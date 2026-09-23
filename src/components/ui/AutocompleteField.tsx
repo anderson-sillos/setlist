@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -122,7 +121,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
-    outlineWidth: Platform.OS === 'web' ? 0 : undefined,
     paddingHorizontal: spacing.md,
   },
   suggestions: {
