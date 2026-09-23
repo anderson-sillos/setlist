@@ -96,7 +96,7 @@ export function AppIcon({
     composedIconComponents[name as keyof typeof composedIconComponents];
 
   if (ComposedIcon) {
-    const badgeSize = Math.max(11, size * 0.5);
+    const badgeSize = Math.max(12, size * 0.56);
 
     return (
       <View
@@ -123,10 +123,10 @@ export function AppIcon({
         >
           <Plus
             color={color}
-            height={badgeSize * 0.72}
-            size={badgeSize * 0.72}
-            strokeWidth={Math.max(1.5, strokeWidth)}
-            width={badgeSize * 0.72}
+            height={badgeSize * 0.86}
+            size={badgeSize * 0.86}
+            strokeWidth={Math.max(1.75, strokeWidth)}
+            width={badgeSize * 0.86}
           />
         </View>
       </View>

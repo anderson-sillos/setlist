@@ -554,3 +554,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      preservado e a variante `CirclePlus` ficou disponível como `addCircle`
      para ações genéricas destacadas. TypeScript, lint, formatação e 70 suítes
      com 379 testes passaram.
+
+131. O `+` das composições `Music2 +` e `Users +` recebeu selo e traço
+     maiores, preservando a proporção responsiva para manter a ação de criação
+     visualmente destacada nos headers móveis e web.
