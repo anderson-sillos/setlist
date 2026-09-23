@@ -71,7 +71,7 @@ export function AutocompleteField({
     });
   }, [options, value]);
 
-  const showSuggestions = focused && suggestions.length > 0;
+  const showSuggestions = focused && suggestions.length > 1;
 
   return (
     <View style={[styles.field, containerStyle]}>

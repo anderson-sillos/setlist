@@ -10,7 +10,7 @@ describe('<AutocompleteField />', () => {
         accessibilityLabel="Artista/Banda"
         label="Artista/Banda"
         onChangeText={onChangeText}
-        options={['Banda Horizonte', 'Trio Aurora']}
+        options={['Banda Horizonte', 'Trio Aurora', 'Trio Auroras']}
         placeholder="Ex.: Artista original"
         value="aur"
       />,
@@ -33,7 +33,7 @@ describe('<AutocompleteField />', () => {
         accessibilityLabel="Artista/Banda"
         label="Artista/Banda"
         onChangeText={onChangeText}
-        options={['Banda Horizonte', 'Trio Aurora']}
+        options={['Banda Horizonte', 'Trio Aurora', 'Trio Auroras']}
         placeholder="Ex.: Artista original"
         value="aur"
       />,
@@ -45,5 +45,39 @@ describe('<AutocompleteField />', () => {
     await fireEvent.press(view.getByLabelText('Usar Trio Aurora'));
 
     expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+  });
+
+  it('não exibe a lista quando existe somente uma sugestão', async () => {
+    const view = await render(
+      <AutocompleteField
+        accessibilityLabel="Artista/Banda"
+        label="Artista/Banda"
+        onChangeText={jest.fn()}
+        options={['Trio Aurora']}
+        placeholder="Ex.: Artista original"
+        value="aur"
+      />,
+    );
+
+    await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+
+    expect(view.queryByLabelText('Usar Trio Aurora')).toBeNull();
+  });
+
+  it('não exibe a lista quando não existem sugestões', async () => {
+    const view = await render(
+      <AutocompleteField
+        accessibilityLabel="Artista/Banda"
+        label="Artista/Banda"
+        onChangeText={jest.fn()}
+        options={[]}
+        placeholder="Ex.: Artista original"
+        value="aur"
+      />,
+    );
+
+    await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+
+    expect(view.queryByLabelText(/Usar /)).toBeNull();
   });
 });

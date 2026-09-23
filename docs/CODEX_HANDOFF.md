@@ -532,3 +532,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      seções passaram a informar esse callback. Isso evita o aviso de `GO_BACK`
      sem histórico e os avisos de foco retido em elementos dentro de um
      container `aria-hidden` durante a transição web.
+
+127. O `AutocompleteField` só abre a lista de sugestões quando há pelo menos
+     duas opções distintas para escolha. Com zero ou uma alternativa, o campo
+     permanece limpo e não apresenta uma lista sem necessidade.
