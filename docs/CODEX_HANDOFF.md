@@ -547,3 +547,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      ao valor preenchido, usando comparação normalizada. Se houver uma única
      opção diferente, ela continua sendo exibida para seleção; com duas ou
      mais opções a lista permanece disponível normalmente.
+
+130. Os headers de criação passaram a usar iconografia semântica pelo catálogo
+     `AppIcon`: `CalendarPlus` para novo show, composição `Music2 +` para nova
+     música e composição `Users +` para nova banda. O `Plus` genérico foi
+     preservado e a variante `CirclePlus` ficou disponível como `addCircle`
+     para ações genéricas destacadas. TypeScript, lint, formatação e 70 suítes
+     com 379 testes passaram.

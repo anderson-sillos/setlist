@@ -1,13 +1,17 @@
+import { StyleSheet, View } from 'react-native';
+
 import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
   CalendarCheck,
   CalendarDays,
+  CalendarPlus,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CirclePlus,
   Ellipsis,
   ExternalLink,
   Hourglass,
@@ -35,6 +39,7 @@ import { colors } from '@/theme/tokens';
 
 const iconComponents = {
   add: Plus,
+  addCircle: CirclePlus,
   account: UserRound,
   moveDown: ArrowDown,
   moveUp: ArrowUp,
@@ -60,12 +65,19 @@ const iconComponents = {
   repertoire: Music,
   search: Search,
   shows: CalendarDays,
+  showAdd: CalendarPlus,
   stage: Play,
   sort: ArrowUpDown,
   remove: Trash2,
 } satisfies Record<string, LucideIcon>;
 
-export type AppIconName = keyof typeof iconComponents;
+const composedIconComponents = {
+  bandAdd: Users,
+  musicAdd: Music2,
+} satisfies Record<string, LucideIcon>;
+
+export type AppIconName =
+  keyof typeof iconComponents | keyof typeof composedIconComponents;
 
 interface AppIconProps {
   readonly color?: string;
@@ -80,7 +92,48 @@ export function AppIcon({
   size = 24,
   strokeWidth = 2,
 }: AppIconProps) {
-  const Icon = iconComponents[name];
+  const ComposedIcon =
+    composedIconComponents[name as keyof typeof composedIconComponents];
+
+  if (ComposedIcon) {
+    const badgeSize = Math.max(11, size * 0.5);
+
+    return (
+      <View
+        pointerEvents="none"
+        style={[styles.composedIcon, { height: size, width: size }]}
+      >
+        <ComposedIcon
+          color={color}
+          height={size}
+          size={size}
+          strokeWidth={strokeWidth}
+          width={size}
+        />
+        <View
+          style={[
+            styles.composedBadge,
+            {
+              borderRadius: badgeSize / 2,
+              height: badgeSize,
+              right: -badgeSize * 0.12,
+              width: badgeSize,
+            },
+          ]}
+        >
+          <Plus
+            color={color}
+            height={badgeSize * 0.72}
+            size={badgeSize * 0.72}
+            strokeWidth={Math.max(1.5, strokeWidth)}
+            width={badgeSize * 0.72}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  const Icon = iconComponents[name as keyof typeof iconComponents];
 
   return (
     <Icon
@@ -92,3 +145,17 @@ export function AppIcon({
     />
   );
 }
+
+const styles = StyleSheet.create({
+  composedIcon: {
+    overflow: 'visible',
+    position: 'relative',
+  },
+  composedBadge: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    bottom: -2,
+    justifyContent: 'center',
+    position: 'absolute',
+  },
+});

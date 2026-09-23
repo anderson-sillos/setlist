@@ -48,4 +48,18 @@ describe('AppIcon', () => {
       type: 'RNSVGSvgView',
     });
   });
+  it.each(['bandAdd', 'musicAdd'] as const)(
+    'renderiza a composição de criação %s',
+    async (name) => {
+      const view = await render(<AppIcon name={name} size={24} />);
+
+      expect(view.toJSON()).not.toBeNull();
+    },
+  );
+
+  it('expõe a variante de adição destacada', async () => {
+    const view = await render(<AppIcon name="addCircle" />);
+
+    expect(view.toJSON()).not.toBeNull();
+  });
 });

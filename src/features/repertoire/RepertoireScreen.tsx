@@ -188,7 +188,7 @@ export function RepertoireScreen({
         canCreate
           ? {
               accessibilityLabel: 'Adicionar música ao repertório',
-              icon: 'add',
+              icon: 'musicAdd',
               label: 'Adicionar música',
               onPress: () => {
                 if (isDemoBand) {

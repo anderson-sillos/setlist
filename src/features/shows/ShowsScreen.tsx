@@ -281,7 +281,7 @@ export function ShowsScreen({
         canCreate
           ? {
               accessibilityLabel: 'Criar novo show',
-              icon: 'add',
+              icon: 'showAdd',
               label: 'Novo show',
               onPress: () =>
                 setDemoNotice(
