@@ -564,3 +564,6 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 
 133. O traço do `+` nos ícones compostos foi dobrado novamente, mantendo o
      selo no mesmo tamanho para preservar a composição visual.
+
+134. O ícone de nova banda passou a usar a composição `UserGroup +`, mais
+     próxima da representação visual de um grupo de usuários.

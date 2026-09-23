@@ -29,6 +29,7 @@ import {
   Plus,
   Search,
   Trash2,
+  UserGroup,
   UserRound,
   Users,
   X,
@@ -72,7 +73,7 @@ const iconComponents = {
 } satisfies Record<string, LucideIcon>;
 
 const composedIconComponents = {
-  bandAdd: Users,
+  bandAdd: UserGroup,
   musicAdd: Music2,
 } satisfies Record<string, LucideIcon>;
 
