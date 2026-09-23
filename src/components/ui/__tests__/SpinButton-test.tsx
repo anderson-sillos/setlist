@@ -16,9 +16,9 @@ describe('<SpinButton />', () => {
       />,
     );
 
-    expect(
-      view.getByLabelText('Minutos da duração').props.selectTextOnFocus,
-    ).toBe(true);
+    expect(view.getByLabelText('Minutos da duração').props.onFocus).toEqual(
+      expect.any(Function),
+    );
 
     await fireEvent.press(view.getByLabelText('Aumentar minutos'));
     await fireEvent.press(view.getByLabelText('Diminuir minutos'));

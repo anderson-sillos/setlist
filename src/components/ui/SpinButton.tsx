@@ -38,6 +38,24 @@ export function SpinButton({
   const canDecrement = numericValue !== null && numericValue > min;
   const canIncrement = numericValue === null || numericValue < max;
 
+  const selectInputValue = (nextText: string) => {
+    const input = inputRef.current as SpinButtonInputRef | null;
+
+    if (!input) {
+      return;
+    }
+
+    if (Platform.OS === 'web') {
+      input.setSelectionRange?.(0, nextText.length);
+    } else if (input.setSelection) {
+      input.setSelection(0, nextText.length);
+    } else {
+      input.setNativeProps?.({
+        selection: { end: nextText.length, start: 0 },
+      });
+    }
+  };
+
   const changeBy = (amount: number) => {
     if (numericValue === null && amount < 0) {
       return;
@@ -46,20 +64,10 @@ export function SpinButton({
     const baseValue = numericValue ?? min;
     const nextValue = Math.min(max, Math.max(min, baseValue + amount));
     const nextText = String(nextValue);
-    const input = inputRef.current as SpinButtonInputRef | null;
 
     onChangeText(nextText);
-    input?.focus();
-
-    if (Platform.OS === 'web') {
-      input?.setSelectionRange?.(0, nextText.length);
-    } else if (input?.setSelection) {
-      input.setSelection(0, nextText.length);
-    } else {
-      input?.setNativeProps?.({
-        selection: { end: nextText.length, start: 0 },
-      });
-    }
+    inputRef.current?.focus();
+    selectInputValue(nextText);
   };
 
   return (
@@ -70,10 +78,10 @@ export function SpinButton({
         keyboardType="number-pad"
         maxLength={maxLength}
         onChangeText={(nextValue) => onChangeText(nextValue.replace(/\D/g, ''))}
+        onFocus={() => selectInputValue(value)}
         placeholder="00"
         placeholderTextColor={colors.muted}
         ref={inputRef}
-        selectTextOnFocus
         style={styles.input}
         value={value}
       />

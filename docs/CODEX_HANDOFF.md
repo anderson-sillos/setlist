@@ -484,3 +484,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      elemento HTML, enquanto no Android/iOS usa `setSelection`, com fallback
      nativo opcional. Isso evita chamar `setNativeProps` em referências do
      React Native Web, que não oferecem esse método.
+
+120. A seleção automática no foco deixou de usar `selectTextOnFocus` no
+     React Native Web, pois esse recurso agenda uma seleção assíncrona que
+     podia reaplicar a seleção após o primeiro caractere digitado. O
+     `SpinButton` agora seleciona o valor diretamente no evento de foco e ao
+     usar `+`/`−`, permitindo editar vários dígitos normalmente pelo teclado.
