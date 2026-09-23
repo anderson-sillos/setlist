@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   lyricBlockName: {
     fontWeight: '800',
     marginBottom: spacing.xs,
-    opacity: 0.72,
+    opacity: 0.55,
   },
   lyricLine: {
     minHeight: 24,

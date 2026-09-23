@@ -464,3 +464,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      `---` continua representando uma linha em branco. A tela de detalhes
      renderiza esses formatos dentro de cada bloco, e a validação inclui a
      serialização, a leitura e a apresentação desses marcadores.
+
+116. Os nomes dos blocos na visualização da letra usam opacidade `0.55`,
+     mantendo os títulos identificáveis, mas com menos destaque que as linhas
+     da música.

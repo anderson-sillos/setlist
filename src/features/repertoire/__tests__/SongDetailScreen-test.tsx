@@ -117,7 +117,12 @@ describe('<SongDetailScreen />', () => {
 
     const boldLine = await view.findByText('Linha em destaque');
 
-    expect(view.getByText('Verso')).toBeTruthy();
+    const blockName = view.getByText('Verso');
+
+    expect(blockName).toBeTruthy();
+    expect(blockName.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ opacity: 0.55 })]),
+    );
     expect(view.getByTestId('lyric-separator-separator-line')).toBeTruthy();
     expect(boldLine.props.style).toEqual(
       expect.arrayContaining([
