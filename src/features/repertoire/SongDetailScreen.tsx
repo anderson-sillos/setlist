@@ -86,13 +86,15 @@ export function SongDetailScreen({
       headerAction={
         canEdit
           ? {
-              accessibilityLabel: 'Mais opções da música',
-              icon: 'more',
-              label: 'Mais opções',
+              accessibilityLabel: 'Editar música',
+              icon: 'edit',
+              label: 'Editar música',
               onPress: () =>
-                setDemoNotice(
-                  'Arquivar e restaurar entram no incremento do repertório.',
-                ),
+                isDemoBand
+                  ? setDemoNotice(
+                      'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
+                    )
+                  : router.push(getSongEditHref(bandId, songId)),
             }
           : undefined
       }
@@ -137,22 +139,6 @@ export function SongDetailScreen({
                   {song.originalArtist ?? 'Artista/Banda não informado'}
                 </AppText>
               </View>
-              {canEdit ? (
-                <AppButton
-                  accessibilityLabel="Editar música"
-                  icon="edit"
-                  label="Editar"
-                  onPress={() =>
-                    isDemoBand
-                      ? setDemoNotice(
-                          'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
-                        )
-                      : router.push(getSongEditHref(bandId, songId))
-                  }
-                  style={styles.editButton}
-                  variant="secondary"
-                />
-              ) : null}
             </View>
             <View style={styles.summaryLine}>
               <StatusPill
@@ -298,11 +284,6 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
     minWidth: 220,
-  },
-  editButton: {
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
   },
   summaryLine: {
     alignItems: 'center',

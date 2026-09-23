@@ -536,3 +536,9 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 127. O `AutocompleteField` só abre a lista de sugestões quando há pelo menos
      duas opções distintas para escolha. Com zero ou uma alternativa, o campo
      permanece limpo e não apresenta uma lista sem necessidade.
+
+128. Na tela de detalhes da música, a ação `Editar música` foi movida para o
+     cabeçalho como `headerAction` com o ícone `edit`, seguindo o padrão das
+     demais telas. O botão secundário que ficava junto ao título foi removido;
+     as mensagens de bloqueio para bandas de demonstração e as permissões de
+     edição permanecem iguais.
