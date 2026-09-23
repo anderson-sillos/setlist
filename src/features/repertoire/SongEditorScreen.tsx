@@ -31,6 +31,7 @@ import { demoIds } from '@/data/demo';
 import type { EntityId, LyricDocument } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
+  getBandSectionHref,
   getSongCreateHref,
   getSongEditHref,
   getSongHref,
@@ -110,6 +111,19 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setSubmitError(null);
   };
 
+  const leaveEditor = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace(
+      songId
+        ? getSongHref(bandId, songId)
+        : getBandSectionHref(bandId, 'repertoire'),
+    );
+  };
+
   const handleSave = async () => {
     const parsed = parseSongEditorValues(values);
     setFieldErrors(parsed.errors);
@@ -128,7 +142,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           queryKey: ['bands', bandId, 'songs'],
         });
         await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
-        router.back();
+        leaveEditor();
       } else {
         const createdSongId = await createSong({
           bandId,
@@ -277,7 +291,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
             <AppButton
               disabled={isSubmitting}
               label="Cancelar"
-              onPress={() => router.back()}
+              onPress={leaveEditor}
               variant="secondary"
             />
             <AppButton

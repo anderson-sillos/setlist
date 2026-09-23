@@ -524,3 +524,11 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      continuar editando o artista no Android. O `SpinButton` mantém um rascunho
      local durante o foco, impedindo que a normalização temporária para `0`
      insira um zero à esquerda e bloqueie a digitação do segundo dígito.
+
+126. A saída da tela de edição de música agora verifica `router.canGoBack()` e
+     usa a rota de detalhes da música (ou do repertório, no cadastro) como
+     fallback quando a tela foi aberta diretamente por URL. Os links do menu
+     lateral fecham o drawer no `onPressIn`, antes da navegação, e todas as
+     seções passaram a informar esse callback. Isso evita o aviso de `GO_BACK`
+     sem histórico e os avisos de foco retido em elementos dentro de um
+     container `aria-hidden` durante a transição web.

@@ -13,6 +13,7 @@ import { AppProviders } from '@/providers/AppProviders';
 
 const mockRouter = {
   back: jest.fn(),
+  canGoBack: jest.fn().mockReturnValue(true),
   push: jest.fn(),
   replace: jest.fn(),
 };
@@ -72,6 +73,7 @@ function createRepositories(role: 'owner' | 'editor' | 'member' = 'owner') {
 describe('<SongEditorScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouter.canGoBack.mockReturnValue(true);
     mockRandomUUID.mockReset();
   });
 
@@ -179,6 +181,24 @@ describe('<SongEditorScreen />', () => {
       }),
     );
     expect(mockRouter.back).toHaveBeenCalled();
+  });
+
+  it('usa os detalhes da música como fallback quando a edição foi aberta diretamente', async () => {
+    const { bandId, repositories, songId } = createRepositories('editor');
+    mockRouter.canGoBack.mockReturnValue(false);
+
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} songId={songId} />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Título da música *');
+    await fireEvent.press(view.getByText('Cancelar'));
+
+    expect(mockRouter.replace).toHaveBeenCalledWith(
+      `/bands/${bandId}/repertoire/${songId}`,
+    );
   });
 
   it('mantém os campos e as ações roláveis e valida título obrigatório', async () => {
