@@ -99,6 +99,17 @@ export function SongDetailScreen({
     setLifecycleDialogVisible(false);
     setLifecycleError(null);
   };
+  const openLifecycleOptions = () => {
+    if (isDemoBand) {
+      setDemoNotice(
+        'As músicas de demonstração são só para consulta. Selecione uma banda conectada para administrar o repertório.',
+      );
+      return;
+    }
+
+    setLifecycleError(null);
+    setLifecycleDialogVisible(true);
+  };
   const invalidateSongQueries = async () => {
     await queryClient.invalidateQueries({
       queryKey: ['bands', bandId, 'songs'],
@@ -182,19 +193,27 @@ export function SongDetailScreen({
       backHref={getBandSectionHref(bandId, 'repertoire')}
       bandId={bandId}
       currentRoute={getSongHref(bandId, songId) as string}
-      headerAction={
+      headerActions={
         canEdit
-          ? {
-              accessibilityLabel: 'Editar música',
-              icon: 'edit',
-              label: 'Editar música',
-              onPress: () =>
-                isDemoBand
-                  ? setDemoNotice(
-                      'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
-                    )
-                  : router.push(getSongEditHref(bandId, songId)),
-            }
+          ? [
+              {
+                accessibilityLabel: 'Editar música',
+                icon: 'edit',
+                label: 'Editar música',
+                onPress: () =>
+                  isDemoBand
+                    ? setDemoNotice(
+                        'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
+                      )
+                    : router.push(getSongEditHref(bandId, songId)),
+              },
+              {
+                accessibilityLabel: 'Mais opções da música',
+                icon: 'more',
+                label: 'Mais opções',
+                onPress: openLifecycleOptions,
+              },
+            ]
           : undefined
       }
       screenKind="detail"
@@ -293,26 +312,6 @@ export function SongDetailScreen({
               <AppText accessibilityRole="alert" style={styles.lifecycleNotice}>
                 {lifecycleNotice}
               </AppText>
-            ) : null}
-            {canEdit ? (
-              <AppButton
-                accessibilityLabel="Mais opções da música"
-                icon="more"
-                label="Mais opções"
-                onPress={() => {
-                  if (isDemoBand) {
-                    setDemoNotice(
-                      'As músicas de demonstração são só para consulta. Selecione uma banda conectada para administrar o repertório.',
-                    );
-                    return;
-                  }
-
-                  setLifecycleError(null);
-                  setLifecycleDialogVisible(true);
-                }}
-                style={styles.lifecycleButton}
-                variant="secondary"
-              />
             ) : null}
             {song.notes ? (
               <View style={styles.notes}>
@@ -428,10 +427,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     gap: spacing.sm,
     paddingTop: spacing.lg,
-  },
-  lifecycleButton: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.md,
   },
   lifecycleNotice: {
     color: colors.violetDark,

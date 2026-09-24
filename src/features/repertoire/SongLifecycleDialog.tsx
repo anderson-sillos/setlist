@@ -105,6 +105,14 @@ export function SongLifecycleDialog({
                     variant="secondary"
                   />
                 )}
+                <AppButton
+                  accessibilityLabel="Excluir música"
+                  disabled={isSubmitting}
+                  icon="remove"
+                  label="Excluir música"
+                  onPress={() => setConfirmDelete(true)}
+                  variant="secondary"
+                />
               </>
             )}
             {errorMessage ? (
@@ -129,16 +137,7 @@ export function SongLifecycleDialog({
                 label={isSubmitting ? 'Excluindo…' : 'Confirmar exclusão'}
                 onPress={onRemove}
               />
-            ) : (
-              <AppButton
-                accessibilityLabel="Excluir música"
-                disabled={isSubmitting}
-                icon="remove"
-                label="Excluir música"
-                onPress={() => setConfirmDelete(true)}
-                variant="secondary"
-              />
-            )}
+            ) : null}
           </View>
         </View>
       </View>
