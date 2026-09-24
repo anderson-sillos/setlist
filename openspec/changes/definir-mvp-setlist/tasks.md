@@ -76,7 +76,7 @@
 
 - [x] 6.1 Implementar lista rolável, busca, filtros agrupados, ordenações, detalhes orientados à letra, criação e edição online de músicas e verificar metadados, referência externa do YouTube, permissões e campos obrigatórios por papel
 - [x] 6.2 Implementar o editor de letra com blocos e linhas identificáveis e reordenáveis e verificar persistência atômica do documento completo
-- [ ] 6.3 Implementar a classificação Sem letra, Letra estática, Sincronização incompleta e Sincronizada e verificar todos os estados com testes unitários
+- [x] 6.3 Implementar a classificação Sem letra, Letra estática, Sincronização incompleta e Sincronizada e verificar todos os estados com testes unitários
 - [ ] 6.4 Exigir aceite do termo vigente antes da primeira edição de cada Owner ou Editor e verificar que leitura e modo palco continuam disponíveis sem aceite
 - [ ] 6.5 Implementar arquivamento e restauração de músicas e verificar preservação em shows existentes e exclusão das opções para novas setlists
 - [ ] 6.6 Implementar atualização da música com horário gerado pelo servidor e verificar que apenas o conteúdo vigente fica visível

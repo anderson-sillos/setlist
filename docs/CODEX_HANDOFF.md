@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1 e 6.2 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores, duração assistida e autocomplete de artistas originais. `npm run validate` passou com 70 suítes e 365 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é a classificação de letras da 6.3; iOS/Apple segue como pendência futura.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1, 6.2 e 6.3 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores, duração assistida, autocomplete de artistas originais e classificação de estado da letra. `npm run validate` passou com 70 suítes e 382 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é exigir o aceite do termo vigente antes da edição da música na 6.4; iOS/Apple segue como pendência futura.
 
 ## Fontes de verdade
 
@@ -370,9 +370,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 6.3 em `feat/task-6-1-repertoire`: consolidar a
-classificação `Sem letra`, `Letra estática`, `Sincronização incompleta` e
-`Sincronizada` na consulta e nos testes, preparando a validação manual 6.7.
+Implementar a tarefa 6.4 em `feat/task-6-1-repertoire`: exigir o aceite do
+termo vigente antes da primeira edição de Owner ou Editor.
 Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
 validação iOS dos links nativos prevista em 11.5. O change OpenSpec
 `definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
@@ -395,8 +394,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      formatação e `npm run validate` passaram com 67 suítes e 357 testes. A
      validação SQL local não foi executada porque a inicialização do CLI do
      Supabase foi bloqueada pela escrita de telemetria fora da área permitida;
-     nenhum estado remoto foi alterado. A próxima etapa é a classificação dos
-     estados de letra da tarefa 6.3.
+     nenhum estado remoto foi alterado. A classificação dos estados de letra da
+     tarefa 6.3 foi concluída posteriormente.
 
 108. Os botões de ação do cabeçalho foram padronizados no componente
      compartilhado `src/features/navigation/components/AppHeader.tsx`. Ações
@@ -588,3 +587,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      selecionar ou compartilhar o URL, pode ser fechada pelo botão, pelo ícone
      ou pelo fundo e é limpa ao fechar o diálogo principal. A validação completa
      passou com 70 suítes e 382 testes.
+
+138. A tarefa 6.3 foi concluída: `deriveLyricStatus` classifica letras por
+     linhas textuais, tempos informados e ordem crescente, e as mutações
+     persistem o resultado junto ao documento JSONB. Os testes unitários cobrem
+     Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
