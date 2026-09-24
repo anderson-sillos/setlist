@@ -370,8 +370,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 6.5 em `feat/task-6-1-repertoire`: arquivar/restaurar
-músicas e excluir definitivamente somente músicas sem uso em shows.
+Implementar a tarefa 6.6 em `feat/task-6-1-repertoire`: garantir atualização
+da música com horário do servidor e visibilidade somente do conteúdo vigente.
 Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
 validação iOS dos links nativos prevista em 11.5. O change OpenSpec
 `definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
@@ -601,3 +601,13 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      modo palco continuam disponíveis sem aceite. A suíte local passou com 14
      arquivos e 267 verificações; a migração foi publicada no Supabase de
      desenvolvimento e o lint remoto não encontrou erros.
+
+140. A tarefa 6.5 foi concluída: Owner e Editor podem arquivar, restaurar ou
+     excluir músicas pela tela de detalhes. A RPC protegida decide de forma
+     atômica: músicas sem referência em shows são removidas definitivamente;
+     músicas já usadas em setlists são arquivadas, preservando os itens
+     existentes. O repertório mantém arquivadas fora das novas setlists,
+     oferece filtro dedicado e exibe a confirmação contextual. A validação
+     passou com 15 arquivos e 278 testes SQL, lint local/remoto sem erros e
+     396 testes de aplicação; a migração foi publicada no Supabase de
+     desenvolvimento.

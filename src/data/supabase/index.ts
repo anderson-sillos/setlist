@@ -48,6 +48,12 @@ export {
   updateSong,
 } from '@/data/supabase/songMutations';
 export {
+  archiveSong,
+  removeSong,
+  restoreSong,
+  SongLifecycleMutationError,
+} from '@/data/supabase/songLifecycleMutations';
+export {
   getUserProfile,
   ProfileMutationError,
   updateMyDisplayName,
@@ -68,6 +74,10 @@ export type {
   SongMutationErrorCode,
   SongWriteInput,
 } from '@/data/supabase/songMutations';
+export type {
+  SongLifecycleErrorCode,
+  SongRemovalResult,
+} from '@/data/supabase/songLifecycleMutations';
 export type {
   CreateInvitationInput,
   CreatedInvitation,

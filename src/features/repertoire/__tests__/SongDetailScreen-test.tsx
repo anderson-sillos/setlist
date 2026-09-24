@@ -11,6 +11,18 @@ jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
+jest.mock('@/data/supabase/songLifecycleMutations', () => ({
+  archiveSong: jest.fn(),
+  removeSong: jest.fn(),
+  restoreSong: jest.fn(),
+  SongLifecycleMutationError: class MockSongLifecycleMutationError extends Error {},
+}));
+
+const mockArchiveSong = (
+  jest.requireMock('@/data/supabase/songLifecycleMutations') as {
+    archiveSong: jest.Mock;
+  }
+).archiveSong;
 
 describe('<SongDetailScreen />', () => {
   it.each([
@@ -276,5 +288,57 @@ describe('<SongDetailScreen />', () => {
     );
 
     expect(await view.findByText('Música indisponível')).toBeTruthy();
+  });
+  it('permite arquivar uma música da banda conectada', async () => {
+    mockArchiveSong.mockResolvedValue(undefined);
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      bands: [
+        ...demoRepositoryData.bands,
+        {
+          id: 'band-live',
+          name: 'Banda conectada',
+          createdAt: '2026-09-01T12:00:00.000Z',
+          updatedAt: '2026-09-01T12:00:00.000Z',
+        },
+      ],
+      bandMembers: [
+        ...demoRepositoryData.bandMembers,
+        {
+          id: 'member-live-owner',
+          bandId: 'band-live',
+          userId: 'user-live',
+          displayName: 'Pessoa conectada',
+          role: 'owner',
+          joinedAt: '2026-09-01T12:00:00.000Z',
+        },
+      ],
+      songs: [
+        ...demoRepositoryData.songs,
+        {
+          ...demoRepositoryData.songs[0],
+          bandId: 'band-live',
+          id: 'song-live',
+          title: 'Música conectada',
+        },
+      ],
+    });
+    const view = await render(
+      <AppProviders currentUserId="user-live" repositories={repositories}>
+        <SongDetailScreen bandId="band-live" songId="song-live" />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Música conectada')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Mais opções da música'));
+    await fireEvent.press(view.getByLabelText('Arquivar música'));
+
+    expect(mockArchiveSong).toHaveBeenCalledWith({
+      bandId: 'band-live',
+      songId: 'song-live',
+    });
+    expect(
+      await view.findByText(/Música arquivada\. Ela não aparecerá/i),
+    ).toBeTruthy();
   });
 });
