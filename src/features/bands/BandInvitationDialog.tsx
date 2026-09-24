@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import type { BandInvitation } from '@/domain';
@@ -70,12 +70,19 @@ export function BandInvitationDialog({
   const [lastCreated, setLastCreated] = useState<CreatedInvitation | null>(
     null,
   );
+  const [shareableUrls, setShareableUrls] = useState<Record<string, string>>(
+    {},
+  );
 
   async function handleCreate() {
     const created = await onCreate(label);
 
     if (created) {
       setLastCreated(created);
+      setShareableUrls((current) => ({
+        ...current,
+        [created.id]: created.url,
+      }));
       setLabel('');
     }
   }
@@ -85,6 +92,10 @@ export function BandInvitationDialog({
 
     if (renewed) {
       setLastCreated(renewed);
+      setShareableUrls((current) => ({
+        ...current,
+        [renewed.id]: renewed.url,
+      }));
     }
   }
 
@@ -98,6 +109,27 @@ export function BandInvitationDialog({
     }
 
     await Share.share({ message: url, url });
+  }
+
+  async function handleShareAgain(invitation: BandInvitation) {
+    const knownUrl = shareableUrls[invitation.id];
+
+    if (knownUrl) {
+      await shareUrl(knownUrl);
+      return;
+    }
+
+    const created = await onCreate(invitation.label ?? '');
+
+    if (created) {
+      setLastCreated(created);
+      setShareableUrls((current) => ({
+        ...current,
+        [created.id]: created.url,
+      }));
+
+      await shareUrl(created.url);
+    }
   }
 
   return (
@@ -211,20 +243,26 @@ export function BandInvitationDialog({
                     </AppText>
                   </View>
                   {invitation.status === 'active' ? (
-                    <AppButton
-                      accessibilityLabel="Revogar convite"
-                      disabled={isSubmitting}
-                      label="Revogar"
-                      onPress={() => onRevoke(invitation.id)}
-                      variant="secondary"
-                    />
+                    <View style={styles.invitationActions}>
+                      <InvitationIconButton
+                        accessibilityLabel="Compartilhar convite novamente"
+                        disabled={isSubmitting}
+                        icon="share"
+                        onPress={() => void handleShareAgain(invitation)}
+                      />
+                      <InvitationIconButton
+                        accessibilityLabel="Revogar convite"
+                        disabled={isSubmitting}
+                        icon="revoke"
+                        onPress={() => onRevoke(invitation.id)}
+                      />
+                    </View>
                   ) : invitation.status !== 'used' ? (
-                    <AppButton
+                    <InvitationIconButton
                       accessibilityLabel="Renovar convite"
                       disabled={isSubmitting}
-                      label="Renovar"
+                      icon="renew"
                       onPress={() => void handleRenew(invitation.id)}
-                      variant="secondary"
                     />
                   ) : null}
                 </View>
@@ -243,6 +281,42 @@ export function BandInvitationDialog({
         </View>
       </KeyboardAvoidingView>
     </Modal>
+  );
+}
+
+interface InvitationIconButtonProps {
+  readonly accessibilityLabel: string;
+  readonly disabled: boolean;
+  readonly icon: AppIconName;
+  readonly onPress: () => void;
+}
+
+function InvitationIconButton({
+  accessibilityLabel,
+  disabled,
+  icon,
+  onPress,
+}: InvitationIconButtonProps) {
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      hitSlop={4}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.invitationIconButton,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
+    >
+      <AppIcon
+        color={disabled ? colors.muted : colors.violet}
+        name={icon}
+        size={18}
+      />
+    </Pressable>
   );
 }
 
@@ -304,6 +378,21 @@ const styles = StyleSheet.create({
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
   },
+  invitationActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 0,
+    gap: spacing.xs,
+  },
+  invitationIconButton: {
+    alignItems: 'center',
+    borderColor: colors.violet,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
   invitationCopy: {
     flex: 1,
     gap: spacing.xs,
@@ -326,6 +415,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: spacing.xl,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   pressed: {
     opacity: 0.72,

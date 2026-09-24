@@ -567,3 +567,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 
 134. O ícone de nova banda passou a usar a composição `UserGroup +`, mais
      próxima da representação visual de um grupo de usuários.
+
+135. O histórico de convites passou a usar ações iconográficas acessíveis:
+     `Share2` para compartilhar novamente, `Ban` para revogar e `RefreshCw`
+     para renovar. Convites ativos reutilizam o URL disponível na sessão ou
+     geram um novo convite mantendo o anterior ativo quando o token original
+     não está disponível, preservando o armazenamento apenas por hash no
+     Supabase. A validação completa passou com 70 suítes e 379 testes.

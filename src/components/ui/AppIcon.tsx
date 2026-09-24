@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Ban,
   CalendarCheck,
   CalendarDays,
   CalendarPlus,
@@ -27,7 +28,9 @@ import {
   Pencil,
   Play,
   Plus,
+  RefreshCw,
   Search,
+  Share2,
   Trash2,
   UserGroup,
   UserRound,
@@ -70,6 +73,9 @@ const iconComponents = {
   stage: Play,
   sort: ArrowUpDown,
   remove: Trash2,
+  renew: RefreshCw,
+  revoke: Ban,
+  share: Share2,
 } satisfies Record<string, LucideIcon>;
 
 const composedIconComponents = {

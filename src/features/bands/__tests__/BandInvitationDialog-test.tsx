@@ -62,6 +62,9 @@ describe('<BandInvitationDialog />', () => {
     );
 
     expect(view.getByTestId('band-invitation-keyboard-layout')).toBeTruthy();
+    expect(view.getByLabelText('Compartilhar convite novamente')).toBeTruthy();
+    expect(view.getByLabelText('Revogar convite')).toBeTruthy();
+    expect(view.getByLabelText('Renovar convite')).toBeTruthy();
 
     await fireEvent.changeText(
       view.getByLabelText('Rótulo do convite'),
