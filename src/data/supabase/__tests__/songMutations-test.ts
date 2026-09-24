@@ -70,7 +70,7 @@ describe('mutations de músicas no Supabase', () => {
 
   it('valida, normaliza e cria a música no escopo da banda', async () => {
     const query = createMutationQuery({
-      data: { id: 'song-new' },
+      data: { id: 'song-new', updated_at: '2026-09-24T12:00:00.000Z' },
       error: null,
     });
     from.mockReturnValue(query);
@@ -90,7 +90,29 @@ describe('mutations de músicas no Supabase', () => {
       title: 'Música nova',
       youtube_reference: 'https://youtu.be/abc123',
     });
-    expect(query.select).toHaveBeenCalledWith('id');
+    expect(query.select).toHaveBeenCalledWith('id, updated_at');
+  });
+
+  it('exige o horário de atualização gerado pelo servidor', async () => {
+    const createQueryWithoutTimestamp = createMutationQuery({
+      data: { id: 'song-new' },
+      error: null,
+    });
+    from.mockReturnValueOnce(createQueryWithoutTimestamp);
+
+    await expect(
+      createSong({ bandId: 'band-real', song: validSong }),
+    ).rejects.toMatchObject({ code: 'request_failed' });
+
+    const updateQueryWithInvalidTimestamp = createMutationQuery({
+      data: { id: 'song-real', updated_at: 'não é uma data' },
+      error: null,
+    });
+    from.mockReturnValueOnce(updateQueryWithInvalidTimestamp);
+
+    await expect(
+      updateSong({ bandId: 'band-real', song: validSong, songId: 'song-real' }),
+    ).rejects.toMatchObject({ code: 'request_failed' });
   });
 
   it('rejeita título, BPM, duração e referência inválidos antes de acessar o banco', async () => {
@@ -113,7 +135,7 @@ describe('mutations de músicas no Supabase', () => {
 
   it('atualiza somente a música da banda informada', async () => {
     const query = createMutationQuery({
-      data: { id: 'song-real' },
+      data: { id: 'song-real', updated_at: '2026-09-24T12:00:00.000Z' },
       error: null,
     });
     from.mockReturnValue(query);
@@ -130,7 +152,7 @@ describe('mutations de músicas no Supabase', () => {
 
   it('grava a letra estruturada e o estado derivado em uma única atualização', async () => {
     const query = createMutationQuery({
-      data: { id: 'song-real' },
+      data: { id: 'song-real', updated_at: '2026-09-24T12:00:00.000Z' },
       error: null,
     });
     from.mockReturnValue(query);
@@ -158,7 +180,7 @@ describe('mutations de músicas no Supabase', () => {
 
   it('inclui a letra e seu estado derivado ao criar a música', async () => {
     const query = createMutationQuery({
-      data: { id: 'song-new' },
+      data: { id: 'song-new', updated_at: '2026-09-24T12:00:00.000Z' },
       error: null,
     });
     from.mockReturnValue(query);

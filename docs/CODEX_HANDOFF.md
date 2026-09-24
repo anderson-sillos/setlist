@@ -12,6 +12,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
 - PR #12: grupo 4 integrado à `main` por squash no commit `2d72009` e encerrado antes do início da tarefa 5.3.
+- PR #15: branch `feat/task-6-1-repertoire` permanece aberta para revisão, com as tarefas 6.1–6.6 implementadas; não fazer merge ou fechar antes da aprovação manual.
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
@@ -609,5 +610,17 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      existentes. O repertório mantém arquivadas fora das novas setlists,
      oferece filtro dedicado e exibe a confirmação contextual. A validação
      passou com 15 arquivos e 278 testes SQL, lint local/remoto sem erros e
+
+141. A tarefa 6.6 foi concluída: as mutações de criação e edição de músicas
+     agora solicitam `id, updated_at` ao Supabase e rejeitam respostas sem um
+     horário válido gerado pelo servidor. O gatilho existente em
+     `public.songs` continua sendo a fonte exclusiva do timestamp, sem aceitar
+     datas produzidas no cliente. O teste SQL `6.6-song-current-content.sql`
+     confirma que Owner e Editor substituem o conteúdo na única linha vigente,
+     preservam o vínculo com shows e não expõem histórico. A validação passou
+     com 73 suítes e 399 testes da aplicação, 16 arquivos e 288 testes SQL,
+     lint local/remoto sem erros e banco remoto sem migrações pendentes.
+     A tarefa 6.7 é a próxima etapa: validar visualmente Owner, Editor e Member
+     em celular, tablet e web e publicar uma nova prévia para revisão.
      396 testes de aplicação; a migração foi publicada no Supabase de
      desenvolvimento.

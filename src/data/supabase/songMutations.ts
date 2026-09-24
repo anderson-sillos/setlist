@@ -186,6 +186,21 @@ function mapSupabaseError(error: { code?: string; message: string }) {
   );
 }
 
+function assertServerUpdatedAt(data: unknown): void {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    !('updated_at' in data) ||
+    typeof data.updated_at !== 'string' ||
+    Number.isNaN(Date.parse(data.updated_at))
+  ) {
+    throw new SongMutationError(
+      'request_failed',
+      'A música foi salva sem retornar a atualização do servidor.',
+    );
+  }
+}
+
 export async function createSong({
   bandId,
   lyrics,
@@ -200,7 +215,7 @@ export async function createSong({
   const { data, error } = await getSupabaseClient()
     .from('songs')
     .insert({ band_id: bandId, ...input, ...lyricsInput })
-    .select('id')
+    .select('id, updated_at')
     .single();
 
   if (error) {
@@ -218,6 +233,8 @@ export async function createSong({
       'A música foi salva sem retornar um identificador válido.',
     );
   }
+
+  assertServerUpdatedAt(data);
 
   return data.id;
 }
@@ -240,7 +257,7 @@ export async function updateSong({
     .update({ ...input, ...lyricsInput })
     .eq('band_id', bandId)
     .eq('id', songId)
-    .select('id')
+    .select('id, updated_at')
     .maybeSingle();
 
   if (error) {
@@ -253,4 +270,6 @@ export async function updateSong({
       'A música não existe mais ou você não tem permissão para alterá-la.',
     );
   }
+
+  assertServerUpdatedAt(data);
 }
