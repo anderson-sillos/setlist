@@ -3,6 +3,7 @@ import {
   getBandSectionHref,
   getSongCreateHref,
   getSongEditHref,
+  getSongLyricsHref,
   getShowHref,
   getSongHref,
   getStageHref,
@@ -30,6 +31,9 @@ describe('rotas da navegação', () => {
     );
     expect(getSongHref(demoIds.primaryBand, demoIds.stageSong)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}`,
+    );
+    expect(getSongLyricsHref(demoIds.primaryBand, demoIds.stageSong)).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/lyrics`,
     );
     expect(getSongCreateHref(demoIds.primaryBand)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/new`,

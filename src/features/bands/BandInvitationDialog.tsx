@@ -14,7 +14,6 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
-import { Card } from '@/components/ui/Card';
 import type { BandInvitation } from '@/domain';
 import type { CreatedInvitation } from '@/data/supabase/invitationMutations';
 import { formatDateOnly } from '@/utils/dateTime';
@@ -73,6 +72,11 @@ export function BandInvitationDialog({
   const [shareableUrls, setShareableUrls] = useState<Record<string, string>>(
     {},
   );
+
+  function handleClose() {
+    setLastCreated(null);
+    onClose();
+  }
 
   async function handleCreate() {
     const created = await onCreate(label);
@@ -133,153 +137,226 @@ export function BandInvitationDialog({
   }
 
   return (
+    <>
+      <Modal
+        animationType="fade"
+        onRequestClose={handleClose}
+        transparent
+        visible={visible}
+      >
+        <KeyboardAvoidingView
+          accessibilityViewIsModal
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+          style={styles.modalLayer}
+          testID="band-invitation-keyboard-layout"
+        >
+          <Pressable
+            accessibilityLabel="Fechar convites tocando fora"
+            accessibilityRole="button"
+            disabled={isSubmitting}
+            onPress={handleClose}
+            style={styles.scrim}
+          />
+          <View
+            accessibilityLiveRegion="polite"
+            style={styles.dialog}
+            testID="band-invitation-dialog"
+          >
+            <View style={styles.header}>
+              <AppText accessibilityRole="header" variant="heading">
+                Convites da banda
+              </AppText>
+              <Pressable
+                accessibilityLabel="Fechar janela de convites"
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                hitSlop={spacing.sm}
+                onPress={handleClose}
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <AppIcon color={colors.muted} name="close" size={20} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              style={styles.formScroll}
+            >
+              <AppText tone="muted">
+                Crie links de uso único. O rótulo ajuda a organizar os convites,
+                mas não limita quem pode entrar.
+              </AppText>
+              <View style={styles.fieldGroup}>
+                <AppText variant="caption">Rótulo (opcional)</AppText>
+                <TextInput
+                  accessibilityLabel="Rótulo do convite"
+                  maxLength={120}
+                  onChangeText={setLabel}
+                  placeholder="Ex.: Baixista"
+                  placeholderTextColor={colors.muted}
+                  style={styles.input}
+                  value={label}
+                />
+              </View>
+              <AppButton
+                accessibilityLabel="Criar convite"
+                disabled={isSubmitting}
+                icon="add"
+                label={isSubmitting ? 'Criando…' : 'Criar convite'}
+                onPress={() => void handleCreate()}
+              />
+
+              <View style={styles.listHeader}>
+                <AppText variant="heading">Histórico de convites</AppText>
+                <AppText tone="muted" variant="caption">
+                  {invitations.length} link{invitations.length === 1 ? '' : 's'}
+                </AppText>
+              </View>
+              {invitations.length === 0 ? (
+                <AppText tone="muted">
+                  Nenhum convite ainda. Crie o primeiro quando a banda estiver
+                  no aquecimento.
+                </AppText>
+              ) : (
+                invitations.map((invitation) => (
+                  <View key={invitation.id} style={styles.invitationRow}>
+                    <View style={styles.invitationCopy}>
+                      <AppText>{invitation.label ?? 'Sem rótulo'}</AppText>
+                      <AppText tone="muted" variant="caption">
+                        {formatInvitationStatus(invitation)}
+                      </AppText>
+                    </View>
+                    {invitation.status === 'active' ? (
+                      <View style={styles.invitationActions}>
+                        <InvitationIconButton
+                          accessibilityLabel="Compartilhar convite novamente"
+                          disabled={isSubmitting}
+                          icon="share"
+                          onPress={() => void handleShareAgain(invitation)}
+                        />
+                        <InvitationIconButton
+                          accessibilityLabel="Revogar convite"
+                          disabled={isSubmitting}
+                          icon="revoke"
+                          onPress={() => onRevoke(invitation.id)}
+                        />
+                      </View>
+                    ) : invitation.status !== 'used' ? (
+                      <InvitationIconButton
+                        accessibilityLabel="Renovar convite"
+                        disabled={isSubmitting}
+                        icon="renew"
+                        onPress={() => void handleRenew(invitation.id)}
+                      />
+                    ) : null}
+                  </View>
+                ))
+              )}
+              {errorMessage ? (
+                <AppText accessibilityRole="alert" style={styles.errorText}>
+                  {errorMessage}
+                </AppText>
+              ) : null}
+            </ScrollView>
+
+            <View style={styles.actions}>
+              <AppButton
+                label="Fechar"
+                onPress={handleClose}
+                variant="secondary"
+              />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+      <InvitationLinkReadyDialog
+        invitation={lastCreated}
+        onClose={() => setLastCreated(null)}
+        onShare={() => {
+          if (lastCreated) {
+            void shareUrl(lastCreated.url);
+          }
+        }}
+      />
+    </>
+  );
+}
+
+interface InvitationLinkReadyDialogProps {
+  readonly invitation: CreatedInvitation | null;
+  readonly onClose: () => void;
+  readonly onShare: () => void;
+}
+
+function InvitationLinkReadyDialog({
+  invitation,
+  onClose,
+  onShare,
+}: InvitationLinkReadyDialogProps) {
+  return (
     <Modal
       animationType="fade"
       onRequestClose={onClose}
       transparent
-      visible={visible}
+      visible={invitation !== null}
     >
-      <KeyboardAvoidingView
-        accessibilityViewIsModal
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-        style={styles.modalLayer}
-        testID="band-invitation-keyboard-layout"
-      >
+      <View style={styles.modalLayer}>
         <Pressable
-          accessibilityLabel="Fechar convites tocando fora"
+          accessibilityLabel="Fechar link pronto tocando fora"
           accessibilityRole="button"
-          disabled={isSubmitting}
           onPress={onClose}
           style={styles.scrim}
         />
-        <View
-          accessibilityLiveRegion="polite"
-          style={styles.dialog}
-          testID="band-invitation-dialog"
-        >
-          <View style={styles.header}>
-            <AppText accessibilityRole="header" variant="heading">
-              Convites da banda
-            </AppText>
-            <Pressable
-              accessibilityLabel="Fechar janela de convites"
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              hitSlop={spacing.sm}
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.closeButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <AppIcon color={colors.muted} name="close" size={20} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            contentContainerStyle={styles.formContent}
-            keyboardShouldPersistTaps="handled"
-            style={styles.formScroll}
+        {invitation ? (
+          <View
+            accessibilityViewIsModal
+            accessibilityLiveRegion="polite"
+            style={styles.linkDialog}
+            testID="band-invitation-link-dialog"
           >
-            <AppText tone="muted">
-              Crie links de uso único. O rótulo ajuda a organizar os convites,
-              mas não limita quem pode entrar.
-            </AppText>
-            <View style={styles.fieldGroup}>
-              <AppText variant="caption">Rótulo (opcional)</AppText>
-              <TextInput
-                accessibilityLabel="Rótulo do convite"
-                maxLength={120}
-                onChangeText={setLabel}
-                placeholder="Ex.: Baixista"
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-                value={label}
+            <View style={styles.header}>
+              <AppText accessibilityRole="header" variant="heading">
+                Link pronto para o palco
+              </AppText>
+              <Pressable
+                accessibilityLabel="Fechar link pronto"
+                accessibilityRole="button"
+                hitSlop={spacing.sm}
+                onPress={onClose}
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <AppIcon color={colors.muted} name="close" size={20} />
+              </Pressable>
+            </View>
+            <View style={styles.linkContent}>
+              <AppText tone="muted">
+                Compartilhe este link com a pessoa que vai entrar na banda.
+              </AppText>
+              <AppText selectable style={styles.linkText} variant="caption">
+                {invitation.url}
+              </AppText>
+              <AppButton
+                accessibilityLabel="Compartilhar link"
+                icon="externalLink"
+                label="Compartilhar link"
+                onPress={onShare}
+                variant="secondary"
               />
             </View>
-            <AppButton
-              accessibilityLabel="Criar convite"
-              disabled={isSubmitting}
-              icon="add"
-              label={isSubmitting ? 'Criando…' : 'Criar convite'}
-              onPress={() => void handleCreate()}
-            />
-
-            {lastCreated ? (
-              <Card style={styles.createdCard} tone="accent">
-                <AppText variant="heading">Link pronto para o palco</AppText>
-                <AppText selectable variant="caption">
-                  {lastCreated.url}
-                </AppText>
-                <AppButton
-                  accessibilityLabel="Compartilhar link"
-                  icon="externalLink"
-                  label="Compartilhar link"
-                  onPress={() => void shareUrl(lastCreated.url)}
-                  variant="secondary"
-                />
-              </Card>
-            ) : null}
-
-            <View style={styles.listHeader}>
-              <AppText variant="heading">Histórico de convites</AppText>
-              <AppText tone="muted" variant="caption">
-                {invitations.length} link{invitations.length === 1 ? '' : 's'}
-              </AppText>
+            <View style={styles.actions}>
+              <AppButton label="Fechar" onPress={onClose} variant="secondary" />
             </View>
-            {invitations.length === 0 ? (
-              <AppText tone="muted">
-                Nenhum convite ainda. Crie o primeiro quando a banda estiver no
-                aquecimento.
-              </AppText>
-            ) : (
-              invitations.map((invitation) => (
-                <View key={invitation.id} style={styles.invitationRow}>
-                  <View style={styles.invitationCopy}>
-                    <AppText>{invitation.label ?? 'Sem rótulo'}</AppText>
-                    <AppText tone="muted" variant="caption">
-                      {formatInvitationStatus(invitation)}
-                    </AppText>
-                  </View>
-                  {invitation.status === 'active' ? (
-                    <View style={styles.invitationActions}>
-                      <InvitationIconButton
-                        accessibilityLabel="Compartilhar convite novamente"
-                        disabled={isSubmitting}
-                        icon="share"
-                        onPress={() => void handleShareAgain(invitation)}
-                      />
-                      <InvitationIconButton
-                        accessibilityLabel="Revogar convite"
-                        disabled={isSubmitting}
-                        icon="revoke"
-                        onPress={() => onRevoke(invitation.id)}
-                      />
-                    </View>
-                  ) : invitation.status !== 'used' ? (
-                    <InvitationIconButton
-                      accessibilityLabel="Renovar convite"
-                      disabled={isSubmitting}
-                      icon="renew"
-                      onPress={() => void handleRenew(invitation.id)}
-                    />
-                  ) : null}
-                </View>
-              ))
-            )}
-            {errorMessage ? (
-              <AppText accessibilityRole="alert" style={styles.errorText}>
-                {errorMessage}
-              </AppText>
-            ) : null}
-          </ScrollView>
-
-          <View style={styles.actions}>
-            <AppButton label="Fechar" onPress={onClose} variant="secondary" />
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        ) : null}
+      </View>
     </Modal>
   );
 }
@@ -335,8 +412,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
   },
-  createdCard: {
-    gap: spacing.md,
+  linkContent: {
+    gap: spacing.lg,
+    padding: spacing.xl,
+  },
+  linkDialog: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    maxWidth: 560,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  linkText: {
+    color: colors.ink,
   },
   dialog: {
     backgroundColor: colors.surface,

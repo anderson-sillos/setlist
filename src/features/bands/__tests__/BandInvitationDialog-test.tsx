@@ -73,6 +73,9 @@ describe('<BandInvitationDialog />', () => {
     await fireEvent.press(view.getByLabelText('Criar convite'));
     expect(onCreate).toHaveBeenCalledWith('  Vocalista  ');
     expect(await view.findByText(created.url)).toBeTruthy();
+    expect(view.getByTestId('band-invitation-link-dialog')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Fechar link pronto'));
+    expect(view.queryByTestId('band-invitation-link-dialog')).toBeNull();
 
     await fireEvent.press(view.getByLabelText('Revogar convite'));
     expect(onRevoke).toHaveBeenCalledWith('invite-active');

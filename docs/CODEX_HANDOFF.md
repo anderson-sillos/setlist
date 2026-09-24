@@ -574,3 +574,17 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      geram um novo convite mantendo o anterior ativo quando o token original
      não está disponível, preservando o armazenamento apenas por hash no
      Supabase. A validação completa passou com 70 suítes e 379 testes.
+
+136. A consulta de uma música recebeu a rota imersiva de letra
+     `/bands/[bandId]/repertoire/[songId]/lyrics`, acessada por `Tela cheia`.
+     O conteúdo visual é reutilizado entre detalhe e tela imersiva, preservando
+     blocos, linhas em negrito, separadores e o retorno acessível aos detalhes.
+     A ação só é apresentada para músicas que possuem letra; músicas no estado
+     `Sem letra` continuam mostrando a orientação local sem oferecer uma tela
+     vazia. Tom e BPM permanecem metadados secundários no resumo.
+
+137. Após criar ou renovar um convite, `Link pronto para o palco` é mostrado
+     em um popup próprio, separado do histórico de convites. A janela permite
+     selecionar ou compartilhar o URL, pode ser fechada pelo botão, pelo ícone
+     ou pelo fundo e é limpa ao fechar o diálogo principal. A validação completa
+     passou com 70 suítes e 382 testes.

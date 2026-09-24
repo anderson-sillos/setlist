@@ -27,12 +27,14 @@ import {
   getBandSectionHref,
   getSongEditHref,
   getSongHref,
+  getSongLyricsHref,
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
+import { SongLyricsContent } from './SongLyricsContent';
 import { lyricStatusLabels } from './songPresentation';
 
 interface SongDetailScreenProps {
@@ -169,27 +171,17 @@ export function SongDetailScreen({
                 Atualizada {formatRelativeUpdate(song.updatedAt, now)}
               </AppText>
             </View>
+            <View style={styles.simpleMetadata}>
+              <AppText tone="muted" variant="caption">
+                Tom · {song.musicalKey ?? '—'}
+              </AppText>
+              <AppText tone="muted" variant="caption">
+                BPM · {song.bpm ?? '—'}
+              </AppText>
+            </View>
           </Card>
 
           <Card style={styles.secondaryCard}>
-            <AppText accessibilityRole="header" variant="heading">
-              Informações
-            </AppText>
-            <View style={styles.metadataGrid}>
-              <View style={styles.metadataItem}>
-                <AppText tone="muted" variant="caption">
-                  Tom
-                </AppText>
-                <AppText>{song.musicalKey ?? '—'}</AppText>
-              </View>
-              <View style={styles.metadataItem}>
-                <AppText tone="muted" variant="caption">
-                  BPM
-                </AppText>
-                <AppText>{song.bpm ?? '—'}</AppText>
-              </View>
-            </View>
-
             {song.notes ? (
               <View style={styles.notes}>
                 <AppText accessibilityRole="header" variant="heading">
@@ -212,48 +204,26 @@ export function SongDetailScreen({
           </Card>
 
           <Card style={styles.lyricCard} tone="dark">
-            <AppText
-              accessibilityRole="header"
-              tone="inverse"
-              variant="eyebrow"
-            >
-              Letra
-            </AppText>
-            {song.lyrics.blocks.length === 0 ? (
-              <AppText tone="inverse">Sem letra cadastrada</AppText>
-            ) : null}
-            {song.lyrics.blocks.map((block) => (
-              <View key={block.id} style={styles.lyricBlock}>
-                {block.name ? (
-                  <AppText style={styles.lyricBlockName} tone="inverse">
-                    {block.name}
-                  </AppText>
-                ) : null}
-                {block.lines.map((line) =>
-                  line.kind === 'separator' ? (
-                    <View
-                      accessibilityLabel="Linha de separação"
-                      accessible
-                      key={line.id}
-                      style={styles.lyricSeparator}
-                      testID={`lyric-separator-${line.id}`}
-                    />
-                  ) : (
-                    <AppText
-                      key={line.id}
-                      style={[
-                        styles.lyricLine,
-                        line.text.length === 0 && styles.lyricBlankLine,
-                        line.bold && styles.lyricLineBold,
-                      ]}
-                      tone="inverse"
-                    >
-                      {line.text}
-                    </AppText>
-                  ),
-                )}
-              </View>
-            ))}
+            <View style={styles.lyricHeader}>
+              <AppText
+                accessibilityRole="header"
+                tone="inverse"
+                variant="eyebrow"
+              >
+                Letra
+              </AppText>
+              {song.lyricStatus !== 'missing' ? (
+                <AppButton
+                  accessibilityLabel="Abrir letra em tela cheia"
+                  icon="expand"
+                  label="Tela cheia"
+                  onPress={() => router.push(getSongLyricsHref(bandId, songId))}
+                  style={styles.fullscreenButton}
+                  variant="secondary"
+                />
+              ) : null}
+            </View>
+            <SongLyricsContent lyrics={song.lyrics} />
           </Card>
         </View>
       ) : null}
@@ -296,51 +266,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
   },
+  simpleMetadata: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
   lyricCard: {
     gap: spacing.xl,
     minWidth: 0,
     width: '100%',
   },
-  lyricBlock: {
-    gap: spacing.sm,
+  lyricHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    justifyContent: 'space-between',
   },
-  lyricBlockName: {
-    fontWeight: '800',
-    marginBottom: spacing.xs,
-    opacity: 0.55,
-  },
-  lyricLine: {
-    minHeight: 24,
-  },
-  lyricBlankLine: {
-    minHeight: spacing.md,
-  },
-  lyricLineBold: {
-    fontWeight: '800',
-  },
-  lyricSeparator: {
-    borderTopColor: colors.muted,
-    borderTopWidth: 1,
-    marginVertical: spacing.sm,
-    minHeight: 1,
-    opacity: 0.72,
+  fullscreenButton: {
+    paddingHorizontal: spacing.md,
   },
   secondaryCard: {
     gap: spacing.lg,
     minWidth: 0,
     width: '100%',
-  },
-  metadataGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.lg,
-  },
-  metadataItem: {
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.md,
-    gap: spacing.xs,
-    minWidth: 80,
-    padding: spacing.md,
   },
   notes: {
     borderTopColor: colors.line,

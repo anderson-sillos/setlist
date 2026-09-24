@@ -5,10 +5,11 @@ import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { AppProviders } from '@/providers/AppProviders';
+import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
 describe('<SongDetailScreen />', () => {
@@ -46,6 +47,9 @@ describe('<SongDetailScreen />', () => {
     expect(view.getByText('Duração · 3min38s')).toBeTruthy();
     expect(view.getByLabelText('Duração 3min38s')).toBeTruthy();
     expect(view.getByText('Atualizada há 3 dias')).toBeTruthy();
+    expect(view.getByText('Tom · G')).toBeTruthy();
+    expect(view.getByLabelText('Abrir letra em tela cheia')).toBeTruthy();
+    expect(view.getByText('BPM · 118')).toBeTruthy();
     expect(view.getByLabelText('Editar música')).toBeTruthy();
     expect(view.getByLabelText('Abrir referência no YouTube')).toBeTruthy();
     expect(
@@ -211,6 +215,9 @@ describe('<SongDetailScreen />', () => {
       await instrumentalView.findByText('Sem letra cadastrada'),
     ).toBeTruthy();
     await instrumentalView.unmount();
+    expect(
+      instrumentalView.queryByLabelText('Abrir letra em tela cheia'),
+    ).toBeNull();
 
     const emptyRepositories = createInMemoryRepositories({
       ...demoRepositoryData,
@@ -226,5 +233,48 @@ describe('<SongDetailScreen />', () => {
     expect(
       await missingSongView.findByText('Música indisponível'),
     ).toBeTruthy();
+  });
+
+  it('apresenta a letra em uma tela imersiva', async () => {
+    const view = await render(
+      <AppProviders>
+        <SongLyricsScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByTestId('song-lyrics-screen')).toBeTruthy();
+    expect(view.getByText('Letra em tela cheia')).toBeTruthy();
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(view.getByLabelText('Voltar para detalhes da música')).toBeTruthy();
+  });
+
+  it('informa quando a música não possui letra em tela cheia', async () => {
+    const view = await render(
+      <AppProviders>
+        <SongLyricsScreen
+          bandId={demoIds.primaryBand}
+          songId="song-demo-instrumental"
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Sem letra cadastrada')).toBeTruthy();
+  });
+
+  it('informa quando a música não está disponível em tela cheia', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      songs: [],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongLyricsScreen bandId={demoIds.primaryBand} songId="unknown" />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Música indisponível')).toBeTruthy();
   });
 });
