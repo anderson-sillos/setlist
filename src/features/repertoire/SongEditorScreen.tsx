@@ -21,14 +21,22 @@ import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { SpinButton } from '@/components/ui/SpinButton';
+import { acceptCurrentBandTerm } from '@/data/supabase/legalTermMutations';
 import {
   createSong,
   SongMutationError,
   updateSong,
 } from '@/data/supabase/songMutations';
-import { useSong, useUserBands, useUserRepertoireSongs } from '@/data/queries';
+import {
+  useCurrentBandTermAcceptance,
+  useSong,
+  useUserBands,
+  useUserRepertoireSongs,
+} from '@/data/queries';
 import { demoIds } from '@/data/demo';
 import type { EntityId, LyricDocument } from '@/domain';
+import { BandTermAcceptanceDialog } from '@/features/bands/BandTermAcceptanceDialog';
+import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
@@ -63,6 +71,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const userBandsQuery = useUserBands();
   const userRepertoireSongsQuery = useUserRepertoireSongs();
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
+  const [isAcceptingTerm, setIsAcceptingTerm] = useState(false);
+  const [termAcceptanceError, setTermAcceptanceError] = useState<string | null>(
+    null,
+  );
   const [editedValues, setEditedValues] = useState<{
     readonly songId: EntityId | null;
     readonly values: SongEditorValues;
@@ -81,8 +93,15 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const isDemoBand =
     bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
+  const termAcceptanceQuery = useCurrentBandTermAcceptance(
+    bandId,
+    CURRENT_BAND_TERM.version,
+    !isDemoBand && canEdit,
+  );
   const isLoading =
-    userBandsQuery.isPending || (Boolean(songId) && songQuery.isPending);
+    userBandsQuery.isPending ||
+    (Boolean(songId) && songQuery.isPending) ||
+    (!isDemoBand && canEdit && termAcceptanceQuery.isPending);
   const originalArtistOptions = Array.from(
     new Set(
       userRepertoireSongsQuery.data
@@ -122,6 +141,27 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         ? getSongHref(bandId, songId)
         : getBandSectionHref(bandId, 'repertoire'),
     );
+  };
+
+  const handleTermAcceptance = async () => {
+    setIsAcceptingTerm(true);
+    setTermAcceptanceError(null);
+
+    try {
+      await acceptCurrentBandTerm({
+        bandId,
+        termVersion: CURRENT_BAND_TERM.version,
+      });
+      await termAcceptanceQuery.refetch();
+    } catch (error) {
+      setTermAcceptanceError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível registrar seu aceite agora. Tente novamente.',
+      );
+    } finally {
+      setIsAcceptingTerm(false);
+    }
   };
 
   const handleSave = async () => {
@@ -186,6 +226,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {songQuery.isError && songId ? (
         <ErrorFeedback onRetry={() => void songQuery.refetch()} />
       ) : null}
+      {termAcceptanceQuery.isError ? (
+        <ErrorFeedback onRetry={() => void termAcceptanceQuery.refetch()} />
+      ) : null}
       {!isLoading && !userBandsQuery.isError && isDemoBand ? (
         <UnavailableFeedback title="Músicas de demonstração são somente leitura" />
       ) : null}
@@ -199,6 +242,8 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       !userBandsQuery.isError &&
       !songQuery.isError &&
       !isDemoBand &&
+      !termAcceptanceQuery.isError &&
+      termAcceptanceQuery.data === true &&
       canEdit &&
       (!songId || song) ? (
         <KeyboardAvoidingView
@@ -302,6 +347,21 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
             />
           </View>
         </KeyboardAvoidingView>
+      ) : null}
+      {!isLoading &&
+      !userBandsQuery.isError &&
+      !songQuery.isError &&
+      !termAcceptanceQuery.isError &&
+      !isDemoBand &&
+      canEdit &&
+      termAcceptanceQuery.data === false ? (
+        <BandTermAcceptanceDialog
+          errorMessage={termAcceptanceError}
+          onClose={leaveEditor}
+          onSubmit={() => void handleTermAcceptance()}
+          submitting={isAcceptingTerm}
+          visible
+        />
       ) : null}
     </BandAreaLayout>
   );

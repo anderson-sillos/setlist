@@ -1,8 +1,28 @@
+import { getCurrentBandTermAcceptance } from '@/data/supabase/legalTermMutations';
 import { useQuery } from '@tanstack/react-query';
 
 import type { EntityId, Song } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
+
+export function useCurrentBandTermAcceptance(
+  bandId: EntityId,
+  termVersion: string,
+  enabled = true,
+) {
+  const { currentUserId } = useAppData();
+
+  return useQuery({
+    enabled,
+    queryKey: ['bands', bandId, 'term-acceptance', currentUserId, termVersion],
+    queryFn: () =>
+      getCurrentBandTermAcceptance({
+        bandId,
+        termVersion,
+        userId: currentUserId,
+      }),
+  });
+}
 
 export function useUserBands() {
   const { currentUserId, repositories } = useAppData();

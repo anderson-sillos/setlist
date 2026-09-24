@@ -36,6 +36,13 @@ export {
   SupabaseSongRepository,
 } from '@/data/supabase/songRepository';
 export {
+  acceptCurrentBandTerm,
+  getCurrentBandTermAcceptance,
+  LegalTermMutationError,
+} from '@/data/supabase/legalTermMutations';
+export type { LegalTermMutationErrorCode } from '@/data/supabase/legalTermMutations';
+
+export {
   createSong,
   SongMutationError,
   updateSong,

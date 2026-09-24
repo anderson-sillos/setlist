@@ -370,8 +370,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 6.4 em `feat/task-6-1-repertoire`: exigir o aceite do
-termo vigente antes da primeira edição de Owner ou Editor.
+Implementar a tarefa 6.5 em `feat/task-6-1-repertoire`: arquivar/restaurar
+músicas e excluir definitivamente somente músicas sem uso em shows.
 Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
 validação iOS dos links nativos prevista em 11.5. O change OpenSpec
 `definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
@@ -592,3 +592,12 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      linhas textuais, tempos informados e ordem crescente, e as mutações
      persistem o resultado junto ao documento JSONB. Os testes unitários cobrem
      Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
+
+139. A tarefa 6.4 foi concluída: Owner e Editor agora consultam o aceite do
+     termo vigente antes de abrir o editor de músicas; o diálogo registra o
+     aceite pela RPC protegida `accept_current_band_term`. O banco centraliza a
+     versão vigente, exige o aceite em políticas de inserção/alteração e remove
+     a escrita direta de `legal_acceptances`. Member, leitura do repertório e
+     modo palco continuam disponíveis sem aceite. A suíte local passou com 14
+     arquivos e 267 verificações; a migração foi publicada no Supabase de
+     desenvolvimento e o lint remoto não encontrou erros.

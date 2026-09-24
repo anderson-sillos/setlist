@@ -4,6 +4,10 @@ import * as ExpoCrypto from 'expo-crypto';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import {
+  acceptCurrentBandTerm,
+  getCurrentBandTermAcceptance,
+} from '@/data/supabase/legalTermMutations';
+import {
   createSong,
   SongMutationError,
   updateSong,
@@ -33,8 +37,17 @@ jest.mock('@/data/supabase/songMutations', () => {
   };
 });
 
+jest.mock('@/data/supabase/legalTermMutations', () => ({
+  acceptCurrentBandTerm: jest.fn(),
+  getCurrentBandTermAcceptance: jest.fn(),
+}));
+
 const mockCreateSong = jest.mocked(createSong);
 const mockUpdateSong = jest.mocked(updateSong);
+const mockAcceptCurrentBandTerm = jest.mocked(acceptCurrentBandTerm);
+const mockGetCurrentBandTermAcceptance = jest.mocked(
+  getCurrentBandTermAcceptance,
+);
 const mockRandomUUID = jest.mocked(ExpoCrypto.randomUUID);
 
 jest.mock('expo-crypto', () => ({
@@ -75,6 +88,7 @@ describe('<SongEditorScreen />', () => {
     jest.clearAllMocks();
     mockRouter.canGoBack.mockReturnValue(true);
     mockRandomUUID.mockReset();
+    mockGetCurrentBandTermAcceptance.mockResolvedValue(true);
   });
 
   it('cria música para Owner e navega aos detalhes após salvar', async () => {
@@ -237,6 +251,34 @@ describe('<SongEditorScreen />', () => {
     expect(view.getByLabelText('Título da música *').props.value).toBe(
       'Faixa que não pode sumir',
     );
+  });
+
+  it('exige aceite do termo vigente antes de liberar a criação para Editor', async () => {
+    const { bandId, repositories } = createRepositories('editor');
+    mockGetCurrentBandTermAcceptance
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    mockAcceptCurrentBandTerm.mockResolvedValue(undefined);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Antes de editar')).toBeTruthy();
+    expect(view.queryByLabelText('Título da música *')).toBeNull();
+    await fireEvent.press(
+      view.getByLabelText('Aceitar termo de responsabilidade para editar'),
+    );
+    await fireEvent.press(view.getByText('Aceitar e editar'));
+
+    await waitFor(() =>
+      expect(mockAcceptCurrentBandTerm).toHaveBeenCalledWith({
+        bandId,
+        termVersion: '2026-09',
+      }),
+    );
+    expect(await view.findByLabelText('Título da música *')).toBeTruthy();
   });
 
   it('bloqueia a edição de Member', async () => {
