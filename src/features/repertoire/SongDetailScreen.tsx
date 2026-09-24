@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -21,12 +20,6 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { demoIds } from '@/data/demo';
-import {
-  archiveSong,
-  removeSong,
-  restoreSong,
-  SongLifecycleMutationError,
-} from '@/data/supabase/songLifecycleMutations';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
@@ -41,7 +34,6 @@ import { colors, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
-import { SongLifecycleDialog } from './SongLifecycleDialog';
 import { SongLyricsContent } from './SongLyricsContent';
 import { lyricStatusLabels } from './songPresentation';
 
@@ -60,16 +52,11 @@ export function SongDetailScreen({
   viewportHeight,
   viewportWidth,
 }: SongDetailScreenProps) {
-  const queryClient = useQueryClient();
   const router = useRouter();
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
-  const [lifecycleDialogVisible, setLifecycleDialogVisible] = useState(false);
-  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
-  const [lifecycleNotice, setLifecycleNotice] = useState<string | null>(null);
-  const [lifecycleSubmitting, setLifecycleSubmitting] = useState(false);
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const song = songQuery.data;
   const membership = userBandsQuery.data?.find(
@@ -91,101 +78,6 @@ export function SongDetailScreen({
 
     void Linking.openURL(youtubeReference);
   };
-  const closeLifecycleDialog = () => {
-    if (lifecycleSubmitting) {
-      return;
-    }
-
-    setLifecycleDialogVisible(false);
-    setLifecycleError(null);
-  };
-  const openLifecycleOptions = () => {
-    if (isDemoBand) {
-      setDemoNotice(
-        'As músicas de demonstração são só para consulta. Selecione uma banda conectada para administrar o repertório.',
-      );
-      return;
-    }
-
-    setLifecycleError(null);
-    setLifecycleDialogVisible(true);
-  };
-  const invalidateSongQueries = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ['bands', bandId, 'songs'],
-    });
-    await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
-  };
-  const handleLifecycleError = (error: unknown) => {
-    setLifecycleError(
-      error instanceof SongLifecycleMutationError
-        ? error.message
-        : 'Não foi possível atualizar a música agora. Tente novamente.',
-    );
-  };
-  const handleArchive = async () => {
-    if (!song) {
-      return;
-    }
-
-    setLifecycleError(null);
-    setLifecycleSubmitting(true);
-    try {
-      await archiveSong({ bandId, songId });
-      await invalidateSongQueries();
-      setLifecycleNotice(
-        'Música arquivada. Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
-      );
-      setLifecycleDialogVisible(false);
-    } catch (error) {
-      handleLifecycleError(error);
-    } finally {
-      setLifecycleSubmitting(false);
-    }
-  };
-  const handleRestore = async () => {
-    if (!song) {
-      return;
-    }
-
-    setLifecycleError(null);
-    setLifecycleSubmitting(true);
-    try {
-      await restoreSong({ bandId, songId });
-      await invalidateSongQueries();
-      setLifecycleNotice('Música restaurada e disponível para novas setlists.');
-      setLifecycleDialogVisible(false);
-    } catch (error) {
-      handleLifecycleError(error);
-    } finally {
-      setLifecycleSubmitting(false);
-    }
-  };
-  const handleRemove = async () => {
-    if (!song) {
-      return;
-    }
-
-    setLifecycleError(null);
-    setLifecycleSubmitting(true);
-    try {
-      const result = await removeSong({ bandId, songId });
-      await invalidateSongQueries();
-      if (result === 'deleted') {
-        router.replace(getBandSectionHref(bandId, 'repertoire'));
-        return;
-      }
-
-      setLifecycleNotice(
-        'A música está em um show existente, então foi arquivada para preservar a setlist.',
-      );
-      setLifecycleDialogVisible(false);
-    } catch (error) {
-      handleLifecycleError(error);
-    } finally {
-      setLifecycleSubmitting(false);
-    }
-  };
 
   return (
     <BandAreaLayout
@@ -193,27 +85,19 @@ export function SongDetailScreen({
       backHref={getBandSectionHref(bandId, 'repertoire')}
       bandId={bandId}
       currentRoute={getSongHref(bandId, songId) as string}
-      headerActions={
+      headerAction={
         canEdit
-          ? [
-              {
-                accessibilityLabel: 'Editar música',
-                icon: 'edit',
-                label: 'Editar música',
-                onPress: () =>
-                  isDemoBand
-                    ? setDemoNotice(
-                        'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
-                      )
-                    : router.push(getSongEditHref(bandId, songId)),
-              },
-              {
-                accessibilityLabel: 'Mais opções da música',
-                icon: 'more',
-                label: 'Mais opções',
-                onPress: openLifecycleOptions,
-              },
-            ]
+          ? {
+              accessibilityLabel: 'Editar música',
+              icon: 'edit',
+              label: 'Editar música',
+              onPress: () =>
+                isDemoBand
+                  ? setDemoNotice(
+                      'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
+                    )
+                  : router.push(getSongEditHref(bandId, songId)),
+            }
           : undefined
       }
       screenKind="detail"
@@ -239,16 +123,6 @@ export function SongDetailScreen({
       <DemoActionNotice
         message={demoNotice}
         onClose={() => setDemoNotice(null)}
-      />
-      <SongLifecycleDialog
-        errorMessage={lifecycleError}
-        isSubmitting={lifecycleSubmitting}
-        onArchive={handleArchive}
-        onClose={closeLifecycleDialog}
-        onRemove={handleRemove}
-        onRestore={handleRestore}
-        song={song ?? null}
-        visible={lifecycleDialogVisible}
       />
 
       {song ? (
@@ -308,11 +182,6 @@ export function SongDetailScreen({
           </Card>
 
           <Card style={styles.secondaryCard}>
-            {lifecycleNotice ? (
-              <AppText accessibilityRole="alert" style={styles.lifecycleNotice}>
-                {lifecycleNotice}
-              </AppText>
-            ) : null}
             {song.notes ? (
               <View style={styles.notes}>
                 <AppText accessibilityRole="header" variant="heading">
@@ -427,9 +296,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     gap: spacing.sm,
     paddingTop: spacing.lg,
-  },
-  lifecycleNotice: {
-    color: colors.violetDark,
   },
   youtubeButton: {
     alignSelf: 'flex-start',

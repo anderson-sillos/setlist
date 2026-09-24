@@ -36,7 +36,6 @@ export function AppNavigationShell({
   contentStyle,
   connectionStatus,
   currentRoute,
-  headerActions,
   editActions,
   fixedContent,
   headerAction,
@@ -110,7 +109,6 @@ export function AppNavigationShell({
             backHref={backHref}
             bandName={bandName}
             editActions={editActions}
-            headerActions={headerActions}
             headerAction={headerAction}
             onOpenMenu={openDrawer}
             persistentSidebar={persistentSidebar}

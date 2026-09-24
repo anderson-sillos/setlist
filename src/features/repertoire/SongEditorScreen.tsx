@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import {
+  DemoActionNotice,
   ErrorFeedback,
   LoadingFeedback,
   UnavailableFeedback,
@@ -27,6 +28,12 @@ import {
   SongMutationError,
   updateSong,
 } from '@/data/supabase/songMutations';
+import {
+  archiveSong,
+  removeSong,
+  restoreSong,
+  SongLifecycleMutationError,
+} from '@/data/supabase/songLifecycleMutations';
 import {
   useCurrentBandTermAcceptance,
   useSong,
@@ -46,6 +53,7 @@ import {
 } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { LyricDocumentEditor } from './LyricDocumentEditor';
+import { SongLifecycleDialog } from './SongLifecycleDialog';
 import {
   durationFromEditorParts,
   durationToParts,
@@ -86,6 +94,11 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const [fieldErrors, setFieldErrors] = useState<SongEditorErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lifecycleDialogVisible, setLifecycleDialogVisible] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
+  const [lifecycleNotice, setLifecycleNotice] = useState<string | null>(null);
+  const [lifecycleSubmitting, setLifecycleSubmitting] = useState(false);
+  const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const song = songQuery.data;
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
@@ -141,6 +154,112 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         ? getSongHref(bandId, songId)
         : getBandSectionHref(bandId, 'repertoire'),
     );
+  };
+
+  const closeLifecycleDialog = () => {
+    if (lifecycleSubmitting) {
+      return;
+    }
+
+    setLifecycleDialogVisible(false);
+    setLifecycleError(null);
+  };
+
+  const openLifecycleOptions = () => {
+    if (!songId || !song) {
+      return;
+    }
+
+    if (isDemoBand) {
+      setDemoNotice(
+        'As músicas de demonstração são só para consulta. Selecione uma banda conectada para administrar o repertório.',
+      );
+      return;
+    }
+
+    setLifecycleError(null);
+    setLifecycleDialogVisible(true);
+  };
+
+  const invalidateSongQueries = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['bands', bandId, 'songs'],
+    });
+    await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+  };
+
+  const handleLifecycleError = (error: unknown) => {
+    setLifecycleError(
+      error instanceof SongLifecycleMutationError
+        ? error.message
+        : 'Não foi possível atualizar a música agora. Tente novamente.',
+    );
+  };
+
+  const handleArchive = async () => {
+    if (!song) {
+      return;
+    }
+
+    setLifecycleError(null);
+    setLifecycleSubmitting(true);
+    try {
+      await archiveSong({ bandId, songId: song.id });
+      await invalidateSongQueries();
+      setLifecycleNotice(
+        'Música arquivada. Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
+      );
+      setLifecycleDialogVisible(false);
+    } catch (error) {
+      handleLifecycleError(error);
+    } finally {
+      setLifecycleSubmitting(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!song) {
+      return;
+    }
+
+    setLifecycleError(null);
+    setLifecycleSubmitting(true);
+    try {
+      await restoreSong({ bandId, songId: song.id });
+      await invalidateSongQueries();
+      setLifecycleNotice('Música restaurada e disponível para novas setlists.');
+      setLifecycleDialogVisible(false);
+    } catch (error) {
+      handleLifecycleError(error);
+    } finally {
+      setLifecycleSubmitting(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!song) {
+      return;
+    }
+
+    setLifecycleError(null);
+    setLifecycleSubmitting(true);
+    try {
+      const result = await removeSong({ bandId, songId: song.id });
+      await invalidateSongQueries();
+      if (result === 'deleted') {
+        router.replace(getBandSectionHref(bandId, 'repertoire'));
+        return;
+      }
+
+      setLifecycleNotice(
+        'A música está em um show existente, então foi arquivada para preservar a setlist.',
+      );
+      setLifecycleDialogVisible(false);
+    } catch (error) {
+      handleLifecycleError(error);
+    } finally {
+      setLifecycleSubmitting(false);
+    }
   };
 
   const handleTermAcceptance = async () => {
@@ -215,6 +334,16 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           ? (getSongEditHref(bandId, songId) as string)
           : (getSongCreateHref(bandId) as string)
       }
+      headerAction={
+        songId && canEdit
+          ? {
+              accessibilityLabel: 'Mais opções da música',
+              icon: 'more',
+              label: 'Mais opções',
+              onPress: openLifecycleOptions,
+            }
+          : undefined
+      }
       screenKind="edit"
       scrollable={false}
       title={title}
@@ -238,6 +367,24 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {!isLoading && songId && !songQuery.isError && !song ? (
         <UnavailableFeedback title="Música indisponível" />
       ) : null}
+      <DemoActionNotice
+        message={demoNotice}
+        onClose={() => setDemoNotice(null)}
+      />
+      <DemoActionNotice
+        message={lifecycleNotice}
+        onClose={() => setLifecycleNotice(null)}
+      />
+      <SongLifecycleDialog
+        errorMessage={lifecycleError}
+        isSubmitting={lifecycleSubmitting}
+        onArchive={handleArchive}
+        onClose={closeLifecycleDialog}
+        onRemove={handleRemove}
+        onRestore={handleRestore}
+        song={song ?? null}
+        visible={lifecycleDialogVisible}
+      />
       {!isLoading &&
       !userBandsQuery.isError &&
       !songQuery.isError &&

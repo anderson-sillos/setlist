@@ -2,6 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as ExpoCrypto from 'expo-crypto';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
+import type { Song } from '@/domain';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import {
   acceptCurrentBandTerm,
@@ -41,6 +42,28 @@ jest.mock('@/data/supabase/legalTermMutations', () => ({
   acceptCurrentBandTerm: jest.fn(),
   getCurrentBandTermAcceptance: jest.fn(),
 }));
+jest.mock('@/data/supabase/songLifecycleMutations', () => ({
+  archiveSong: jest.fn(),
+  removeSong: jest.fn(),
+  restoreSong: jest.fn(),
+  SongLifecycleMutationError: class MockSongLifecycleMutationError extends Error {},
+}));
+
+const mockArchiveSong = (
+  jest.requireMock('@/data/supabase/songLifecycleMutations') as {
+    archiveSong: jest.Mock;
+  }
+).archiveSong;
+const mockRemoveSong = (
+  jest.requireMock('@/data/supabase/songLifecycleMutations') as {
+    removeSong: jest.Mock;
+  }
+).removeSong;
+const mockRestoreSong = (
+  jest.requireMock('@/data/supabase/songLifecycleMutations') as {
+    restoreSong: jest.Mock;
+  }
+).restoreSong;
 
 const mockCreateSong = jest.mocked(createSong);
 const mockUpdateSong = jest.mocked(updateSong);
@@ -54,7 +77,10 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(),
 }));
 
-function createRepositories(role: 'owner' | 'editor' | 'member' = 'owner') {
+function createRepositories(
+  role: 'owner' | 'editor' | 'member' = 'owner',
+  songOverrides: Partial<Song> = {},
+) {
   const bandId = 'band-live';
   const band = { ...demoRepositoryData.bands[0], id: bandId };
   const membership = {
@@ -66,6 +92,7 @@ function createRepositories(role: 'owner' | 'editor' | 'member' = 'owner') {
   };
   const song = {
     ...demoRepositoryData.songs[0],
+    ...songOverrides,
     bandId,
     id: 'song-live',
     originalArtist: 'Artista do repertório',
@@ -279,6 +306,72 @@ describe('<SongEditorScreen />', () => {
       }),
     );
     expect(await view.findByLabelText('Título da música *')).toBeTruthy();
+  });
+
+  it('oferece as opções de ciclo de vida no cabeçalho da edição', async () => {
+    const { bandId, repositories, songId } = createRepositories('owner');
+    mockArchiveSong.mockResolvedValue(undefined);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} songId={songId} />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Título da música *');
+    await fireEvent.press(view.getByLabelText('Mais opções da música'));
+    await fireEvent.press(view.getByLabelText('Arquivar música'));
+
+    expect(mockArchiveSong).toHaveBeenCalledWith({
+      bandId,
+      songId,
+    });
+    expect(
+      await view.findByText(/Música arquivada\. Ela não aparecerá/i),
+    ).toBeTruthy();
+  });
+
+  it('permite restaurar uma música arquivada pela edição', async () => {
+    const { bandId, repositories, songId } = createRepositories('owner', {
+      archivedAt: '2026-09-24T12:00:00.000Z',
+    });
+    mockRestoreSong.mockResolvedValue(undefined);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} songId={songId} />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Título da música *');
+    await fireEvent.press(view.getByLabelText('Mais opções da música'));
+    await fireEvent.press(view.getByLabelText('Restaurar música'));
+
+    expect(mockRestoreSong).toHaveBeenCalledWith({
+      bandId,
+      songId,
+    });
+  });
+
+  it('remove definitivamente uma música sem referências em shows', async () => {
+    const { bandId, repositories, songId } = createRepositories('owner');
+    mockRemoveSong.mockResolvedValue('deleted');
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} songId={songId} />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Título da música *');
+    await fireEvent.press(view.getByLabelText('Mais opções da música'));
+    await fireEvent.press(view.getByLabelText('Excluir música'));
+    await fireEvent.press(view.getByLabelText('Confirmar exclusão da música'));
+
+    expect(mockRemoveSong).toHaveBeenCalledWith({
+      bandId,
+      songId,
+    });
+    expect(mockRouter.replace).toHaveBeenCalledWith(
+      `/bands/${bandId}/repertoire`,
+    );
   });
 
   it('bloqueia a edição de Member', async () => {

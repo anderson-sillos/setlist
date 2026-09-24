@@ -14,7 +14,6 @@ type AppHeaderProps = Pick<
   | 'bandName'
   | 'editActions'
   | 'headerAction'
-  | 'headerActions'
   | 'screenKind'
   | 'subtitle'
   | 'title'
@@ -29,15 +28,12 @@ export function AppHeader({
   editActions,
   headerAction,
   onOpenMenu,
-  headerActions: providedHeaderActions,
   persistentSidebar,
   screenKind,
   subtitle,
   title,
 }: AppHeaderProps) {
   const kind = screenKind ?? 'main';
-  const headerActions =
-    providedHeaderActions ?? (headerAction ? [headerAction] : []);
 
   return (
     <View style={styles.header} testID="app-header">
@@ -88,18 +84,13 @@ export function AppHeader({
           onPress={editActions.onSave}
         />
       ) : null}
-      {kind !== 'edit' && headerActions.length > 0 ? (
-        <View style={styles.headerActions}>
-          {headerActions.map((action) => (
-            <HeaderIconButton
-              accessibilityLabel={action.accessibilityLabel}
-              color={colors.violet}
-              icon={action.icon ?? 'more'}
-              key={action.accessibilityLabel}
-              onPress={action.onPress}
-            />
-          ))}
-        </View>
+      {headerAction ? (
+        <HeaderIconButton
+          accessibilityLabel={headerAction.accessibilityLabel}
+          color={colors.violet}
+          icon={headerAction.icon ?? 'more'}
+          onPress={headerAction.onPress}
+        />
       ) : null}
     </View>
   );
@@ -157,11 +148,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     zIndex: 4,
-  },
-  headerActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.xs,
   },
   headerCopy: {
     flex: 1,

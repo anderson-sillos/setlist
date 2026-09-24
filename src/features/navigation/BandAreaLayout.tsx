@@ -25,7 +25,6 @@ interface BandAreaLayoutProps extends PropsWithChildren {
   readonly currentRoute: string;
   readonly editActions?: EditActions;
   readonly fixedContent?: ReactNode;
-  readonly headerActions?: readonly HeaderAction[];
   readonly headerAction?: HeaderAction;
   readonly screenKind?: NavigationScreenKind;
   readonly scrollable?: boolean;
@@ -41,7 +40,6 @@ export function BandAreaLayout({
   children,
   currentRoute,
   editActions,
-  headerActions,
   fixedContent,
   headerAction,
   screenKind,
@@ -62,7 +60,6 @@ export function BandAreaLayout({
       currentRoute={currentRoute}
       editActions={editActions}
       fixedContent={fixedContent}
-      headerActions={headerActions}
       headerAction={headerAction}
       screenKind={screenKind}
       scrollable={scrollable}
