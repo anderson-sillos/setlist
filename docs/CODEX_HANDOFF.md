@@ -610,6 +610,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      existentes. O repertório mantém arquivadas fora das novas setlists,
      oferece filtro dedicado e exibe a confirmação contextual. A validação
      passou com 15 arquivos e 278 testes SQL, lint local/remoto sem erros e
+     396 testes de aplicação; a migração foi publicada no Supabase de
+     desenvolvimento.
 
 141. A tarefa 6.6 foi concluída: as mutações de criação e edição de músicas
      agora solicitam `id, updated_at` ao Supabase e rejeitam respostas sem um
@@ -620,7 +622,14 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      preservam o vínculo com shows e não expõem histórico. A validação passou
      com 73 suítes e 399 testes da aplicação, 16 arquivos e 288 testes SQL,
      lint local/remoto sem erros e banco remoto sem migrações pendentes.
-     A tarefa 6.7 é a próxima etapa: validar visualmente Owner, Editor e Member
-     em celular, tablet e web e publicar uma nova prévia para revisão.
-     396 testes de aplicação; a migração foi publicada no Supabase de
-     desenvolvimento.
+     A validação da 6.7 e a publicação da prévia estão registradas na entrada
+     seguinte; o PR permanece aberto para a revisão manual do grupo 6.
+
+142. A tarefa 6.7 foi validada nos testes de repertório para Owner, Editor e
+     Member, incluindo adaptação phone/tablet/desktop, cabeçalho fixo, blocos
+     expandidos, atualização relativa, ação de edição restrita e estados de
+     falha/indisponibilidade. A validação completa passou com 73 suítes e 399
+     testes, e os checks da PR #15 foram aprovados. A prévia web foi publicada
+     pelo workflow `35992917683` e responde com HTTP 200 em
+     `https://setlistbr.app.br/` e `/app/`. O PR #15 permanece aberto para a
+     revisão manual do grupo 6; não fazer merge ou encerrá-lo ainda.

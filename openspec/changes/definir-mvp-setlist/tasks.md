@@ -80,7 +80,7 @@
 - [x] 6.4 Exigir aceite do termo vigente antes da primeira edição de cada Owner ou Editor e verificar que leitura e modo palco continuam disponíveis sem aceite
 - [x] 6.5 Implementar arquivamento e restauração de músicas e verificar preservação em shows existentes e exclusão das opções para novas setlists
 - [x] 6.6 Implementar atualização da música com horário gerado pelo servidor e verificar que apenas o conteúdo vigente fica visível
-- [ ] 6.7 Validar o repertório com Owner, Editor e Member em celular, tablet e web, incluindo cabeçalho fixo, blocos expandidos, edição indisponível offline e atualização relativa, e publicar uma versão interna para revisão
+- [x] 6.7 Validar o repertório com Owner, Editor e Member em celular, tablet e web, incluindo cabeçalho fixo, blocos expandidos, edição indisponível offline e atualização relativa, e publicar uma versão interna para revisão
 
 ## 7. Shows e setlists
 
