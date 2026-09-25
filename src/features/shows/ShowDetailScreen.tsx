@@ -19,8 +19,8 @@ import {
   duplicateShow,
   renameShowBlock,
   reorderShowBlocks,
+  replaceShowBlockItems,
   ShowMutationError,
-  type ShowBlockDraft,
 } from '@/data/supabase';
 import { updateShow } from '@/data/supabase/showUpdateMutations';
 import type { EntityId } from '@/domain';
@@ -43,7 +43,10 @@ import {
   ShowCreationDialog,
   type ShowCreationForm,
 } from './ShowCreationDialog';
-import { ShowBlockEditorDialog } from './ShowBlockEditorDialog';
+import {
+  ShowBlockEditorDialog,
+  type ShowBlockDraft,
+} from './ShowBlockEditorDialog';
 
 interface ShowDetailScreenProps {
   readonly bandId: EntityId;
@@ -232,15 +235,22 @@ export function ShowDetailScreen({
         }
       }
 
+      const resolvedDrafts = drafts.map((draft) => ({
+        ...draft,
+        id: draft.isNew
+          ? (createdBlockIds.get(draft.id) ?? draft.id)
+          : draft.id,
+      }));
+
       await reorderShowBlocks({
-        blocks: drafts.map((draft) => ({
-          id: draft.isNew
-            ? (createdBlockIds.get(draft.id) ?? draft.id)
-            : draft.id,
-          name: draft.name,
-        })),
+        blocks: resolvedDrafts.map(({ id, name }) => ({ id, name })),
         showId: show.id,
       });
+      await Promise.all(
+        resolvedDrafts.map(({ id, items }) =>
+          replaceShowBlockItems({ blockId: id, items }),
+        ),
+      );
       await Promise.all([
         showQuery.refetch(),
         queryClient.invalidateQueries({
@@ -253,7 +263,7 @@ export function ShowDetailScreen({
       setBlockEditorError(
         error instanceof ShowMutationError
           ? error.message
-          : 'Não foi possível salvar os blocos agora. Tente novamente.',
+          : 'Não foi possível salvar a setlist agora. Tente novamente.',
       );
     } finally {
       setBlockEditorSubmitting(false);
@@ -331,8 +341,9 @@ export function ShowDetailScreen({
       <ShowBlockEditorDialog
         key={`${show?.updatedAt ?? showId}-blocks-${blockEditorInstance}`}
         errorMessage={blockEditorError}
-        initialBlocks={show?.blocks.map(({ id, name }) => ({ id, name })) ?? []}
+        initialBlocks={show?.blocks ?? []}
         isSubmitting={blockEditorSubmitting}
+        songs={songsQuery.data ?? []}
         onClose={() => {
           if (!blockEditorSubmitting) {
             setBlockEditorVisible(false);

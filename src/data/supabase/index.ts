@@ -113,3 +113,4 @@ export type {
   CreateShowBlockInput,
   ShowBlockDraft,
 } from '@/data/supabase/showBlockMutations';
+export { replaceShowBlockItems } from '@/data/supabase/showSetlistMutations';
