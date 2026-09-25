@@ -1,4 +1,5 @@
 import { Link } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -14,6 +15,8 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useSongs, useUserBands } from '@/data/queries';
+import { ShowMutationError } from '@/data/supabase/showMutations';
+import { updateShow } from '@/data/supabase/showUpdateMutations';
 import type { EntityId } from '@/domain';
 import {
   getBlockDurationBreakdown,
@@ -30,6 +33,10 @@ import { colors, radii, spacing } from '@/theme/tokens';
 import { formatShowListDate } from '@/utils/dateTime';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
 import { showStatusLabels } from './showPresentation';
+import {
+  ShowCreationDialog,
+  type ShowCreationForm,
+} from './ShowCreationDialog';
 
 interface ShowDetailScreenProps {
   readonly bandId: EntityId;
@@ -38,19 +45,53 @@ interface ShowDetailScreenProps {
   readonly viewportWidth?: number;
 }
 
+function toEditForm(show: {
+  readonly name: string;
+  readonly notes: string | null;
+  readonly startsAt: string;
+  readonly venue: string;
+}): Partial<ShowCreationForm> {
+  const date = new Date(show.startsAt);
+  const dateKey = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+  const time = [
+    String(date.getHours()).padStart(2, '0'),
+    String(date.getMinutes()).padStart(2, '0'),
+  ].join(':');
+  return {
+    date: dateKey,
+    name: show.name,
+    notes: show.notes ?? '',
+    time,
+    venue: show.venue,
+  };
+}
+
 export function ShowDetailScreen({
   bandId,
   showId,
   viewportHeight,
   viewportWidth,
 }: ShowDetailScreenProps) {
+  const queryClient = useQueryClient();
   const window = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [editVisible, setEditVisible] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editInstance, setEditInstance] = useState(0);
   const show = showQuery.data;
+  const editInitialValues = useMemo(
+    () => (show ? toEditForm(show) : undefined),
+    [show],
+  );
   const songsById = useMemo(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
@@ -68,6 +109,38 @@ export function ShowDetailScreen({
     ) ?? 0;
   const songCountLabel = `${songCount} ${songCount === 1 ? 'música' : 'músicas'}`;
 
+  const handleUpdateShow = async (form: ShowCreationForm) => {
+    if (!show) return;
+    setEditError(null);
+    setEditSubmitting(true);
+    try {
+      await updateShow({
+        bandId,
+        name: form.name,
+        notes: form.notes,
+        showId: show.id,
+        startsAt: form.date + 'T' + form.time + ':00',
+        venue: form.venue,
+      });
+      await Promise.all([
+        showQuery.refetch(),
+        queryClient.invalidateQueries({
+          queryKey: ['bands', bandId, 'shows'],
+          refetchType: 'all',
+        }),
+      ]);
+      setEditVisible(false);
+    } catch (error) {
+      setEditError(
+        error instanceof ShowMutationError
+          ? error.message
+          : 'Não foi possível atualizar o show agora. Tente novamente.',
+      );
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   return (
     <BandAreaLayout
       activeSection="shows"
@@ -77,13 +150,14 @@ export function ShowDetailScreen({
       headerAction={
         canEdit
           ? {
-              accessibilityLabel: 'Mais opções do show',
-              icon: 'more',
-              label: 'Mais opções',
-              onPress: () =>
-                setDemoNotice(
-                  'Duplicar e alterar o estado entram no incremento de shows.',
-                ),
+              accessibilityLabel: 'Editar show',
+              icon: 'edit',
+              label: 'Editar show',
+              onPress: () => {
+                setEditError(null);
+                setEditInstance((current) => current + 1);
+                setEditVisible(true);
+              },
             }
           : undefined
       }
@@ -97,6 +171,23 @@ export function ShowDetailScreen({
       userBandsQuery.isPending ? (
         <LoadingFeedback variation={1} />
       ) : null}
+      <ShowCreationDialog
+        key={`${show?.updatedAt ?? showId}-${editInstance}`}
+        description="Atualize os dados de planejamento do show. O setlist permanece intacto."
+        errorMessage={editError}
+        initialValues={editInitialValues}
+        isSubmitting={editSubmitting}
+        onClose={() => {
+          if (!editSubmitting) {
+            setEditVisible(false);
+            setEditError(null);
+          }
+        }}
+        onSubmit={(form) => void handleUpdateShow(form)}
+        submitLabel="Salvar alterações"
+        title="Editar show"
+        visible={editVisible}
+      />
       {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {

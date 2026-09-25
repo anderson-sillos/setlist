@@ -184,7 +184,10 @@ describe('<ShowsScreen />', () => {
     await fireEvent.press(view.getByLabelText('Aplicar filtros'));
 
     await fireEvent.press(view.getByLabelText('Criar novo show'));
-    expect(view.getByText(/A criação do show em 19 set 2026/)).toBeTruthy();
+    expect(view.getByTestId('show-creation-dialog')).toBeTruthy();
+    expect(view.getByLabelText('Data do show')).toHaveDisplayValue(
+      '2026-09-19',
+    );
 
     await fireEvent.press(view.getByLabelText(/Remover filtro de data/));
     expect(

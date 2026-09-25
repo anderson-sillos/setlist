@@ -39,6 +39,12 @@ export {
   createSupabaseShowRepository,
   SupabaseShowRepository,
 } from '@/data/supabase/showRepository';
+export { createShow, ShowMutationError } from '@/data/supabase/showMutations';
+export type {
+  CreateShowInput,
+  ShowMutationErrorCode,
+} from '@/data/supabase/showMutations';
+export { updateShow } from '@/data/supabase/showUpdateMutations';
 export {
   acceptCurrentBandTerm,
   getCurrentBandTermAcceptance,
