@@ -18,6 +18,7 @@ interface MenuButtonProps {
 interface OptionSheetProps {
   readonly children: ReactNode;
   readonly closeAccessibilityLabel: string;
+  readonly testID?: string;
   readonly label: string;
   readonly onClose: () => void;
   readonly visible: boolean;
@@ -71,6 +72,7 @@ export function OptionSheet({
   closeAccessibilityLabel,
   label,
   onClose,
+  testID,
   visible,
 }: OptionSheetProps) {
   return (
@@ -87,7 +89,7 @@ export function OptionSheet({
           onPress={onClose}
           style={styles.modalScrim}
         />
-        <View style={styles.sheet}>
+        <View style={styles.sheet} testID={testID}>
           <AppText accessibilityRole="header" variant="heading">
             {label}
           </AppText>

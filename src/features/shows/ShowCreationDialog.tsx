@@ -75,13 +75,29 @@ export function ShowCreationDialog({
   visible,
 }: ShowCreationDialogProps) {
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [form, setForm] = useState<ShowCreationForm>(() => ({
+  const initialForm: ShowCreationForm = {
     date: initialValues?.date ?? initialDate ?? localDateKey(new Date()),
     name: initialValues?.name ?? '',
     notes: initialValues?.notes ?? '',
     time: initialValues?.time ?? '20:00',
     venue: initialValues?.venue ?? '',
-  }));
+  };
+  const [form, setForm] = useState<ShowCreationForm>(initialForm);
+  const [discardVisible, setDiscardVisible] = useState(false);
+  const hasChanges =
+    form.date !== initialForm.date ||
+    form.name !== initialForm.name ||
+    form.notes !== initialForm.notes ||
+    form.time !== initialForm.time ||
+    form.venue !== initialForm.venue;
+  const requestClose = () => {
+    if (isSubmitting) return;
+    if (hasChanges) {
+      setDiscardVisible(true);
+      return;
+    }
+    onClose();
+  };
 
   const setField = (field: keyof ShowCreationForm, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -110,7 +126,7 @@ export function ShowCreationDialog({
   return (
     <Modal
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={requestClose}
       transparent
       visible={visible}
     >
@@ -123,7 +139,7 @@ export function ShowCreationDialog({
           accessibilityLabel="Fechar janela de show tocando fora"
           accessibilityRole="button"
           disabled={isSubmitting}
-          onPress={onClose}
+          onPress={requestClose}
           style={styles.scrim}
         />
         <View
@@ -140,7 +156,7 @@ export function ShowCreationDialog({
               accessibilityRole="button"
               disabled={isSubmitting}
               hitSlop={spacing.sm}
-              onPress={onClose}
+              onPress={requestClose}
               style={styles.closeButton}
             >
               <AppIcon color={colors.muted} name="close" size={20} />
@@ -244,11 +260,36 @@ export function ShowCreationDialog({
               shows={calendarShows}
             />
           </OptionSheet>
+          <OptionSheet
+            closeAccessibilityLabel="Continuar editando o show"
+            label="Descartar alterações?"
+            onClose={() => setDiscardVisible(false)}
+            visible={discardVisible}
+          >
+            <AppText tone="muted">
+              Você fez alterações neste formulário. Quer sair sem salvar?
+            </AppText>
+            <AppButton
+              accessibilityLabel="Continuar editando"
+              label="Continuar editando"
+              onPress={() => setDiscardVisible(false)}
+              variant="secondary"
+            />
+            <AppButton
+              accessibilityLabel="Descartar alterações"
+              icon="remove"
+              label="Descartar alterações"
+              onPress={() => {
+                setDiscardVisible(false);
+                onClose();
+              }}
+            />
+          </OptionSheet>
           <View style={styles.actions}>
             <AppButton
               disabled={isSubmitting}
               label="Cancelar"
-              onPress={onClose}
+              onPress={requestClose}
               variant="secondary"
             />
             <AppButton

@@ -126,6 +126,20 @@ export function ShowBlockEditorDialog({
     initialBlocks[0]?.id ?? '',
   );
   const [movePosition, setMovePosition] = useState('1');
+  const [discardVisible, setDiscardVisible] = useState(false);
+  const initialSnapshot = useMemo(
+    () => JSON.stringify(initialBlocks),
+    [initialBlocks],
+  );
+  const hasChanges = JSON.stringify(blocks) !== initialSnapshot;
+  const requestClose = () => {
+    if (isSubmitting) return;
+    if (hasChanges) {
+      setDiscardVisible(true);
+      return;
+    }
+    onClose();
+  };
 
   const activeBlock = blocks.find((block) => block.id === activeBlockId);
   const moveSourceBlock = moveItem
@@ -304,7 +318,7 @@ export function ShowBlockEditorDialog({
   return (
     <Modal
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={requestClose}
       transparent
       visible={visible}
     >
@@ -317,7 +331,7 @@ export function ShowBlockEditorDialog({
           accessibilityLabel="Fechar edição da setlist tocando fora"
           accessibilityRole="button"
           disabled={isSubmitting}
-          onPress={onClose}
+          onPress={requestClose}
           style={styles.scrim}
         />
         <View
@@ -339,7 +353,7 @@ export function ShowBlockEditorDialog({
               accessibilityRole="button"
               disabled={isSubmitting}
               hitSlop={spacing.sm}
-              onPress={onClose}
+              onPress={requestClose}
               style={styles.closeButton}
             >
               <AppIcon color={colors.muted} name="close" size={20} />
@@ -406,7 +420,7 @@ export function ShowBlockEditorDialog({
             <AppButton
               disabled={isSubmitting}
               label="Cancelar"
-              onPress={onClose}
+              onPress={requestClose}
               variant="secondary"
             />
             <AppButton
@@ -417,6 +431,32 @@ export function ShowBlockEditorDialog({
               onPress={() => onSubmit(blocks)}
             />
           </View>
+          <OptionSheet
+            closeAccessibilityLabel="Continuar editando a setlist"
+            label="Descartar alterações?"
+            onClose={() => setDiscardVisible(false)}
+            testID="show-block-editor-discard-sheet"
+            visible={discardVisible}
+          >
+            <AppText tone="muted">
+              Você fez alterações na setlist. Quer sair sem salvar?
+            </AppText>
+            <AppButton
+              accessibilityLabel="Continuar editando"
+              label="Continuar editando"
+              onPress={() => setDiscardVisible(false)}
+              variant="secondary"
+            />
+            <AppButton
+              accessibilityLabel="Descartar alterações"
+              icon="remove"
+              label="Descartar alterações"
+              onPress={() => {
+                setDiscardVisible(false);
+                onClose();
+              }}
+            />
+          </OptionSheet>
         </View>
       </KeyboardAvoidingView>
 
