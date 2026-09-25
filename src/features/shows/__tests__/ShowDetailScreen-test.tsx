@@ -63,6 +63,11 @@ describe('<ShowDetailScreen />', () => {
     expect(view.getByLabelText('Nome do bloco 1')).toHaveDisplayValue(
       'Principal',
     );
+    expect(
+      view.getByLabelText('Alça para mover o bloco Principal'),
+    ).toBeTruthy();
+    expect(view.queryByLabelText('Mover Principal para cima')).toBeNull();
+    expect(view.queryByLabelText('Mover Principal para baixo')).toBeNull();
   });
 
   it('mostra um estado quando o show não é encontrado', async () => {

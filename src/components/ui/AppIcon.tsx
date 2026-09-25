@@ -59,6 +59,7 @@ const iconComponents = {
   close: X,
   copy: Copy,
   duration: Hourglass,
+  dragHandle: Menu,
   edit: Pencil,
   event: CalendarCheck,
   externalLink: ExternalLink,
@@ -148,6 +149,20 @@ export function AppIcon({
 
   const Icon = iconComponents[name as keyof typeof iconComponents];
 
+  if (name === 'dragHandle') {
+    return (
+      <View pointerEvents="none" style={styles.dragHandleIcon}>
+        <Icon
+          color={color}
+          height={size}
+          size={size}
+          strokeWidth={strokeWidth}
+          width={size}
+        />
+      </View>
+    );
+  }
+
   return (
     <Icon
       color={color}
@@ -170,5 +185,8 @@ const styles = StyleSheet.create({
     bottom: -2,
     justifyContent: 'center',
     position: 'absolute',
+  },
+  dragHandleIcon: {
+    transform: [{ scaleY: 0.72 }],
   },
 });

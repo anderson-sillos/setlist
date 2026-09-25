@@ -103,7 +103,7 @@ export function ShowBlockEditorDialog({
                 Editar blocos
               </AppText>
               <AppText tone="muted" variant="caption">
-                Arraste pela alça ou use os controles de ordem.
+                Arraste pela alça para reordenar.
               </AppText>
             </View>
             <Pressable
@@ -227,14 +227,6 @@ function BlockRow({
 
   return (
     <View style={[styles.blockRow, dragging && styles.draggingRow]}>
-      <View
-        accessibilityLabel={`Alça para mover o bloco ${block.name}`}
-        accessibilityRole="button"
-        style={styles.dragHandle}
-        {...panResponder.panHandlers}
-      >
-        <AppIcon color={colors.muted} name="more" size={20} />
-      </View>
       <TextInput
         accessibilityLabel={`Nome do bloco ${index + 1}`}
         onChangeText={(value) => onChangeName(block.id, value)}
@@ -243,25 +235,18 @@ function BlockRow({
         style={styles.input}
         value={block.name}
       />
-      <View style={styles.orderActions}>
-        <Pressable
-          accessibilityLabel={`Mover ${block.name} para cima`}
-          accessibilityRole="button"
-          disabled={index === 0 || dragging}
-          onPress={() => onMove(index, index - 1)}
-          style={styles.orderButton}
-        >
-          <AppIcon color={colors.violet} name="moveUp" size={16} />
-        </Pressable>
-        <Pressable
-          accessibilityLabel={`Mover ${block.name} para baixo`}
-          accessibilityRole="button"
-          disabled={index === count - 1 || dragging}
-          onPress={() => onMove(index, index + 1)}
-          style={styles.orderButton}
-        >
-          <AppIcon color={colors.violet} name="moveDown" size={16} />
-        </Pressable>
+      <View
+        accessibilityLabel={`Alça para mover o bloco ${block.name}`}
+        accessibilityRole="button"
+        style={styles.dragHandle}
+        {...panResponder.panHandlers}
+      >
+        <AppIcon
+          color={dragging ? colors.violet : colors.muted}
+          name="dragHandle"
+          size={18}
+          strokeWidth={2.5}
+        />
       </View>
     </View>
   );
@@ -311,14 +296,24 @@ const styles = StyleSheet.create({
   },
   dragHandle: {
     alignItems: 'center',
+    borderColor: colors.line,
     borderRadius: radii.sm,
+    borderWidth: 1,
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
     width: layout.minimumTouchTarget,
   },
   draggingRow: {
+    backgroundColor: colors.violetSoft,
     borderColor: colors.violet,
-    opacity: 0.78,
+    borderWidth: 2,
+    elevation: 4,
+    shadowColor: colors.violet,
+    shadowOffset: { height: 2, width: 0 },
+    shadowOpacity: 0.24,
+    shadowRadius: 6,
+    transform: [{ translateY: -2 }, { scale: 1.01 }],
+    zIndex: 1,
   },
   errorText: { color: colors.amber },
   header: {
@@ -349,14 +344,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: spacing.lg,
-  },
-  orderActions: { flexDirection: 'row', gap: spacing.xs },
-  orderButton: {
-    alignItems: 'center',
-    borderRadius: radii.sm,
-    justifyContent: 'center',
-    minHeight: layout.minimumTouchTarget,
-    width: layout.minimumTouchTarget,
   },
   scroll: { flexGrow: 0 },
   scrim: { ...StyleSheet.absoluteFill },
