@@ -90,7 +90,7 @@
 - [x] 7.4 Implementar uma única ação de inclusão, seleção múltipla de músicas, anotações de planejamento, separadores e reordenação de itens dentro e entre blocos e verificar observações específicas e repetições sem alterar a música do repertório
 - [x] 7.5 Calcular duração de blocos e do show pela soma dos tempos informados de músicas e planejamento e verificar composição, ausência total de estimativa e atualização imediata durante edição
 - [x] 7.6 Implementar transições Rascunho, Pronto e Cancelado e verificar leitura, edição, prévia, execução e download permitidos em cada estado
-- [ ] 7.7 Implementar a lista não bloqueante de problemas ao tornar um show Pronto e verificar músicas sem letra, estáticas, incompletas e sincronizadas
+- [x] 7.7 Implementar a lista não bloqueante de problemas ao tornar um show Pronto e verificar músicas sem letra, estáticas, incompletas e sincronizadas
 - [ ] 7.8 Atualizar o timestamp do show ao alterar dados ou setlist e verificar as mudanças por testes de integração
 - [ ] 7.9 Executar o fluxo completo de preparação de um show nas três plataformas, incluindo salvamento explícito e confirmação de saída com alterações pendentes, e publicar uma versão interna para revisão
 

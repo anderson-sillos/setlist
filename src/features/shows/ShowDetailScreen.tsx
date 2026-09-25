@@ -27,7 +27,12 @@ import {
   updateShow,
   updateShowStatus,
 } from '@/data/supabase/showUpdateMutations';
-import type { EntityId, ShowStatus } from '@/domain';
+import {
+  getShowLyricIssues,
+  type EntityId,
+  type ShowLyricIssue,
+  type ShowStatus,
+} from '@/domain';
 import {
   getBlockDurationBreakdown,
   getShowDurationBreakdown,
@@ -42,6 +47,7 @@ import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { formatShowListDate } from '@/utils/dateTime';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
+import { lyricStatusLabels } from '@/features/repertoire/songPresentation';
 import { showStatusLabels } from './showPresentation';
 import {
   ShowCreationDialog,
@@ -200,6 +206,10 @@ export function ShowDetailScreen({
       0,
     ) ?? 0;
   const songCountLabel = `${songCount} ${songCount === 1 ? 'música' : 'músicas'}`;
+  const showLyricIssues = useMemo(
+    () => (show ? getShowLyricIssues(show, songsById) : []),
+    [show, songsById],
+  );
 
   const handleUpdateShow = async (form: ShowCreationForm) => {
     if (!show) return;
@@ -459,6 +469,9 @@ export function ShowDetailScreen({
               return action ? (
                 <>
                   <AppText>{action.confirm}</AppText>
+                  {action.status === 'ready' ? (
+                    <LyricReadinessNotice issues={showLyricIssues} />
+                  ) : null}
                   {statusError ? (
                     <AppText accessibilityRole="alert" style={styles.errorText}>
                       {statusError}
@@ -860,7 +873,64 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.72,
   },
+  readinessIssue: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  readinessIssueCopy: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  readinessIssues: {
+    gap: spacing.sm,
+  },
+  readinessNotice: {
+    backgroundColor: colors.paper,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
   errorText: {
     color: colors.amber,
   },
 });
+
+function LyricReadinessNotice({
+  issues,
+}: {
+  readonly issues: readonly ShowLyricIssue[];
+}) {
+  return (
+    <View style={styles.readinessNotice}>
+      <AppText variant="heading">Verificação das letras</AppText>
+      {issues.length === 0 ? (
+        <AppText tone="muted">
+          Todas as músicas têm letra sincronizada. Pode deixar o show Pronto.
+        </AppText>
+      ) : (
+        <>
+          <AppText tone="muted">
+            Algumas músicas ainda pedem atenção. Você pode continuar mesmo
+            assim.
+          </AppText>
+          <View style={styles.readinessIssues}>
+            {issues.map((issue) => (
+              <View key={issue.songId} style={styles.readinessIssue}>
+                <AppIcon color={colors.amber} name="duration" size={16} />
+                <View style={styles.readinessIssueCopy}>
+                  <AppText>{issue.title}</AppText>
+                  <AppText tone="muted" variant="caption">
+                    {lyricStatusLabels[issue.status]}
+                  </AppText>
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
+    </View>
+  );
+}

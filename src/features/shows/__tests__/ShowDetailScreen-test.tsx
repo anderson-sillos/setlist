@@ -92,6 +92,26 @@ describe('<ShowDetailScreen />', () => {
     expect(view.getByLabelText('Confirmar Reabrir para edição')).toBeTruthy();
   });
 
+  it('lista pendências de letras sem bloquear a confirmação de show pronto', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowDetailScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Noite no Clube');
+    await fireEvent.press(view.getByLabelText('Alterar status do show'));
+    await fireEvent.press(view.getByLabelText('Marcar como Pronto'));
+
+    expect(view.getByText('Verificação das letras')).toBeTruthy();
+    expect(view.getAllByText('Luzes da Cidade')).toHaveLength(2);
+    expect(view.getByText('Letra estática')).toBeTruthy();
+    expect(view.getByLabelText('Confirmar Marcar como Pronto')).toBeTruthy();
+  });
+
   it('mostra um estado quando o show não é encontrado', async () => {
     const emptyRepositories = createInMemoryRepositories({
       ...demoRepositoryData,
