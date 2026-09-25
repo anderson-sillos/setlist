@@ -96,6 +96,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const [lifecycleDialogVisible, setLifecycleDialogVisible] = useState(false);
   const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   const [lifecycleNotice, setLifecycleNotice] = useState<string | null>(null);
+  const [lifecycleNoticeTitle, setLifecycleNoticeTitle] = useState<
+    string | null
+  >(null);
   const [lifecycleSubmitting, setLifecycleSubmitting] = useState(false);
   const song = songQuery.data;
   const membership = userBandsQuery.data?.find(
@@ -195,8 +198,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       await archiveSong({ bandId, songId: song.id });
       await invalidateSongQueries();
+      setLifecycleNoticeTitle('Música arquivada');
       setLifecycleNotice(
-        'Música arquivada. Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
+        'Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
       );
       setLifecycleDialogVisible(false);
     } catch (error) {
@@ -216,7 +220,8 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       await restoreSong({ bandId, songId: song.id });
       await invalidateSongQueries();
-      setLifecycleNotice('Música restaurada e disponível para novas setlists.');
+      setLifecycleNoticeTitle('Música restaurada');
+      setLifecycleNotice('Disponível novamente para novas setlists.');
       setLifecycleDialogVisible(false);
     } catch (error) {
       handleLifecycleError(error);
@@ -240,8 +245,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         return;
       }
 
+      setLifecycleNoticeTitle('Música arquivada');
       setLifecycleNotice(
-        'A música está em um show existente, então foi arquivada para preservar a setlist.',
+        'Ela está em um show existente, então foi arquivada para preservar a setlist.',
       );
       setLifecycleDialogVisible(false);
     } catch (error) {
@@ -355,7 +361,11 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       ) : null}
       <DemoActionNotice
         message={lifecycleNotice}
-        onClose={() => setLifecycleNotice(null)}
+        onClose={() => {
+          setLifecycleNotice(null);
+          setLifecycleNoticeTitle(null);
+        }}
+        title={lifecycleNoticeTitle ?? undefined}
       />
       <SongLifecycleDialog
         errorMessage={lifecycleError}

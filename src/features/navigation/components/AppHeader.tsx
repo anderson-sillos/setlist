@@ -7,6 +7,7 @@ import { AppText } from '@/components/ui/AppText';
 import { NavigationIconButton } from '@/features/navigation/components/NavigationIconButton';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 type AppHeaderProps = Pick<
   AppNavigationShellProps,
@@ -89,7 +90,10 @@ export function AppHeader({
           accessibilityLabel={headerAction.accessibilityLabel}
           color={colors.violet}
           icon={headerAction.icon ?? 'more'}
-          onPress={headerAction.onPress}
+          onPress={() => {
+            blurWebFocus();
+            headerAction.onPress();
+          }}
         />
       ) : null}
     </View>

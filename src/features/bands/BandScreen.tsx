@@ -54,12 +54,6 @@ import { BandInvitationDialog } from './BandInvitationDialog';
 import { BandLeaveDialog } from './BandLeaveDialog';
 import { useLastBandSelection } from './LastBandSelection';
 
-const roleLabels: Record<BandRole, string> = {
-  editor: 'Editor',
-  member: 'Integrante',
-  owner: 'Proprietário',
-};
-
 const roleGroupLabels: Record<BandRole, string> = {
   editor: 'Editores',
   member: 'Integrantes',
@@ -486,9 +480,11 @@ function MemberRow({
             <AppText>{member.displayName}</AppText>
             {current ? <StatusPill tone="ready">Você</StatusPill> : null}
           </View>
-          <AppText tone="muted" variant="caption">
-            {roleLabels[member.role]}
-          </AppText>
+          {member.email ? (
+            <AppText tone="muted" variant="caption">
+              {member.email}
+            </AppText>
+          ) : null}
         </View>
         {current ? (
           <Pressable

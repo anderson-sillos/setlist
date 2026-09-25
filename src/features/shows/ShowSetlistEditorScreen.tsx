@@ -38,6 +38,7 @@ export function ShowSetlistEditorScreen({
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
+  const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const show = showQuery.data;
@@ -128,7 +129,14 @@ export function ShowSetlistEditorScreen({
       activeSection="shows"
       backHref={getShowHref(bandId, showId)}
       bandId={bandId}
+      contentStyle={{ flex: 1, minHeight: 0 }}
       currentRoute={getShowEditHref(bandId, showId) as string}
+      headerAction={{
+        accessibilityLabel: 'Adicionar à setlist',
+        icon: 'addCircle',
+        label: 'Adicionar item',
+        onPress: () => setAddSheetVisible(true),
+      }}
       screenKind="edit"
       scrollable={false}
       title="Editar setlist"
@@ -154,10 +162,12 @@ export function ShowSetlistEditorScreen({
       ) : null}
       {show && canEdit && show.status === 'draft' ? (
         <ShowBlockEditorDialog
+          addSheetVisible={addSheetVisible}
           errorMessage={error}
           fullScreen
           initialBlocks={show.blocks}
           isSubmitting={submitting}
+          onAddSheetVisibilityChange={setAddSheetVisible}
           onClose={() => router.back()}
           onSubmit={(drafts) => void handleSave(drafts)}
           songs={songsQuery.data ?? []}

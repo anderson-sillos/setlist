@@ -57,13 +57,14 @@ function normalizeStartsAt(value: string) {
 
 function mapError(
   error: { code?: string; message: string },
-  action: 'criar' | 'duplicar',
+  action: 'criar' | 'duplicar' | 'excluir',
 ) {
   if (
     error.code === '42501' ||
     error.message.includes('JWT') ||
     error.message.includes('row-level security') ||
-    error.message.includes('permission')
+    error.message.includes('permission') ||
+    error.message.includes('SHOW_DELETE_FORBIDDEN')
   ) {
     return new ShowMutationError(
       'permission_denied',
@@ -206,4 +207,34 @@ export async function duplicateShow(
   }
 
   return data.id;
+}
+
+export async function deleteShow({
+  bandId,
+  showId,
+}: {
+  readonly bandId: EntityId;
+  readonly showId: EntityId;
+}): Promise<void> {
+  if (!bandId.trim() || !showId.trim()) {
+    throw new ShowMutationError(
+      'invalid_show',
+      'Não foi possível identificar o show para exclusão.',
+    );
+  }
+
+  const { error } = await getSupabaseClient().rpc('delete_show', {
+    p_band_id: bandId,
+    p_show_id: showId,
+  });
+
+  if (error) {
+    if (error.message.includes('SHOW_NOT_FOUND')) {
+      throw new ShowMutationError(
+        'not_found_or_forbidden',
+        'O show não existe mais ou não está disponível para exclusão.',
+      );
+    }
+    throw mapError(error, 'excluir');
+  }
 }

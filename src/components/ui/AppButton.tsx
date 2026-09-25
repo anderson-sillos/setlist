@@ -5,6 +5,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 type ButtonVariant = 'primary' | 'secondary';
 
@@ -20,17 +21,23 @@ export function AppButton({
   icon,
   label,
   leading,
+  onPress,
   style,
   variant = 'primary',
   ...props
 }: AppButtonProps) {
   const contentColor = variant === 'primary' ? colors.surface : colors.violet;
+  const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
+    blurWebFocus();
+    onPress?.(event);
+  };
 
   return (
     <Pressable
       disabled={disabled}
       {...props}
       accessibilityRole="button"
+      onPress={handlePress}
       style={(state) => [
         styles.base,
         variants[variant],

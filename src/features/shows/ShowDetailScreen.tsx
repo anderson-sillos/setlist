@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
-import { duplicateShow, ShowMutationError } from '@/data/supabase';
+import { deleteShow, duplicateShow, ShowMutationError } from '@/data/supabase';
 import {
   updateShow,
   updateShowStatus,
@@ -67,7 +67,7 @@ function getShowStatusActions(status: ShowStatus) {
       },
       {
         confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
-        icon: 'remove' as const,
+        icon: 'calendarMinus' as const,
         label: 'Cancelar show',
         status: 'cancelled' as const,
       },
@@ -84,7 +84,7 @@ function getShowStatusActions(status: ShowStatus) {
       },
       {
         confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
-        icon: 'remove' as const,
+        icon: 'calendarMinus' as const,
         label: 'Cancelar show',
         status: 'cancelled' as const,
       },
@@ -148,10 +148,14 @@ export function ShowDetailScreen({
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [duplicateSubmitting, setDuplicateSubmitting] = useState(false);
   const [duplicateInstance, setDuplicateInstance] = useState(0);
+  const [actionsSheetVisible, setActionsSheetVisible] = useState(false);
   const [statusSheetVisible, setStatusSheetVisible] = useState(false);
   const [statusAction, setStatusAction] = useState<ShowStatus | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [statusSubmitting, setStatusSubmitting] = useState(false);
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const show = showQuery.data;
   const editInitialValues = useMemo(
     () => (show ? toEditForm(show) : undefined),
@@ -192,6 +196,21 @@ export function ShowDetailScreen({
       0,
     ) ?? 0;
   const songCountLabel = `${songCount} ${songCount === 1 ? 'música' : 'músicas'}`;
+  const songNumbersByItemId = useMemo(() => {
+    const songNumbers = new Map<EntityId, number>();
+    let nextSongNumber = 0;
+
+    show?.blocks.forEach((block) => {
+      block.items.forEach((item) => {
+        if (item.type === 'song') {
+          nextSongNumber += 1;
+          songNumbers.set(item.id, nextSongNumber);
+        }
+      });
+    });
+
+    return songNumbers;
+  }, [show]);
   const showLyricIssues = useMemo(
     () => (show ? getShowLyricIssues(show, songsById) : []),
     [show, songsById],
@@ -259,6 +278,59 @@ export function ShowDetailScreen({
     }
   };
 
+  const openEdit = () => {
+    setActionsSheetVisible(false);
+    setEditError(null);
+    setEditInstance((current) => current + 1);
+    setEditVisible(true);
+  };
+
+  const openDuplicate = () => {
+    setActionsSheetVisible(false);
+    setDuplicateError(null);
+    setDuplicateInstance((current) => current + 1);
+    setDuplicateVisible(true);
+  };
+
+  const openStatus = (status: ShowStatus) => {
+    setActionsSheetVisible(false);
+    setStatusError(null);
+    setStatusAction(status);
+    setStatusSheetVisible(true);
+  };
+
+  const openDelete = () => {
+    setActionsSheetVisible(false);
+    setDeleteError(null);
+    setDeleteSheetVisible(true);
+  };
+
+  const handleDeleteShow = async () => {
+    if (!show) return;
+    setDeleteError(null);
+    setDeleteSubmitting(true);
+    try {
+      await deleteShow({ bandId, showId: show.id });
+      queryClient.removeQueries({
+        queryKey: ['bands', bandId, 'shows', show.id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', bandId, 'shows'],
+        refetchType: 'all',
+      });
+      setDeleteSheetVisible(false);
+      router.replace(getBandSectionHref(bandId, 'shows'));
+    } catch (error) {
+      setDeleteError(
+        error instanceof ShowMutationError
+          ? error.message
+          : 'Não foi possível excluir o show agora. Tente novamente.',
+      );
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
+
   const handleStatusChange = async (status: ShowStatus) => {
     if (!show) return;
     setStatusError(null);
@@ -297,16 +369,12 @@ export function ShowDetailScreen({
       bandId={bandId}
       currentRoute={getShowHref(bandId, showId) as string}
       headerAction={
-        canEdit && show?.status === 'draft'
+        canEdit && show
           ? {
-              accessibilityLabel: 'Editar show',
-              icon: 'edit',
-              label: 'Editar show',
-              onPress: () => {
-                setEditError(null);
-                setEditInstance((current) => current + 1);
-                setEditVisible(true);
-              },
+              accessibilityLabel: 'Mais opções do show',
+              icon: 'more',
+              label: '...',
+              onPress: () => setActionsSheetVisible(true),
             }
           : undefined
       }
@@ -357,6 +425,59 @@ export function ShowDetailScreen({
         title="Duplicar show"
         visible={duplicateVisible}
       />
+
+      <OptionSheet
+        closeAccessibilityLabel="Fechar mais opções do show"
+        label="Mais opções"
+        onClose={() => setActionsSheetVisible(false)}
+        showCloseButton
+        testID="show-detail-actions-sheet"
+        visible={actionsSheetVisible}
+      >
+        {show ? (
+          <View style={styles.statusOptions}>
+            {canEdit && show.status === 'draft' ? (
+              <AppButton
+                accessibilityLabel="Editar show"
+                icon="edit"
+                label="Editar show"
+                onPress={openEdit}
+                variant="secondary"
+              />
+            ) : null}
+            {canEdit ? (
+              <AppButton
+                accessibilityLabel="Duplicar show"
+                icon="copy"
+                label="Duplicar show"
+                onPress={openDuplicate}
+                variant="secondary"
+              />
+            ) : null}
+            {canEdit
+              ? getShowStatusActions(show.status).map((action) => (
+                  <AppButton
+                    accessibilityLabel={action.label}
+                    icon={action.icon}
+                    key={action.status}
+                    label={action.label}
+                    onPress={() => openStatus(action.status)}
+                    variant="secondary"
+                  />
+                ))
+              : null}
+            {canEdit ? (
+              <AppButton
+                accessibilityLabel="Excluir show"
+                icon="remove"
+                label="Excluir show"
+                onPress={openDelete}
+                variant="secondary"
+              />
+            ) : null}
+          </View>
+        ) : null}
+      </OptionSheet>
 
       <OptionSheet
         closeAccessibilityLabel="Fechar ações de status do show"
@@ -426,6 +547,42 @@ export function ShowDetailScreen({
         ) : null}
       </OptionSheet>
 
+      <OptionSheet
+        closeAccessibilityLabel="Cancelar exclusão do show"
+        label="Excluir show"
+        onClose={() => {
+          if (!deleteSubmitting) {
+            setDeleteError(null);
+            setDeleteSheetVisible(false);
+          }
+        }}
+        testID="show-detail-delete-sheet"
+        visible={deleteSheetVisible}
+      >
+        <AppText>
+          O show e toda a sua setlist serão removidos definitivamente. Essa ação
+          não tem volta.
+        </AppText>
+        {deleteError ? (
+          <AppText accessibilityRole="alert" style={styles.errorText}>
+            {deleteError}
+          </AppText>
+        ) : null}
+        <AppButton
+          disabled={deleteSubmitting}
+          label="Cancelar"
+          onPress={() => setDeleteSheetVisible(false)}
+          variant="secondary"
+        />
+        <AppButton
+          accessibilityLabel="Confirmar exclusão definitiva do show"
+          disabled={deleteSubmitting}
+          icon="remove"
+          label={deleteSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
+          onPress={() => void handleDeleteShow()}
+        />
+      </OptionSheet>
+
       {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
@@ -449,20 +606,6 @@ export function ShowDetailScreen({
               <StatusPill tone={show.status === 'ready' ? 'ready' : 'default'}>
                 {showStatusLabels[show.status]}
               </StatusPill>
-              {canEdit ? (
-                <AppButton
-                  accessibilityLabel="Alterar status do show"
-                  icon="more"
-                  label="Status"
-                  onPress={() => {
-                    setStatusError(null);
-                    setStatusAction(null);
-                    setStatusSheetVisible(true);
-                  }}
-                  style={styles.statusButton}
-                  variant="secondary"
-                />
-              ) : null}
             </View>
             <AppText accessibilityRole="header" variant="heading">
               {show.name}
@@ -522,20 +665,6 @@ export function ShowDetailScreen({
                 </Pressable>
               </Link>
             ) : null}
-            {canEdit ? (
-              <AppButton
-                accessibilityLabel="Duplicar show"
-                disabled={duplicateSubmitting}
-                icon="copy"
-                label="Duplicar show"
-                onPress={() => {
-                  setDuplicateError(null);
-                  setDuplicateInstance((current) => current + 1);
-                  setDuplicateVisible(true);
-                }}
-                variant="secondary"
-              />
-            ) : null}
           </Card>
 
           <View style={styles.setlist}>
@@ -547,7 +676,7 @@ export function ShowDetailScreen({
                 <AppButton
                   accessibilityLabel="Editar setlist"
                   icon="edit"
-                  label="Editar"
+                  label="Editar setlist"
                   onPress={() => {
                     router.push(getShowEditHref(bandId, show.id));
                   }}
@@ -571,69 +700,80 @@ export function ShowDetailScreen({
                         : formatShowDuration(blockDuration.totalMs)}
                     </AppText>
                   </View>
-                  {block.items.map((item, index) => {
-                    if (item.type === 'separator') {
+                  <View style={styles.blockItems}>
+                    {block.items.map((item) => {
+                      if (item.type === 'separator') {
+                        return (
+                          <View
+                            accessibilityLabel="Separador visual"
+                            key={item.id}
+                            style={styles.separatorItem}
+                          />
+                        );
+                      }
+
+                      if (item.type === 'planning') {
+                        return (
+                          <View
+                            key={item.id}
+                            style={styles.planningItem}
+                            testID={'show-planning-item-' + item.id}
+                          >
+                            <View
+                              accessibilityLabel="Anotação de planejamento"
+                              accessibilityRole="image"
+                              accessible
+                              style={styles.planningIcon}
+                            >
+                              <AppIcon
+                                color={colors.violet}
+                                name="planning"
+                                size={14}
+                              />
+                            </View>
+                            <View style={styles.itemCopy}>
+                              <AppText>{item.description}</AppText>
+                            </View>
+                            <AppText tone="muted" variant="caption">
+                              {item.estimatedDurationMs === null
+                                ? '—'
+                                : formatSongDuration(item.estimatedDurationMs)}
+                            </AppText>
+                          </View>
+                        );
+                      }
+
+                      const song = songsById.get(item.songId);
+                      const songNumber = songNumbersByItemId.get(item.id);
+
                       return (
                         <View
-                          accessibilityLabel="Separador visual"
                           key={item.id}
-                          style={styles.separatorItem}
-                        />
-                      );
-                    }
-
-                    if (item.type === 'planning') {
-                      return (
-                        <View key={item.id} style={styles.planningItem}>
-                          <View
-                            accessibilityLabel="Anotação de planejamento"
-                            accessibilityRole="image"
-                            accessible
-                            style={styles.planningIcon}
-                          >
-                            <AppIcon
-                              color={colors.violet}
-                              name="planning"
-                              size={14}
-                            />
-                          </View>
+                          style={styles.setlistItem}
+                          testID={'show-song-item-' + item.id}
+                        >
+                          <AppText style={styles.itemNumber} tone="muted">
+                            {songNumber}.
+                          </AppText>
                           <View style={styles.itemCopy}>
-                            <AppText>{item.description}</AppText>
+                            <AppText>
+                              {song?.title ?? 'Música indisponível'}
+                            </AppText>
+                            {item.notes ? (
+                              <AppText tone="muted" variant="caption">
+                                {item.notes}
+                              </AppText>
+                            ) : null}
                           </View>
                           <AppText tone="muted" variant="caption">
-                            {item.estimatedDurationMs === null
+                            {song?.estimatedDurationMs == null
                               ? '—'
-                              : formatSongDuration(item.estimatedDurationMs)}
+                              : formatSongDuration(song.estimatedDurationMs)}
                           </AppText>
                         </View>
                       );
-                    }
-
-                    const song = songsById.get(item.songId);
-
-                    return (
-                      <View key={item.id} style={styles.setlistItem}>
-                        <AppText style={styles.itemNumber} tone="muted">
-                          {index + 1}.
-                        </AppText>
-                        <View style={styles.itemCopy}>
-                          <AppText>
-                            {song?.title ?? 'Música indisponível'}
-                          </AppText>
-                          {item.notes ? (
-                            <AppText tone="muted" variant="caption">
-                              {item.notes}
-                            </AppText>
-                          ) : null}
-                        </View>
-                        <AppText tone="muted" variant="caption">
-                          {song?.estimatedDurationMs == null
-                            ? '—'
-                            : formatSongDuration(song.estimatedDurationMs)}
-                        </AppText>
-                      </View>
-                    );
-                  })}
+                    })}
+                  </View>
                 </Card>
               );
             })}
@@ -718,11 +858,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  statusButton: {
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
   statusOptions: {
     gap: spacing.sm,
   },
@@ -734,21 +869,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  blockItems: {
+    gap: spacing.xs,
+  },
   setlistItem: {
     alignItems: 'flex-start',
-    borderTopColor: colors.line,
-    borderTopWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,
-    paddingTop: spacing.md,
   },
   planningItem: {
     alignItems: 'center',
-    backgroundColor: colors.cyanSoft,
-    borderRadius: radii.md,
     flexDirection: 'row',
     gap: spacing.sm,
-    padding: spacing.md,
   },
   planningIcon: {
     alignItems: 'center',
@@ -761,7 +893,7 @@ const styles = StyleSheet.create({
   separatorItem: {
     borderTopColor: colors.violet,
     borderTopWidth: 2,
-    marginVertical: spacing.sm,
+    marginVertical: spacing.md + spacing.sm - spacing.xs,
     opacity: 0.42,
   },
   itemNumber: {

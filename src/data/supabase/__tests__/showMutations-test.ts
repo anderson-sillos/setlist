@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '@/data/supabase/client';
 import {
   createShow,
+  deleteShow,
   duplicateShow,
   ShowMutationError,
 } from '@/data/supabase/showMutations';
@@ -230,5 +231,18 @@ describe('criação de shows no Supabase', () => {
       code: 'permission_denied',
     });
     expect(deleteQuery.eq).toHaveBeenCalledWith('id', 'show-1');
+  });
+
+  it('solicita a exclusão definitiva do show por RPC protegida', async () => {
+    const rpc = jest.fn().mockResolvedValue({ error: null });
+    mockGetSupabaseClient.mockReturnValue({ from, rpc } as never);
+
+    await expect(
+      deleteShow({ bandId: 'band-1', showId: 'show-1' }),
+    ).resolves.toBeUndefined();
+    expect(rpc).toHaveBeenCalledWith('delete_show', {
+      p_band_id: 'band-1',
+      p_show_id: 'show-1',
+    });
   });
 });

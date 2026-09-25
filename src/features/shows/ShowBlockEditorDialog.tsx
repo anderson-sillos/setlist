@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -13,14 +13,16 @@ import {
 } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
+import { SearchField } from '@/components/ui/list-controls/SearchField';
+import { moveSetlistItem } from '@/domain';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { formatShowDuration } from '@/utils/duration';
+import { formatShowDuration, formatSongDuration } from '@/utils/duration';
 
 export type ShowSetlistItemDraft = ShowSetlistItem & {
   readonly isNew?: boolean;
@@ -34,14 +36,56 @@ export interface ShowBlockDraft {
 }
 
 interface ShowBlockEditorDialogProps {
+  readonly addSheetVisible: boolean;
   readonly errorMessage: string | null;
   readonly fullScreen?: boolean;
   readonly initialBlocks: readonly ShowBlockDraft[];
   readonly isSubmitting: boolean;
+  readonly onAddSheetVisibilityChange: (visible: boolean) => void;
   readonly onClose: () => void;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
   readonly visible: boolean;
+}
+
+interface BlockLayout {
+  readonly height: number;
+  readonly y: number;
+}
+
+interface ItemLayout {
+  readonly blockId: EntityId;
+  readonly height: number;
+  readonly localY: number;
+  readonly y: number;
+}
+
+interface ItemDragSession {
+  readonly itemId: EntityId;
+  readonly originCenterY: number;
+  readonly originScrollOffset: number;
+  readonly originTopY: number;
+  readonly sourceBlockId: EntityId;
+  lastDy: number;
+  targetBlockId: EntityId;
+  targetIndex: number;
+}
+
+interface BlockDragSession {
+  readonly blockId: EntityId;
+  readonly originCenterY: number;
+  readonly originScrollOffset: number;
+  readonly originTopY: number;
+  readonly sourceIndex: number;
+  lastDy: number;
+  targetIndex: number;
+}
+
+interface DragPreview {
+  readonly height: number;
+  readonly icon: AppIconName;
+  readonly label: string;
+  readonly top: number;
 }
 
 function cloneBlocks(blocks: readonly ShowBlockDraft[]): ShowBlockDraft[] {
@@ -57,29 +101,34 @@ function createDraftId(prefix: string, index: number) {
 
 function getDurationParts(durationMs: number | null) {
   if (durationMs === null) {
-    return { minutes: '', seconds: '' };
+    return { hours: '', minutes: '', seconds: '' };
   }
 
   const totalSeconds = Math.floor(durationMs / 1000);
+  const totalMinutes = Math.floor(totalSeconds / 60);
   return {
-    minutes: String(Math.floor(totalSeconds / 60)),
+    hours: String(Math.floor(totalMinutes / 60)).padStart(2, '0'),
+    minutes: String(totalMinutes % 60).padStart(2, '0'),
     seconds: String(totalSeconds % 60).padStart(2, '0'),
   };
 }
 
-function toDurationMs(minutes: string, seconds: string) {
+function toDurationMs(hours: string, minutes: string, seconds: string) {
+  const normalizedHours = Number(hours.trim() || 0);
   const normalizedMinutes = Number(minutes.trim() || 0);
   const normalizedSeconds = Number(seconds.trim() || 0);
   if (
+    !Number.isFinite(normalizedHours) ||
     !Number.isFinite(normalizedMinutes) ||
     !Number.isFinite(normalizedSeconds)
   ) {
     return null;
   }
 
-  const safeMinutes = Math.max(0, Math.floor(normalizedMinutes));
+  const safeHours = Math.max(0, Math.floor(normalizedHours));
+  const safeMinutes = Math.max(0, Math.min(59, Math.floor(normalizedMinutes)));
   const safeSeconds = Math.max(0, Math.min(59, Math.floor(normalizedSeconds)));
-  const totalMs = (safeMinutes * 60 + safeSeconds) * 1000;
+  const totalMs = ((safeHours * 60 + safeMinutes) * 60 + safeSeconds) * 1000;
   return totalMs > 0 ? totalMs : null;
 }
 
@@ -97,10 +146,12 @@ function moveBlock(
 }
 
 export function ShowBlockEditorDialog({
+  addSheetVisible,
   errorMessage,
   fullScreen = false,
   initialBlocks,
   isSubmitting,
+  onAddSheetVisibilityChange,
   onClose,
   onSubmit,
   songs,
@@ -108,6 +159,30 @@ export function ShowBlockEditorDialog({
 }: ShowBlockEditorDialogProps) {
   const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
     cloneBlocks(initialBlocks),
+  );
+  const blocksRef = useRef<ShowBlockDraft[]>(cloneBlocks(initialBlocks));
+  const blockLayoutsRef = useRef(new Map<EntityId, BlockLayout>());
+  const itemLayoutsRef = useRef(new Map<EntityId, ItemLayout>());
+  const itemDragSessionRef = useRef<ItemDragSession | null>(null);
+  const blockDragSessionRef = useRef<BlockDragSession | null>(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const scrollFrameYRef = useRef(0);
+  const scrollOffsetYRef = useRef(0);
+  const scrollViewportHeightRef = useRef(0);
+  const scrollContentHeightRef = useRef(0);
+  const autoScrollVelocityRef = useRef(0);
+  const autoScrollFrameRef = useRef<number | null>(null);
+  const autoScrollTimestampRef = useRef<number | null>(null);
+  useEffect(() => {
+    blocksRef.current = blocks;
+  }, [blocks]);
+  useEffect(
+    () => () => {
+      if (autoScrollFrameRef.current !== null) {
+        cancelAnimationFrame(autoScrollFrameRef.current);
+      }
+    },
+    [],
   );
   const [activeBlockId, setActiveBlockId] = useState<EntityId>(
     initialBlocks[0]?.id ?? '',
@@ -117,12 +192,13 @@ export function ShowBlockEditorDialog({
     readonly blockId: EntityId;
     readonly itemId: EntityId;
   } | null>(null);
+  const [dragPreview, setDragPreview] = useState<DragPreview | null>(null);
   const [deleteBlockId, setDeleteBlockId] = useState<EntityId | null>(null);
-  const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [songSheetVisible, setSongSheetVisible] = useState(false);
   const [selectedSongIds, setSelectedSongIds] = useState<readonly EntityId[]>(
     [],
   );
+  const [songSearchText, setSongSearchText] = useState('');
   const [discardVisible, setDiscardVisible] = useState(false);
   const initialSnapshot = useMemo(
     () => JSON.stringify(initialBlocks),
@@ -144,6 +220,15 @@ export function ShowBlockEditorDialog({
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
   );
+  const filteredSongs = useMemo(() => {
+    const query = songSearchText.trim().toLocaleLowerCase('pt-BR');
+    if (!query) return songs;
+    return songs.filter((song) =>
+      `${song.title} ${song.originalArtist ?? ''}`
+        .toLocaleLowerCase('pt-BR')
+        .includes(query),
+    );
+  }, [songs, songSearchText]);
   const durations = useMemo(() => {
     const blockDurations = new Map<EntityId, number | null>();
     let hasDuration = false;
@@ -191,10 +276,10 @@ export function ShowBlockEditorDialog({
     const id = createDraftId('block', blocks.length);
     setBlocks((current) => [
       ...current,
-      { id, isNew: true, items: [], name: 'Novo bloco' },
+      { id, isNew: true, items: [], name: `Bloco ${current.length + 1}` },
     ]);
     setActiveBlockId(id);
-    setAddSheetVisible(false);
+    onAddSheetVisibilityChange(false);
   };
 
   const addPlanning = () => {
@@ -213,7 +298,7 @@ export function ShowBlockEditorDialog({
         },
       ],
     }));
-    setAddSheetVisible(false);
+    onAddSheetVisibilityChange(false);
   };
 
   const addSeparator = () => {
@@ -223,7 +308,7 @@ export function ShowBlockEditorDialog({
       ...block,
       items: [...block.items, { id, isNew: true, type: 'separator' }],
     }));
-    setAddSheetVisible(false);
+    onAddSheetVisibilityChange(false);
   };
 
   const addSelectedSongs = () => {
@@ -242,8 +327,9 @@ export function ShowBlockEditorDialog({
       ],
     }));
     setSelectedSongIds([]);
+    setSongSearchText('');
     setSongSheetVisible(false);
-    setAddSheetVisible(false);
+    onAddSheetVisibilityChange(false);
   };
 
   const removeItem = (blockId: EntityId, itemId: EntityId) => {
@@ -253,27 +339,412 @@ export function ShowBlockEditorDialog({
     }));
   };
 
-  const moveItemWithinBlock = (
+  const registerBlockLayout = (blockId: EntityId, layout: BlockLayout) => {
+    blockLayoutsRef.current.set(blockId, layout);
+    itemLayoutsRef.current.forEach((itemLayout, itemId) => {
+      if (itemLayout.blockId !== blockId) return;
+      itemLayoutsRef.current.set(itemId, {
+        ...itemLayout,
+        y: layout.y + itemLayout.localY,
+      });
+    });
+  };
+
+  const registerItemLayout = (
     blockId: EntityId,
     itemId: EntityId,
-    targetIndex: number,
+    localY: number,
+    height: number,
   ) => {
-    setBlocks((current) =>
-      current.map((block) => {
-        if (block.id !== blockId) return block;
-        const sourceIndex = block.items.findIndex((item) => item.id === itemId);
-        if (sourceIndex < 0 || sourceIndex === targetIndex) return block;
-        const nextItems = [...block.items];
-        const [item] = nextItems.splice(sourceIndex, 1);
-        if (!item) return block;
-        nextItems.splice(
-          Math.max(0, Math.min(nextItems.length, targetIndex)),
-          0,
-          item,
+    const blockLayout = blockLayoutsRef.current.get(blockId);
+    itemLayoutsRef.current.set(itemId, {
+      blockId,
+      height,
+      localY,
+      y: (blockLayout?.y ?? 0) + localY,
+    });
+  };
+
+  const findItemDragDestination = (targetY: number, sourceItemId: EntityId) => {
+    const currentBlocks = blocksRef.current;
+    const blockEntries = currentBlocks
+      .map((block, index) => ({
+        block,
+        layout: blockLayoutsRef.current.get(block.id) ?? {
+          height: 120,
+          y: index * 120,
+        },
+      }))
+      .sort((left, right) => left.layout.y - right.layout.y);
+    if (blockEntries.length === 0) return null;
+
+    const targetBlockEntry =
+      blockEntries.find(
+        ({ layout }) =>
+          targetY >= layout.y && targetY <= layout.y + layout.height,
+      ) ??
+      blockEntries.reduce((closest, entry) => {
+        const closestDistance = Math.abs(
+          targetY - (closest.layout.y + closest.layout.height / 2),
         );
-        return { ...block, items: nextItems };
-      }),
+        const entryDistance = Math.abs(
+          targetY - (entry.layout.y + entry.layout.height / 2),
+        );
+        return entryDistance < closestDistance ? entry : closest;
+      });
+    const targetBlockId = targetBlockEntry.block.id;
+    const targetItems = targetBlockEntry.block.items.filter(
+      (item) => item.id !== sourceItemId,
     );
+    const positionedItems = targetItems
+      .map((item, index) => ({
+        item,
+        layout: itemLayoutsRef.current.get(item.id) ?? {
+          blockId: targetBlockId,
+          height: 72,
+          localY: index * 72,
+          y: targetBlockEntry.layout.y + index * 72,
+        },
+      }))
+      .sort((left, right) => left.layout.y - right.layout.y);
+    const targetEntry = positionedItems.find(
+      ({ layout }) => targetY < layout.y + layout.height / 2,
+    );
+    const targetIndex = targetEntry
+      ? targetItems.findIndex(({ id }) => id === targetEntry.item.id)
+      : targetItems.length;
+
+    return {
+      targetBlockId,
+      targetIndex: Math.max(0, targetIndex),
+    };
+  };
+
+  const startItemDrag = (blockId: EntityId, itemId: EntityId) => {
+    const block = blocksRef.current.find(({ id }) => id === blockId);
+    const itemIndex = block?.items.findIndex(({ id }) => id === itemId) ?? -1;
+    const item = itemIndex >= 0 ? block?.items[itemIndex] : undefined;
+    if (!item) return;
+    const blockLayout = blockLayoutsRef.current.get(blockId);
+    const itemLayout =
+      itemLayoutsRef.current.get(itemId) ??
+      ({
+        blockId,
+        height: 72,
+        localY: Math.max(0, itemIndex) * 72,
+        y: (blockLayout?.y ?? 0) + Math.max(0, itemIndex) * 72,
+      } satisfies ItemLayout);
+    const preview =
+      item.type === 'song'
+        ? {
+            icon: 'music' as const,
+            label: songById.get(item.songId)?.title ?? 'Música indisponível',
+          }
+        : item.type === 'planning'
+          ? { icon: 'planning' as const, label: item.description }
+          : { icon: 'minus' as const, label: 'Separador' };
+    itemDragSessionRef.current = {
+      itemId,
+      originCenterY: itemLayout.y + itemLayout.height / 2,
+      originScrollOffset: scrollOffsetYRef.current,
+      originTopY: itemLayout.y,
+      sourceBlockId: blockId,
+      lastDy: 0,
+      targetBlockId: blockId,
+      targetIndex: itemIndex,
+    };
+    setDraggingItem({ blockId, itemId });
+    setDragPreview({
+      ...preview,
+      height: itemLayout.height,
+      top: scrollFrameYRef.current + itemLayout.y - scrollOffsetYRef.current,
+    });
+  };
+
+  const moveItemDrag = (dy: number) => {
+    const session = itemDragSessionRef.current;
+    if (!session) return;
+    session.lastDy = dy;
+    const previewTop =
+      scrollFrameYRef.current +
+      session.originTopY -
+      session.originScrollOffset +
+      dy;
+    setDragPreview((current) =>
+      current ? { ...current, top: previewTop } : current,
+    );
+    const destination = findItemDragDestination(
+      session.originCenterY +
+        dy +
+        scrollOffsetYRef.current -
+        session.originScrollOffset,
+      session.itemId,
+    );
+    if (destination) {
+      session.targetBlockId = destination.targetBlockId;
+      session.targetIndex = destination.targetIndex;
+    }
+    updateAutoScrollVelocity(previewTop, dragPreview?.height ?? 72);
+  };
+
+  const clearItemDrag = () => {
+    stopAutoScroll();
+    itemDragSessionRef.current = null;
+    setDraggingItem(null);
+    setDragPreview(null);
+  };
+
+  const finishItemDrag = () => {
+    const session = itemDragSessionRef.current;
+    if (session) {
+      setBlocks((current) => {
+        const sourceBlock = current.find(
+          ({ id }) => id === session.sourceBlockId,
+        );
+        const sourceIndex =
+          sourceBlock?.items.findIndex(({ id }) => id === session.itemId) ?? -1;
+        if (
+          sourceIndex < 0 ||
+          (session.sourceBlockId === session.targetBlockId &&
+            sourceIndex === session.targetIndex)
+        ) {
+          return current;
+        }
+        const next = moveSetlistItem(current, {
+          itemId: session.itemId,
+          sourceBlockId: session.sourceBlockId,
+          targetBlockId: session.targetBlockId,
+          targetIndex: session.targetIndex,
+        }) as ShowBlockDraft[];
+        blocksRef.current = next;
+        return next;
+      });
+    }
+    clearItemDrag();
+  };
+
+  const cancelItemDrag = () => {
+    clearItemDrag();
+  };
+
+  const findBlockDragTargetIndex = (
+    targetY: number,
+    sourceBlockId: EntityId,
+  ) => {
+    const currentBlocks = blocksRef.current;
+    const targetBlocks = currentBlocks.filter(({ id }) => id !== sourceBlockId);
+    const targetEntry = targetBlocks
+      .map((block) => {
+        const originalIndex = currentBlocks.findIndex(
+          ({ id }) => id === block.id,
+        );
+        return {
+          block,
+          layout: blockLayoutsRef.current.get(block.id) ?? {
+            height: 120,
+            y: originalIndex * 120,
+          },
+        };
+      })
+      .sort((left, right) => left.layout.y - right.layout.y)
+      .find(({ layout }) => targetY < layout.y + layout.height / 2);
+
+    return targetEntry
+      ? targetBlocks.findIndex(({ id }) => id === targetEntry.block.id)
+      : targetBlocks.length;
+  };
+
+  const updateDropTargetAfterScroll = (nextOffset: number) => {
+    const itemSession = itemDragSessionRef.current;
+    if (itemSession) {
+      const destination = findItemDragDestination(
+        itemSession.originCenterY +
+          itemSession.lastDy +
+          nextOffset -
+          itemSession.originScrollOffset,
+        itemSession.itemId,
+      );
+      if (destination) {
+        itemSession.targetBlockId = destination.targetBlockId;
+        itemSession.targetIndex = destination.targetIndex;
+      }
+      return;
+    }
+
+    const blockSession = blockDragSessionRef.current;
+    if (blockSession) {
+      blockSession.targetIndex = findBlockDragTargetIndex(
+        blockSession.originCenterY +
+          blockSession.lastDy +
+          nextOffset -
+          blockSession.originScrollOffset,
+        blockSession.blockId,
+      );
+    }
+  };
+
+  const runAutoScrollFrame = (timestamp: number) => {
+    autoScrollFrameRef.current = null;
+    const velocity = autoScrollVelocityRef.current;
+    if (velocity === 0) {
+      autoScrollTimestampRef.current = null;
+      return;
+    }
+
+    const previousTimestamp = autoScrollTimestampRef.current;
+    const elapsed =
+      previousTimestamp === null
+        ? 16
+        : Math.min(32, Math.max(0, timestamp - previousTimestamp));
+    autoScrollTimestampRef.current = timestamp;
+    const maxOffset = Math.max(
+      0,
+      scrollContentHeightRef.current - scrollViewportHeightRef.current,
+    );
+    const currentOffset = scrollOffsetYRef.current;
+    const nextOffset = Math.max(
+      0,
+      Math.min(maxOffset, currentOffset + (velocity * elapsed) / 1000),
+    );
+
+    if (nextOffset === currentOffset) {
+      autoScrollVelocityRef.current = 0;
+      autoScrollTimestampRef.current = null;
+      return;
+    }
+
+    scrollOffsetYRef.current = nextOffset;
+    scrollViewRef.current?.scrollTo({ animated: false, y: nextOffset });
+    updateDropTargetAfterScroll(nextOffset);
+    autoScrollFrameRef.current = requestAnimationFrame(runAutoScrollFrame);
+  };
+
+  const stopAutoScroll = () => {
+    autoScrollVelocityRef.current = 0;
+    autoScrollTimestampRef.current = null;
+    if (autoScrollFrameRef.current !== null) {
+      cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+  };
+
+  const updateAutoScrollVelocity = (
+    previewTop: number,
+    previewHeight: number,
+  ) => {
+    const viewportHeight = scrollViewportHeightRef.current;
+    const contentHeight = scrollContentHeightRef.current;
+    if (viewportHeight <= 0 || contentHeight <= viewportHeight) {
+      stopAutoScroll();
+      return;
+    }
+
+    const edgeSize = Math.min(72, viewportHeight * 0.2);
+    const previewCenter = previewTop + previewHeight / 2;
+    const viewportTop = scrollFrameYRef.current;
+    const viewportBottom = viewportTop + viewportHeight;
+    let velocity = 0;
+
+    if (previewCenter < viewportTop + edgeSize) {
+      const proximity = Math.min(
+        1,
+        (viewportTop + edgeSize - previewCenter) / edgeSize,
+      );
+      velocity = -Math.max(80, 440 * proximity);
+    } else if (previewCenter > viewportBottom - edgeSize) {
+      const proximity = Math.min(
+        1,
+        (previewCenter - (viewportBottom - edgeSize)) / edgeSize,
+      );
+      velocity = Math.max(80, 440 * proximity);
+    }
+
+    autoScrollVelocityRef.current = velocity;
+    if (velocity !== 0 && autoScrollFrameRef.current === null) {
+      autoScrollFrameRef.current = requestAnimationFrame(runAutoScrollFrame);
+    } else if (velocity === 0) {
+      stopAutoScroll();
+    }
+  };
+
+  const startBlockDrag = (blockId: EntityId) => {
+    setActiveBlockId(blockId);
+    const block = blocksRef.current.find(({ id }) => id === blockId);
+    const blockIndex = blocksRef.current.findIndex(({ id }) => id === blockId);
+    if (!block || blockIndex < 0) return;
+    const blockLayout =
+      blockLayoutsRef.current.get(blockId) ??
+      ({
+        height: 120,
+        y: blockIndex * 120,
+      } satisfies BlockLayout);
+    blockDragSessionRef.current = {
+      blockId,
+      originCenterY: blockLayout.y + blockLayout.height / 2,
+      originScrollOffset: scrollOffsetYRef.current,
+      originTopY: blockLayout.y,
+      sourceIndex: blockIndex,
+      lastDy: 0,
+      targetIndex: blockIndex,
+    };
+    setDraggingBlockId(blockId);
+    setDragPreview({
+      height: blockLayout.height,
+      icon: 'dragHandle',
+      label: block.name,
+      top: scrollFrameYRef.current + blockLayout.y - scrollOffsetYRef.current,
+    });
+  };
+
+  const moveBlockDragPreview = (dy: number) => {
+    const session = blockDragSessionRef.current;
+    if (!session) return;
+    session.lastDy = dy;
+    const previewTop =
+      scrollFrameYRef.current +
+      session.originTopY -
+      session.originScrollOffset +
+      dy;
+    setDragPreview((current) =>
+      current ? { ...current, top: previewTop } : current,
+    );
+    session.targetIndex = findBlockDragTargetIndex(
+      session.originCenterY +
+        dy +
+        scrollOffsetYRef.current -
+        session.originScrollOffset,
+      session.blockId,
+    );
+    updateAutoScrollVelocity(previewTop, dragPreview?.height ?? 120);
+  };
+
+  const clearBlockDrag = () => {
+    stopAutoScroll();
+    blockDragSessionRef.current = null;
+    setDraggingBlockId(null);
+    setDragPreview(null);
+  };
+
+  const finishBlockDrag = () => {
+    const session = blockDragSessionRef.current;
+    if (session) {
+      setBlocks((current) => {
+        const sourceIndex = current.findIndex(
+          ({ id }) => id === session.blockId,
+        );
+        if (sourceIndex < 0 || sourceIndex === session.targetIndex) {
+          return current;
+        }
+        const next = moveBlock(current, sourceIndex, session.targetIndex);
+        blocksRef.current = next;
+        return next;
+      });
+    }
+    clearBlockDrag();
+  };
+
+  const cancelBlockDrag = () => {
+    clearBlockDrag();
   };
 
   const requestDeleteBlock = (blockId: EntityId) => {
@@ -298,15 +769,11 @@ export function ShowBlockEditorDialog({
     blocks.every(
       (block) =>
         block.name.trim().length > 0 &&
-        block.items.every((item) => {
-          if (item.type === 'song') {
-            return songById.has(item.songId);
-          }
-          if (item.type === 'planning') {
-            return item.description.trim().length > 0;
-          }
-          return true;
-        }),
+        block.items.every((item) =>
+          item.type === 'song'
+            ? songById.has(item.songId)
+            : item.type !== 'planning' || item.description.trim().length > 0,
+        ),
     ) &&
     !isSubmitting;
 
@@ -335,10 +802,7 @@ export function ShowBlockEditorDialog({
             <View style={styles.header}>
               <View style={styles.headerCopy}>
                 <AppText accessibilityRole="header" variant="heading">
-                  Editar blocos
-                </AppText>
-                <AppText tone="muted" variant="caption">
-                  Escolha um bloco e use Adicionar para montar a setlist.
+                  Editar setlist
                 </AppText>
               </View>
               <Pressable
@@ -353,71 +817,95 @@ export function ShowBlockEditorDialog({
               </Pressable>
             </View>
           ) : null}
-          <ScrollView
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-            style={[styles.scroll, fullScreen && styles.screenScroll]}
-          >
-            <View style={styles.editorToolbar}>
-              <View style={styles.toolbarCopy}>
-                <AppText tone="muted" variant="caption">
-                  Destino: {activeBlock?.name ?? 'nenhum bloco'}
+          <View style={styles.editorBody}>
+            <View
+              style={styles.totalDurationBar}
+              testID="setlist-total-duration"
+            >
+              <AppText style={styles.totalDuration}>
+                Tempo total:{' '}
+                {durations.totalMs === null
+                  ? 'Duração não informada'
+                  : formatShowDuration(durations.totalMs)}
+              </AppText>
+            </View>
+            <ScrollView
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+              onContentSizeChange={(_, height) => {
+                scrollContentHeightRef.current = height;
+              }}
+              onLayout={({ nativeEvent }) => {
+                scrollFrameYRef.current = nativeEvent.layout.y;
+                scrollViewportHeightRef.current = nativeEvent.layout.height;
+              }}
+              onScroll={({ nativeEvent }) => {
+                scrollOffsetYRef.current = nativeEvent.contentOffset.y;
+                updateDropTargetAfterScroll(nativeEvent.contentOffset.y);
+              }}
+              ref={scrollViewRef}
+              scrollEventThrottle={16}
+              testID="setlist-scroll-view"
+              style={[styles.scroll, fullScreen && styles.screenScroll]}
+            >
+              {blocks.map((block, index) => (
+                <BlockRow
+                  block={block}
+                  canDelete={blocks.length > 1}
+                  dragging={draggingBlockId === block.id}
+                  draggingItemId={draggingItem?.itemId ?? null}
+                  durationMs={durations.blockDurations.get(block.id) ?? null}
+                  index={index}
+                  isActive={activeBlockId === block.id}
+                  key={block.id}
+                  onCancelBlockDrag={cancelBlockDrag}
+                  onCancelItemDrag={cancelItemDrag}
+                  onChangeItem={(itemId, updater) =>
+                    updateItem(block.id, itemId, updater)
+                  }
+                  onChangeName={(name) =>
+                    updateBlock(block.id, (current) => ({ ...current, name }))
+                  }
+                  onDelete={() => requestDeleteBlock(block.id)}
+                  onEndBlockDrag={finishBlockDrag}
+                  onEndItemDrag={finishItemDrag}
+                  onMoveBlockDrag={moveBlockDragPreview}
+                  onMoveItemDrag={moveItemDrag}
+                  onRegisterBlockLayout={registerBlockLayout}
+                  onRegisterItemLayout={registerItemLayout}
+                  onRemoveItem={(itemId) => removeItem(block.id, itemId)}
+                  onSelect={() => setActiveBlockId(block.id)}
+                  onStartBlockDrag={startBlockDrag}
+                  onStartItemDrag={startItemDrag}
+                  songById={songById}
+                />
+              ))}
+              {errorMessage ? (
+                <AppText accessibilityRole="alert" style={styles.errorText}>
+                  {errorMessage}
                 </AppText>
-                <AppText tone="muted" variant="caption">
-                  Tempo total:{' '}
-                  {durations.totalMs === null
-                    ? 'Duração não informada'
-                    : formatShowDuration(durations.totalMs)}
+              ) : null}
+            </ScrollView>
+            {dragPreview ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.dragPreview,
+                  { height: dragPreview.height, top: dragPreview.top },
+                ]}
+                testID="setlist-drag-preview"
+              >
+                <AppIcon
+                  color={colors.violet}
+                  name={dragPreview.icon}
+                  size={18}
+                />
+                <AppText numberOfLines={1} style={styles.dragPreviewLabel}>
+                  {dragPreview.label}
                 </AppText>
               </View>
-              <AppButton
-                disabled={isSubmitting || !activeBlock}
-                icon="add"
-                label="Adicionar"
-                onPress={() => setAddSheetVisible(true)}
-                style={styles.compactButton}
-                variant="secondary"
-              />
-            </View>
-
-            {blocks.map((block, index) => (
-              <BlockRow
-                block={block}
-                canDelete={blocks.length > 1}
-                count={blocks.length}
-                dragging={draggingBlockId === block.id}
-                durationMs={durations.blockDurations.get(block.id) ?? null}
-                draggingItemId={
-                  draggingItem?.blockId === block.id
-                    ? draggingItem.itemId
-                    : null
-                }
-                index={index}
-                isActive={activeBlockId === block.id}
-                key={block.id}
-                onChangeItem={updateItem}
-                onChangeName={(id, name) =>
-                  updateBlock(id, (current) => ({ ...current, name }))
-                }
-                onMoveBlock={(source, target) =>
-                  setBlocks((current) => moveBlock(current, source, target))
-                }
-                onDelete={() => requestDeleteBlock(block.id)}
-                onMoveItem={moveItemWithinBlock}
-                onRemoveItem={removeItem}
-                onSelect={() => setActiveBlockId(block.id)}
-                onSetDragging={setDraggingBlockId}
-                onSetDraggingItem={setDraggingItem}
-                songById={songById}
-              />
-            ))}
-
-            {errorMessage ? (
-              <AppText accessibilityRole="alert" style={styles.errorText}>
-                {errorMessage}
-              </AppText>
             ) : null}
-          </ScrollView>
+          </View>
           <View style={styles.actions}>
             <AppButton
               disabled={isSubmitting}
@@ -433,76 +921,77 @@ export function ShowBlockEditorDialog({
               onPress={() => onSubmit(blocks)}
             />
           </View>
-          <OptionSheet
-            closeAccessibilityLabel="Continuar editando a setlist"
-            label="Descartar alterações?"
-            onClose={() => setDiscardVisible(false)}
-            testID="show-block-editor-discard-sheet"
-            visible={discardVisible}
-          >
-            <AppText tone="muted">
-              Você fez alterações na setlist. Quer sair sem salvar?
-            </AppText>
-            <AppButton
-              accessibilityLabel="Continuar editando"
-              label="Continuar editando"
-              onPress={() => setDiscardVisible(false)}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Descartar alterações"
-              icon="remove"
-              label="Descartar alterações"
-              onPress={() => {
-                setDiscardVisible(false);
-                onClose();
-              }}
-            />
-          </OptionSheet>
-          <OptionSheet
-            closeAccessibilityLabel="Cancelar exclusão do bloco"
-            label="Excluir bloco"
-            onClose={() => setDeleteBlockId(null)}
-            testID="show-block-editor-delete-block-sheet"
-            visible={deleteBlockId !== null}
-          >
-            <AppText tone="muted">
-              {blockToDelete
-                ? `“${blockToDelete.name}” e seus itens serão removidos da setlist quando você salvar.`
-                : 'Este bloco não está mais disponível.'}
-            </AppText>
-            <AppButton
-              label="Cancelar"
-              onPress={() => setDeleteBlockId(null)}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Confirmar exclusão do bloco"
-              disabled={!blockToDelete}
-              icon="remove"
-              label="Excluir bloco"
-              onPress={deleteBlock}
-            />
-          </OptionSheet>
         </View>
+        <OptionSheet
+          closeAccessibilityLabel="Continuar editando a setlist"
+          label="Descartar alterações?"
+          onClose={() => setDiscardVisible(false)}
+          testID="show-block-editor-discard-sheet"
+          visible={discardVisible}
+        >
+          <AppText tone="muted">
+            Você fez alterações na setlist. Quer sair sem salvar?
+          </AppText>
+          <AppButton
+            accessibilityLabel="Continuar editando"
+            label="Continuar editando"
+            onPress={() => setDiscardVisible(false)}
+            variant="secondary"
+          />
+          <AppButton
+            accessibilityLabel="Descartar alterações"
+            icon="remove"
+            label="Descartar alterações"
+            onPress={() => {
+              setDiscardVisible(false);
+              onClose();
+            }}
+          />
+        </OptionSheet>
+        <OptionSheet
+          closeAccessibilityLabel="Cancelar exclusão do bloco"
+          label="Excluir bloco"
+          onClose={() => setDeleteBlockId(null)}
+          testID="show-block-editor-delete-block-sheet"
+          visible={deleteBlockId !== null}
+        >
+          <AppText tone="muted">
+            {blockToDelete
+              ? `“${blockToDelete.name}” e seus itens serão removidos da setlist quando você salvar.`
+              : 'Este bloco não está mais disponível.'}
+          </AppText>
+          <AppButton
+            label="Cancelar"
+            onPress={() => setDeleteBlockId(null)}
+            variant="secondary"
+          />
+          <AppButton
+            accessibilityLabel="Confirmar exclusão do bloco"
+            disabled={!blockToDelete}
+            icon="remove"
+            label="Excluir bloco"
+            onPress={deleteBlock}
+          />
+        </OptionSheet>
       </KeyboardAvoidingView>
-
       <OptionSheet
         closeAccessibilityLabel="Fechar opções de inclusão"
         label="Adicionar à setlist"
-        onClose={() => setAddSheetVisible(false)}
+        onClose={() => onAddSheetVisibilityChange(false)}
+        showCloseButton
         visible={addSheetVisible}
       >
         <AppText tone="muted">
-          Os itens entram em “{activeBlock?.name ?? 'nenhum bloco'}”. Toque no
-          cabeçalho de outro bloco para trocar o destino.
+          Os itens entram em “{activeBlock?.name ?? 'nenhum bloco'}”.
         </AppText>
         <View style={styles.optionList}>
           <AppButton
             icon="musicAdd"
             label="Adicionar músicas"
             onPress={() => {
-              setAddSheetVisible(false);
+              onAddSheetVisibilityChange(false);
+              setSelectedSongIds([]);
+              setSongSearchText('');
               setSongSheetVisible(true);
             }}
             variant="secondary"
@@ -527,16 +1016,34 @@ export function ShowBlockEditorDialog({
           />
         </View>
       </OptionSheet>
-
       <OptionSheet
         closeAccessibilityLabel="Fechar seleção de músicas"
         label="Adicionar músicas"
         onClose={() => {
           setSelectedSongIds([]);
+          setSongSearchText('');
           setSongSheetVisible(false);
         }}
+        showCloseButton
         visible={songSheetVisible}
       >
+        <View style={styles.songPickerControls}>
+          <View style={styles.songPickerSearch}>
+            <SearchField
+              accessibilityLabel="Filtrar músicas para a setlist"
+              onChangeText={setSongSearchText}
+              placeholder="Buscar música ou artista"
+              value={songSearchText}
+            />
+          </View>
+          <AppButton
+            disabled={selectedSongIds.length === 0}
+            icon="check"
+            label="Adicionar"
+            onPress={addSelectedSongs}
+            style={styles.songPickerAddButton}
+          />
+        </View>
         <ScrollView
           contentContainerStyle={styles.songOptions}
           keyboardShouldPersistTaps="handled"
@@ -546,8 +1053,12 @@ export function ShowBlockEditorDialog({
             <AppText tone="muted">
               Nenhuma música ativa para incluir neste repertório.
             </AppText>
+          ) : filteredSongs.length === 0 ? (
+            <AppText tone="muted">
+              Nenhuma música encontrada para esse filtro.
+            </AppText>
           ) : (
-            songs.map((song) => {
+            filteredSongs.map((song) => {
               const selected = selectedSongIds.includes(song.id);
               return (
                 <Pressable
@@ -580,24 +1091,19 @@ export function ShowBlockEditorDialog({
                       </AppText>
                     ) : null}
                   </View>
-                  {selected ? (
-                    <AppIcon color={colors.violet} name="check" size={18} />
-                  ) : null}
+                  <View style={styles.songOptionMeta}>
+                    <AppText numberOfLines={1} tone="muted" variant="caption">
+                      {formatSongDuration(song.estimatedDurationMs)}
+                    </AppText>
+                    {selected ? (
+                      <AppIcon color={colors.violet} name="check" size={18} />
+                    ) : null}
+                  </View>
                 </Pressable>
               );
             })
           )}
         </ScrollView>
-        <AppButton
-          disabled={selectedSongIds.length === 0}
-          icon="check"
-          label={
-            selectedSongIds.length === 0
-              ? 'Selecione músicas'
-              : 'Adicionar ' + selectedSongIds.length + ' música(s)'
-          }
-          onPress={addSelectedSongs}
-        />
       </OptionSheet>
     </>
   );
@@ -619,123 +1125,138 @@ export function ShowBlockEditorDialog({
 function BlockRow({
   block,
   canDelete,
-  count,
   dragging,
   draggingItemId,
   durationMs,
   index,
   isActive,
+  onCancelBlockDrag,
+  onCancelItemDrag,
   onChangeItem,
   onChangeName,
   onDelete,
-  onMoveBlock,
-  onMoveItem,
+  onEndBlockDrag,
+  onEndItemDrag,
+  onMoveBlockDrag,
+  onMoveItemDrag,
+  onRegisterBlockLayout,
+  onRegisterItemLayout,
   onRemoveItem,
   onSelect,
-  onSetDragging,
-  onSetDraggingItem,
+  onStartBlockDrag,
+  onStartItemDrag,
   songById,
 }: {
   readonly block: ShowBlockDraft;
   readonly canDelete: boolean;
-  readonly count: number;
   readonly dragging: boolean;
   readonly draggingItemId: EntityId | null;
   readonly durationMs: number | null;
   readonly index: number;
   readonly isActive: boolean;
+  readonly onCancelBlockDrag: () => void;
+  readonly onCancelItemDrag: () => void;
   readonly onChangeItem: (
-    blockId: EntityId,
     itemId: EntityId,
     updater: (item: ShowSetlistItemDraft) => ShowSetlistItemDraft,
   ) => void;
-  readonly onChangeName: (id: string, name: string) => void;
+  readonly onChangeName: (name: string) => void;
   readonly onDelete: () => void;
-  readonly onMoveBlock: (sourceIndex: number, targetIndex: number) => void;
-  readonly onMoveItem: (
+  readonly onEndBlockDrag: () => void;
+  readonly onEndItemDrag: () => void;
+  readonly onMoveBlockDrag: (dy: number) => void;
+  readonly onMoveItemDrag: (dy: number) => void;
+  readonly onRegisterBlockLayout: (
+    blockId: EntityId,
+    layout: BlockLayout,
+  ) => void;
+  readonly onRegisterItemLayout: (
     blockId: EntityId,
     itemId: EntityId,
-    targetIndex: number,
+    localY: number,
+    height: number,
   ) => void;
-  readonly onRemoveItem: (blockId: EntityId, itemId: EntityId) => void;
+  readonly onRemoveItem: (itemId: EntityId) => void;
   readonly onSelect: () => void;
-  readonly onSetDragging: (blockId: string | null) => void;
-  readonly onSetDraggingItem: (
-    item: { readonly blockId: EntityId; readonly itemId: EntityId } | null,
-  ) => void;
+  readonly onStartBlockDrag: (blockId: EntityId) => void;
+  readonly onStartItemDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly songById: ReadonlyMap<string, Song>;
 }) {
-  const panResponder = createBlockPanResponder(
-    index,
-    count,
-    block.id,
-    onMoveBlock,
-    onSetDragging,
-  );
-
+  const panResponder = useBlockPanResponder({
+    blockId: block.id,
+    onCancelDrag: onCancelBlockDrag,
+    onEndDrag: onEndBlockDrag,
+    onMoveDrag: onMoveBlockDrag,
+    onStartDrag: onStartBlockDrag,
+  });
   return (
-    <View style={[styles.blockCard, isActive && styles.activeBlockCard]}>
+    <View
+      onStartShouldSetResponderCapture={() => {
+        onSelect();
+        return false;
+      }}
+      onLayout={({ nativeEvent }) =>
+        onRegisterBlockLayout(block.id, {
+          height: nativeEvent.layout.height,
+          y: nativeEvent.layout.y,
+        })
+      }
+      style={[styles.blockCard, isActive && styles.activeBlockCard]}
+      testID={'setlist-block-' + block.id}
+    >
       <View style={styles.blockHeader}>
+        <Pressable
+          accessibilityLabel={'Excluir bloco ' + block.name}
+          accessibilityRole="button"
+          disabled={!canDelete}
+          onPress={onDelete}
+          style={({ pressed }) => [
+            styles.iconButton,
+            !canDelete && styles.disabled,
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppIcon color={colors.violet} name="remove" size={17} />
+        </Pressable>
         <View style={styles.blockSelect}>
-          <TextInput
-            accessibilityLabel={'Nome do bloco ' + (index + 1)}
-            onChangeText={(name) => onChangeName(block.id, name)}
-            onFocus={onSelect}
-            placeholder="Nome do bloco"
-            placeholderTextColor={colors.muted}
-            style={styles.blockNameInput}
-            value={block.name}
-          />
-          <View style={styles.blockStatus}>
-            <Pressable
-              accessibilityLabel={'Selecionar bloco ' + block.name}
-              accessibilityRole="button"
-              onPress={onSelect}
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <AppText tone="muted" variant="caption">
-                {isActive ? 'Destino selecionado' : 'Toque para selecionar'}
-              </AppText>
-            </Pressable>
-            <AppText tone="muted" variant="caption">
-              {durationMs === null
-                ? 'Duração não informada'
-                : formatShowDuration(durationMs)}
-            </AppText>
+          <View style={styles.blockTitleRow}>
+            <AppIcon color={colors.violet} name="block" size={18} />
+            <TextInput
+              accessibilityLabel={'Nome do bloco ' + (index + 1)}
+              onChangeText={onChangeName}
+              onFocus={onSelect}
+              placeholder="Nome do bloco"
+              placeholderTextColor={colors.muted}
+              style={[styles.blockNameInput, styles.blockNameField]}
+              value={block.name}
+            />
           </View>
+          <AppText tone="muted" variant="caption">
+            {durationMs === null
+              ? 'Duração não informada'
+              : formatShowDuration(durationMs)}
+          </AppText>
         </View>
-        <View style={styles.blockActions}>
-          <Pressable
-            accessibilityLabel={'Excluir bloco ' + block.name}
-            accessibilityRole="button"
-            disabled={!canDelete}
-            onPress={onDelete}
-            style={({ pressed }) => [
-              styles.iconButton,
-              !canDelete && styles.disabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <AppIcon color={colors.violet} name="remove" size={17} />
-          </Pressable>
-          <View
-            accessibilityLabel={'Alça para mover o bloco ' + block.name}
-            accessibilityRole="button"
-            style={styles.dragHandleTouchTarget}
-            {...panResponder.panHandlers}
-          >
-            <View style={styles.dragHandle}>
-              <AppIcon
-                color={dragging ? colors.violet : colors.muted}
-                name="dragHandle"
-                size={18}
-                strokeWidth={2.5}
-              />
-            </View>
+        <View
+          accessible
+          accessibilityLabel={'Alça para mover o bloco ' + block.name}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isActive }}
+          onTouchStart={onSelect}
+          testID={'block-drag-handle-' + block.id}
+          style={styles.dragHandleTouchTarget}
+          {...panResponder}
+        >
+          <View style={[styles.dragHandle, styles.dragIconHitTest]}>
+            <AppIcon
+              color={dragging ? colors.violet : colors.muted}
+              name="dragHandle"
+              size={18}
+              strokeWidth={2.5}
+            />
           </View>
         </View>
       </View>
-
       {block.items.length === 0 ? (
         <AppText tone="muted" variant="caption">
           Bloco vazio. Use Adicionar para incluir itens.
@@ -744,17 +1265,19 @@ function BlockRow({
         block.items.map((item, itemIndex) => (
           <SetlistItemRow
             blockId={block.id}
-            count={block.items.length}
             dragging={draggingItemId === item.id}
             index={itemIndex}
             item={item}
             key={item.id}
-            onChange={(updater) => onChangeItem(block.id, item.id, updater)}
-            onMove={(targetIndex) => onMoveItem(block.id, item.id, targetIndex)}
-            onRemove={() => onRemoveItem(block.id, item.id)}
-            onSetDragging={(itemId) =>
-              onSetDraggingItem(itemId ? { blockId: block.id, itemId } : null)
+            onCancelDrag={onCancelItemDrag}
+            onChange={(updater) => onChangeItem(item.id, updater)}
+            onEndDrag={onEndItemDrag}
+            onMoveDrag={onMoveItemDrag}
+            onRegisterLayout={(itemId, localY, height) =>
+              onRegisterItemLayout(block.id, itemId, localY, height)
             }
+            onRemove={() => onRemoveItem(item.id)}
+            onStartDrag={onStartItemDrag}
             song={item.type === 'song' ? songById.get(item.songId) : undefined}
           />
         ))
@@ -765,48 +1288,71 @@ function BlockRow({
 
 function SetlistItemRow({
   blockId,
-  count,
   dragging,
   index,
   item,
+  onCancelDrag,
   onChange,
-  onMove,
+  onEndDrag,
+  onMoveDrag,
+  onRegisterLayout,
   onRemove,
-  onSetDragging,
+  onStartDrag,
   song,
 }: {
   readonly blockId: EntityId;
-  readonly count: number;
   readonly dragging: boolean;
   readonly index: number;
   readonly item: ShowSetlistItemDraft;
+  readonly onCancelDrag: () => void;
   readonly onChange: (
     updater: (item: ShowSetlistItemDraft) => ShowSetlistItemDraft,
   ) => void;
-  readonly onMove: (targetIndex: number) => void;
+  readonly onEndDrag: () => void;
+  readonly onMoveDrag: (dy: number) => void;
+  readonly onRegisterLayout: (
+    itemId: EntityId,
+    localY: number,
+    height: number,
+  ) => void;
   readonly onRemove: () => void;
-  readonly onSetDragging: (itemId: EntityId | null) => void;
+  readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly song?: Song;
 }) {
-  const panResponder = createItemPanResponder(
-    index,
-    count,
-    item.id,
-    onMove,
-    onSetDragging,
-  );
+  const panResponder = useItemPanResponder({
+    blockId,
+    itemId: item.id,
+    onCancelDrag,
+    onEndDrag,
+    onMoveDrag,
+    onStartDrag,
+  });
   const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
 
   if (item.type === 'separator') {
     return (
-      <View style={rowStyle}>
-        <ItemActions
-          dragging={dragging}
+      <View
+        onLayout={({ nativeEvent }) =>
+          onRegisterLayout(
+            item.id,
+            nativeEvent.layout.y,
+            nativeEvent.layout.height,
+          )
+        }
+        style={rowStyle}
+        testID={'setlist-item-row-' + item.id}
+      >
+        <ItemRemoveButton
           itemLabel={'separador ' + (index + 1)}
           onRemove={onRemove}
-          panHandlers={panResponder.panHandlers}
         />
         <View accessibilityLabel="Separador visual" style={styles.separator} />
+        <ItemDragHandle
+          dragging={dragging}
+          itemId={item.id}
+          itemLabel={'separador ' + (index + 1)}
+          panHandlers={panResponder}
+        />
       </View>
     );
   }
@@ -814,76 +1360,148 @@ function SetlistItemRow({
   if (item.type === 'planning') {
     const parts = getDurationParts(item.estimatedDurationMs);
     return (
-      <View style={[...rowStyle, styles.planningRow]}>
-        <ItemActions
-          dragging={dragging}
-          itemLabel={'planejamento ' + (index + 1)}
-          onRemove={onRemove}
-          panHandlers={panResponder.panHandlers}
-        />
-        <AppIcon color={colors.violet} name="planning" size={16} />
-        <View style={styles.itemFields}>
-          <TextInput
-            accessibilityLabel={'Descrição do planejamento ' + (index + 1)}
-            onChangeText={(description) =>
-              onChange((current) =>
-                current.type === 'planning'
-                  ? { ...current, description }
-                  : current,
-              )
-            }
-            placeholder="Ex.: Troca de instrumento"
-            placeholderTextColor={colors.muted}
-            style={styles.input}
-            value={item.description}
+      <View
+        onLayout={({ nativeEvent }) =>
+          onRegisterLayout(
+            item.id,
+            nativeEvent.layout.y,
+            nativeEvent.layout.height,
+          )
+        }
+        style={[...rowStyle, styles.planningRow]}
+        testID={'setlist-item-row-' + item.id}
+      >
+        <View style={styles.planningMainRow}>
+          <ItemRemoveButton
+            itemLabel={'planejamento ' + (index + 1)}
+            onRemove={onRemove}
           />
-          <View style={styles.durationRow}>
-            <AppText tone="muted" variant="caption">
-              Duração
-            </AppText>
-            <SpinButton
-              accessibilityLabel={'Minutos do planejamento ' + (index + 1)}
-              max={999}
-              onChangeText={(minutes) =>
+          <View style={[styles.itemContent, styles.planningItemContent]}>
+            <AppIcon color={colors.violet} name="planning" size={16} />
+            <TextInput
+              accessibilityLabel={'Descrição do planejamento ' + (index + 1)}
+              onChangeText={(description) =>
                 onChange((current) =>
                   current.type === 'planning'
-                    ? {
-                        ...current,
-                        estimatedDurationMs: toDurationMs(
-                          minutes,
-                          getDurationParts(current.estimatedDurationMs).seconds,
-                        ),
-                      }
+                    ? { ...current, description }
                     : current,
                 )
               }
-              value={parts.minutes}
+              placeholder="Ex.: Troca de instrumento"
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.planningDescription]}
+              value={item.description}
             />
-            <AppText tone="muted" variant="caption">
-              min
-            </AppText>
-            <SpinButton
-              accessibilityLabel={'Segundos do planejamento ' + (index + 1)}
-              max={59}
-              maxLength={2}
-              onChangeText={(seconds) =>
-                onChange((current) =>
-                  current.type === 'planning'
-                    ? {
-                        ...current,
-                        estimatedDurationMs: toDurationMs(
-                          getDurationParts(current.estimatedDurationMs).minutes,
-                          seconds,
-                        ),
-                      }
-                    : current,
-                )
-              }
-              value={parts.seconds}
-            />
-            <AppText tone="muted" variant="caption">
-              s
-            </AppText>
+          </View>
+          <ItemDragHandle
+            dragging={dragging}
+            itemId={item.id}
+            itemLabel={'planejamento ' + (index + 1)}
+            panHandlers={panResponder}
+          />
+        </View>
+        <View style={styles.planningDuration}>
+          <AppText tone="muted" variant="caption">
+            Duração
+          </AppText>
+          <View
+            style={styles.durationRow}
+            testID={'setlist-duration-controls-' + item.id}
+          >
+            <View style={styles.durationPart}>
+              <SpinButton
+                accessibilityLabel={'Horas do planejamento ' + (index + 1)}
+                max={99}
+                maxLength={2}
+                minWidth={76}
+                onChangeText={(hours) =>
+                  onChange((current) =>
+                    current.type === 'planning'
+                      ? {
+                          ...current,
+                          estimatedDurationMs: toDurationMs(
+                            hours,
+                            getDurationParts(current.estimatedDurationMs)
+                              .minutes,
+                            getDurationParts(current.estimatedDurationMs)
+                              .seconds,
+                          ),
+                        }
+                      : current,
+                  )
+                }
+                value={parts.hours}
+              />
+              <AppText
+                style={styles.durationUnit}
+                tone="muted"
+                variant="caption"
+              >
+                h
+              </AppText>
+            </View>
+            <View style={[styles.durationPart, styles.durationMinutesPart]}>
+              <SpinButton
+                accessibilityLabel={'Minutos do planejamento ' + (index + 1)}
+                max={59}
+                maxLength={2}
+                minWidth={76}
+                onChangeText={(minutes) =>
+                  onChange((current) =>
+                    current.type === 'planning'
+                      ? {
+                          ...current,
+                          estimatedDurationMs: toDurationMs(
+                            getDurationParts(current.estimatedDurationMs).hours,
+                            minutes,
+                            getDurationParts(current.estimatedDurationMs)
+                              .seconds,
+                          ),
+                        }
+                      : current,
+                  )
+                }
+                value={parts.minutes}
+              />
+              <AppText
+                style={styles.durationUnit}
+                tone="muted"
+                variant="caption"
+              >
+                min
+              </AppText>
+            </View>
+            <View style={styles.durationPart}>
+              <SpinButton
+                accessibilityLabel={'Segundos do planejamento ' + (index + 1)}
+                max={59}
+                maxLength={2}
+                minWidth={76}
+                onChangeText={(seconds) =>
+                  onChange((current) =>
+                    current.type === 'planning'
+                      ? {
+                          ...current,
+                          estimatedDurationMs: toDurationMs(
+                            getDurationParts(current.estimatedDurationMs).hours,
+                            getDurationParts(current.estimatedDurationMs)
+                              .minutes,
+                            seconds,
+                          ),
+                        }
+                      : current,
+                  )
+                }
+                value={parts.seconds}
+              />
+              <AppText
+                style={styles.durationUnit}
+                tone="muted"
+                variant="caption"
+              >
+                s
+              </AppText>
+            </View>
           </View>
         </View>
       </View>
@@ -891,144 +1509,205 @@ function SetlistItemRow({
   }
 
   return (
-    <View style={rowStyle}>
-      <ItemActions
-        dragging={dragging}
+    <View
+      onLayout={({ nativeEvent }) =>
+        onRegisterLayout(
+          item.id,
+          nativeEvent.layout.y,
+          nativeEvent.layout.height,
+        )
+      }
+      style={rowStyle}
+      testID={'setlist-item-row-' + item.id}
+    >
+      <ItemRemoveButton
         itemLabel={'música ' + (index + 1)}
         onRemove={onRemove}
-        panHandlers={panResponder.panHandlers}
       />
-      <AppIcon color={colors.violet} name="music" size={16} />
-      <View style={styles.itemFields}>
-        <AppText>{song?.title ?? 'Música indisponível'}</AppText>
-        {song?.originalArtist ? (
+      <View style={styles.itemContent}>
+        <AppIcon color={colors.violet} name="music" size={16} />
+        <View style={styles.itemFields}>
+          <AppText>{song?.title ?? 'Música indisponível'}</AppText>
+          {song?.originalArtist ? (
+            <AppText tone="muted" variant="caption">
+              {song.originalArtist}
+            </AppText>
+          ) : null}
           <AppText tone="muted" variant="caption">
-            {song.originalArtist}
+            Duração · {formatSongDuration(song?.estimatedDurationMs ?? null)}
           </AppText>
-        ) : null}
-        <TextInput
-          accessibilityLabel={'Observação da música ' + (index + 1)}
-          onChangeText={(notes) =>
-            onChange((current) =>
-              current.type === 'song'
-                ? { ...current, notes: notes.trim() || null }
-                : current,
-            )
-          }
-          placeholder="Observação opcional para este show"
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-          value={item.notes ?? ''}
+          <TextInput
+            accessibilityLabel={'Observação da música ' + (index + 1)}
+            onChangeText={(notes) =>
+              onChange((current) =>
+                current.type === 'song'
+                  ? { ...current, notes: notes.trim() || null }
+                  : current,
+              )
+            }
+            placeholder="Observação opcional para este show"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            value={item.notes ?? ''}
+          />
+        </View>
+      </View>
+      <ItemDragHandle
+        dragging={dragging}
+        itemId={item.id}
+        itemLabel={'música ' + (index + 1)}
+        panHandlers={panResponder}
+      />
+    </View>
+  );
+}
+
+function ItemRemoveButton({
+  itemLabel,
+  onRemove,
+}: {
+  readonly itemLabel: string;
+  readonly onRemove: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={'Remover ' + itemLabel}
+      accessibilityRole="button"
+      hitSlop={spacing.xs}
+      onPress={onRemove}
+      style={({ pressed }) => [
+        styles.itemRemoveButton,
+        pressed && styles.pressed,
+      ]}
+    >
+      <AppIcon color={colors.violet} name="remove" size={17} />
+    </Pressable>
+  );
+}
+
+function ItemDragHandle({
+  dragging,
+  itemId,
+  itemLabel,
+  panHandlers,
+}: {
+  readonly dragging: boolean;
+  readonly itemId: EntityId;
+  readonly itemLabel: string;
+  readonly panHandlers: PanResponderInstance['panHandlers'];
+}) {
+  return (
+    <View
+      accessible
+      accessibilityLabel={'Arrastar ' + itemLabel}
+      accessibilityRole="button"
+      hitSlop={spacing.xs}
+      testID={'item-drag-handle-' + itemId}
+      {...panHandlers}
+      style={[styles.itemDragButton, dragging && styles.draggingHandle]}
+    >
+      <View style={styles.dragIconHitTest}>
+        <AppIcon
+          color={dragging ? colors.violet : colors.muted}
+          name="dragHandle"
+          size={18}
         />
       </View>
     </View>
   );
 }
 
-function ItemActions({
-  dragging,
-  itemLabel,
-  onRemove,
-  panHandlers,
-}: {
-  readonly dragging: boolean;
-  readonly itemLabel: string;
-  readonly onRemove: () => void;
-  readonly panHandlers: PanResponderInstance['panHandlers'];
-}) {
-  return (
-    <View style={styles.itemActions}>
-      <Pressable
-        accessibilityLabel={'Remover ' + itemLabel}
-        accessibilityRole="button"
-        hitSlop={spacing.xs}
-        onPress={onRemove}
-        style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
-      >
-        <AppIcon color={colors.violet} name="remove" size={17} />
-      </Pressable>
-      <Pressable
-        accessibilityLabel={'Arrastar ' + itemLabel}
-        accessibilityRole="button"
-        hitSlop={spacing.xs}
-        {...panHandlers}
-        style={({ pressed }) => [
-          styles.iconButton,
-          dragging && styles.draggingHandle,
-          pressed && styles.pressed,
-        ]}
-      >
-        <AppIcon
-          color={dragging ? colors.violet : colors.muted}
-          name="dragHandle"
-          size={18}
-        />
-      </Pressable>
-    </View>
-  );
+interface StablePanResponderCallbacks {
+  readonly onCancelDrag: () => void;
+  readonly onEndDrag: () => void;
+  readonly onMoveDrag: (dy: number) => void;
+  readonly onStartDrag: () => void;
 }
 
-function createItemPanResponder(
-  index: number,
-  count: number,
-  itemId: EntityId,
-  onMove: (targetIndex: number) => void,
-  onSetDragging: (itemId: EntityId | null) => void,
-) {
-  let startIndex = index;
-  let currentIndex = index;
+class StablePanResponder {
+  private callbacks: StablePanResponderCallbacks;
+  private dragStarted = false;
+  readonly panHandlers: PanResponderInstance['panHandlers'];
 
-  return PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
-    onPanResponderGrant: () => {
-      startIndex = index;
-      currentIndex = index;
-      onSetDragging(itemId);
-    },
-    onPanResponderMove: (_, gesture) => {
-      const targetIndex = Math.max(
-        0,
-        Math.min(count - 1, startIndex + Math.round(gesture.dy / 56)),
-      );
-      if (targetIndex === currentIndex) return;
-      onMove(targetIndex);
-      currentIndex = targetIndex;
-    },
-    onPanResponderRelease: () => onSetDragging(null),
-    onPanResponderTerminate: () => onSetDragging(null),
-    onStartShouldSetPanResponder: () => true,
+  constructor(callbacks: StablePanResponderCallbacks) {
+    this.callbacks = callbacks;
+    this.panHandlers = PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 2,
+      onMoveShouldSetPanResponderCapture: (_, gesture) =>
+        Math.abs(gesture.dy) > 2,
+      onPanResponderGrant: () => this.beginDrag(),
+      onPanResponderMove: (_, gesture) => this.callbacks.onMoveDrag(gesture.dy),
+      onPanResponderRelease: () => this.finishDrag(false),
+      onPanResponderTerminate: () => this.finishDrag(true),
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => true,
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
+    }).panHandlers;
+  }
+
+  updateCallbacks(callbacks: StablePanResponderCallbacks) {
+    this.callbacks = callbacks;
+  }
+
+  private beginDrag() {
+    if (this.dragStarted) return;
+    this.dragStarted = true;
+    this.callbacks.onStartDrag();
+  }
+
+  private finishDrag(cancelled: boolean) {
+    if (!this.dragStarted) return;
+    this.dragStarted = false;
+    if (cancelled) {
+      this.callbacks.onCancelDrag();
+      return;
+    }
+    this.callbacks.onEndDrag();
+  }
+}
+
+function useStablePanResponder(callbacks: StablePanResponderCallbacks) {
+  const [responder] = useState(() => new StablePanResponder(callbacks));
+  useLayoutEffect(() => {
+    responder.updateCallbacks(callbacks);
+  }, [callbacks, responder]);
+  return responder.panHandlers;
+}
+
+function useItemPanResponder(callbacks: ItemPanResponderCallbacks) {
+  return useStablePanResponder({
+    onCancelDrag: callbacks.onCancelDrag,
+    onEndDrag: callbacks.onEndDrag,
+    onMoveDrag: callbacks.onMoveDrag,
+    onStartDrag: () =>
+      callbacks.onStartDrag(callbacks.blockId, callbacks.itemId),
   });
 }
 
-function createBlockPanResponder(
-  index: number,
-  count: number,
-  blockId: string,
-  onMove: (sourceIndex: number, targetIndex: number) => void,
-  onSetDragging: (blockId: string | null) => void,
-) {
-  let startIndex = index;
-  let currentIndex = index;
+interface ItemPanResponderCallbacks {
+  readonly blockId: EntityId;
+  readonly itemId: EntityId;
+  readonly onCancelDrag: () => void;
+  readonly onEndDrag: () => void;
+  readonly onMoveDrag: (dy: number) => void;
+  readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
+}
 
-  return PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
-    onPanResponderGrant: () => {
-      startIndex = index;
-      currentIndex = index;
-      onSetDragging(blockId);
-    },
-    onPanResponderMove: (_, gesture) => {
-      const targetIndex = Math.max(
-        0,
-        Math.min(count - 1, startIndex + Math.round(gesture.dy / 64)),
-      );
-      if (targetIndex === currentIndex) return;
-      onMove(currentIndex, targetIndex);
-      currentIndex = targetIndex;
-    },
-    onPanResponderRelease: () => onSetDragging(null),
-    onPanResponderTerminate: () => onSetDragging(null),
-    onStartShouldSetPanResponder: () => true,
+interface BlockPanResponderCallbacks {
+  readonly blockId: EntityId;
+  readonly onCancelDrag: () => void;
+  readonly onEndDrag: () => void;
+  readonly onMoveDrag: (dy: number) => void;
+  readonly onStartDrag: (blockId: EntityId) => void;
+}
+
+function useBlockPanResponder(callbacks: BlockPanResponderCallbacks) {
+  return useStablePanResponder({
+    onCancelDrag: callbacks.onCancelDrag,
+    onEndDrag: callbacks.onEndDrag,
+    onMoveDrag: callbacks.onMoveDrag,
+    onStartDrag: () => callbacks.onStartDrag(callbacks.blockId),
   });
 }
 
@@ -1060,11 +1739,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: 'space-between',
   },
-  blockActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
   blockNameInput: {
     backgroundColor: colors.surface,
     borderColor: colors.line,
@@ -1079,17 +1753,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minWidth: 0,
   },
+  blockTitleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  blockNameField: {
+    flex: 1,
+    minWidth: 0,
+  },
   closeButton: {
     alignItems: 'center',
     borderRadius: radii.pill,
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
-  },
-  compactButton: {
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
   },
   content: {
     gap: spacing.md,
@@ -1098,14 +1776,11 @@ const styles = StyleSheet.create({
   dialog: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
+    boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)',
     elevation: 8,
     maxHeight: '92%',
     maxWidth: 720,
     overflow: 'hidden',
-    shadowColor: colors.ink,
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
     width: '94%',
   },
   dragHandle: {
@@ -1126,6 +1801,31 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     paddingHorizontal: spacing.xs,
   },
+  dragPreview: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.violet,
+    borderRadius: radii.md,
+    borderWidth: 2,
+    boxShadow: '0px 4px 8px rgba(23, 32, 51, 0.18)',
+    elevation: 8,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    left: spacing.xl,
+    opacity: 0.94,
+    paddingHorizontal: spacing.md,
+    position: 'absolute',
+    right: spacing.xl,
+    pointerEvents: 'none',
+    zIndex: 20,
+  },
+  dragPreviewLabel: {
+    flex: 1,
+    minWidth: 0,
+  },
+  dragIconHitTest: {
+    pointerEvents: 'none',
+  },
   dragHandleTouchTarget: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -1137,20 +1837,46 @@ const styles = StyleSheet.create({
   },
   durationRow: {
     alignItems: 'center',
+    alignSelf: 'stretch',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
+    flexWrap: 'nowrap',
+    gap: 2,
+    width: '100%',
   },
-  editorToolbar: {
+  durationPart: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'space-between',
+    flexShrink: 1,
+    gap: 2,
+    minWidth: 0,
   },
-  blockStatus: {
-    alignItems: 'flex-end',
-    gap: spacing.xs,
+  durationMinutesPart: {
+    flex: 1.2,
+  },
+  durationUnit: {
+    flexShrink: 0,
+  },
+  editorBody: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+  },
+  modalBody: {
+    position: 'relative',
+  },
+  totalDurationBar: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderBottomColor: colors.line,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.xl,
+  },
+  totalDuration: {
+    fontSize: 16,
+    fontWeight: '700',
   },
   errorText: { color: colors.amber },
   toolbarCopy: {
@@ -1179,10 +1905,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  itemActions: {
-    alignItems: 'center',
+  itemContent: {
+    alignItems: 'flex-start',
+    flex: 1,
     flexDirection: 'row',
-    gap: spacing.xs,
+    gap: spacing.sm,
+    minWidth: 0,
+  },
+  itemDragButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderRadius: radii.pill,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  itemRemoveButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderRadius: radii.pill,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
   },
   itemFields: {
     flex: 1,
@@ -1213,29 +1957,59 @@ const styles = StyleSheet.create({
   },
   optionList: { gap: spacing.sm },
   planningRow: {
+    alignItems: 'stretch',
     borderRadius: radii.md,
-    padding: spacing.sm,
+    flexDirection: 'column',
+    gap: spacing.sm,
+    paddingHorizontal: 0,
+    paddingVertical: spacing.sm,
+  },
+  planningMainRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  planningItemContent: {
+    gap: spacing.xs,
+  },
+  planningDescription: {
+    flex: 1,
+    minWidth: 0,
+  },
+  planningDuration: {
+    gap: spacing.xs,
   },
   pressed: { opacity: 0.72 },
   scrim: { ...StyleSheet.absoluteFill },
   screenDialog: {
+    alignSelf: 'stretch',
     borderRadius: 0,
     flex: 1,
     elevation: 0,
+    minHeight: 0,
     maxHeight: '100%',
     maxWidth: '100%',
-    shadowOpacity: 0,
+    boxShadow: 'none',
     width: '100%',
   },
   screenLayer: {
+    alignSelf: 'stretch',
     backgroundColor: colors.surface,
     flex: 1,
+    minHeight: 0,
+    width: '100%',
   },
   screenRoot: {
     flex: 1,
+    minHeight: 0,
+    width: '100%',
   },
   screenScroll: {
     flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 0,
+    width: '100%',
   },
   scroll: { flexGrow: 0 },
   separator: {
@@ -1245,6 +2019,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginVertical: spacing.sm,
     opacity: 0.42,
+  },
+  songPickerControls: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  songPickerSearch: {
+    flex: 1,
+    minWidth: 0,
+  },
+  songPickerAddButton: {
+    flexShrink: 0,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
   },
   songOption: {
     alignItems: 'center',
@@ -1259,6 +2047,13 @@ const styles = StyleSheet.create({
   },
   songOptionCopy: {
     flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  songOptionMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 0,
     gap: spacing.xs,
   },
   songOptionSelected: {

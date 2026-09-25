@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/list-controls/OptionSheet';
 import type { OptionMenuProps } from '@/components/ui/list-controls/types';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 export function OptionMenu<Value extends string>({
   active = false,
@@ -53,6 +54,7 @@ export function OptionMenu<Value extends string>({
                 accessibilityState={{ checked: selected }}
                 key={option.value}
                 onPress={() => {
+                  blurWebFocus();
                   onChange(option.value);
                   close();
                 }}

@@ -1,5 +1,6 @@
 import type { Href } from 'expo-router';
 import type { PropsWithChildren, ReactNode } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 import { useBand } from '@/data/queries';
 import type { EntityId } from '@/domain';
@@ -22,6 +23,7 @@ interface BandAreaLayoutProps extends PropsWithChildren {
   readonly activeSection: BandSection;
   readonly backHref?: Href;
   readonly bandId: EntityId;
+  readonly contentStyle?: StyleProp<ViewStyle>;
   readonly currentRoute: string;
   readonly editActions?: EditActions;
   readonly fixedContent?: ReactNode;
@@ -38,6 +40,7 @@ export function BandAreaLayout({
   backHref,
   bandId,
   children,
+  contentStyle,
   currentRoute,
   editActions,
   fixedContent,
@@ -57,6 +60,7 @@ export function BandAreaLayout({
       backHref={backHref}
       bandId={bandId}
       bandName={bandName}
+      contentStyle={contentStyle}
       currentRoute={currentRoute}
       editActions={editActions}
       fixedContent={fixedContent}

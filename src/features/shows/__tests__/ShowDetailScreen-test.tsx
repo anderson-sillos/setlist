@@ -1,4 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -42,6 +43,21 @@ describe('<ShowDetailScreen />', () => {
     expect(view.queryByText('Planejamento')).toBeNull();
     expect(view.getAllByLabelText('Anotação de planejamento')).toHaveLength(3);
     expect(view.getByLabelText('Separador visual')).toBeTruthy();
+    for (const number of ['1.', '2.', '3.', '4.', '5.']) {
+      expect(view.getByText(number)).toBeTruthy();
+    }
+    expect(view.queryByText('6.')).toBeNull();
+    const planningRow = view.getByTestId(
+      'show-planning-item-show-item-festival-afinacao',
+    );
+    const songRow = view.getByTestId('show-song-item-show-item-festival-chuva');
+    expect(
+      StyleSheet.flatten(planningRow.props.style).backgroundColor,
+    ).toBeUndefined();
+    expect(StyleSheet.flatten(planningRow.props.style).padding).toBeUndefined();
+    expect(
+      StyleSheet.flatten(songRow.props.style).borderTopWidth,
+    ).toBeUndefined();
     expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
   });
 
@@ -57,12 +73,39 @@ describe('<ShowDetailScreen />', () => {
 
     expect(await view.findByText('Noite no Clube')).toBeTruthy();
     expect(view.getByTestId('show-setlist-header')).toBeTruthy();
+    expect(view.getByText('Editar setlist')).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Editar setlist'));
 
     expect(mockPush).toHaveBeenCalledWith(
       '/bands/band-demo-horizonte/shows/show-demo-clube/edit',
     );
+  });
+
+  it('concentra as ações do show no popup de mais opções', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowDetailScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Noite no Clube');
+    await fireEvent.press(view.getByLabelText('Mais opções do show'));
+
+    expect(view.getByTestId('show-detail-actions-sheet')).toBeTruthy();
+    expect(view.getByLabelText('Editar show')).toBeTruthy();
+    expect(view.getByLabelText('Duplicar show')).toBeTruthy();
+    expect(view.getByLabelText('Marcar como Pronto')).toBeTruthy();
+    expect(view.getByLabelText('Cancelar show')).toBeTruthy();
+    expect(view.getByLabelText('Excluir show')).toBeTruthy();
+    expect(view.getByLabelText('Fechar mais opções do show')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Fechar mais opções do show'));
+
+    expect(view.queryByTestId('show-detail-actions-sheet')).toBeNull();
   });
 
   it('apresenta as transições de status disponíveis para quem edita', async () => {
@@ -76,14 +119,10 @@ describe('<ShowDetailScreen />', () => {
     );
 
     await view.findByText('Festival da Praça');
-    await fireEvent.press(view.getByLabelText('Alterar status do show'));
-
-    expect(view.getByText('Status do show')).toBeTruthy();
-    expect(view.getByLabelText('Reabrir para edição')).toBeTruthy();
-    expect(view.getByLabelText('Cancelar show')).toBeTruthy();
-
+    await fireEvent.press(view.getByLabelText('Mais opções do show'));
     await fireEvent.press(view.getByLabelText('Reabrir para edição'));
 
+    expect(view.getByText('Status do show')).toBeTruthy();
     expect(view.getByLabelText('Confirmar Reabrir para edição')).toBeTruthy();
   });
 
@@ -98,7 +137,7 @@ describe('<ShowDetailScreen />', () => {
     );
 
     await view.findByText('Noite no Clube');
-    await fireEvent.press(view.getByLabelText('Alterar status do show'));
+    await fireEvent.press(view.getByLabelText('Mais opções do show'));
     await fireEvent.press(view.getByLabelText('Marcar como Pronto'));
 
     expect(view.getByText('Verificação das letras')).toBeTruthy();

@@ -325,8 +325,11 @@ describe('<SongEditorScreen />', () => {
       bandId,
       songId,
     });
+    expect(await view.findByText('Música arquivada')).toBeTruthy();
     expect(
-      await view.findByText(/Música arquivada\. Ela não aparecerá/i),
+      view.getByText(
+        'Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
+      ),
     ).toBeTruthy();
   });
 
@@ -349,6 +352,7 @@ describe('<SongEditorScreen />', () => {
       bandId,
       songId,
     });
+    expect(await view.findByText('Música restaurada')).toBeTruthy();
   });
 
   it('remove definitivamente uma música sem referências em shows', async () => {

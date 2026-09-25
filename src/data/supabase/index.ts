@@ -41,6 +41,7 @@ export {
 } from '@/data/supabase/showRepository';
 export {
   createShow,
+  deleteShow,
   duplicateShow,
   ShowMutationError,
 } from '@/data/supabase/showMutations';

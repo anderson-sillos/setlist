@@ -77,6 +77,7 @@ function createMutableBandRepositories() {
   const owner: BandMember = {
     bandId: 'band-real',
     displayName: 'Owner Real',
+    email: 'owner@example.test',
     id: 'membership-real',
     joinedAt: '2026-09-01T12:00:00.000Z',
     role: 'owner',
@@ -85,6 +86,7 @@ function createMutableBandRepositories() {
   const member: BandMember = {
     bandId: 'band-real',
     displayName: 'Membro Real',
+    email: 'membro@example.test',
     id: 'membership-member',
     joinedAt: '2026-09-02T12:00:00.000Z',
     role: 'member',
@@ -175,6 +177,19 @@ describe('<BandScreen />', () => {
     mockListInvitations.mockResolvedValue([]);
     mockUpdateBandMemberRole.mockResolvedValue(undefined);
     mockLeaveBand.mockResolvedValue(undefined);
+  });
+
+  it('mostra o e-mail no lugar do papel repetido na linha do integrante', async () => {
+    const { repositories } = createMutableBandRepositories();
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Membro Real')).toBeTruthy();
+    expect(view.getByText('membro@example.test')).toBeTruthy();
+    expect(view.queryByText('Integrante')).toBeNull();
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {

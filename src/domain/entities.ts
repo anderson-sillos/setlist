@@ -15,6 +15,7 @@ export interface BandMember {
   readonly bandId: EntityId;
   readonly userId: EntityId;
   readonly displayName: string;
+  readonly email?: string | null;
   readonly avatarUrl?: string | null;
   readonly role: BandRole;
   readonly joinedAt: IsoDateTime;

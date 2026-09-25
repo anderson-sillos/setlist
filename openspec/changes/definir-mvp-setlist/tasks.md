@@ -57,6 +57,7 @@
 - [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
   - [x] 5.4.1 Atualizar os caches de participações e detalhes após a criação e verificar que o Owner vê as opções de manutenção ao abrir a nova banda
 - [x] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
+  - [x] 5.5.1 Mostrar o e-mail disponível do perfil na linha de cada integrante em vez de repetir seu papel já indicado pelo grupo; verificar o valor e o caso sem e-mail
 - [x] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4, descartando contexto obsoleto após a aceitação e exibindo a data de aceite em vez da expiração quando disponível
   - [x] 5.6.1 Detectar o replay do deep link de um convite já aceito pela mesma pessoa, remover a rota obsoleta para direcionar a `Minhas bandas` e manter indisponível um convite consumido por outra pessoa
   - [x] 5.6.2 Na lista de convites, substituir a data de expiração pela data de aceite para convites utilizados e não exibir data quando `used_at` estiver ausente; verificar ambos os casos

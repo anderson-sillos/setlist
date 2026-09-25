@@ -9,6 +9,7 @@ import {
   OptionSheet,
 } from '@/components/ui/list-controls/OptionSheet';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface FilterMenuProps {
   readonly active?: boolean;
@@ -55,6 +56,7 @@ export function FilterMenu({
               accessibilityLabel="Limpar filtros"
               accessibilityRole="button"
               onPress={() => {
+                blurWebFocus();
                 onClear();
                 close();
               }}
@@ -69,7 +71,10 @@ export function FilterMenu({
           <Pressable
             accessibilityLabel="Aplicar filtros"
             accessibilityRole="button"
-            onPress={close}
+            onPress={() => {
+              blurWebFocus();
+              close();
+            }}
             style={({ pressed }) => [
               styles.applyButton,
               pressed && styles.pressed,

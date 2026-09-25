@@ -141,6 +141,7 @@ function toBandMember(
     bandId: membership.band_id,
     avatarUrl: profile?.avatar_url ?? null,
     displayName: profile?.display_name ?? profile?.email ?? 'Usuário removido',
+    email: profile?.email ?? null,
     id: membership.id,
     joinedAt: membership.joined_at,
     role: membership.role,
