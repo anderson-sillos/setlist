@@ -337,6 +337,7 @@ export function ShowsScreen({
         <LoadingFeedback variation={1} />
       ) : null}
       <ShowCreationDialog
+        calendarShows={calendarShows}
         key={`${state.date || 'new-show'}-${creationInstance}`}
         errorMessage={creationError}
         initialDate={state.date || undefined}

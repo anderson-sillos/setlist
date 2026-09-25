@@ -185,9 +185,18 @@ describe('<ShowsScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Criar novo show'));
     expect(view.getByTestId('show-creation-dialog')).toBeTruthy();
-    expect(view.getByLabelText('Data do show')).toHaveDisplayValue(
-      '2026-09-19',
+    expect(view.getByLabelText('Selecionar data do show')).toBeTruthy();
+    expect(view.getAllByText('19 set 2026').length).toBeGreaterThanOrEqual(2);
+    expect(view.getByLabelText('Hora do show')).toBeTruthy();
+    expect(view.getByLabelText('Minutos do show')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Selecionar data do show'));
+    expect(view.getByTestId('shows-month-calendar')).toBeTruthy();
+    expect(view.getByLabelText(/19 de setembro de 2026, 2 shows/)).toBeTruthy();
+    await fireEvent.press(
+      view.getByLabelText('19 de setembro de 2026, 2 shows'),
     );
+    expect(view.queryByTestId('shows-month-calendar')).toBeNull();
 
     await fireEvent.press(view.getByLabelText(/Remover filtro de data/));
     expect(

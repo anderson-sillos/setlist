@@ -11,8 +11,13 @@ import {
 } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
+import type { Show } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { SpinButton } from '@/components/ui/SpinButton';
+import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
+import { MonthCalendar } from '@/features/calendar/MonthCalendar';
+import { formatDateFilter } from '@/utils/dateTime';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 export interface ShowCreationForm {
@@ -24,6 +29,7 @@ export interface ShowCreationForm {
 }
 
 interface ShowCreationDialogProps {
+  readonly calendarShows?: readonly Show[];
   readonly errorMessage: string | null;
   readonly description?: string;
   readonly initialValues?: Partial<ShowCreationForm>;
@@ -43,7 +49,17 @@ function localDateKey(date: Date) {
   return [year, month, day].join('-');
 }
 
+function getTimeParts(time: string) {
+  const [hours = '', minutes = ''] = time.split(':');
+  return { hours, minutes };
+}
+
+function normalizeTimePart(value: string) {
+  return value.trim() ? value.padStart(2, '0') : '';
+}
+
 export function ShowCreationDialog({
+  calendarShows = [],
   description = 'Cadastre a data e o local. O show começa como Rascunho para você montar o setlist depois.',
   errorMessage,
   initialDate,
@@ -55,6 +71,7 @@ export function ShowCreationDialog({
   onSubmit,
   visible,
 }: ShowCreationDialogProps) {
+  const [calendarVisible, setCalendarVisible] = useState(false);
   const [form, setForm] = useState<ShowCreationForm>(() => ({
     date: initialValues?.date ?? initialDate ?? localDateKey(new Date()),
     name: initialValues?.name ?? '',
@@ -65,10 +82,25 @@ export function ShowCreationDialog({
 
   const setField = (field: keyof ShowCreationForm, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
+  const { hours, minutes } = getTimeParts(form.time);
+  const validTime =
+    /^\d{1,2}$/.test(hours) &&
+    /^\d{1,2}$/.test(minutes) &&
+    Number(hours) <= 23 &&
+    Number(minutes) <= 59;
+  const setTimePart = (part: 'hours' | 'minutes', value: string) => {
+    const current = getTimeParts(form.time);
+    const nextHours = part === 'hours' ? value : current.hours;
+    const nextMinutes = part === 'minutes' ? value : current.minutes;
+    setField(
+      'time',
+      `${normalizeTimePart(nextHours)}:${normalizeTimePart(nextMinutes)}`,
+    );
+  };
   const canSubmit =
     form.name.trim().length > 0 &&
     form.date.trim().length > 0 &&
-    form.time.trim().length > 0 &&
+    validTime &&
     form.venue.trim().length > 0 &&
     !isSubmitting;
 
@@ -125,24 +157,50 @@ export function ShowCreationDialog({
               value={form.name}
             />
             <View style={styles.row}>
-              <Field
-                containerStyle={styles.halfField}
-                keyboardType="numbers-and-punctuation"
-                label="Data"
-                accessibilityLabel="Data do show"
-                onChangeText={(value) => setField('date', value)}
-                placeholder="AAAA-MM-DD"
-                value={form.date}
-              />
-              <Field
-                containerStyle={styles.halfField}
-                keyboardType="numbers-and-punctuation"
-                label="Horário"
-                accessibilityLabel="Horário do show"
-                onChangeText={(value) => setField('time', value)}
-                placeholder="HH:MM"
-                value={form.time}
-              />
+              <View style={[styles.fieldGroup, styles.halfField]}>
+                <AppText variant="caption">Data</AppText>
+                <Pressable
+                  accessibilityLabel="Selecionar data do show"
+                  accessibilityRole="button"
+                  disabled={isSubmitting}
+                  onPress={() => setCalendarVisible(true)}
+                  style={({ pressed }) => [
+                    styles.dateButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon color={colors.violet} name="shows" size={18} />
+                  <AppText numberOfLines={1} style={styles.dateButtonText}>
+                    {formatDateFilter(form.date)}
+                  </AppText>
+                </Pressable>
+              </View>
+              <View style={[styles.fieldGroup, styles.halfField]}>
+                <AppText variant="caption">Horário</AppText>
+                <View style={styles.timeRow}>
+                  <SpinButton
+                    accessibilityLabel="Hora do show"
+                    decrementLabel="Diminuir hora do show"
+                    incrementLabel="Aumentar hora do show"
+                    max={23}
+                    maxLength={2}
+                    onChangeText={(value) => setTimePart('hours', value)}
+                    value={hours}
+                  />
+                  <AppText tone="muted" variant="heading">
+                    :
+                  </AppText>
+                  <SpinButton
+                    accessibilityLabel="Minutos do show"
+                    decrementLabel="Diminuir minutos do show"
+                    incrementLabel="Aumentar minutos do show"
+                    max={59}
+                    maxLength={2}
+                    onChangeText={(value) => setTimePart('minutes', value)}
+                    value={minutes}
+                  />
+                </View>
+              </View>
             </View>
             <Field
               label="Local"
@@ -165,6 +223,23 @@ export function ShowCreationDialog({
               </AppText>
             ) : null}
           </ScrollView>
+          <OptionSheet
+            closeAccessibilityLabel="Fechar calendário da data do show"
+            label="Escolher data do show"
+            onClose={() => setCalendarVisible(false)}
+            visible={calendarVisible}
+          >
+            <MonthCalendar
+              key={form.date}
+              initialDate={new Date()}
+              onSelectDate={(dateKey) => {
+                setField('date', dateKey);
+                setCalendarVisible(false);
+              }}
+              selectedDateKey={form.date}
+              shows={calendarShows}
+            />
+          </OptionSheet>
           <View style={styles.actions}>
             <AppButton
               disabled={isSubmitting}
@@ -256,7 +331,7 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: spacing.xs },
   formContent: { gap: spacing.lg, padding: spacing.xl },
   formScroll: { flexGrow: 0 },
-  halfField: { flex: 1, minWidth: 130 },
+  halfField: { flex: 1, minWidth: 180 },
   header: {
     alignItems: 'center',
     borderBottomColor: colors.line,
@@ -266,6 +341,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
+  dateButton: {
+    alignItems: 'center',
+    backgroundColor: colors.paper,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.md,
+  },
+  dateButtonText: { flex: 1 },
   input: {
     backgroundColor: colors.paper,
     borderColor: colors.line,
@@ -286,5 +373,6 @@ const styles = StyleSheet.create({
   multilineInput: { minHeight: 96, textAlignVertical: 'top' },
   pressed: { opacity: 0.72 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  timeRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.xs },
   scrim: { ...StyleSheet.absoluteFill },
 });
