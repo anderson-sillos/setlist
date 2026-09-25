@@ -162,6 +162,7 @@ export function BandsScreen({
       }
       headerAction={{
         accessibilityLabel: 'Criar banda',
+        icon: 'bandAdd',
         label: 'Criar banda',
         onPress: openCreationDialog,
       }}

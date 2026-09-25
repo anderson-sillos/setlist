@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/data/supabase/client';
+import { isDemoBandId } from '@/data/demo';
 import type {
   Band,
   BandMember,
@@ -219,6 +220,10 @@ export class SupabaseBandRepository implements BandRepository {
   }
 
   async findById(bandId: EntityId): Promise<Band | null> {
+    if (isDemoBandId(bandId)) {
+      return this.demoRepository?.findById(bandId) ?? null;
+    }
+
     const { data, error } = await getSupabaseClient()
       .from('bands')
       .select('id, name, created_at, updated_at')
@@ -237,6 +242,10 @@ export class SupabaseBandRepository implements BandRepository {
   }
 
   async listMembers(bandId: EntityId): Promise<readonly BandMember[]> {
+    if (isDemoBandId(bandId)) {
+      return this.demoRepository?.listMembers(bandId) ?? [];
+    }
+
     const { data, error } = await getSupabaseClient()
       .from('band_members')
       .select('id, band_id, user_id, role, joined_at')

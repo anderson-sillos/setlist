@@ -1,8 +1,28 @@
+import { getCurrentBandTermAcceptance } from '@/data/supabase/legalTermMutations';
 import { useQuery } from '@tanstack/react-query';
 
-import type { EntityId } from '@/domain';
+import type { EntityId, Song } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
+
+export function useCurrentBandTermAcceptance(
+  bandId: EntityId,
+  termVersion: string,
+  enabled = true,
+) {
+  const { currentUserId } = useAppData();
+
+  return useQuery({
+    enabled,
+    queryKey: ['bands', bandId, 'term-acceptance', currentUserId, termVersion],
+    queryFn: () =>
+      getCurrentBandTermAcceptance({
+        bandId,
+        termVersion,
+        userId: currentUserId,
+      }),
+  });
+}
 
 export function useUserBands() {
   const { currentUserId, repositories } = useAppData();
@@ -27,6 +47,30 @@ export function useUserBandSummaries() {
           shows: await repositories.shows.listByBandId(userBand.band.id),
         })),
       );
+    },
+  });
+}
+
+export function useUserRepertoireSongs() {
+  const { currentUserId, repositories } = useAppData();
+
+  return useQuery({
+    queryKey: ['songs', 'user', currentUserId],
+    queryFn: async (): Promise<readonly Song[]> => {
+      const userBands = await repositories.bands.listForUser(currentUserId);
+      const songsByBand = await Promise.all(
+        userBands.map(({ band }) => repositories.songs.listByBandId(band.id)),
+      );
+      const seenSongIds = new Set<EntityId>();
+
+      return songsByBand.flat().filter((song) => {
+        if (seenSongIds.has(song.id)) {
+          return false;
+        }
+
+        seenSongIds.add(song.id);
+        return true;
+      });
     },
   });
 }
@@ -66,10 +110,11 @@ export function useSongs(bandId: EntityId, includeArchived = false) {
   });
 }
 
-export function useSong(bandId: EntityId, songId: EntityId) {
+export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
   const { repositories } = useAppData();
 
   return useQuery({
+    enabled,
     queryKey: ['bands', bandId, 'songs', songId],
     queryFn: () => repositories.songs.findById(bandId, songId),
   });

@@ -3,6 +3,7 @@ import { render, renderHook } from '@testing-library/react-native';
 import { AppText } from '@/components/ui/AppText';
 import { AuthSessionContext } from '@/features/auth/AuthSessionProvider';
 import { SupabaseBandRepository } from '@/data/supabase/repositories';
+import { SupabaseSongRepository } from '@/data/supabase/songRepository';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
 
 function DataProbe() {
@@ -10,7 +11,7 @@ function DataProbe() {
 
   return (
     <AppText testID="data-probe">
-      {`${currentUserId}:${repositories.bands instanceof SupabaseBandRepository}`}
+      {`${currentUserId}:${repositories.bands instanceof SupabaseBandRepository}:${repositories.songs instanceof SupabaseSongRepository}`}
     </AppText>
   );
 }
@@ -32,7 +33,7 @@ describe('<AppProviders />', () => {
     );
 
     expect(view.getByTestId('data-probe')).toHaveTextContent(
-      'user-remote:true',
+      'user-remote:true:true',
     );
   });
 

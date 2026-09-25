@@ -1,4 +1,4 @@
-import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { SearchFieldProps } from '@/components/ui/list-controls/types';
@@ -59,10 +59,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
-    // O navegador adiciona um contorno próprio ao receber foco. O campo
-    // externo continua exibindo a borda do componente, mas o input interno
-    // não cria uma segunda borda apenas na web.
-    outlineWidth: Platform.OS === 'web' ? 0 : undefined,
   },
   clearButton: {
     alignItems: 'center',

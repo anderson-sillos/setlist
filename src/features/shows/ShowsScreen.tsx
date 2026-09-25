@@ -188,6 +188,7 @@ export function ShowsScreen({
           </AppText>
         </Pressable>
         <FilterMenu
+          active={activeFilterCount > 0}
           accessibilityLabel="Abrir filtros dos shows"
           icon="filter"
           label="Filtros"
@@ -196,7 +197,6 @@ export function ShowsScreen({
             update('period', 'upcoming');
             update('status', 'active');
           }}
-          summary={String(activeFilterCount)}
         >
           <View style={styles.filterGroup}>
             <AppText variant="eyebrow">Período</AppText>
@@ -218,6 +218,7 @@ export function ShowsScreen({
           </View>
         </FilterMenu>
         <OptionMenu
+          active={state.sort !== 'date-asc'}
           accessibilityLabel="Alterar ordenação dos shows"
           compact
           icon="sort"
@@ -281,7 +282,7 @@ export function ShowsScreen({
         canCreate
           ? {
               accessibilityLabel: 'Criar novo show',
-              icon: 'add',
+              icon: 'showAdd',
               label: 'Novo show',
               onPress: () =>
                 setDemoNotice(
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.xs,
     justifyContent: 'flex-end',
   },
   dateToolbar: {
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     justifyContent: 'center',
     minHeight: 40,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
   dateChip: {
     alignItems: 'center',

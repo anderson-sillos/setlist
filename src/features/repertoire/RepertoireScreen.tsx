@@ -1,8 +1,12 @@
-import { Link } from 'expo-router';
-import { useMemo } from 'react';
+import { Link, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import {
+  DemoActionNotice,
+  ErrorFeedback,
+  LoadingFeedback,
+} from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -12,10 +16,15 @@ import {
   SearchField,
 } from '@/components/ui/ListControls';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useSongs } from '@/data/queries';
+import { demoIds } from '@/data/demo';
+import { useSongs, useUserBands } from '@/data/queries';
 import type { EntityId, Song } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { getBandSectionHref, getSongHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getSongCreateHref,
+  getSongHref,
+} from '@/features/navigation/routes';
 import {
   type BandSectionScreenProps,
   rememberListScrollOffset,
@@ -110,7 +119,10 @@ export function RepertoireScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  const router = useRouter();
   const songsQuery = useSongs(bandId, true);
+  const userBandsQuery = useUserBands();
+  const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'repertoire', {
       filter: 'all' as RepertoireFilter,
@@ -154,6 +166,13 @@ export function RepertoireScreen({
     });
   }, [normalizedSearch, songsQuery.data, state]);
   const hasQuery = state.search.length > 0 || state.filter !== 'all';
+  const isDemoBand =
+    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
+  const membership = userBandsQuery.data?.find(
+    ({ band }) => band.id === bandId,
+  )?.membership;
+  const canCreate =
+    membership?.role === 'owner' || membership?.role === 'editor';
   const clearFilters = () => {
     update('search', '');
     update('filter', 'all');
@@ -165,6 +184,25 @@ export function RepertoireScreen({
       activeSection="repertoire"
       bandId={bandId}
       currentRoute={getBandSectionHref(bandId, 'repertoire') as string}
+      headerAction={
+        canCreate
+          ? {
+              accessibilityLabel: 'Adicionar música ao repertório',
+              icon: 'musicAdd',
+              label: 'Adicionar música',
+              onPress: () => {
+                if (isDemoBand) {
+                  setDemoNotice(
+                    'As músicas de demonstração são só para consulta. Selecione uma banda conectada para cadastrar repertório.',
+                  );
+                  return;
+                }
+
+                router.push(getSongCreateHref(bandId));
+              },
+            }
+          : undefined
+      }
       fixedContent={
         <ListControls>
           <SearchField
@@ -175,6 +213,7 @@ export function RepertoireScreen({
           />
           <View style={styles.controlToolbarEnd}>
             <OptionMenu
+              active={state.filter !== 'all'}
               accessibilityLabel="Alterar filtros do repertório"
               compact
               icon="filter"
@@ -184,6 +223,7 @@ export function RepertoireScreen({
               value={state.filter}
             />
             <OptionMenu
+              active={state.sort !== 'title'}
               accessibilityLabel="Alterar ordenação do repertório"
               compact
               icon="sort"
@@ -200,6 +240,10 @@ export function RepertoireScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
+      <DemoActionNotice
+        message={demoNotice}
+        onClose={() => setDemoNotice(null)}
+      />
       {songsQuery.isPending ? <LoadingFeedback /> : null}
       {songsQuery.isError ? (
         <ErrorFeedback onRetry={() => void songsQuery.refetch()} />

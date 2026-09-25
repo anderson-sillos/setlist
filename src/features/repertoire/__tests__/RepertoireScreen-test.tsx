@@ -5,12 +5,18 @@ import { createInMemoryRepositories } from '@/data/in-memory';
 import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
 import { AppProviders } from '@/providers/AppProviders';
 
+const mockRouter = { push: jest.fn(), replace: jest.fn() };
+
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => mockRouter,
 }));
 
 describe('<RepertoireScreen />', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('apresenta o repertório e os metadados em modo somente leitura', async () => {
     const view = await render(
       <AppProviders>
@@ -37,6 +43,14 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Luzes da Cidade');
+    expect(
+      view.getByLabelText('Alterar filtros do repertório').props
+        .accessibilityState?.selected,
+    ).toBeUndefined();
+    expect(
+      view.getByLabelText('Alterar ordenação do repertório').props
+        .accessibilityState?.selected,
+    ).toBeUndefined();
     await fireEvent.changeText(
       view.getByLabelText('Buscar música por título ou artista'),
       'pontes',
@@ -49,8 +63,24 @@ describe('<RepertoireScreen />', () => {
       view.getByLabelText('Buscar música por título ou artista'),
       '',
     );
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'coletivo atlantico',
+    );
+
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      '',
+    );
     await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
     await fireEvent.press(view.getByText('Arquivadas'));
+    expect(
+      view.getByLabelText('Alterar filtros do repertório').props
+        .accessibilityState,
+    ).toEqual({ selected: true });
 
     expect(view.getByText('Rota Antiga')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
@@ -59,6 +89,10 @@ describe('<RepertoireScreen />', () => {
       view.getByLabelText('Alterar ordenação do repertório'),
     );
     await fireEvent.press(view.getByText('Maior duração'));
+    expect(
+      view.getByLabelText('Alterar ordenação do repertório').props
+        .accessibilityState,
+    ).toEqual({ selected: true });
 
     expect(view.getByLabelText('Alterar ordenação do repertório')).toBeTruthy();
   });
@@ -93,5 +127,59 @@ describe('<RepertoireScreen />', () => {
 
     await fireEvent.press(searchView.getByText('Limpar filtros'));
     expect(await searchView.findByText('Luzes da Cidade')).toBeTruthy();
+  });
+
+  it('oferece a inclusão ao editor e explica o limite das bandas demo', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(
+      view.getByLabelText('Adicionar música ao repertório'),
+    );
+
+    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
+    expect(
+      view.getByText(/músicas de demonstração são só para consulta/i),
+    ).toBeTruthy();
+  });
+
+  it('não oferece inclusão para uma pessoa Member', async () => {
+    const view = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    expect(view.queryByLabelText('Adicionar música ao repertório')).toBeNull();
+  });
+
+  it('leva Owner de uma banda conectada à criação online', async () => {
+    const bandId = 'band-live';
+    const repositories = createInMemoryRepositories({
+      bands: [{ ...demoRepositoryData.bands[0], id: bandId }],
+      bandMembers: [{ ...demoRepositoryData.bandMembers[0], bandId }],
+      shows: [],
+      songs: [],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={bandId} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Repertório vazio');
+    expect(view.getByLabelText('Adicionar música ao repertório')).toBeTruthy();
+    await fireEvent.press(
+      view.getByLabelText('Adicionar música ao repertório'),
+    );
+
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      `/bands/${bandId}/repertoire/new`,
+    );
   });
 });

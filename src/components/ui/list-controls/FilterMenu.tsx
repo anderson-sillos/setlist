@@ -11,6 +11,7 @@ import {
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 interface FilterMenuProps {
+  readonly active?: boolean;
   readonly accessibilityLabel: string;
   readonly children: ReactNode;
   readonly icon?: AppIconName;
@@ -20,6 +21,7 @@ interface FilterMenuProps {
 }
 
 export function FilterMenu({
+  active = false,
   accessibilityLabel,
   children,
   icon,
@@ -33,6 +35,7 @@ export function FilterMenu({
   return (
     <>
       <MenuButton
+        active={active}
         accessibilityLabel={accessibilityLabel}
         icon={icon}
         label={`${label}${summary ? `: ${summary}` : ''}`}

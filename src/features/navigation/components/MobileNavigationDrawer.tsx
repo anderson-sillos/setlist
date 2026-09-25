@@ -1,5 +1,13 @@
 import type { Href } from 'expo-router';
-import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { useCallback } from 'react';
+import {
+  Animated,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/ui/AppText';
@@ -30,10 +38,19 @@ export function MobileNavigationDrawer({
   translateX,
   visible,
 }: MobileNavigationDrawerProps) {
+  const handleClose = useCallback(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const activeElement = document.activeElement as HTMLElement | null;
+      activeElement?.blur();
+    }
+
+    onClose();
+  }, [onClose]);
+
   return (
     <Modal
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       transparent
       visible={visible}
     >
@@ -48,7 +65,7 @@ export function MobileNavigationDrawer({
                 accessibilityLabel="Fechar menu geral"
                 color={colors.surface}
                 icon="close"
-                onPress={onClose}
+                onPress={handleClose}
               />
             </View>
             <NavigationPanel
@@ -56,7 +73,7 @@ export function MobileNavigationDrawer({
               bandId={bandId}
               bandName={bandName}
               getSectionHref={getSectionHref}
-              onNavigate={onClose}
+              onNavigate={handleClose}
               onLogout={onLogout}
             />
           </SafeAreaView>
@@ -64,7 +81,7 @@ export function MobileNavigationDrawer({
         <Pressable
           accessibilityLabel="Fechar menu geral"
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={handleClose}
           style={styles.scrim}
         />
       </View>

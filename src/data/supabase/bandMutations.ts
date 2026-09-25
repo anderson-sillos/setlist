@@ -35,6 +35,11 @@ function mapSupabaseError(message: string): BandCreationError {
         'band_name_invalid',
         'Informe um nome de banda com até 120 caracteres.',
       );
+    case message.includes('TERM_VERSION_NOT_CURRENT'):
+      return new BandCreationError(
+        'term_version_required',
+        'O termo vigente foi atualizado. Atualize o aplicativo e tente novamente.',
+      );
     case message.includes('TERM_VERSION_REQUIRED'):
       return new BandCreationError(
         'term_version_required',

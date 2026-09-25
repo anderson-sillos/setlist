@@ -39,7 +39,7 @@ function SidebarNavigationLink({
         accessibilityLabel={`Ir para ${label}`}
         accessibilityRole="tab"
         accessibilityState={{ selected: active }}
-        onPress={onNavigate}
+        onPressIn={onNavigate}
         style={({ pressed }) => [
           styles.sectionItem,
           active && styles.sectionItemActive,
@@ -85,7 +85,7 @@ function GeneralNavigationLink({
       <Pressable
         accessibilityLabel={label}
         accessibilityRole="link"
-        onPress={onNavigate}
+        onPressIn={onNavigate}
         style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
       >
         <View style={styles.sectionContent}>
@@ -217,6 +217,7 @@ export function NavigationPanel({
                 icon={item.icon}
                 key={item.section}
                 label={item.label}
+                onNavigate={onNavigate}
               />
             ))}
           </View>

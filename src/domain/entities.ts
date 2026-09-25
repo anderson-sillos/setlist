@@ -40,6 +40,8 @@ export interface BandInvitation {
 
 export interface LyricLine {
   readonly id: EntityId;
+  readonly kind?: 'separator';
+  readonly bold?: boolean;
   readonly text: string;
   readonly startTimeMs: number | null;
 }

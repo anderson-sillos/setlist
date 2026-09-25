@@ -11,6 +11,7 @@ import type { OptionMenuProps } from '@/components/ui/list-controls/types';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 export function OptionMenu<Value extends string>({
+  active = false,
   accessibilityLabel,
   compact = false,
   icon,
@@ -27,6 +28,7 @@ export function OptionMenu<Value extends string>({
   return (
     <>
       <MenuButton
+        active={active}
         accessibilityLabel={accessibilityLabel}
         accessibilityValueText={selectedLabel}
         icon={icon}

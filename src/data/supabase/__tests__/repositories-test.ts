@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/data/supabase/client';
+import { demoIds } from '@/data/demo';
 import { SupabaseBandRepository } from '@/data/supabase/repositories';
 
 jest.mock('@/data/supabase/client', () => ({
@@ -213,6 +214,27 @@ describe('repositório de bandas do Supabase', () => {
         band: expect.objectContaining({ id: 'band-demo' }),
       }),
     ]);
+  });
+
+  it('resolve detalhes de bandas demonstrativas sem consultar o Supabase', async () => {
+    const demoRepository = {
+      findById: jest.fn().mockResolvedValue({ id: demoIds.primaryBand }),
+      listMembers: jest.fn().mockResolvedValue([]),
+    };
+    const repository = new SupabaseBandRepository(demoRepository as never);
+
+    await expect(repository.findById(demoIds.primaryBand)).resolves.toEqual({
+      id: demoIds.primaryBand,
+    });
+    await expect(
+      repository.listMembers(demoIds.secondaryBand),
+    ).resolves.toEqual([]);
+
+    expect(from).not.toHaveBeenCalled();
+    expect(demoRepository.findById).toHaveBeenCalledWith(demoIds.primaryBand);
+    expect(demoRepository.listMembers).toHaveBeenCalledWith(
+      demoIds.secondaryBand,
+    );
   });
 
   it('carrega integrantes e usa o e-mail quando o perfil não tem nome', async () => {

@@ -249,7 +249,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
-    ...(Platform.OS === 'web' ? { outlineWidth: 0 } : {}),
   },
   modalLayer: {
     alignItems: 'center',

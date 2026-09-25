@@ -32,6 +32,28 @@ export {
   SupabaseBandRepository,
 } from '@/data/supabase/repositories';
 export {
+  createSupabaseSongRepository,
+  SupabaseSongRepository,
+} from '@/data/supabase/songRepository';
+export {
+  acceptCurrentBandTerm,
+  getCurrentBandTermAcceptance,
+  LegalTermMutationError,
+} from '@/data/supabase/legalTermMutations';
+export type { LegalTermMutationErrorCode } from '@/data/supabase/legalTermMutations';
+
+export {
+  createSong,
+  SongMutationError,
+  updateSong,
+} from '@/data/supabase/songMutations';
+export {
+  archiveSong,
+  removeSong,
+  restoreSong,
+  SongLifecycleMutationError,
+} from '@/data/supabase/songLifecycleMutations';
+export {
   getUserProfile,
   ProfileMutationError,
   updateMyDisplayName,
@@ -48,6 +70,14 @@ export type {
   UpdateBandMemberRoleInput,
 } from '@/data/supabase/bandMemberMutations';
 export type { BandAdministrationErrorCode } from '@/data/supabase/bandAdministrationMutations';
+export type {
+  SongMutationErrorCode,
+  SongWriteInput,
+} from '@/data/supabase/songMutations';
+export type {
+  SongLifecycleErrorCode,
+  SongRemovalResult,
+} from '@/data/supabase/songLifecycleMutations';
 export type {
   CreateInvitationInput,
   CreatedInvitation,

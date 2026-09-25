@@ -6,16 +6,17 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/task-5-6-convites`.
+- Branch de trabalho: `feat/task-6-1-repertoire`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
 - PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
 - PR #12: grupo 4 integrado à `main` por squash no commit `2d72009` e encerrado antes do início da tarefa 5.3.
+- PR #15: branch `feat/task-6-1-repertoire` permanece aberta para revisão, com as tarefas 6.1–6.6 implementadas; não fazer merge ou fechar antes da aprovação manual.
 - Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
 - Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
 - Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.6 cobre convite de uso único, retorno ao app, descarte de deep link já aceito e exibição da data de aceite; a 5.8 cobre exclusão de conta/banda, proteção do último Owner e limpeza; a 5.9 sincroniza e permite editar o perfil, usando `profiles` como identidade canônica. O layout do menu e o ajuste de formulários ao teclado foram validados no Android. As migrações recentes foram aplicadas ao Supabase de desenvolvimento; produção permaneceu intocada. `npm run validate` passou com 60 suítes e 326 testes; a suíte SQL local passou com 13 arquivos e 253 testes, e o Supabase local foi desligado após os testes. O callback OAuth web foi corrigido, publicado no GitHub Pages e validado manualmente sem o 404 do bundle. O PR #14 segue aberto até a integração final. Permanecem futuras a validação do provedor Apple/iOS na tarefa 5.1, a execução ponta a ponta multiplataforma da 5.10 e as atividades dos grupos seguintes.
+- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1, 6.2 e 6.3 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores, duração assistida, autocomplete de artistas originais e classificação de estado da letra. `npm run validate` passou com 70 suítes e 382 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é exigir o aceite do termo vigente antes da edição da música na 6.4; iOS/Apple segue como pendência futura.
 
 ## Fontes de verdade
 
@@ -370,10 +371,265 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Concluir a PR #14 por squash mantendo o histórico do handoff. As tarefas 5.8 e
-5.9 estão concluídas; permanecem pendentes a habilitação/validação do provedor
-Apple e do login no iOS (5.1), os
-testes ponta a ponta de papéis e convites nas três plataformas (5.10) e Android
-App Links/configuração e validação iOS (11.5). O change OpenSpec
+Implementar a tarefa 6.6 em `feat/task-6-1-repertoire`: garantir atualização
+da música com horário do servidor e visibilidade somente do conteúdo vigente.
+Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
+validação iOS dos links nativos prevista em 11.5. O change OpenSpec
 `definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
-contém os grupos futuros de repertório, shows, modo palco e offline.
+contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
+
+106. Após a validação manual informada pelo usuário, a tarefa 5.10 foi dividida:
+     5.10.1 (papéis e convites na web e Android, com publicação interna) foi
+     concluída; 5.10.2 (iOS) permanece adiada até existir build e ambiente de
+     validação disponíveis. O PR #14 já foi integrado em `main` por squash no
+     commit `4603c69`. A nova branch `feat/task-6-1-repertoire`, baseada nesse
+     `main`, inicia a implementação do repertório real da tarefa 6.1.
+
+107. As tarefas 6.1 e 6.2 foram implementadas na branch
+     `feat/task-6-1-repertoire`. O botão `Adicionar música` passou a aparecer
+     como ação secundária explícita no cabeçalho para Owner/Editor, com bloqueio
+     para Member e bandas demo. A tela de edição grava metadados e letra online;
+     `LyricDocumentEditor` permite adicionar, remover, nomear e reordenar blocos
+     e linhas, mantendo identificadores e tempos, e a mutação envia letra e
+     `lyric_status` derivados em uma única atualização. TypeScript, lint,
+     formatação e `npm run validate` passaram com 67 suítes e 357 testes. A
+     validação SQL local não foi executada porque a inicialização do CLI do
+     Supabase foi bloqueada pela escrita de telemetria fora da área permitida;
+     nenhum estado remoto foi alterado. A classificação dos estados de letra da
+     tarefa 6.3 foi concluída posteriormente.
+
+108. Os botões de ação do cabeçalho foram padronizados no componente
+     compartilhado `src/features/navigation/components/AppHeader.tsx`. Ações
+     contextuais de bandas, shows e repertório agora usam o mesmo botão
+     contornado com ícone, rótulo, altura, raio e espaçamento; `Salvar` mantém
+     apenas a variante primária para indicar a ação principal. `Criar banda`
+     também recebeu o ícone de inclusão. A validação completa permaneceu verde
+     com 67 suítes e 357 testes, e a PR #15 continua aberta para revisão.
+
+109. Após a revisão visual, as ações do cabeçalho deixaram de usar botões
+     contornados com texto. Menu, voltar, adicionar, editar, mais opções,
+     cancelar e salvar agora usam controles circulares somente com ícone,
+     área de toque de 48 px, `hitSlop` e o mesmo feedback de pressão dos
+     controles de navegação. Os rótulos completos continuam nos atributos de
+     acessibilidade; `Salvar` usa `check`, `Cancelar` usa `close` e ações sem
+     ícone explícito usam `more` como fallback. A validação completa passou com
+     67 suítes e 357 testes.
+
+110. A edição de letras foi simplificada para um único campo multilinha em
+     `LyricDocumentEditor`, permitindo colar ou digitar a música inteira. Linhas
+     iniciadas por `#` nomeiam blocos e uma linha `---` representa uma linha
+     vazia; `lyricEditorText.ts` converte esse formato para o documento JSONB,
+     preservando IDs e tempos existentes por posição. O campo mantém um rascunho
+     local durante a digitação para não apagar quebras de linha intermediárias.
+     O campo multiline de `Observações` recebeu dimensões explícitas somente na
+     web, evitando que seu layout invada o bloco de letra. Foram adicionados
+     testes de serialização, parsing, preservação de identidade e edição de
+     formulário; a validação completa passou com 68 suítes e 361 testes,
+     além do export web e da validação estrita do change OpenSpec.
+
+111. A revisão visual seguinte ajustou o formulário de música. A duração agora
+     usa entradas independentes para horas, minutos e segundos, recompondo o
+     formato aceito pelo domínio sem exigir digitação de `:`. O campo vazio de
+     duração permanece realmente vazio em músicas sem duração. O layout do
+     formulário deixou de aplicar crescimento flexível aos campos verticais;
+     junto às dimensões fixas do textarea multiline na web, isso evita que
+     Observações invada o bloco de Letra. As instruções da letra foram
+     reorganizadas em um guia visual compacto com exemplos de `# Refrão` e
+     `---`. A validação passou com 68 suítes e 362 testes.
+
+112. Os campos de duração foram retirados da linha de Tom/BPM e passaram para
+     uma linha própria imediatamente após `Artista/Banda`. O grupo ocupa no
+     máximo toda a largura disponível (`100%`), com inputs internos flexíveis
+     para não ultrapassar o limite em telas estreitas. A suíte de tela e a
+     verificação de tipos continuam aprovadas.
+
+113. A duração agora usa o componente reutilizável `SpinButton`, com campo
+     numérico acessível e controles verticais de incrementar/decrementar,
+     respeitando limites de horas, minutos e segundos. Os três componentes
+     ocupam partes iguais da largura disponível. `AutocompleteField` foi criado
+     para o Artista/Banda: ao focar ou digitar, ele filtra valores distintos de
+     `originalArtist` encontrados nas músicas dos repertórios das bandas da
+     conta, ignora acentos e duplicatas e permite selecionar uma sugestão;
+     o cache é invalidado após criar ou editar uma música. A validação completa
+     passou com 70 suítes e 365 testes.
+
+114. O repositório remoto não consulta mais o Supabase para IDs de bandas
+     demonstrativas (`band-demo-horizonte` e `band-demo-aurora`): músicas,
+     detalhes e integrantes desses IDs são resolvidos pelo repositório demo.
+     Isso evita erros `22P02` de UUID ao montar as sugestões de
+     `originalArtist` para o autocomplete em sessões autenticadas.
+
+115. A edição e a visualização da letra preservam novos formatos de linha:
+     `**texto**` aplica negrito e `***` cria uma linha de separação; o marcador
+     `---` continua representando uma linha em branco. A tela de detalhes
+     renderiza esses formatos dentro de cada bloco, e a validação inclui a
+     serialização, a leitura e a apresentação desses marcadores.
+
+116. Os nomes dos blocos na visualização da letra usam opacidade `0.55`,
+     mantendo os títulos identificáveis, mas com menos destaque que as linhas
+     da música.
+
+117. No web, o menu lateral desfoca o elemento ativo antes de ocultar o
+     `Modal` ao fechar ou navegar. Isso evita avisos de acessibilidade
+     `aria-hidden` quando um link ou botão do menu ainda retém foco durante a
+     troca de tela, inclusive ao acessar as telas de edição do repertório.
+
+118. O componente `SpinButton` seleciona automaticamente todo o conteúdo ao
+     receber foco (`selectTextOnFocus`). Os controles de incrementar e
+     decrementar também devolvem o foco ao campo e selecionam o novo valor,
+     permitindo substituí-lo pelo teclado sem precisar apagá-lo antes.
+
+119. A seleção acionada pelos controles do `SpinButton` foi tornada
+     compatível com todas as plataformas: no web usa `setSelectionRange` no
+     elemento HTML, enquanto no Android/iOS usa `setSelection`, com fallback
+     nativo opcional. Isso evita chamar `setNativeProps` em referências do
+     React Native Web, que não oferecem esse método.
+
+120. A seleção automática no foco deixou de usar `selectTextOnFocus` no
+     React Native Web, pois esse recurso agenda uma seleção assíncrona que
+     podia reaplicar a seleção após o primeiro caractere digitado. O
+     `SpinButton` agora seleciona o valor diretamente no evento de foco e ao
+     usar `+`/`−`, permitindo editar vários dígitos normalmente pelo teclado.
+
+121. A tela de detalhes da música passou a apresentar o título com tipografia
+     menor e organiza verticalmente, em largura total, os blocos de título,
+     informações/observações e letra. O botão de referência do YouTube abre
+     uma nova janela no web (`noopener,noreferrer`) e usa o navegador externo
+     nas plataformas nativas. A validação passou com 70 suítes e 370 testes.
+
+122. A edição dos campos de duração usa `durationFromEditorParts`, que mantém
+     os dígitos exatamente como estão sendo digitados e não adiciona zeros à
+     esquerda entre uma tecla e outra. A função `durationFromParts` continua
+     disponível para a recomposição normalizada, e a validação do formulário
+     segue normalizando a duração no salvamento. Isso permite informar, por
+     exemplo, `45` em minutos ou segundos sem o segundo dígito ser bloqueado
+     pelo `maxLength`.
+
+123. Na versão web, o `RootLayout` define o título do documento como `Setlist`
+     para manter o nome do app na aba do navegador. Todos os campos
+     `TextInput` agora removem o contorno visual automático de foco no web,
+     incluindo os campos de nome de exibição e de letra completa que ainda
+     não tinham essa regra. A alteração visual manual do título da música foi
+     mantida em `20px`.
+
+124. A remoção do contorno de foco dos campos web foi centralizada no
+     documento `src/app/+html.tsx`, aplicando `outline: none !important` a
+     `input` e `textarea` focados em todas as rotas. As regras `outlineWidth`
+     duplicadas foram removidas dos componentes individuais, mantendo a
+     aparência consistente do app web.
+
+125. O `AutocompleteField` passou a manter o foco e a lista de sugestões ao
+     selecionar uma opção, além de aguardar brevemente o `blur` antes de
+     desmontar a lista. Isso evita que o clique seja perdido no web e permite
+     continuar editando o artista no Android. O `SpinButton` mantém um rascunho
+     local durante o foco, impedindo que a normalização temporária para `0`
+     insira um zero à esquerda e bloqueie a digitação do segundo dígito.
+
+126. A saída da tela de edição de música agora verifica `router.canGoBack()` e
+     usa a rota de detalhes da música (ou do repertório, no cadastro) como
+     fallback quando a tela foi aberta diretamente por URL. Os links do menu
+     lateral fecham o drawer no `onPressIn`, antes da navegação, e todas as
+     seções passaram a informar esse callback. Isso evita o aviso de `GO_BACK`
+     sem histórico e os avisos de foco retido em elementos dentro de um
+     container `aria-hidden` durante a transição web.
+
+127. O `AutocompleteField` só abre a lista de sugestões quando há pelo menos
+     duas opções distintas para escolha. Com zero ou uma alternativa, o campo
+     permanece limpo e não apresenta uma lista sem necessidade.
+
+128. Na tela de detalhes da música, a ação `Editar música` foi movida para o
+     cabeçalho como `headerAction` com o ícone `edit`, seguindo o padrão das
+     demais telas. O botão secundário que ficava junto ao título foi removido;
+     as mensagens de bloqueio para bandas de demonstração e as permissões de
+     edição permanecem iguais.
+
+129. O autocomplete oculta uma única sugestão somente quando ela já é igual
+     ao valor preenchido, usando comparação normalizada. Se houver uma única
+     opção diferente, ela continua sendo exibida para seleção; com duas ou
+     mais opções a lista permanece disponível normalmente.
+
+130. Os headers de criação passaram a usar iconografia semântica pelo catálogo
+     `AppIcon`: `CalendarPlus` para novo show, composição `Music2 +` para nova
+     música e composição `Users +` para nova banda. O `Plus` genérico foi
+     preservado e a variante `CirclePlus` ficou disponível como `addCircle`
+     para ações genéricas destacadas. TypeScript, lint, formatação e 70 suítes
+     com 379 testes passaram.
+
+131. O `+` das composições `Music2 +` e `Users +` recebeu selo e traço
+     maiores, preservando a proporção responsiva para manter a ação de criação
+     visualmente destacada nos headers móveis e web.
+
+132. A espessura do traço do `+` foi ampliada proporcionalmente, sem alterar
+     o tamanho do selo composto.
+
+133. O traço do `+` nos ícones compostos foi dobrado novamente, mantendo o
+     selo no mesmo tamanho para preservar a composição visual.
+
+134. O ícone de nova banda passou a usar a composição `UserGroup +`, mais
+     próxima da representação visual de um grupo de usuários.
+
+135. O histórico de convites passou a usar ações iconográficas acessíveis:
+     `Share2` para compartilhar novamente, `Ban` para revogar e `RefreshCw`
+     para renovar. Convites ativos reutilizam o URL disponível na sessão ou
+     geram um novo convite mantendo o anterior ativo quando o token original
+     não está disponível, preservando o armazenamento apenas por hash no
+     Supabase. A validação completa passou com 70 suítes e 379 testes.
+
+136. A consulta de uma música recebeu a rota imersiva de letra
+     `/bands/[bandId]/repertoire/[songId]/lyrics`, acessada por `Tela cheia`.
+     O conteúdo visual é reutilizado entre detalhe e tela imersiva, preservando
+     blocos, linhas em negrito, separadores e o retorno acessível aos detalhes.
+     A ação só é apresentada para músicas que possuem letra; músicas no estado
+     `Sem letra` continuam mostrando a orientação local sem oferecer uma tela
+     vazia. Tom e BPM permanecem metadados secundários no resumo.
+
+137. Após criar ou renovar um convite, `Link pronto para o palco` é mostrado
+     em um popup próprio, separado do histórico de convites. A janela permite
+     selecionar ou compartilhar o URL, pode ser fechada pelo botão, pelo ícone
+     ou pelo fundo e é limpa ao fechar o diálogo principal. A validação completa
+     passou com 70 suítes e 382 testes.
+
+138. A tarefa 6.3 foi concluída: `deriveLyricStatus` classifica letras por
+     linhas textuais, tempos informados e ordem crescente, e as mutações
+     persistem o resultado junto ao documento JSONB. Os testes unitários cobrem
+     Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
+
+139. A tarefa 6.4 foi concluída: Owner e Editor agora consultam o aceite do
+     termo vigente antes de abrir o editor de músicas; o diálogo registra o
+     aceite pela RPC protegida `accept_current_band_term`. O banco centraliza a
+     versão vigente, exige o aceite em políticas de inserção/alteração e remove
+     a escrita direta de `legal_acceptances`. Member, leitura do repertório e
+     modo palco continuam disponíveis sem aceite. A suíte local passou com 14
+     arquivos e 267 verificações; a migração foi publicada no Supabase de
+     desenvolvimento e o lint remoto não encontrou erros.
+
+140. A tarefa 6.5 foi concluída: Owner e Editor podem arquivar, restaurar ou
+     excluir músicas pela tela de detalhes. A RPC protegida decide de forma
+     atômica: músicas sem referência em shows são removidas definitivamente;
+     músicas já usadas em setlists são arquivadas, preservando os itens
+     existentes. O repertório mantém arquivadas fora das novas setlists,
+     oferece filtro dedicado e exibe a confirmação contextual. A validação
+     passou com 15 arquivos e 278 testes SQL, lint local/remoto sem erros e
+     396 testes de aplicação; a migração foi publicada no Supabase de
+     desenvolvimento.
+
+141. A tarefa 6.6 foi concluída: as mutações de criação e edição de músicas
+     agora solicitam `id, updated_at` ao Supabase e rejeitam respostas sem um
+     horário válido gerado pelo servidor. O gatilho existente em
+     `public.songs` continua sendo a fonte exclusiva do timestamp, sem aceitar
+     datas produzidas no cliente. O teste SQL `6.6-song-current-content.sql`
+     confirma que Owner e Editor substituem o conteúdo na única linha vigente,
+     preservam o vínculo com shows e não expõem histórico. A validação passou
+     com 73 suítes e 399 testes da aplicação, 16 arquivos e 288 testes SQL,
+     lint local/remoto sem erros e banco remoto sem migrações pendentes.
+     A validação da 6.7 e a publicação da prévia estão registradas na entrada
+     seguinte; o PR permanece aberto para a revisão manual do grupo 6.
+
+142. A tarefa 6.7 foi validada nos testes de repertório para Owner, Editor e
+     Member, incluindo adaptação phone/tablet/desktop, cabeçalho fixo, blocos
+     expandidos, atualização relativa, ação de edição restrita e estados de
+     falha/indisponibilidade. A validação completa passou com 73 suítes e 399
+     testes, e os checks da PR #15 foram aprovados. A prévia web foi publicada
+     pelo workflow `35992917683` e responde com HTTP 200 em
+     `https://setlistbr.app.br/` e `/app/`. O PR #15 permanece aberto para a
+     revisão manual do grupo 6; não fazer merge ou encerrá-lo ainda.

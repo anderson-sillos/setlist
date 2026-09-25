@@ -1,6 +1,12 @@
-import { Link, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import {
+  Linking,
+  Platform,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import {
   DemoActionNotice,
@@ -13,14 +19,22 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { demoIds } from '@/data/demo';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { getBandSectionHref, getSongHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getSongEditHref,
+  getSongHref,
+  getSongLyricsHref,
+} from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
+import { normalizeYoutubeReference } from '@/utils/youtubeReference';
+import { SongLyricsContent } from './SongLyricsContent';
 import { lyricStatusLabels } from './songPresentation';
 
 interface SongDetailScreenProps {
@@ -38,8 +52,9 @@ export function SongDetailScreen({
   viewportHeight,
   viewportWidth,
 }: SongDetailScreenProps) {
-  const window = useWindowDimensions();
-  const layoutMode = getLayoutMode(viewportWidth ?? window.width);
+  const router = useRouter();
+  const dimensions = useWindowDimensions();
+  const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
@@ -48,6 +63,21 @@ export function SongDetailScreen({
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
+  const isDemoBand =
+    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
+  const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
+  const openYoutubeReference = () => {
+    if (!youtubeReference) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(youtubeReference, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    void Linking.openURL(youtubeReference);
+  };
 
   return (
     <BandAreaLayout
@@ -58,13 +88,15 @@ export function SongDetailScreen({
       headerAction={
         canEdit
           ? {
-              accessibilityLabel: 'Mais opções da música',
-              icon: 'more',
-              label: 'Mais opções',
+              accessibilityLabel: 'Editar música',
+              icon: 'edit',
+              label: 'Editar música',
               onPress: () =>
-                setDemoNotice(
-                  'Arquivar e restaurar entram no incremento do repertório.',
-                ),
+                isDemoBand
+                  ? setDemoNotice(
+                      'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
+                    )
+                  : router.push(getSongEditHref(bandId, songId)),
             }
           : undefined
       }
@@ -98,27 +130,17 @@ export function SongDetailScreen({
           <Card style={styles.compactHeader}>
             <View style={styles.titleLine}>
               <View style={styles.titleCopy}>
-                <AppText accessibilityRole="header" variant="title">
+                <AppText
+                  accessibilityRole="header"
+                  style={styles.songTitle}
+                  variant="title"
+                >
                   {song.title}
                 </AppText>
                 <AppText tone="muted">
                   {song.originalArtist ?? 'Artista/Banda não informado'}
                 </AppText>
               </View>
-              {canEdit ? (
-                <AppButton
-                  accessibilityLabel="Editar música"
-                  icon="edit"
-                  label="Editar"
-                  onPress={() =>
-                    setDemoNotice(
-                      'O editor chega no incremento do repertório. A permissão já está conferida.',
-                    )
-                  }
-                  style={styles.editButton}
-                  variant="secondary"
-                />
-              ) : null}
             </View>
             <View style={styles.summaryLine}>
               <StatusPill
@@ -149,15 +171,40 @@ export function SongDetailScreen({
                 Atualizada {formatRelativeUpdate(song.updatedAt, now)}
               </AppText>
             </View>
+            <View style={styles.simpleMetadata}>
+              <AppText tone="muted" variant="caption">
+                Tom · {song.musicalKey ?? '—'}
+              </AppText>
+              <AppText tone="muted" variant="caption">
+                BPM · {song.bpm ?? '—'}
+              </AppText>
+            </View>
           </Card>
 
-          <View
-            style={[
-              styles.detailColumns,
-              layoutMode !== 'phone' && styles.detailColumnsWide,
-            ]}
-          >
-            <Card style={styles.lyricCard} tone="dark">
+          <Card style={styles.secondaryCard}>
+            {song.notes ? (
+              <View style={styles.notes}>
+                <AppText accessibilityRole="header" variant="heading">
+                  Observações
+                </AppText>
+                <AppText>{song.notes}</AppText>
+              </View>
+            ) : null}
+
+            {youtubeReference ? (
+              <AppButton
+                accessibilityLabel="Abrir referência no YouTube"
+                icon="externalLink"
+                label="Abrir no YouTube"
+                onPress={openYoutubeReference}
+                style={styles.youtubeButton}
+                variant="secondary"
+              />
+            ) : null}
+          </Card>
+
+          <Card style={styles.lyricCard} tone="dark">
+            <View style={styles.lyricHeader}>
               <AppText
                 accessibilityRole="header"
                 tone="inverse"
@@ -165,70 +212,19 @@ export function SongDetailScreen({
               >
                 Letra
               </AppText>
-              {song.lyrics.blocks.length === 0 ? (
-                <AppText tone="inverse">Sem letra cadastrada</AppText>
+              {song.lyricStatus !== 'missing' ? (
+                <AppButton
+                  accessibilityLabel="Abrir letra em tela cheia"
+                  icon="expand"
+                  label="Tela cheia"
+                  onPress={() => router.push(getSongLyricsHref(bandId, songId))}
+                  style={styles.fullscreenButton}
+                  variant="secondary"
+                />
               ) : null}
-              {song.lyrics.blocks.map((block) => (
-                <View key={block.id} style={styles.lyricBlock}>
-                  {block.name ? (
-                    <AppText style={styles.lyricBlockName} tone="inverse">
-                      {block.name}
-                    </AppText>
-                  ) : null}
-                  {block.lines.map((line) => (
-                    <AppText key={line.id} tone="inverse">
-                      {line.text}
-                    </AppText>
-                  ))}
-                </View>
-              ))}
-            </Card>
-
-            <Card style={styles.secondaryCard}>
-              <AppText accessibilityRole="header" variant="heading">
-                Informações
-              </AppText>
-              <View style={styles.metadataGrid}>
-                <View style={styles.metadataItem}>
-                  <AppText tone="muted" variant="caption">
-                    Tom
-                  </AppText>
-                  <AppText>{song.musicalKey ?? '—'}</AppText>
-                </View>
-                <View style={styles.metadataItem}>
-                  <AppText tone="muted" variant="caption">
-                    BPM
-                  </AppText>
-                  <AppText>{song.bpm ?? '—'}</AppText>
-                </View>
-              </View>
-
-              {song.notes ? (
-                <View style={styles.notes}>
-                  <AppText accessibilityRole="header" variant="heading">
-                    Observações
-                  </AppText>
-                  <AppText>{song.notes}</AppText>
-                </View>
-              ) : null}
-
-              {song.youtubeReference ? (
-                <Link
-                  href={song.youtubeReference as Href}
-                  target="_blank"
-                  asChild
-                >
-                  <AppButton
-                    accessibilityLabel="Abrir referência no YouTube"
-                    icon="externalLink"
-                    label="Abrir no YouTube"
-                    style={styles.youtubeButton}
-                    variant="secondary"
-                  />
-                </Link>
-              ) : null}
-            </Card>
-          </View>
+            </View>
+            <SongLyricsContent lyrics={song.lyrics} />
+          </Card>
         </View>
       ) : null}
     </BandAreaLayout>
@@ -243,6 +239,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
   },
+  songTitle: {
+    fontSize: 20,
+    lineHeight: 34,
+  },
   titleLine: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -255,11 +255,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minWidth: 220,
   },
-  editButton: {
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
   summaryLine: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -271,42 +266,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
   },
-  detailColumns: {
-    gap: spacing.lg,
-  },
-  detailColumnsWide: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-  },
-  lyricCard: {
-    flex: 1.45,
-    gap: spacing.xl,
-    minWidth: 0,
-  },
-  lyricBlock: {
-    gap: spacing.sm,
-  },
-  lyricBlockName: {
-    fontWeight: '800',
-    marginBottom: spacing.xs,
-    opacity: 0.72,
-  },
-  secondaryCard: {
-    flex: 0.75,
-    gap: spacing.lg,
-    minWidth: 0,
-  },
-  metadataGrid: {
+  simpleMetadata: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.lg,
   },
-  metadataItem: {
-    backgroundColor: colors.violetSoft,
-    borderRadius: radii.md,
-    gap: spacing.xs,
-    minWidth: 80,
-    padding: spacing.md,
+  lyricCard: {
+    gap: spacing.xl,
+    minWidth: 0,
+    width: '100%',
+  },
+  lyricHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  fullscreenButton: {
+    paddingHorizontal: spacing.md,
+  },
+  secondaryCard: {
+    gap: spacing.lg,
+    minWidth: 0,
+    width: '100%',
   },
   notes: {
     borderTopColor: colors.line,

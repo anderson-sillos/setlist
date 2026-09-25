@@ -7,6 +7,7 @@ import { AppText } from '@/components/ui/AppText';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface MenuButtonProps {
+  readonly active?: boolean;
   readonly accessibilityLabel: string;
   readonly accessibilityValueText?: string;
   readonly icon?: AppIconName;
@@ -23,6 +24,7 @@ interface OptionSheetProps {
 }
 
 export function MenuButton({
+  active = false,
   accessibilityLabel,
   accessibilityValueText,
   icon,
@@ -33,6 +35,7 @@ export function MenuButton({
     <Pressable
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
+      accessibilityState={active ? { selected: true } : undefined}
       accessibilityValue={
         accessibilityValueText ? { text: accessibilityValueText } : undefined
       }
@@ -48,6 +51,16 @@ export function MenuButton({
       >
         {label}
       </AppText>
+      {active ? (
+        <View style={styles.activeIndicator}>
+          <AppIcon
+            color={colors.violet}
+            name="check"
+            size={7}
+            strokeWidth={2.25}
+          />
+        </View>
+      ) : null}
       <AppIcon color={colors.violet} name="chevronDown" size={16} />
     </Pressable>
   );
@@ -97,10 +110,18 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     justifyContent: 'center',
     minHeight: 40,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
   menuButtonLabel: {
     flexShrink: 1,
+  },
+  activeIndicator: {
+    alignItems: 'center',
+    backgroundColor: colors.violetSoft,
+    borderRadius: radii.pill,
+    height: 10,
+    justifyContent: 'center',
+    width: 10,
   },
   modalLayer: {
     alignItems: 'center',

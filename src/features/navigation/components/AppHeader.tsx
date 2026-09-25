@@ -2,6 +2,7 @@ import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { NavigationIconButton } from '@/features/navigation/components/NavigationIconButton';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
@@ -46,31 +47,20 @@ export function AppHeader({
 
       {kind === 'detail' && backHref ? (
         <Link href={backHref} asChild>
-          <Pressable
+          <HeaderIconButton
             accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
-            accessibilityRole="link"
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <AppIcon name="back" />
-          </Pressable>
+            icon="back"
+            role="link"
+          />
         </Link>
       ) : null}
 
       {kind === 'edit' && editActions ? (
-        <Pressable
+        <HeaderIconButton
           accessibilityLabel="Cancelar edição"
-          accessibilityRole="button"
+          icon="close"
           onPress={editActions.onCancel}
-          style={({ pressed }) => [
-            styles.headerTextButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText tone="accent">Cancelar</AppText>
-        </Pressable>
+        />
       ) : null}
 
       <View style={styles.headerCopy}>
@@ -85,40 +75,64 @@ export function AppHeader({
       </View>
 
       {kind === 'edit' && editActions ? (
-        <Pressable
+        <HeaderIconButton
           accessibilityLabel="Salvar edição"
-          accessibilityRole="button"
           accessibilityState={{ disabled: editActions.saveDisabled }}
+          color={editActions.saveDisabled ? colors.muted : colors.violet}
           disabled={editActions.saveDisabled}
+          icon="check"
           onPress={editActions.onSave}
-          style={({ pressed }) => [
-            styles.headerTextButton,
-            editActions.saveDisabled && styles.disabled,
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText tone="accent">Salvar</AppText>
-        </Pressable>
+        />
       ) : null}
-
-      {kind !== 'edit' && headerAction ? (
-        <Pressable
+      {headerAction ? (
+        <HeaderIconButton
           accessibilityLabel={headerAction.accessibilityLabel}
-          accessibilityRole="button"
+          color={colors.violet}
+          icon={headerAction.icon ?? 'more'}
           onPress={headerAction.onPress}
-          style={({ pressed }) => [
-            headerAction.icon ? styles.iconButton : styles.headerTextButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          {headerAction.icon ? (
-            <AppIcon color={colors.violet} name={headerAction.icon} />
-          ) : (
-            <AppText tone="accent">{headerAction.label}</AppText>
-          )}
-        </Pressable>
+        />
       ) : null}
     </View>
+  );
+}
+
+interface HeaderIconButtonProps {
+  readonly accessibilityLabel: string;
+  readonly accessibilityState?: {
+    readonly disabled?: boolean;
+  };
+  readonly color?: string;
+  readonly disabled?: boolean;
+  readonly icon?: AppIconName;
+  readonly onPress?: () => void;
+  readonly role?: 'button' | 'link';
+}
+
+function HeaderIconButton({
+  accessibilityLabel,
+  accessibilityState,
+  color = colors.ink,
+  disabled,
+  icon,
+  onPress,
+  role = 'button',
+}: HeaderIconButtonProps) {
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole={role}
+      accessibilityState={accessibilityState}
+      disabled={disabled}
+      hitSlop={8}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.iconButton,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
+    >
+      {icon ? <AppIcon color={color} name={icon} /> : null}
+    </Pressable>
   );
 }
 
@@ -145,12 +159,6 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
-  },
-  headerTextButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: layout.minimumTouchTarget,
-    paddingHorizontal: spacing.sm,
   },
   disabled: {
     opacity: 0.45,

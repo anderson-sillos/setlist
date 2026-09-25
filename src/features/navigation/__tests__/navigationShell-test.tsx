@@ -86,6 +86,16 @@ describe('shell de navegação', () => {
       expect(view.getByTestId('app-header')).toBeTruthy();
       expect(view.getByTestId('screen-static-area')).toBeTruthy();
       expect(view.getByTestId('shows-list')).toBeTruthy();
+      const headerAction = view.getByRole('button', {
+        name: 'Criar novo show',
+      });
+      expect(headerAction).toBeTruthy();
+      expect(StyleSheet.flatten(headerAction.props.style)).toMatchObject({
+        alignItems: 'center',
+        height: 48,
+        justifyContent: 'center',
+        width: 48,
+      });
 
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
