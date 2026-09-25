@@ -96,15 +96,18 @@ export function ShowsScreen({
     [songsQuery.data],
   );
   const normalizedSearch = normalizeForSearch(state.search);
+  const todayKey = getDateKey(now);
   const shows = useMemo(() => {
     const result = (showsQuery.data ?? []).filter((show) => {
       const matchesSearch = normalizeForSearch(
         `${show.name} ${show.venue}`,
       ).includes(normalizedSearch);
-      const startsAt = new Date(show.startsAt);
+      const showDateKey = getDateKey(show.startsAt);
       const matchesPeriod =
         state.period === 'all' ||
-        (state.period === 'upcoming' ? startsAt >= now : startsAt < now);
+        (state.period === 'upcoming'
+          ? showDateKey >= todayKey
+          : showDateKey < todayKey);
       const matchesDate =
         !state.date || getDateKey(show.startsAt) === state.date;
       const matchesStatus =
@@ -130,7 +133,7 @@ export function ShowsScreen({
         ? right.startsAt.localeCompare(left.startsAt)
         : left.startsAt.localeCompare(right.startsAt);
     });
-  }, [normalizedSearch, now, showsQuery.data, songsById, state]);
+  }, [normalizedSearch, showsQuery.data, songsById, state, todayKey]);
   const calendarShows = useMemo(
     () =>
       (showsQuery.data ?? []).filter(

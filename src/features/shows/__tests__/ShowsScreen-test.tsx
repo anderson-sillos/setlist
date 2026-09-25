@@ -25,6 +25,21 @@ describe('<ShowsScreen />', () => {
     },
   );
 
+  it('considera shows de hoje como próximos mesmo após o horário', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowsScreen
+          bandId={demoIds.primaryBand}
+          now={new Date('2026-09-19T23:00:00-03:00')}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Ensaio Aberto')).toBeTruthy();
+    expect(view.getByText('Show do Bairro')).toBeTruthy();
+  });
+
   it('busca shows e mantém cancelados fora da agenda ativa', async () => {
     const view = await render(
       <AppProviders>
