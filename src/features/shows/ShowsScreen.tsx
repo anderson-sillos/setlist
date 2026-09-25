@@ -134,6 +134,17 @@ export function ShowsScreen({
         : left.startsAt.localeCompare(right.startsAt);
     });
   }, [normalizedSearch, showsQuery.data, songsById, state, todayKey]);
+  const venueOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (showsQuery.data ?? [])
+            .map(({ venue }) => venue.trim())
+            .filter(Boolean),
+        ),
+      ).sort((left, right) => left.localeCompare(right, 'pt-BR')),
+    [showsQuery.data],
+  );
   const calendarShows = useMemo(
     () =>
       (showsQuery.data ?? []).filter(
@@ -341,6 +352,7 @@ export function ShowsScreen({
       ) : null}
       <ShowCreationDialog
         calendarShows={calendarShows}
+        venueOptions={venueOptions}
         key={`${state.date || 'new-show'}-${creationInstance}`}
         errorMessage={creationError}
         initialDate={state.date || undefined}

@@ -49,7 +49,7 @@ export function ShowBlockEditorDialog({
   const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
     initialBlocks.map((block) => ({ ...block })),
   );
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
 
   const updateBlockName = (id: string, name: string) => {
     setBlocks((current) =>
@@ -126,14 +126,14 @@ export function ShowBlockEditorDialog({
               <BlockRow
                 block={block}
                 count={blocks.length}
-                dragging={draggingIndex === index}
+                dragging={draggingBlockId === block.id}
                 index={index}
                 key={block.id}
                 onChangeName={updateBlockName}
                 onMove={(source, target) =>
                   setBlocks((current) => moveBlock(current, source, target))
                 }
-                onSetDragging={setDraggingIndex}
+                onSetDragging={setDraggingBlockId}
               />
             ))}
             <AppButton
@@ -160,7 +160,7 @@ export function ShowBlockEditorDialog({
               accessibilityLabel="Salvar blocos"
               disabled={!canSubmit}
               icon="check"
-              label={isSubmitting ? 'Salvando…' : 'Salvar blocos'}
+              label={isSubmitting ? 'Salvando…' : 'Salvar'}
               onPress={() => onSubmit(blocks)}
             />
           </View>
@@ -173,8 +173,9 @@ export function ShowBlockEditorDialog({
 function createBlockPanResponder(
   index: number,
   count: number,
+  blockId: string,
   onMove: (sourceIndex: number, targetIndex: number) => void,
-  onSetDragging: (index: number | null) => void,
+  onSetDragging: (blockId: string | null) => void,
 ) {
   let startIndex = index;
   let currentIndex = index;
@@ -184,7 +185,7 @@ function createBlockPanResponder(
     onPanResponderGrant: () => {
       startIndex = index;
       currentIndex = index;
-      onSetDragging(index);
+      onSetDragging(blockId);
     },
     onPanResponderMove: (_, gesture) => {
       const targetIndex = Math.max(
@@ -216,11 +217,12 @@ function BlockRow({
   readonly index: number;
   readonly onChangeName: (id: string, name: string) => void;
   readonly onMove: (sourceIndex: number, targetIndex: number) => void;
-  readonly onSetDragging: (index: number | null) => void;
+  readonly onSetDragging: (blockId: string | null) => void;
 }) {
   const panResponder = createBlockPanResponder(
     index,
     count,
+    block.id,
     onMove,
     onSetDragging,
   );
@@ -238,15 +240,17 @@ function BlockRow({
       <View
         accessibilityLabel={`Alça para mover o bloco ${block.name}`}
         accessibilityRole="button"
-        style={styles.dragHandle}
+        style={styles.dragHandleTouchTarget}
         {...panResponder.panHandlers}
       >
-        <AppIcon
-          color={dragging ? colors.violet : colors.muted}
-          name="dragHandle"
-          size={18}
-          strokeWidth={2.5}
-        />
+        <View style={styles.dragHandle}>
+          <AppIcon
+            color={dragging ? colors.violet : colors.muted}
+            name="dragHandle"
+            size={18}
+            strokeWidth={2.5}
+          />
+        </View>
       </View>
     </View>
   );
@@ -298,7 +302,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderColor: colors.line,
     borderRadius: radii.sm,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  dragHandleTouchTarget: {
+    alignItems: 'center',
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
     width: layout.minimumTouchTarget,

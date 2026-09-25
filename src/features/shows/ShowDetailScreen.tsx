@@ -13,7 +13,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useShow, useSongs, useUserBands } from '@/data/queries';
+import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
 import {
   createShowBlock,
   duplicateShow,
@@ -88,6 +88,7 @@ export function ShowDetailScreen({
   const window = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
   const showQuery = useShow(bandId, showId);
+  const showsQuery = useShows(bandId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
   const [editVisible, setEditVisible] = useState(false);
@@ -115,6 +116,17 @@ export function ShowDetailScreen({
     const baseName = show.name.slice(0, 200 - suffix.length).trimEnd();
     return { ...values, name: baseName + suffix };
   }, [show]);
+  const venueOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [...(showsQuery.data ?? []), ...(show ? [show] : [])]
+            .map(({ venue }) => venue.trim())
+            .filter(Boolean),
+        ),
+      ).sort((left, right) => left.localeCompare(right, 'pt-BR')),
+    [show, showsQuery.data],
+  );
   const songsById = useMemo(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
@@ -283,6 +295,7 @@ export function ShowDetailScreen({
         description="Atualize os dados de planejamento do show. O setlist permanece intacto."
         errorMessage={editError}
         initialValues={editInitialValues}
+        venueOptions={venueOptions}
         isSubmitting={editSubmitting}
         onClose={() => {
           if (!editSubmitting) {
@@ -291,7 +304,7 @@ export function ShowDetailScreen({
           }
         }}
         onSubmit={(form) => void handleUpdateShow(form)}
-        submitLabel="Salvar alterações"
+        submitLabel="Salvar"
         title="Editar show"
         visible={editVisible}
       />
@@ -301,6 +314,7 @@ export function ShowDetailScreen({
         description="Crie um novo Rascunho com os blocos, músicas e anotações deste show."
         errorMessage={duplicateError}
         initialValues={duplicateInitialValues}
+        venueOptions={venueOptions}
         isSubmitting={duplicateSubmitting}
         onClose={() => {
           if (!duplicateSubmitting) {
@@ -309,7 +323,7 @@ export function ShowDetailScreen({
           }
         }}
         onSubmit={(form) => void handleDuplicateShow(form)}
-        submitLabel="Duplicar show"
+        submitLabel="Duplicar"
         title="Duplicar show"
         visible={duplicateVisible}
       />
@@ -352,7 +366,7 @@ export function ShowDetailScreen({
                 {showStatusLabels[show.status]}
               </StatusPill>
             </View>
-            <AppText accessibilityRole="header" variant="title">
+            <AppText accessibilityRole="header" variant="heading">
               {show.name}
             </AppText>
             <AppText tone="muted">{formatShowListDate(show.startsAt)}</AppText>
@@ -364,7 +378,7 @@ export function ShowDetailScreen({
                   <AppText tone="muted" variant="caption">
                     Tempo total estimado
                   </AppText>
-                  <AppText variant="heading">
+                  <AppText style={styles.durationValue} variant="heading">
                     {duration?.totalMs == null
                       ? 'Duração não informada'
                       : formatShowDuration(duration.totalMs)}
@@ -539,8 +553,8 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   detailWide: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
+    alignItems: 'stretch',
+    width: '100%',
   },
   summaryLine: {
     alignItems: 'center',
@@ -555,13 +569,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
   },
   showSummary: {
-    flex: 1,
+    alignSelf: 'stretch',
     gap: spacing.md,
     minWidth: 0,
   },
   durationSummary: {
-    backgroundColor: colors.cyanSoft,
+    borderColor: colors.line,
     borderRadius: radii.md,
+    borderWidth: 1,
     gap: spacing.xs,
     padding: spacing.md,
   },
@@ -569,6 +584,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
     minWidth: 0,
+  },
+  durationValue: {
+    fontSize: 16,
+    lineHeight: 22,
   },
   durationHeading: {
     alignItems: 'center',
@@ -587,9 +606,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   setlist: {
-    flex: 1.4,
     gap: spacing.md,
     minWidth: 0,
+    width: '100%',
   },
   setlistHeader: {
     alignItems: 'center',

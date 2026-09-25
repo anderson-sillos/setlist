@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
+import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import type { Show } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -30,6 +31,7 @@ export interface ShowCreationForm {
 
 interface ShowCreationDialogProps {
   readonly calendarShows?: readonly Show[];
+  readonly venueOptions?: readonly string[];
   readonly errorMessage: string | null;
   readonly description?: string;
   readonly initialValues?: Partial<ShowCreationForm>;
@@ -69,6 +71,7 @@ export function ShowCreationDialog({
   isSubmitting,
   onClose,
   onSubmit,
+  venueOptions = [],
   visible,
 }: ShowCreationDialogProps) {
   const [calendarVisible, setCalendarVisible] = useState(false);
@@ -202,10 +205,11 @@ export function ShowCreationDialog({
                 </View>
               </View>
             </View>
-            <Field
-              label="Local"
+            <AutocompleteField
               accessibilityLabel="Local do show"
+              label="Local"
               onChangeText={(value) => setField('venue', value)}
+              options={venueOptions}
               placeholder="Ex.: Praça Central"
               value={form.venue}
             />
@@ -343,7 +347,7 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     alignItems: 'center',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
@@ -354,7 +358,7 @@ const styles = StyleSheet.create({
   },
   dateButtonText: { flex: 1 },
   input: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
