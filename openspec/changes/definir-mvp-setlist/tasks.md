@@ -85,7 +85,7 @@
 ## 7. Shows e setlists
 
 - [x] 7.1 Implementar lista rolável única, busca, filtros, ordenação, duração, calendário mensal como filtro adicional de data com acesso direto, detalhes, ação de criação no cabeçalho para Owner e Editor e edição online de shows; verificar contagem independente de período, estado e data, uso de `Todos` em período e estado e contagem `1` ao selecionar uma data, restauração de `Próximos` e `Ativo` ao removê-la, restauração do padrão e fechamento do painel por `Limpar`, aplicação imediata da data, marcadores independentes de busca e ordenação, padrão de próximos eventos, feriados nacionais locais, campos, estado inicial Rascunho e permissões
-- [ ] 7.2 Implementar duplicação de show e verificar cópia independente de blocos, músicas, anotações de planejamento, separadores, ordem e observações
+- [x] 7.2 Implementar duplicação de show e verificar cópia independente de blocos, músicas, anotações de planejamento, separadores, ordem e observações
 - [ ] 7.3 Implementar criação, nomeação e reordenação de blocos por alça e verificar a existência do bloco Principal em novos shows
 - [ ] 7.4 Implementar uma única ação de inclusão, seleção múltipla de músicas, anotações de planejamento, separadores e reordenação de itens dentro e entre blocos e verificar observações específicas e repetições sem alterar a música do repertório
 - [ ] 7.5 Calcular duração de blocos e do show pela soma dos tempos informados de músicas e planejamento e verificar composição, ausência total de estimativa e atualização imediata durante edição

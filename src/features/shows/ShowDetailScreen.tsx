@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
@@ -15,7 +15,10 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useSongs, useUserBands } from '@/data/queries';
-import { ShowMutationError } from '@/data/supabase/showMutations';
+import {
+  duplicateShow,
+  ShowMutationError,
+} from '@/data/supabase/showMutations';
 import { updateShow } from '@/data/supabase/showUpdateMutations';
 import type { EntityId } from '@/domain';
 import {
@@ -76,6 +79,7 @@ export function ShowDetailScreen({
   viewportHeight,
   viewportWidth,
 }: ShowDetailScreenProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const window = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
@@ -87,11 +91,23 @@ export function ShowDetailScreen({
   const [editError, setEditError] = useState<string | null>(null);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editInstance, setEditInstance] = useState(0);
+  const [duplicateVisible, setDuplicateVisible] = useState(false);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [duplicateSubmitting, setDuplicateSubmitting] = useState(false);
+  const [duplicateInstance, setDuplicateInstance] = useState(0);
   const show = showQuery.data;
   const editInitialValues = useMemo(
     () => (show ? toEditForm(show) : undefined),
     [show],
   );
+  const duplicateInitialValues = useMemo(() => {
+    if (!show) return undefined;
+
+    const values = toEditForm(show);
+    const suffix = ' (cópia)';
+    const baseName = show.name.slice(0, 200 - suffix.length).trimEnd();
+    return { ...values, name: baseName + suffix };
+  }, [show]);
   const songsById = useMemo(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
@@ -141,6 +157,36 @@ export function ShowDetailScreen({
     }
   };
 
+  const handleDuplicateShow = async (form: ShowCreationForm) => {
+    if (!show) return;
+    setDuplicateError(null);
+    setDuplicateSubmitting(true);
+    try {
+      const duplicatedShowId = await duplicateShow({
+        bandId,
+        name: form.name,
+        notes: form.notes,
+        show,
+        startsAt: form.date + 'T' + form.time + ':00',
+        venue: form.venue,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', bandId, 'shows'],
+        refetchType: 'all',
+      });
+      setDuplicateVisible(false);
+      router.push(getShowHref(bandId, duplicatedShowId));
+    } catch (error) {
+      setDuplicateError(
+        error instanceof ShowMutationError
+          ? error.message
+          : 'Não foi possível duplicar o show agora. Tente novamente.',
+      );
+    } finally {
+      setDuplicateSubmitting(false);
+    }
+  };
+
   return (
     <BandAreaLayout
       activeSection="shows"
@@ -187,6 +233,24 @@ export function ShowDetailScreen({
         submitLabel="Salvar alterações"
         title="Editar show"
         visible={editVisible}
+      />
+
+      <ShowCreationDialog
+        key={`${show?.updatedAt ?? showId}-duplicate-${duplicateInstance}`}
+        description="Crie um novo Rascunho com os blocos, músicas e anotações deste show."
+        errorMessage={duplicateError}
+        initialValues={duplicateInitialValues}
+        isSubmitting={duplicateSubmitting}
+        onClose={() => {
+          if (!duplicateSubmitting) {
+            setDuplicateVisible(false);
+            setDuplicateError(null);
+          }
+        }}
+        onSubmit={(form) => void handleDuplicateShow(form)}
+        submitLabel="Duplicar show"
+        title="Duplicar show"
+        visible={duplicateVisible}
       />
       {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
@@ -274,6 +338,20 @@ export function ShowDetailScreen({
                   <AppText tone="inverse">Abrir modo palco</AppText>
                 </Pressable>
               </Link>
+            ) : null}
+            {canEdit ? (
+              <AppButton
+                accessibilityLabel="Duplicar show"
+                disabled={duplicateSubmitting}
+                icon="copy"
+                label="Duplicar show"
+                onPress={() => {
+                  setDuplicateError(null);
+                  setDuplicateInstance((current) => current + 1);
+                  setDuplicateVisible(true);
+                }}
+                variant="secondary"
+              />
             ) : null}
           </Card>
 

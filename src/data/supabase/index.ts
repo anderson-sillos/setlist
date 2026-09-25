@@ -39,9 +39,14 @@ export {
   createSupabaseShowRepository,
   SupabaseShowRepository,
 } from '@/data/supabase/showRepository';
-export { createShow, ShowMutationError } from '@/data/supabase/showMutations';
+export {
+  createShow,
+  duplicateShow,
+  ShowMutationError,
+} from '@/data/supabase/showMutations';
 export type {
   CreateShowInput,
+  DuplicateShowInput,
   ShowMutationErrorCode,
 } from '@/data/supabase/showMutations';
 export { updateShow } from '@/data/supabase/showUpdateMutations';
