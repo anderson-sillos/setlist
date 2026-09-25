@@ -1025,6 +1025,8 @@ export function ShowBlockEditorDialog({
           setSongSheetVisible(false);
         }}
         showCloseButton
+        sheetStyle={styles.songPickerSheet}
+        testID="show-song-picker-sheet"
         visible={songSheetVisible}
       >
         <View style={styles.songPickerControls}>
@@ -1046,6 +1048,7 @@ export function ShowBlockEditorDialog({
         </View>
         <ScrollView
           contentContainerStyle={styles.songOptions}
+          testID="show-song-picker-scroll"
           keyboardShouldPersistTaps="handled"
           style={styles.songPickerScroll}
         >
@@ -1988,7 +1991,7 @@ const styles = StyleSheet.create({
     elevation: 0,
     minHeight: 0,
     maxHeight: '100%',
-    maxWidth: '100%',
+    maxWidth: layout.contentMaxWidth,
     boxShadow: 'none',
     width: '100%',
   },
@@ -2000,7 +2003,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   screenRoot: {
+    alignSelf: 'center',
     flex: 1,
+    maxWidth: layout.contentMaxWidth,
     minHeight: 0,
     width: '100%',
   },
@@ -2024,6 +2029,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  songPickerSheet: {
+    height: 520,
+    maxHeight: '90%',
+    minHeight: 0,
   },
   songPickerSearch: {
     flex: 1,
@@ -2061,5 +2071,5 @@ const styles = StyleSheet.create({
     borderColor: colors.violet,
   },
   songOptions: { gap: spacing.sm, paddingBottom: spacing.md },
-  songPickerScroll: { maxHeight: 360 },
+  songPickerScroll: { flex: 1, minHeight: 0 },
 });

@@ -1,4 +1,6 @@
 import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { layout } from '@/theme/tokens';
 
 import { demoIds } from '@/data/demo';
 import { ShowSetlistEditorScreen } from '@/features/shows/ShowSetlistEditorScreen';
@@ -21,6 +23,11 @@ describe('<ShowSetlistEditorScreen />', () => {
     );
 
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('show-block-editor-dialog').props.style,
+      ).maxWidth,
+    ).toBe(layout.contentMaxWidth);
     expect(view.getByLabelText('Nome do bloco 1')).toBeTruthy();
 
     expect(view.getByLabelText('Adicionar à setlist')).toBeTruthy();

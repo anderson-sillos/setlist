@@ -1,4 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import {
@@ -54,11 +55,16 @@ describe('<OptionSheet />', () => {
         closeAccessibilityLabel="Fechar seleção de músicas"
         label="Adicionar músicas"
         onClose={onClose}
+        sheetStyle={{ height: 520, maxHeight: '90%' }}
+        testID="sized-option-sheet"
         visible
       >
         <></>
       </OptionSheet>,
     );
+    expect(
+      StyleSheet.flatten(view.getByTestId('sized-option-sheet').props.style),
+    ).toMatchObject({ height: 520, maxHeight: '90%' });
 
     await fireEvent.press(view.getByLabelText('Fechar seleção de músicas'));
 

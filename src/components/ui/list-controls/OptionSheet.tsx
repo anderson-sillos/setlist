@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -22,6 +29,7 @@ interface OptionSheetProps {
   readonly testID?: string;
   readonly label: string;
   readonly onClose: () => void;
+  readonly sheetStyle?: StyleProp<ViewStyle>;
   readonly showCloseButton?: boolean;
   readonly visible: boolean;
 }
@@ -79,6 +87,7 @@ export function OptionSheet({
   closeAccessibilityLabel,
   label,
   onClose,
+  sheetStyle,
   showCloseButton = true,
   testID,
   visible,
@@ -106,7 +115,7 @@ export function OptionSheet({
           onPress={handleClose}
           style={styles.modalScrim}
         />
-        <View style={styles.sheet} testID={testID}>
+        <View style={[styles.sheet, sheetStyle]} testID={testID}>
           {showCloseButton ? (
             <View style={styles.header}>
               <AppText
