@@ -1,5 +1,5 @@
 import { getSupabaseClient } from '@/data/supabase/client';
-import type { EntityId } from '@/domain';
+import type { EntityId, ShowStatus } from '@/domain';
 import { ShowMutationError } from '@/data/supabase/showMutations';
 
 export interface UpdateShowInput {
@@ -62,6 +62,67 @@ export async function updateShow(input: UpdateShowInput): Promise<void> {
     throw new ShowMutationError(
       'request_failed',
       'Não foi possível atualizar o show agora. Tente novamente.',
+    );
+  }
+
+  if (!data) {
+    throw new ShowMutationError(
+      'not_found_or_forbidden',
+      'O show não existe mais ou você não tem permissão para alterá-lo.',
+    );
+  }
+}
+
+export interface UpdateShowStatusInput {
+  readonly bandId: EntityId;
+  readonly currentStatus: ShowStatus;
+  readonly showId: EntityId;
+  readonly status: ShowStatus;
+}
+
+const allowedStatusTransitions: Record<ShowStatus, readonly ShowStatus[]> = {
+  cancelled: ['cancelled', 'draft'],
+  draft: ['draft', 'ready', 'cancelled'],
+  ready: ['ready', 'draft', 'cancelled'],
+};
+
+export async function updateShowStatus(
+  input: UpdateShowStatusInput,
+): Promise<void> {
+  if (!allowedStatusTransitions[input.currentStatus].includes(input.status)) {
+    throw new ShowMutationError(
+      'invalid_show',
+      'Essa transição de status não está disponível para o show.',
+    );
+  }
+
+  if (input.currentStatus === input.status) return;
+
+  const { data, error } = await getSupabaseClient()
+    .from('shows')
+    .update({ status: input.status })
+    .eq('id', input.showId)
+    .eq('band_id', input.bandId)
+    .select('id')
+    .maybeSingle();
+
+  if (error) {
+    if (
+      error.code === '42501' ||
+      error.message.includes('JWT') ||
+      error.message.includes('row-level security') ||
+      error.message.includes('permission') ||
+      error.message.includes('SHOW_NOT_EDITABLE')
+    ) {
+      throw new ShowMutationError(
+        'permission_denied',
+        'Seu papel não permite alterar o status deste show.',
+      );
+    }
+
+    throw new ShowMutationError(
+      'request_failed',
+      'Não foi possível atualizar o status agora. Tente novamente.',
     );
   }
 

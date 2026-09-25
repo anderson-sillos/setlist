@@ -49,7 +49,14 @@ export type {
   DuplicateShowInput,
   ShowMutationErrorCode,
 } from '@/data/supabase/showMutations';
-export { updateShow } from '@/data/supabase/showUpdateMutations';
+export {
+  updateShow,
+  updateShowStatus,
+} from '@/data/supabase/showUpdateMutations';
+export type {
+  UpdateShowInput,
+  UpdateShowStatusInput,
+} from '@/data/supabase/showUpdateMutations';
 export {
   acceptCurrentBandTerm,
   getCurrentBandTermAcceptance,

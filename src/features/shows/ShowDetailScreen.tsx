@@ -12,6 +12,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
 import {
@@ -22,8 +23,11 @@ import {
   replaceShowBlockItems,
   ShowMutationError,
 } from '@/data/supabase';
-import { updateShow } from '@/data/supabase/showUpdateMutations';
-import type { EntityId } from '@/domain';
+import {
+  updateShow,
+  updateShowStatus,
+} from '@/data/supabase/showUpdateMutations';
+import type { EntityId, ShowStatus } from '@/domain';
 import {
   getBlockDurationBreakdown,
   getShowDurationBreakdown,
@@ -53,6 +57,52 @@ interface ShowDetailScreenProps {
   readonly showId: EntityId;
   readonly viewportHeight?: number;
   readonly viewportWidth?: number;
+}
+
+function getShowStatusActions(status: ShowStatus) {
+  if (status === 'draft') {
+    return [
+      {
+        confirm:
+          'O show ficará Pronto para execução e continuará disponível para consulta.',
+        icon: 'check' as const,
+        label: 'Marcar como Pronto',
+        status: 'ready' as const,
+      },
+      {
+        confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
+        icon: 'remove' as const,
+        label: 'Cancelar show',
+        status: 'cancelled' as const,
+      },
+    ];
+  }
+
+  if (status === 'ready') {
+    return [
+      {
+        confirm: 'O show voltará para Rascunho e poderá ser editado novamente.',
+        icon: 'edit' as const,
+        label: 'Reabrir para edição',
+        status: 'draft' as const,
+      },
+      {
+        confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
+        icon: 'remove' as const,
+        label: 'Cancelar show',
+        status: 'cancelled' as const,
+      },
+    ];
+  }
+
+  return [
+    {
+      confirm: 'O show voltará para Rascunho e poderá ser preparado novamente.',
+      icon: 'renew' as const,
+      label: 'Reabrir como Rascunho',
+      status: 'draft' as const,
+    },
+  ];
 }
 
 function toEditForm(show: {
@@ -106,6 +156,10 @@ export function ShowDetailScreen({
   const [blockEditorError, setBlockEditorError] = useState<string | null>(null);
   const [blockEditorSubmitting, setBlockEditorSubmitting] = useState(false);
   const [blockEditorInstance, setBlockEditorInstance] = useState(0);
+  const [statusSheetVisible, setStatusSheetVisible] = useState(false);
+  const [statusAction, setStatusAction] = useState<ShowStatus | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [statusSubmitting, setStatusSubmitting] = useState(false);
   const show = showQuery.data;
   const editInitialValues = useMemo(
     () => (show ? toEditForm(show) : undefined),
@@ -209,6 +263,37 @@ export function ShowDetailScreen({
     }
   };
 
+  const handleStatusChange = async (status: ShowStatus) => {
+    if (!show) return;
+    setStatusError(null);
+    setStatusSubmitting(true);
+    try {
+      await updateShowStatus({
+        bandId,
+        currentStatus: show.status,
+        showId: show.id,
+        status,
+      });
+      await Promise.all([
+        showQuery.refetch(),
+        queryClient.invalidateQueries({
+          queryKey: ['bands', bandId, 'shows'],
+          refetchType: 'all',
+        }),
+      ]);
+      setStatusAction(null);
+      setStatusSheetVisible(false);
+    } catch (error) {
+      setStatusError(
+        error instanceof ShowMutationError
+          ? error.message
+          : 'Não foi possível atualizar o status agora. Tente novamente.',
+      );
+    } finally {
+      setStatusSubmitting(false);
+    }
+  };
+
   const handleSaveBlocks = async (drafts: readonly ShowBlockDraft[]) => {
     if (!show) return;
     setBlockEditorError(null);
@@ -277,7 +362,7 @@ export function ShowDetailScreen({
       bandId={bandId}
       currentRoute={getShowHref(bandId, showId) as string}
       headerAction={
-        canEdit
+        canEdit && show?.status === 'draft'
           ? {
               accessibilityLabel: 'Editar show',
               icon: 'edit',
@@ -353,6 +438,71 @@ export function ShowDetailScreen({
         onSubmit={(drafts) => void handleSaveBlocks(drafts)}
         visible={blockEditorVisible}
       />
+      <OptionSheet
+        closeAccessibilityLabel="Fechar ações de status do show"
+        label="Status do show"
+        onClose={() => {
+          if (!statusSubmitting) {
+            setStatusAction(null);
+            setStatusError(null);
+            setStatusSheetVisible(false);
+          }
+        }}
+        visible={statusSheetVisible}
+      >
+        {show ? (
+          statusAction ? (
+            (() => {
+              const action = getShowStatusActions(show.status).find(
+                (candidate) => candidate.status === statusAction,
+              );
+              return action ? (
+                <>
+                  <AppText>{action.confirm}</AppText>
+                  {statusError ? (
+                    <AppText accessibilityRole="alert" style={styles.errorText}>
+                      {statusError}
+                    </AppText>
+                  ) : null}
+                  <AppButton
+                    accessibilityLabel={'Confirmar ' + action.label}
+                    disabled={statusSubmitting}
+                    icon="check"
+                    label={statusSubmitting ? 'Salvando…' : 'Confirmar'}
+                    onPress={() => void handleStatusChange(action.status)}
+                  />
+                  <AppButton
+                    disabled={statusSubmitting}
+                    label="Voltar"
+                    onPress={() => {
+                      setStatusAction(null);
+                      setStatusError(null);
+                    }}
+                    variant="secondary"
+                  />
+                </>
+              ) : null;
+            })()
+          ) : (
+            <View style={styles.statusOptions}>
+              {getShowStatusActions(show.status).map((action) => (
+                <AppButton
+                  accessibilityLabel={action.label}
+                  icon={action.icon}
+                  key={action.status}
+                  label={action.label}
+                  onPress={() => {
+                    setStatusError(null);
+                    setStatusAction(action.status);
+                  }}
+                  variant="secondary"
+                />
+              ))}
+            </View>
+          )
+        ) : null}
+      </OptionSheet>
+
       {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
@@ -376,6 +526,20 @@ export function ShowDetailScreen({
               <StatusPill tone={show.status === 'ready' ? 'ready' : 'default'}>
                 {showStatusLabels[show.status]}
               </StatusPill>
+              {canEdit ? (
+                <AppButton
+                  accessibilityLabel="Alterar status do show"
+                  icon="more"
+                  label="Status"
+                  onPress={() => {
+                    setStatusError(null);
+                    setStatusAction(null);
+                    setStatusSheetVisible(true);
+                  }}
+                  style={styles.statusButton}
+                  variant="secondary"
+                />
+              ) : null}
             </View>
             <AppText accessibilityRole="header" variant="heading">
               {show.name}
@@ -633,6 +797,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
+  statusButton: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  statusOptions: {
+    gap: spacing.sm,
+  },
   blockCard: {
     gap: spacing.md,
   },
@@ -687,5 +859,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.72,
+  },
+  errorText: {
+    color: colors.amber,
   },
 });

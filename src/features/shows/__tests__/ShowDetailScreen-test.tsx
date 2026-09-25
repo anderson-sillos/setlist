@@ -70,6 +70,28 @@ describe('<ShowDetailScreen />', () => {
     expect(view.queryByLabelText('Mover Principal para baixo')).toBeNull();
   });
 
+  it('apresenta as transições de status disponíveis para quem edita', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowDetailScreen
+          bandId={demoIds.primaryBand}
+          showId={demoIds.readyShow}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Festival da Praça');
+    await fireEvent.press(view.getByLabelText('Alterar status do show'));
+
+    expect(view.getByText('Status do show')).toBeTruthy();
+    expect(view.getByLabelText('Reabrir para edição')).toBeTruthy();
+    expect(view.getByLabelText('Cancelar show')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Reabrir para edição'));
+
+    expect(view.getByLabelText('Confirmar Reabrir para edição')).toBeTruthy();
+  });
+
   it('mostra um estado quando o show não é encontrado', async () => {
     const emptyRepositories = createInMemoryRepositories({
       ...demoRepositoryData,
