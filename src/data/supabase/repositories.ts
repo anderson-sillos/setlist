@@ -1,5 +1,4 @@
 import { getSupabaseClient } from '@/data/supabase/client';
-import { isDemoBandId } from '@/data/demo';
 import type {
   Band,
   BandMember,
@@ -150,11 +149,6 @@ function toBandMember(
 }
 
 export class SupabaseBandRepository implements BandRepository {
-  constructor(
-    private readonly demoRepository?: BandRepository,
-    private readonly demoUserId?: EntityId,
-  ) {}
-
   async listForUser(userId: EntityId): Promise<readonly UserBand[]> {
     const { data: membershipData, error: membershipError } =
       await getSupabaseClient()
@@ -170,9 +164,7 @@ export class SupabaseBandRepository implements BandRepository {
     const bandIds = memberships.map(({ band_id }) => band_id);
 
     if (bandIds.length === 0) {
-      return this.demoRepository && this.demoUserId
-        ? this.demoRepository.listForUser(this.demoUserId)
-        : [];
+      return [];
     }
 
     const { data: bandData, error: bandError } = await getSupabaseClient()
@@ -206,24 +198,10 @@ export class SupabaseBandRepository implements BandRepository {
         : [];
     });
 
-    if (!this.demoRepository || !this.demoUserId) {
-      return remoteBands;
-    }
-
-    const demoBands = await this.demoRepository.listForUser(this.demoUserId);
-    const remoteBandIds = new Set(remoteBands.map(({ band }) => band.id));
-
-    return [
-      ...remoteBands,
-      ...demoBands.filter(({ band }) => !remoteBandIds.has(band.id)),
-    ];
+    return remoteBands;
   }
 
   async findById(bandId: EntityId): Promise<Band | null> {
-    if (isDemoBandId(bandId)) {
-      return this.demoRepository?.findById(bandId) ?? null;
-    }
-
     const { data, error } = await getSupabaseClient()
       .from('bands')
       .select('id, name, created_at, updated_at')
@@ -238,14 +216,10 @@ export class SupabaseBandRepository implements BandRepository {
       return parseBand(data);
     }
 
-    return this.demoRepository?.findById(bandId) ?? null;
+    return null;
   }
 
   async listMembers(bandId: EntityId): Promise<readonly BandMember[]> {
-    if (isDemoBandId(bandId)) {
-      return this.demoRepository?.listMembers(bandId) ?? [];
-    }
-
     const { data, error } = await getSupabaseClient()
       .from('band_members')
       .select('id, band_id, user_id, role, joined_at')
@@ -260,19 +234,10 @@ export class SupabaseBandRepository implements BandRepository {
       memberships.map(({ user_id }) => user_id),
     );
 
-    if (memberships.length > 0 || !this.demoRepository) {
-      return memberships.map((membership) =>
-        toBandMember(membership, profiles),
-      );
-    }
-
-    return this.demoRepository.listMembers(bandId);
+    return memberships.map((membership) => toBandMember(membership, profiles));
   }
 }
 
-export function createSupabaseBandRepository(
-  demoRepository?: BandRepository,
-  demoUserId?: EntityId,
-): BandRepository {
-  return new SupabaseBandRepository(demoRepository, demoUserId);
+export function createSupabaseBandRepository(): BandRepository {
+  return new SupabaseBandRepository();
 }

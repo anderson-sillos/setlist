@@ -190,32 +190,26 @@ describe('<BandScreen />', () => {
     expect(ownerView.getByText('Você')).toBeTruthy();
     expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
     await fireEvent.press(ownerView.getByLabelText('Sair da banda'));
-    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(ownerView.getByText(/A saída da banda fica/)).toBeTruthy();
-    await fireEvent.press(
-      ownerView.getByLabelText('Fechar aviso de demonstração'),
-    );
+    expect(ownerView.getByTestId('band-leave-dialog')).toBeTruthy();
+    await fireEvent.press(ownerView.getByText('Cancelar'));
     expect(ownerView.getByLabelText('Editar banda')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Editar banda'));
-    expect(ownerView.getByText(/A administração da banda fica/)).toBeTruthy();
+    expect(ownerView.getByTestId('band-administration-dialog')).toBeTruthy();
     await fireEvent.press(
-      ownerView.getByLabelText('Fechar aviso de demonstração'),
+      ownerView.getAllByLabelText('Fechar edição da banda')[0],
     );
 
     expect(ownerView.getByLabelText('Convidar integrante')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Convidar integrante'));
-    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(ownerView.getByText(/Os convites entram/)).toBeTruthy();
+    expect(ownerView.getByTestId('band-invitation-dialog')).toBeTruthy();
     await fireEvent.press(
-      ownerView.getByLabelText('Fechar aviso de demonstração'),
+      ownerView.getByLabelText('Fechar janela de convites'),
     );
-    expect(ownerView.queryByTestId('demo-action-notice')).toBeNull();
 
     await fireEvent.press(ownerView.getByLabelText('Administrar Bruno Lima'));
-    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(ownerView.getByText(/A administração de integrantes/)).toBeTruthy();
+    expect(ownerView.getByTestId('band-member-management-dialog')).toBeTruthy();
     await ownerView.unmount();
 
     const memberView = await render(

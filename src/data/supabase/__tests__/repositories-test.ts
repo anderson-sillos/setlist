@@ -1,5 +1,4 @@
 import { getSupabaseClient } from '@/data/supabase/client';
-import { demoIds } from '@/data/demo';
 import { SupabaseBandRepository } from '@/data/supabase/repositories';
 
 jest.mock('@/data/supabase/client', () => ({
@@ -126,39 +125,15 @@ describe('repositório de bandas do Supabase', () => {
     expect(from).toHaveBeenCalledTimes(1);
   });
 
-  it('mantém bandas demonstrativas disponíveis durante a migração do backend', async () => {
+  it('retorna somente as bandas remotas do usuário', async () => {
     from.mockReturnValueOnce(createQuery({ data: [], error: null }));
-    const demoRepository = {
-      listForUser: jest.fn().mockResolvedValue([
-        {
-          band: {
-            createdAt: '2026-09-20T10:00:00.000Z',
-            id: 'band-demo',
-            name: 'Banda Demonstração',
-            updatedAt: '2026-09-20T10:00:00.000Z',
-          },
-          membership: {
-            bandId: 'band-demo',
-            displayName: 'Pessoa demo',
-            id: 'membership-demo',
-            joinedAt: '2026-09-20T10:00:00.000Z',
-            role: 'owner',
-            userId: 'demo-user',
-          },
-        },
-      ]),
-    };
 
     await expect(
-      new SupabaseBandRepository(
-        demoRepository as never,
-        'demo-user',
-      ).listForUser('user-1'),
-    ).resolves.toHaveLength(1);
-    expect(demoRepository.listForUser).toHaveBeenCalledWith('demo-user');
+      new SupabaseBandRepository().listForUser('user-1'),
+    ).resolves.toEqual([]);
   });
 
-  it('combina bandas remotas e demonstrativas sem duplicar identificadores', async () => {
+  it('não adiciona bandas quando a consulta remota já é suficiente', async () => {
     from
       .mockReturnValueOnce(
         createQuery({
@@ -188,53 +163,17 @@ describe('repositório de bandas do Supabase', () => {
         }),
       )
       .mockReturnValueOnce(createQuery({ data: [], error: null }));
-    const demoRepository = {
-      listForUser: jest.fn().mockResolvedValue([
-        {
-          band: { id: 'band-remote' },
-          membership: { bandId: 'band-remote' },
-        },
-        {
-          band: { id: 'band-demo' },
-          membership: { bandId: 'band-demo' },
-        },
-      ]),
-    };
 
     await expect(
-      new SupabaseBandRepository(
-        demoRepository as never,
-        'demo-user',
-      ).listForUser('user-1'),
-    ).resolves.toEqual([
-      expect.objectContaining({
-        band: expect.objectContaining({ id: 'band-remote' }),
-      }),
-      expect.objectContaining({
-        band: expect.objectContaining({ id: 'band-demo' }),
-      }),
-    ]);
+      new SupabaseBandRepository().listForUser('user-1'),
+    ).resolves.toHaveLength(1);
   });
 
-  it('resolve detalhes de bandas demonstrativas sem consultar o Supabase', async () => {
-    const demoRepository = {
-      findById: jest.fn().mockResolvedValue({ id: demoIds.primaryBand }),
-      listMembers: jest.fn().mockResolvedValue([]),
-    };
-    const repository = new SupabaseBandRepository(demoRepository as never);
-
-    await expect(repository.findById(demoIds.primaryBand)).resolves.toEqual({
-      id: demoIds.primaryBand,
-    });
+  it('busca detalhes sem fallback local', async () => {
+    from.mockReturnValueOnce(createSingleQuery({ data: null, error: null }));
     await expect(
-      repository.listMembers(demoIds.secondaryBand),
-    ).resolves.toEqual([]);
-
-    expect(from).not.toHaveBeenCalled();
-    expect(demoRepository.findById).toHaveBeenCalledWith(demoIds.primaryBand);
-    expect(demoRepository.listMembers).toHaveBeenCalledWith(
-      demoIds.secondaryBand,
-    );
+      new SupabaseBandRepository().findById('band-missing'),
+    ).resolves.toBeNull();
   });
 
   it('carrega integrantes e usa o e-mail quando o perfil não tem nome', async () => {
@@ -318,34 +257,11 @@ describe('repositório de bandas do Supabase', () => {
     ).resolves.toBeNull();
   });
 
-  it('usa a banda demonstrativa como fallback para detalhes e integrantes', async () => {
-    from
-      .mockReturnValueOnce(createSingleQuery({ data: null, error: null }))
-      .mockReturnValueOnce(createQuery({ data: [], error: null }));
-    const demoBand = {
-      createdAt: '2026-09-20T10:00:00.000Z',
-      id: 'band-demo',
-      name: 'Banda Demonstração',
-      updatedAt: '2026-09-20T10:00:00.000Z',
-    };
-    const demoMember = {
-      bandId: 'band-demo',
-      displayName: 'Pessoa demo',
-      id: 'membership-demo',
-      joinedAt: '2026-09-20T10:00:00.000Z',
-      role: 'owner' as const,
-      userId: 'demo-user',
-    };
-    const demoRepository = {
-      findById: jest.fn().mockResolvedValue(demoBand),
-      listMembers: jest.fn().mockResolvedValue([demoMember]),
-    };
-    const repository = new SupabaseBandRepository(demoRepository as never);
-
-    await expect(repository.findById('band-demo')).resolves.toEqual(demoBand);
-    await expect(repository.listMembers('band-demo')).resolves.toEqual([
-      demoMember,
-    ]);
+  it('não usa fallback local quando a banda não existe', async () => {
+    from.mockReturnValueOnce(createSingleQuery({ data: null, error: null }));
+    await expect(
+      new SupabaseBandRepository().findById('band-missing'),
+    ).resolves.toBeNull();
   });
 
   it('converte uma banda específica para a entidade do domínio', async () => {

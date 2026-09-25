@@ -3,17 +3,12 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 
-import {
-  DemoActionNotice,
-  ErrorFeedback,
-  LoadingFeedback,
-} from '@/components/feedback';
+import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { demoIds } from '@/data/demo';
 import {
   useBand,
   useBandInvitations,
@@ -86,7 +81,6 @@ export function BandScreen({
     ({ band }) => band.id === bandId,
   )?.membership;
   const canManage = currentMembership?.role === 'owner';
-  const [previewNotice, setPreviewNotice] = useState<string | null>(null);
   const [managedMember, setManagedMember] = useState<BandMember | null>(null);
   const [memberManagementError, setMemberManagementError] = useState<
     string | null
@@ -106,9 +100,7 @@ export function BandScreen({
   const [invitationDialogVisible, setInvitationDialogVisible] = useState(false);
   const [invitationError, setInvitationError] = useState<string | null>(null);
   const [invitationSubmitting, setInvitationSubmitting] = useState(false);
-  const isDemoBand =
-    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
-  const invitationsQuery = useBandInvitations(bandId, canManage && !isDemoBand);
+  const invitationsQuery = useBandInvitations(bandId, canManage);
   const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
     bandId,
     'band',
@@ -129,13 +121,6 @@ export function BandScreen({
   );
 
   const openMemberManagement = (member: BandMember) => {
-    if (isDemoBand) {
-      setPreviewNotice(
-        'A administração de integrantes fica disponível ao conectar uma banda real.',
-      );
-      return;
-    }
-
     setMemberManagementError(null);
     setManagedMember(member);
   };
@@ -150,13 +135,6 @@ export function BandScreen({
   };
 
   const openLeaveFlow = () => {
-    if (isDemoBand) {
-      setPreviewNotice(
-        'A saída da banda fica disponível ao conectar uma banda real. Por enquanto, o palco segue com os dados de demonstração.',
-      );
-      return;
-    }
-
     setLeaveError(null);
     setLeaveDialogVisible(true);
   };
@@ -171,25 +149,11 @@ export function BandScreen({
   };
 
   const openBandAdministration = () => {
-    if (isDemoBand) {
-      setPreviewNotice(
-        'A administração da banda fica disponível ao conectar uma banda real.',
-      );
-      return;
-    }
-
     setBandAdministrationError(null);
     setBandAdministrationMode('rename');
   };
 
   const openInviteFlow = () => {
-    if (isDemoBand) {
-      setPreviewNotice(
-        'Os convites entram com o controle de acesso. A posição do botão já está no palco.',
-      );
-      return;
-    }
-
     setInvitationError(null);
     setInvitationDialogVisible(true);
   };
@@ -413,10 +377,6 @@ export function BandScreen({
           }}
         />
       ) : null}
-      <DemoActionNotice
-        message={previewNotice}
-        onClose={() => setPreviewNotice(null)}
-      />
       <BandMemberManagementDialog
         errorMessage={memberManagementError}
         isSubmitting={memberManagementSubmitting}

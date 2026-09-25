@@ -36,6 +36,10 @@ export {
   SupabaseSongRepository,
 } from '@/data/supabase/songRepository';
 export {
+  createSupabaseShowRepository,
+  SupabaseShowRepository,
+} from '@/data/supabase/showRepository';
+export {
   acceptCurrentBandTerm,
   getCurrentBandTermAcceptance,
   LegalTermMutationError,

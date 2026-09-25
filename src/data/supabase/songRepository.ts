@@ -8,7 +8,6 @@ import type {
   SongListOptions,
   SongRepository,
 } from '@/domain';
-import { isDemoBandId } from '@/data/demo';
 import { getSupabaseClient } from '@/data/supabase/client';
 
 const lyricStatuses: readonly LyricStatus[] = [
@@ -170,16 +169,10 @@ function parseSong(value: unknown): Song {
 }
 
 export class SupabaseSongRepository implements SongRepository {
-  constructor(private readonly demoRepository?: SongRepository) {}
-
   async listByBandId(
     bandId: EntityId,
     options: SongListOptions = {},
   ): Promise<readonly Song[]> {
-    if (isDemoBandId(bandId)) {
-      return this.demoRepository?.listByBandId(bandId, options) ?? [];
-    }
-
     let query = getSupabaseClient()
       .from('songs')
       .select('*')
@@ -197,18 +190,10 @@ export class SupabaseSongRepository implements SongRepository {
 
     const songs = (data ?? []).map(parseSong);
 
-    if (songs.length > 0 || !this.demoRepository) {
-      return songs;
-    }
-
-    return this.demoRepository.listByBandId(bandId, options);
+    return songs;
   }
 
   async findById(bandId: EntityId, songId: EntityId): Promise<Song | null> {
-    if (isDemoBandId(bandId)) {
-      return this.demoRepository?.findById(bandId, songId) ?? null;
-    }
-
     const { data, error } = await getSupabaseClient()
       .from('songs')
       .select('*')
@@ -224,12 +209,10 @@ export class SupabaseSongRepository implements SongRepository {
       return parseSong(data);
     }
 
-    return this.demoRepository?.findById(bandId, songId) ?? null;
+    return null;
   }
 }
 
-export function createSupabaseSongRepository(
-  demoRepository?: SongRepository,
-): SongRepository {
-  return new SupabaseSongRepository(demoRepository);
+export function createSupabaseSongRepository(): SongRepository {
+  return new SupabaseSongRepository();
 }

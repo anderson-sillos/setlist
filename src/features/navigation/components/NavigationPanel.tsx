@@ -147,8 +147,8 @@ export function NavigationPanel({
       }
     : {
         avatarUrl: null,
-        email: 'Conta de demonstração',
-        name: 'Ana Martins',
+        email: 'Sessão não iniciada',
+        name: 'Visitante',
       };
 
   return (

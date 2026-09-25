@@ -13,6 +13,7 @@ import {
   createSupabaseBandRepository,
   createSupabaseSongRepository,
 } from '@/data/supabase';
+import { createSupabaseShowRepository } from '@/data/supabase/showRepository';
 import type { AppRepositories, EntityId } from '@/domain';
 import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -32,40 +33,35 @@ const AppDataContext = createContext<AppDataContextValue | null>(null);
 
 export function AppProviders({
   children,
-  currentUserId = demoIds.currentUser,
+  currentUserId,
   repositories,
 }: AppProvidersProps) {
   const { session } = useAuthSession();
-  const demoRepositories = useState(() => createDemoRepositories())[0];
-  const remoteBandRepository = useMemo(
-    () =>
-      createSupabaseBandRepository(demoRepositories.bands, demoIds.currentUser),
-    [demoRepositories],
-  );
-  const remoteSongRepository = useMemo(
-    () => createSupabaseSongRepository(demoRepositories.songs),
-    [demoRepositories],
+  const isTestEnvironment = process.env.NODE_ENV === 'test';
+  const demoRepositories = useState(() =>
+    isTestEnvironment ? createDemoRepositories() : null,
+  )[0];
+  const remoteRepositories = useMemo(
+    () => ({
+      bands: createSupabaseBandRepository(),
+      shows: createSupabaseShowRepository(),
+      songs: createSupabaseSongRepository(),
+    }),
+    [],
   );
   const sessionUserId = session?.user.id;
   const resolvedRepositories = useMemo(
     () =>
       repositories ??
-      (sessionUserId
-        ? {
-            ...demoRepositories,
-            bands: remoteBandRepository,
-            songs: remoteSongRepository,
-          }
+      (sessionUserId || !demoRepositories
+        ? remoteRepositories
         : demoRepositories),
-    [
-      demoRepositories,
-      remoteBandRepository,
-      remoteSongRepository,
-      repositories,
-      sessionUserId,
-    ],
+    [demoRepositories, repositories, remoteRepositories, sessionUserId],
   );
-  const resolvedUserId = sessionUserId ?? currentUserId;
+  const resolvedUserId =
+    sessionUserId ??
+    currentUserId ??
+    (isTestEnvironment ? demoIds.currentUser : '');
   const [queryClient] = useState(
     () =>
       new QueryClient({

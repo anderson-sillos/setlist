@@ -81,7 +81,7 @@ export function StageScreen({
       <View style={styles.header}>
         <View style={styles.headerCopy}>
           <AppText tone="accent" variant="eyebrow">
-            Modo palco · demonstração local
+            Modo palco · prévia
           </AppText>
           <AppText accessibilityRole="header" variant="title">
             {show?.name ?? 'Carregando show…'}
