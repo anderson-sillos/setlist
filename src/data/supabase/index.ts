@@ -113,6 +113,7 @@ export type {
 
 export {
   createShowBlock,
+  deleteShowBlock,
   renameShowBlock,
   reorderShowBlocks,
 } from '@/data/supabase/showBlockMutations';

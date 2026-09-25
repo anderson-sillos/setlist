@@ -146,3 +146,27 @@ export async function reorderShowBlocks({
     );
   }
 }
+
+export async function deleteShowBlock({
+  blockId,
+  showId,
+}: {
+  readonly blockId: EntityId;
+  readonly showId: EntityId;
+}): Promise<void> {
+  const { data, error } = await getSupabaseClient()
+    .from('show_blocks')
+    .delete()
+    .eq('id', blockId)
+    .eq('show_id', showId)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw mapBlockError(error, 'excluir');
+  if (!data) {
+    throw new ShowMutationError(
+      'not_found_or_forbidden',
+      'O bloco não existe mais ou você não tem permissão para excluí-lo.',
+    );
+  }
+}

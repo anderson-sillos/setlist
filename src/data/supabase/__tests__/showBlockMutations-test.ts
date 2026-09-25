@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '@/data/supabase/client';
 import {
   createShowBlock,
+  deleteShowBlock,
   renameShowBlock,
   reorderShowBlocks,
 } from '@/data/supabase/showBlockMutations';
@@ -57,6 +58,25 @@ describe('mutações de blocos de shows', () => {
     ).resolves.toBeUndefined();
     expect(query.update).toHaveBeenCalledWith({ name: 'Bis' });
     expect(query.eq).toHaveBeenCalledWith('id', 'block-1');
+  });
+
+  it('exclui um bloco existente', async () => {
+    const query = {
+      delete: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      maybeSingle: jest
+        .fn()
+        .mockResolvedValue({ data: { id: 'block-1' }, error: null }),
+    };
+    from.mockReturnValue(query);
+
+    await expect(
+      deleteShowBlock({ blockId: 'block-1', showId: 'show-1' }),
+    ).resolves.toBeUndefined();
+    expect(query.delete).toHaveBeenCalledTimes(1);
+    expect(query.eq).toHaveBeenNthCalledWith(1, 'id', 'block-1');
+    expect(query.eq).toHaveBeenNthCalledWith(2, 'show_id', 'show-1');
   });
 
   it('reordena todos os blocos usando posições temporárias sem colisão', async () => {

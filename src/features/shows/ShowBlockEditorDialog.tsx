@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TextInput,
   View,
+  type PanResponderInstance,
 } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
@@ -17,7 +18,6 @@ import { AppText } from '@/components/ui/AppText';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
-import { moveSetlistItem } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatShowDuration } from '@/utils/duration';
@@ -35,17 +35,13 @@ export interface ShowBlockDraft {
 
 interface ShowBlockEditorDialogProps {
   readonly errorMessage: string | null;
+  readonly fullScreen?: boolean;
   readonly initialBlocks: readonly ShowBlockDraft[];
   readonly isSubmitting: boolean;
   readonly onClose: () => void;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
   readonly visible: boolean;
-}
-
-interface MoveItemState {
-  readonly itemId: EntityId;
-  readonly sourceBlockId: EntityId;
 }
 
 function cloneBlocks(blocks: readonly ShowBlockDraft[]): ShowBlockDraft[] {
@@ -102,6 +98,7 @@ function moveBlock(
 
 export function ShowBlockEditorDialog({
   errorMessage,
+  fullScreen = false,
   initialBlocks,
   isSubmitting,
   onClose,
@@ -116,16 +113,16 @@ export function ShowBlockEditorDialog({
     initialBlocks[0]?.id ?? '',
   );
   const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
+  const [draggingItem, setDraggingItem] = useState<{
+    readonly blockId: EntityId;
+    readonly itemId: EntityId;
+  } | null>(null);
+  const [deleteBlockId, setDeleteBlockId] = useState<EntityId | null>(null);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [songSheetVisible, setSongSheetVisible] = useState(false);
   const [selectedSongIds, setSelectedSongIds] = useState<readonly EntityId[]>(
     [],
   );
-  const [moveItem, setMoveItem] = useState<MoveItemState | null>(null);
-  const [moveTargetBlockId, setMoveTargetBlockId] = useState<EntityId>(
-    initialBlocks[0]?.id ?? '',
-  );
-  const [movePosition, setMovePosition] = useState('1');
   const [discardVisible, setDiscardVisible] = useState(false);
   const initialSnapshot = useMemo(
     () => JSON.stringify(initialBlocks),
@@ -142,19 +139,7 @@ export function ShowBlockEditorDialog({
   };
 
   const activeBlock = blocks.find((block) => block.id === activeBlockId);
-  const moveSourceBlock = moveItem
-    ? blocks.find((block) => block.id === moveItem.sourceBlockId)
-    : undefined;
-  const moveTargetBlock = blocks.find(
-    (block) => block.id === moveTargetBlockId,
-  );
-  const moveMaxPosition = Math.max(
-    1,
-    (moveTargetBlock?.items.length ?? 0) -
-      (moveTargetBlockId === moveItem?.sourceBlockId ? 1 : 0) +
-      1,
-  );
-
+  const blockToDelete = blocks.find((block) => block.id === deleteBlockId);
   const songById = useMemo(
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
@@ -268,34 +253,44 @@ export function ShowBlockEditorDialog({
     }));
   };
 
-  const openMoveItem = (blockId: EntityId, itemId: EntityId) => {
-    const sourceBlock = blocks.find((block) => block.id === blockId);
-    const sourceIndex = sourceBlock?.items.findIndex(
-      (item) => item.id === itemId,
+  const moveItemWithinBlock = (
+    blockId: EntityId,
+    itemId: EntityId,
+    targetIndex: number,
+  ) => {
+    setBlocks((current) =>
+      current.map((block) => {
+        if (block.id !== blockId) return block;
+        const sourceIndex = block.items.findIndex((item) => item.id === itemId);
+        if (sourceIndex < 0 || sourceIndex === targetIndex) return block;
+        const nextItems = [...block.items];
+        const [item] = nextItems.splice(sourceIndex, 1);
+        if (!item) return block;
+        nextItems.splice(
+          Math.max(0, Math.min(nextItems.length, targetIndex)),
+          0,
+          item,
+        );
+        return { ...block, items: nextItems };
+      }),
     );
-    if (!sourceBlock || sourceIndex === undefined || sourceIndex < 0) return;
-
-    setMoveItem({ itemId, sourceBlockId: blockId });
-    setMoveTargetBlockId(blockId);
-    setMovePosition(String(sourceIndex + 1));
   };
 
-  const confirmMoveItem = () => {
-    if (!moveItem) return;
-    const position = Number(movePosition);
-    if (!Number.isSafeInteger(position) || position < 1) return;
+  const requestDeleteBlock = (blockId: EntityId) => {
+    if (blocks.length <= 1) return;
+    setDeleteBlockId(blockId);
+  };
 
-    const targetIndex = Math.min(moveMaxPosition - 1, position - 1);
-    setBlocks(
-      (current) =>
-        moveSetlistItem(current, {
-          itemId: moveItem.itemId,
-          sourceBlockId: moveItem.sourceBlockId,
-          targetBlockId: moveTargetBlockId,
-          targetIndex,
-        }) as ShowBlockDraft[],
+  const deleteBlock = () => {
+    if (!deleteBlockId || blocks.length <= 1) return;
+    const remainingBlocks = blocks.filter(
+      (block) => block.id !== deleteBlockId,
     );
-    setMoveItem(null);
+    setBlocks(remainingBlocks);
+    if (activeBlockId === deleteBlockId) {
+      setActiveBlockId(remainingBlocks[0]?.id ?? '');
+    }
+    setDeleteBlockId(null);
   };
 
   const canSubmit =
@@ -315,54 +310,53 @@ export function ShowBlockEditorDialog({
     ) &&
     !isSubmitting;
 
-  return (
-    <Modal
-      animationType="fade"
-      onRequestClose={requestClose}
-      transparent
-      visible={visible}
-    >
+  const content = (
+    <>
       <KeyboardAvoidingView
         accessibilityViewIsModal
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalLayer}
+        style={fullScreen ? styles.screenLayer : styles.modalLayer}
       >
-        <Pressable
-          accessibilityLabel="Fechar edição da setlist tocando fora"
-          accessibilityRole="button"
-          disabled={isSubmitting}
-          onPress={requestClose}
-          style={styles.scrim}
-        />
+        {!fullScreen ? (
+          <Pressable
+            accessibilityLabel="Fechar edição da setlist tocando fora"
+            accessibilityRole="button"
+            disabled={isSubmitting}
+            onPress={requestClose}
+            style={styles.scrim}
+          />
+        ) : null}
         <View
           accessibilityLiveRegion="polite"
-          style={styles.dialog}
+          style={[styles.dialog, fullScreen && styles.screenDialog]}
           testID="show-block-editor-dialog"
         >
-          <View style={styles.header}>
-            <View style={styles.headerCopy}>
-              <AppText accessibilityRole="header" variant="heading">
-                Editar blocos
-              </AppText>
-              <AppText tone="muted" variant="caption">
-                Escolha um bloco e use Adicionar para montar a setlist.
-              </AppText>
+          {!fullScreen ? (
+            <View style={styles.header}>
+              <View style={styles.headerCopy}>
+                <AppText accessibilityRole="header" variant="heading">
+                  Editar blocos
+                </AppText>
+                <AppText tone="muted" variant="caption">
+                  Escolha um bloco e use Adicionar para montar a setlist.
+                </AppText>
+              </View>
+              <Pressable
+                accessibilityLabel="Fechar edição de blocos"
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                hitSlop={spacing.sm}
+                onPress={requestClose}
+                style={styles.closeButton}
+              >
+                <AppIcon color={colors.muted} name="close" size={20} />
+              </Pressable>
             </View>
-            <Pressable
-              accessibilityLabel="Fechar edição de blocos"
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              hitSlop={spacing.sm}
-              onPress={requestClose}
-              style={styles.closeButton}
-            >
-              <AppIcon color={colors.muted} name="close" size={20} />
-            </Pressable>
-          </View>
+          ) : null}
           <ScrollView
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
-            style={styles.scroll}
+            style={[styles.scroll, fullScreen && styles.screenScroll]}
           >
             <View style={styles.editorToolbar}>
               <View style={styles.toolbarCopy}>
@@ -389,9 +383,15 @@ export function ShowBlockEditorDialog({
             {blocks.map((block, index) => (
               <BlockRow
                 block={block}
+                canDelete={blocks.length > 1}
                 count={blocks.length}
                 dragging={draggingBlockId === block.id}
                 durationMs={durations.blockDurations.get(block.id) ?? null}
+                draggingItemId={
+                  draggingItem?.blockId === block.id
+                    ? draggingItem.itemId
+                    : null
+                }
                 index={index}
                 isActive={activeBlockId === block.id}
                 key={block.id}
@@ -402,10 +402,12 @@ export function ShowBlockEditorDialog({
                 onMoveBlock={(source, target) =>
                   setBlocks((current) => moveBlock(current, source, target))
                 }
-                onMoveItem={openMoveItem}
+                onDelete={() => requestDeleteBlock(block.id)}
+                onMoveItem={moveItemWithinBlock}
                 onRemoveItem={removeItem}
                 onSelect={() => setActiveBlockId(block.id)}
                 onSetDragging={setDraggingBlockId}
+                onSetDraggingItem={setDraggingItem}
                 songById={songById}
               />
             ))}
@@ -455,6 +457,31 @@ export function ShowBlockEditorDialog({
                 setDiscardVisible(false);
                 onClose();
               }}
+            />
+          </OptionSheet>
+          <OptionSheet
+            closeAccessibilityLabel="Cancelar exclusão do bloco"
+            label="Excluir bloco"
+            onClose={() => setDeleteBlockId(null)}
+            testID="show-block-editor-delete-block-sheet"
+            visible={deleteBlockId !== null}
+          >
+            <AppText tone="muted">
+              {blockToDelete
+                ? `“${blockToDelete.name}” e seus itens serão removidos da setlist quando você salvar.`
+                : 'Este bloco não está mais disponível.'}
+            </AppText>
+            <AppButton
+              label="Cancelar"
+              onPress={() => setDeleteBlockId(null)}
+              variant="secondary"
+            />
+            <AppButton
+              accessibilityLabel="Confirmar exclusão do bloco"
+              disabled={!blockToDelete}
+              icon="remove"
+              label="Excluir bloco"
+              onPress={deleteBlock}
             />
           </OptionSheet>
         </View>
@@ -572,90 +599,48 @@ export function ShowBlockEditorDialog({
           onPress={addSelectedSongs}
         />
       </OptionSheet>
+    </>
+  );
 
-      <OptionSheet
-        closeAccessibilityLabel="Fechar reordenação do item"
-        label="Reordenar item"
-        onClose={() => setMoveItem(null)}
-        visible={moveItem !== null}
-      >
-        {moveSourceBlock && moveTargetBlock ? (
-          <>
-            <AppText tone="muted">
-              Escolha o bloco de destino e a posição do item.
-            </AppText>
-            <View style={styles.targetList}>
-              {blocks.map((block) => {
-                const selected = block.id === moveTargetBlockId;
-                return (
-                  <Pressable
-                    accessibilityLabel={'Mover para o bloco ' + block.name}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected }}
-                    key={block.id}
-                    onPress={() => {
-                      setMoveTargetBlockId(block.id);
-                      setMovePosition('1');
-                    }}
-                    style={({ pressed }) => [
-                      styles.targetOption,
-                      selected && styles.targetOptionSelected,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <AppText>{block.name}</AppText>
-                    {selected ? (
-                      <AppIcon color={colors.violet} name="check" size={16} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-            <View style={styles.positionRow}>
-              <AppText>Posição</AppText>
-              <SpinButton
-                accessibilityLabel="Posição do item"
-                max={moveMaxPosition}
-                min={1}
-                onChangeText={setMovePosition}
-                value={movePosition}
-              />
-              <AppText tone="muted" variant="caption">
-                de {moveMaxPosition}
-              </AppText>
-            </View>
-            <AppButton
-              disabled={!movePosition.trim()}
-              icon="check"
-              label="Mover item"
-              onPress={confirmMoveItem}
-            />
-          </>
-        ) : null}
-      </OptionSheet>
+  return fullScreen ? (
+    <View style={styles.screenRoot}>{content}</View>
+  ) : (
+    <Modal
+      animationType="fade"
+      onRequestClose={requestClose}
+      transparent
+      visible={visible}
+    >
+      {content}
     </Modal>
   );
 }
 
 function BlockRow({
   block,
+  canDelete,
   count,
   dragging,
+  draggingItemId,
   durationMs,
   index,
   isActive,
   onChangeItem,
   onChangeName,
+  onDelete,
   onMoveBlock,
   onMoveItem,
   onRemoveItem,
   onSelect,
   onSetDragging,
+  onSetDraggingItem,
   songById,
 }: {
   readonly block: ShowBlockDraft;
+  readonly canDelete: boolean;
   readonly count: number;
   readonly dragging: boolean;
+  readonly draggingItemId: EntityId | null;
   readonly durationMs: number | null;
   readonly index: number;
   readonly isActive: boolean;
@@ -665,11 +650,19 @@ function BlockRow({
     updater: (item: ShowSetlistItemDraft) => ShowSetlistItemDraft,
   ) => void;
   readonly onChangeName: (id: string, name: string) => void;
+  readonly onDelete: () => void;
   readonly onMoveBlock: (sourceIndex: number, targetIndex: number) => void;
-  readonly onMoveItem: (blockId: EntityId, itemId: EntityId) => void;
+  readonly onMoveItem: (
+    blockId: EntityId,
+    itemId: EntityId,
+    targetIndex: number,
+  ) => void;
   readonly onRemoveItem: (blockId: EntityId, itemId: EntityId) => void;
   readonly onSelect: () => void;
   readonly onSetDragging: (blockId: string | null) => void;
+  readonly onSetDraggingItem: (
+    item: { readonly blockId: EntityId; readonly itemId: EntityId } | null,
+  ) => void;
   readonly songById: ReadonlyMap<string, Song>;
 }) {
   const panResponder = createBlockPanResponder(
@@ -711,19 +704,34 @@ function BlockRow({
             </AppText>
           </View>
         </View>
-        <View
-          accessibilityLabel={'Alça para mover o bloco ' + block.name}
-          accessibilityRole="button"
-          style={styles.dragHandleTouchTarget}
-          {...panResponder.panHandlers}
-        >
-          <View style={styles.dragHandle}>
-            <AppIcon
-              color={dragging ? colors.violet : colors.muted}
-              name="dragHandle"
-              size={18}
-              strokeWidth={2.5}
-            />
+        <View style={styles.blockActions}>
+          <Pressable
+            accessibilityLabel={'Excluir bloco ' + block.name}
+            accessibilityRole="button"
+            disabled={!canDelete}
+            onPress={onDelete}
+            style={({ pressed }) => [
+              styles.iconButton,
+              !canDelete && styles.disabled,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon color={colors.violet} name="remove" size={17} />
+          </Pressable>
+          <View
+            accessibilityLabel={'Alça para mover o bloco ' + block.name}
+            accessibilityRole="button"
+            style={styles.dragHandleTouchTarget}
+            {...panResponder.panHandlers}
+          >
+            <View style={styles.dragHandle}>
+              <AppIcon
+                color={dragging ? colors.violet : colors.muted}
+                name="dragHandle"
+                size={18}
+                strokeWidth={2.5}
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -735,12 +743,18 @@ function BlockRow({
       ) : (
         block.items.map((item, itemIndex) => (
           <SetlistItemRow
+            blockId={block.id}
+            count={block.items.length}
+            dragging={draggingItemId === item.id}
             index={itemIndex}
             item={item}
             key={item.id}
             onChange={(updater) => onChangeItem(block.id, item.id, updater)}
-            onMove={() => onMoveItem(block.id, item.id)}
+            onMove={(targetIndex) => onMoveItem(block.id, item.id, targetIndex)}
             onRemove={() => onRemoveItem(block.id, item.id)}
+            onSetDragging={(itemId) =>
+              onSetDraggingItem(itemId ? { blockId: block.id, itemId } : null)
+            }
             song={item.type === 'song' ? songById.get(item.songId) : undefined}
           />
         ))
@@ -750,31 +764,49 @@ function BlockRow({
 }
 
 function SetlistItemRow({
+  blockId,
+  count,
+  dragging,
   index,
   item,
   onChange,
   onMove,
   onRemove,
+  onSetDragging,
   song,
 }: {
+  readonly blockId: EntityId;
+  readonly count: number;
+  readonly dragging: boolean;
   readonly index: number;
   readonly item: ShowSetlistItemDraft;
   readonly onChange: (
     updater: (item: ShowSetlistItemDraft) => ShowSetlistItemDraft,
   ) => void;
-  readonly onMove: () => void;
+  readonly onMove: (targetIndex: number) => void;
   readonly onRemove: () => void;
+  readonly onSetDragging: (itemId: EntityId | null) => void;
   readonly song?: Song;
 }) {
+  const panResponder = createItemPanResponder(
+    index,
+    count,
+    item.id,
+    onMove,
+    onSetDragging,
+  );
+  const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
+
   if (item.type === 'separator') {
     return (
-      <View style={styles.itemRow}>
-        <View accessibilityLabel="Separador visual" style={styles.separator} />
+      <View style={rowStyle}>
         <ItemActions
+          dragging={dragging}
           itemLabel={'separador ' + (index + 1)}
-          onMove={onMove}
           onRemove={onRemove}
+          panHandlers={panResponder.panHandlers}
         />
+        <View accessibilityLabel="Separador visual" style={styles.separator} />
       </View>
     );
   }
@@ -782,7 +814,13 @@ function SetlistItemRow({
   if (item.type === 'planning') {
     const parts = getDurationParts(item.estimatedDurationMs);
     return (
-      <View style={[styles.itemRow, styles.planningRow]}>
+      <View style={[...rowStyle, styles.planningRow]}>
+        <ItemActions
+          dragging={dragging}
+          itemLabel={'planejamento ' + (index + 1)}
+          onRemove={onRemove}
+          panHandlers={panResponder.panHandlers}
+        />
         <AppIcon color={colors.violet} name="planning" size={16} />
         <View style={styles.itemFields}>
           <TextInput
@@ -848,17 +886,18 @@ function SetlistItemRow({
             </AppText>
           </View>
         </View>
-        <ItemActions
-          itemLabel={'planejamento ' + (index + 1)}
-          onMove={onMove}
-          onRemove={onRemove}
-        />
       </View>
     );
   }
 
   return (
-    <View style={styles.itemRow}>
+    <View style={rowStyle}>
+      <ItemActions
+        dragging={dragging}
+        itemLabel={'música ' + (index + 1)}
+        onRemove={onRemove}
+        panHandlers={panResponder.panHandlers}
+      />
       <AppIcon color={colors.violet} name="music" size={16} />
       <View style={styles.itemFields}>
         <AppText>{song?.title ?? 'Música indisponível'}</AppText>
@@ -882,35 +921,23 @@ function SetlistItemRow({
           value={item.notes ?? ''}
         />
       </View>
-      <ItemActions
-        itemLabel={'música ' + (index + 1)}
-        onMove={onMove}
-        onRemove={onRemove}
-      />
     </View>
   );
 }
 
 function ItemActions({
+  dragging,
   itemLabel,
-  onMove,
   onRemove,
+  panHandlers,
 }: {
+  readonly dragging: boolean;
   readonly itemLabel: string;
-  readonly onMove: () => void;
   readonly onRemove: () => void;
+  readonly panHandlers: PanResponderInstance['panHandlers'];
 }) {
   return (
     <View style={styles.itemActions}>
-      <Pressable
-        accessibilityLabel={'Reordenar ' + itemLabel}
-        accessibilityRole="button"
-        hitSlop={spacing.xs}
-        onPress={onMove}
-        style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
-      >
-        <AppIcon color={colors.muted} name="dragHandle" size={18} />
-      </Pressable>
       <Pressable
         accessibilityLabel={'Remover ' + itemLabel}
         accessibilityRole="button"
@@ -920,8 +947,57 @@ function ItemActions({
       >
         <AppIcon color={colors.violet} name="remove" size={17} />
       </Pressable>
+      <Pressable
+        accessibilityLabel={'Arrastar ' + itemLabel}
+        accessibilityRole="button"
+        hitSlop={spacing.xs}
+        {...panHandlers}
+        style={({ pressed }) => [
+          styles.iconButton,
+          dragging && styles.draggingHandle,
+          pressed && styles.pressed,
+        ]}
+      >
+        <AppIcon
+          color={dragging ? colors.violet : colors.muted}
+          name="dragHandle"
+          size={18}
+        />
+      </Pressable>
     </View>
   );
+}
+
+function createItemPanResponder(
+  index: number,
+  count: number,
+  itemId: EntityId,
+  onMove: (targetIndex: number) => void,
+  onSetDragging: (itemId: EntityId | null) => void,
+) {
+  let startIndex = index;
+  let currentIndex = index;
+
+  return PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
+    onPanResponderGrant: () => {
+      startIndex = index;
+      currentIndex = index;
+      onSetDragging(itemId);
+    },
+    onPanResponderMove: (_, gesture) => {
+      const targetIndex = Math.max(
+        0,
+        Math.min(count - 1, startIndex + Math.round(gesture.dy / 56)),
+      );
+      if (targetIndex === currentIndex) return;
+      onMove(targetIndex);
+      currentIndex = targetIndex;
+    },
+    onPanResponderRelease: () => onSetDragging(null),
+    onPanResponderTerminate: () => onSetDragging(null),
+    onStartShouldSetPanResponder: () => true,
+  });
 }
 
 function createBlockPanResponder(
@@ -984,6 +1060,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: 'space-between',
   },
+  blockActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
   blockNameInput: {
     backgroundColor: colors.surface,
     borderColor: colors.line,
@@ -1036,11 +1117,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 32,
   },
+  draggingHandle: {
+    backgroundColor: colors.violetSoft,
+  },
+  draggingItemRow: {
+    borderColor: colors.violet,
+    borderRadius: radii.sm,
+    borderWidth: 2,
+    paddingHorizontal: spacing.xs,
+  },
   dragHandleTouchTarget: {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
     width: layout.minimumTouchTarget,
+  },
+  disabled: {
+    opacity: 0.45,
   },
   durationRow: {
     alignItems: 'center',
@@ -1120,17 +1213,30 @@ const styles = StyleSheet.create({
   },
   optionList: { gap: spacing.sm },
   planningRow: {
-    backgroundColor: colors.cyanSoft,
     borderRadius: radii.md,
     padding: spacing.sm,
   },
-  positionRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
   pressed: { opacity: 0.72 },
   scrim: { ...StyleSheet.absoluteFill },
+  screenDialog: {
+    borderRadius: 0,
+    flex: 1,
+    elevation: 0,
+    maxHeight: '100%',
+    maxWidth: '100%',
+    shadowOpacity: 0,
+    width: '100%',
+  },
+  screenLayer: {
+    backgroundColor: colors.surface,
+    flex: 1,
+  },
+  screenRoot: {
+    flex: 1,
+  },
+  screenScroll: {
+    flex: 1,
+  },
   scroll: { flexGrow: 0 },
   separator: {
     alignSelf: 'center',
@@ -1161,19 +1267,4 @@ const styles = StyleSheet.create({
   },
   songOptions: { gap: spacing.sm, paddingBottom: spacing.md },
   songPickerScroll: { maxHeight: 360 },
-  targetList: { gap: spacing.sm },
-  targetOption: {
-    alignItems: 'center',
-    borderColor: colors.line,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: layout.minimumTouchTarget,
-    paddingHorizontal: spacing.md,
-  },
-  targetOptionSelected: {
-    backgroundColor: colors.violetSoft,
-    borderColor: colors.violet,
-  },
 });

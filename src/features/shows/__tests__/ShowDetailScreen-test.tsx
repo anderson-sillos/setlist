@@ -5,9 +5,11 @@ import { createInMemoryRepositories } from '@/data/in-memory';
 import { ShowDetailScreen } from '@/features/shows/ShowDetailScreen';
 import { AppProviders } from '@/providers/AppProviders';
 
+const mockPush = jest.fn();
+
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
 }));
 
 describe('<ShowDetailScreen />', () => {
@@ -43,7 +45,7 @@ describe('<ShowDetailScreen />', () => {
     expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
   });
 
-  it('posiciona a edição no cabeçalho da setlist em shows editáveis', async () => {
+  it('abre a edição da setlist em uma tela própria para shows editáveis', async () => {
     const view = await render(
       <AppProviders>
         <ShowDetailScreen
@@ -58,16 +60,9 @@ describe('<ShowDetailScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Editar setlist'));
 
-    expect(view.getByTestId('show-block-editor-dialog')).toBeTruthy();
-    expect(view.getByText('Editar blocos')).toBeTruthy();
-    expect(view.getByLabelText('Nome do bloco 1')).toHaveDisplayValue(
-      'Principal',
+    expect(mockPush).toHaveBeenCalledWith(
+      '/bands/band-demo-horizonte/shows/show-demo-clube/edit',
     );
-    expect(
-      view.getByLabelText('Alça para mover o bloco Principal'),
-    ).toBeTruthy();
-    expect(view.queryByLabelText('Mover Principal para cima')).toBeNull();
-    expect(view.queryByLabelText('Mover Principal para baixo')).toBeNull();
   });
 
   it('apresenta as transições de status disponíveis para quem edita', async () => {

@@ -15,14 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
-import {
-  createShowBlock,
-  duplicateShow,
-  renameShowBlock,
-  reorderShowBlocks,
-  replaceShowBlockItems,
-  ShowMutationError,
-} from '@/data/supabase';
+import { duplicateShow, ShowMutationError } from '@/data/supabase';
 import {
   updateShow,
   updateShowStatus,
@@ -40,6 +33,7 @@ import {
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
+  getShowEditHref,
   getShowHref,
   getStageHref,
 } from '@/features/navigation/routes';
@@ -53,10 +47,6 @@ import {
   ShowCreationDialog,
   type ShowCreationForm,
 } from './ShowCreationDialog';
-import {
-  ShowBlockEditorDialog,
-  type ShowBlockDraft,
-} from './ShowBlockEditorDialog';
 
 interface ShowDetailScreenProps {
   readonly bandId: EntityId;
@@ -158,10 +148,6 @@ export function ShowDetailScreen({
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [duplicateSubmitting, setDuplicateSubmitting] = useState(false);
   const [duplicateInstance, setDuplicateInstance] = useState(0);
-  const [blockEditorVisible, setBlockEditorVisible] = useState(false);
-  const [blockEditorError, setBlockEditorError] = useState<string | null>(null);
-  const [blockEditorSubmitting, setBlockEditorSubmitting] = useState(false);
-  const [blockEditorInstance, setBlockEditorInstance] = useState(0);
   const [statusSheetVisible, setStatusSheetVisible] = useState(false);
   const [statusAction, setStatusAction] = useState<ShowStatus | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -304,67 +290,6 @@ export function ShowDetailScreen({
     }
   };
 
-  const handleSaveBlocks = async (drafts: readonly ShowBlockDraft[]) => {
-    if (!show) return;
-    setBlockEditorError(null);
-    setBlockEditorSubmitting(true);
-    try {
-      const createdBlockIds = new Map<string, EntityId>();
-      let createdCount = 0;
-      for (const draft of drafts) {
-        if (!draft.isNew) continue;
-        const createdId = await createShowBlock({
-          name: draft.name,
-          position: show.blocks.length + createdCount,
-          showId: show.id,
-        });
-        createdBlockIds.set(draft.id, createdId);
-        createdCount += 1;
-      }
-
-      for (const draft of drafts) {
-        if (draft.isNew) continue;
-        const currentBlock = show.blocks.find(({ id }) => id === draft.id);
-        if (currentBlock && currentBlock.name !== draft.name.trim()) {
-          await renameShowBlock({ blockId: draft.id, name: draft.name });
-        }
-      }
-
-      const resolvedDrafts = drafts.map((draft) => ({
-        ...draft,
-        id: draft.isNew
-          ? (createdBlockIds.get(draft.id) ?? draft.id)
-          : draft.id,
-      }));
-
-      await reorderShowBlocks({
-        blocks: resolvedDrafts.map(({ id, name }) => ({ id, name })),
-        showId: show.id,
-      });
-      await Promise.all(
-        resolvedDrafts.map(({ id, items }) =>
-          replaceShowBlockItems({ blockId: id, items }),
-        ),
-      );
-      await Promise.all([
-        showQuery.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'shows'],
-          refetchType: 'all',
-        }),
-      ]);
-      setBlockEditorVisible(false);
-    } catch (error) {
-      setBlockEditorError(
-        error instanceof ShowMutationError
-          ? error.message
-          : 'Não foi possível salvar a setlist agora. Tente novamente.',
-      );
-    } finally {
-      setBlockEditorSubmitting(false);
-    }
-  };
-
   return (
     <BandAreaLayout
       activeSection="shows"
@@ -433,21 +358,6 @@ export function ShowDetailScreen({
         visible={duplicateVisible}
       />
 
-      <ShowBlockEditorDialog
-        key={`${show?.updatedAt ?? showId}-blocks-${blockEditorInstance}`}
-        errorMessage={blockEditorError}
-        initialBlocks={show?.blocks ?? []}
-        isSubmitting={blockEditorSubmitting}
-        songs={songsQuery.data ?? []}
-        onClose={() => {
-          if (!blockEditorSubmitting) {
-            setBlockEditorVisible(false);
-            setBlockEditorError(null);
-          }
-        }}
-        onSubmit={(drafts) => void handleSaveBlocks(drafts)}
-        visible={blockEditorVisible}
-      />
       <OptionSheet
         closeAccessibilityLabel="Fechar ações de status do show"
         label="Status do show"
@@ -639,9 +549,7 @@ export function ShowDetailScreen({
                   icon="edit"
                   label="Editar"
                   onPress={() => {
-                    setBlockEditorError(null);
-                    setBlockEditorInstance((current) => current + 1);
-                    setBlockEditorVisible(true);
+                    router.push(getShowEditHref(bandId, show.id));
                   }}
                   style={styles.editSetlistButton}
                   variant="secondary"
