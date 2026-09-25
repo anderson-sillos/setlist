@@ -20,6 +20,7 @@ export interface ChoiceChipsProps<Value extends string> {
 }
 
 export interface OptionMenuProps<Value extends string> {
+  readonly active?: boolean;
   readonly accessibilityLabel: string;
   readonly compact?: boolean;
   readonly icon?: AppIconName;

@@ -213,6 +213,7 @@ export function RepertoireScreen({
           />
           <View style={styles.controlToolbarEnd}>
             <OptionMenu
+              active={state.filter !== 'all'}
               accessibilityLabel="Alterar filtros do repertório"
               compact
               icon="filter"
@@ -222,6 +223,7 @@ export function RepertoireScreen({
               value={state.filter}
             />
             <OptionMenu
+              active={state.sort !== 'title'}
               accessibilityLabel="Alterar ordenação do repertório"
               compact
               icon="sort"

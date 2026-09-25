@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Share } from 'react-native';
 
 import type { BandInvitation } from '@/domain';
 import type { CreatedInvitation } from '@/data/supabase/invitationMutations';
@@ -103,6 +104,37 @@ describe('<BandInvitationDialog />', () => {
     expect(view.getByText('Utilizado')).toBeTruthy();
     expect(view.queryByText(/aceito em|válido até/)).toBeNull();
     expect(view.queryByText(/2099/)).toBeNull();
+  });
+
+  it('compartilha um convite recriado sem abrir o popup de link pronto', async () => {
+    const onCreate = jest.fn(async () => created);
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: 'sharedAction' });
+    const view = await render(
+      <BandInvitationDialog
+        errorMessage={null}
+        invitations={[invitations[0]]}
+        isSubmitting={false}
+        onClose={jest.fn()}
+        onCreate={onCreate}
+        onRenew={jest.fn(async () => null)}
+        onRevoke={jest.fn()}
+        visible
+      />,
+    );
+
+    await fireEvent.press(
+      view.getByLabelText('Compartilhar convite novamente'),
+    );
+
+    await waitFor(() => expect(onCreate).toHaveBeenCalledWith('Baixista'));
+    expect(shareSpy).toHaveBeenCalledWith({
+      message: created.url,
+      url: created.url,
+    });
+    expect(view.queryByTestId('band-invitation-link-dialog')).toBeNull();
+    shareSpy.mockRestore();
   });
 
   it('mostra estado vazio e erro sem expor ações quando está submetendo', async () => {

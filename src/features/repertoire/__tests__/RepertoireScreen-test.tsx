@@ -43,6 +43,14 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Luzes da Cidade');
+    expect(
+      view.getByLabelText('Alterar filtros do repertório').props
+        .accessibilityState?.selected,
+    ).toBeUndefined();
+    expect(
+      view.getByLabelText('Alterar ordenação do repertório').props
+        .accessibilityState?.selected,
+    ).toBeUndefined();
     await fireEvent.changeText(
       view.getByLabelText('Buscar música por título ou artista'),
       'pontes',
@@ -69,6 +77,10 @@ describe('<RepertoireScreen />', () => {
     );
     await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
     await fireEvent.press(view.getByText('Arquivadas'));
+    expect(
+      view.getByLabelText('Alterar filtros do repertório').props
+        .accessibilityState,
+    ).toEqual({ selected: true });
 
     expect(view.getByText('Rota Antiga')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
@@ -77,6 +89,10 @@ describe('<RepertoireScreen />', () => {
       view.getByLabelText('Alterar ordenação do repertório'),
     );
     await fireEvent.press(view.getByText('Maior duração'));
+    expect(
+      view.getByLabelText('Alterar ordenação do repertório').props
+        .accessibilityState,
+    ).toEqual({ selected: true });
 
     expect(view.getByLabelText('Alterar ordenação do repertório')).toBeTruthy();
   });

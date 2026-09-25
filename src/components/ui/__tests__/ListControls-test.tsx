@@ -86,6 +86,23 @@ describe('<OptionMenu />', () => {
     const trigger = view.getByLabelText('Alterar ordenação');
 
     expect(trigger.props.accessibilityValue).toEqual({ text: 'Título' });
+    expect(trigger.props.accessibilityState?.selected).toBeUndefined();
+
+    await view.rerender(
+      <OptionMenu
+        active
+        accessibilityLabel="Alterar ordenação"
+        icon="sort"
+        label="Ordenar"
+        onChange={onChange}
+        options={options}
+        value="title"
+      />,
+    );
+
+    expect(
+      view.getByLabelText('Alterar ordenação').props.accessibilityState,
+    ).toEqual({ selected: true });
 
     await fireEvent.press(trigger);
 

@@ -126,7 +126,6 @@ export function BandInvitationDialog({
     const created = await onCreate(invitation.label ?? '');
 
     if (created) {
-      setLastCreated(created);
       setShareableUrls((current) => ({
         ...current,
         [created.id]: created.url,

@@ -37,7 +37,14 @@ describe('<ShowsScreen />', () => {
     );
 
     await view.findByText('Ensaio Aberto');
-    expect(view.getByText('Filtros: 2')).toBeTruthy();
+    expect(
+      view.getByLabelText('Abrir filtros dos shows').props.accessibilityState,
+    ).toEqual({ selected: true });
+    expect(
+      view.getByLabelText('Alterar ordenação dos shows').props
+        .accessibilityState?.selected,
+    ).toBeUndefined();
+    expect(view.getByLabelText('Abrir filtros dos shows')).toBeTruthy();
     expect(view.queryByText('Encontro de Inverno')).toBeNull();
 
     await fireEvent.changeText(
@@ -72,7 +79,7 @@ describe('<ShowsScreen />', () => {
     );
 
     await view.findByText('Ensaio Aberto');
-    expect(view.getByText('Filtros: 2')).toBeTruthy();
+    expect(view.getByLabelText('Abrir filtros dos shows')).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Abrir filtros dos shows'));
     expect(view.getByLabelText('Próximos').props.accessibilityState).toEqual({
@@ -86,13 +93,19 @@ describe('<ShowsScreen />', () => {
     await fireEvent.press(view.getAllByLabelText('Todos')[1]);
     await fireEvent.press(view.getByLabelText('Aplicar filtros'));
 
-    expect(view.getByText('Filtros: 0')).toBeTruthy();
+    expect(
+      view.getByLabelText('Abrir filtros dos shows').props.accessibilityState
+        ?.selected,
+    ).toBeUndefined();
 
     await fireEvent.press(view.getByLabelText('Abrir filtros dos shows'));
     await fireEvent.press(view.getByLabelText('Limpar filtros'));
 
     expect(view.queryByLabelText('Aplicar filtros')).toBeNull();
-    expect(view.getByText('Filtros: 2')).toBeTruthy();
+    expect(
+      view.getByLabelText('Abrir filtros dos shows').props.accessibilityState
+        ?.selected,
+    ).toBe(true);
 
     await fireEvent.press(view.getByLabelText('Abrir filtros dos shows'));
     expect(view.getByLabelText('Próximos').props.accessibilityState).toEqual({
@@ -116,7 +129,7 @@ describe('<ShowsScreen />', () => {
     );
 
     await view.findByText('Ensaio Aberto');
-    expect(view.getByText('Filtros: 2')).toBeTruthy();
+    expect(view.getByLabelText('Abrir filtros dos shows')).toBeTruthy();
     await fireEvent.changeText(
       view.getByLabelText('Buscar show por nome ou local'),
       'praça',
@@ -153,7 +166,10 @@ describe('<ShowsScreen />', () => {
       view.getByLabelText(/19 de setembro de 2026, 2 shows/),
     );
 
-    expect(view.getByText('Filtros: 1')).toBeTruthy();
+    expect(
+      view.getByLabelText('Abrir filtros dos shows').props.accessibilityState
+        ?.selected,
+    ).toBe(true);
     expect(view.getByText('Ensaio Aberto')).toBeTruthy();
     expect(view.getByText('Show do Bairro')).toBeTruthy();
     expect(view.queryByText('Festival da Praça')).toBeNull();
@@ -171,7 +187,10 @@ describe('<ShowsScreen />', () => {
     expect(view.getByText(/A criação do show em 19 set 2026/)).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText(/Remover filtro de data/));
-    expect(view.getByText('Filtros: 2')).toBeTruthy();
+    expect(
+      view.getByLabelText('Abrir filtros dos shows').props.accessibilityState
+        ?.selected,
+    ).toBe(true);
     expect(view.getByText('Festival da Praça')).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Abrir filtros dos shows'));
