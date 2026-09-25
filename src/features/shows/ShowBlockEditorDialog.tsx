@@ -1,0 +1,363 @@
+import { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  PanResponder,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+
+import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
+import { AppText } from '@/components/ui/AppText';
+import type { ShowBlockDraft } from '@/data/supabase/showBlockMutations';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
+
+interface ShowBlockEditorDialogProps {
+  readonly errorMessage: string | null;
+  readonly initialBlocks: readonly ShowBlockDraft[];
+  readonly isSubmitting: boolean;
+  readonly onClose: () => void;
+  readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
+  readonly visible: boolean;
+}
+
+function moveBlock(
+  blocks: readonly ShowBlockDraft[],
+  sourceIndex: number,
+  targetIndex: number,
+): ShowBlockDraft[] {
+  if (sourceIndex === targetIndex) return [...blocks];
+  const next = [...blocks];
+  const [block] = next.splice(sourceIndex, 1);
+  next.splice(targetIndex, 0, block);
+  return next;
+}
+
+export function ShowBlockEditorDialog({
+  errorMessage,
+  initialBlocks,
+  isSubmitting,
+  onClose,
+  onSubmit,
+  visible,
+}: ShowBlockEditorDialogProps) {
+  const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
+    initialBlocks.map((block) => ({ ...block })),
+  );
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+
+  const updateBlockName = (id: string, name: string) => {
+    setBlocks((current) =>
+      current.map((block) => (block.id === id ? { ...block, name } : block)),
+    );
+  };
+
+  const addBlock = () => {
+    setBlocks((current) => [
+      ...current,
+      {
+        id: `new-block-${Date.now()}-${current.length}`,
+        isNew: true,
+        name: `Bloco ${current.length + 1}`,
+      },
+    ]);
+  };
+
+  const canSubmit =
+    blocks.length > 0 &&
+    blocks.every((block) => block.name.trim().length > 0) &&
+    !isSubmitting;
+
+  return (
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      transparent
+      visible={visible}
+    >
+      <KeyboardAvoidingView
+        accessibilityViewIsModal
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalLayer}
+      >
+        <Pressable
+          accessibilityLabel="Fechar edição de blocos tocando fora"
+          accessibilityRole="button"
+          disabled={isSubmitting}
+          onPress={onClose}
+          style={styles.scrim}
+        />
+        <View
+          accessibilityLiveRegion="polite"
+          style={styles.dialog}
+          testID="show-block-editor-dialog"
+        >
+          <View style={styles.header}>
+            <View style={styles.headerCopy}>
+              <AppText accessibilityRole="header" variant="heading">
+                Editar blocos
+              </AppText>
+              <AppText tone="muted" variant="caption">
+                Arraste pela alça ou use os controles de ordem.
+              </AppText>
+            </View>
+            <Pressable
+              accessibilityLabel="Fechar edição de blocos"
+              accessibilityRole="button"
+              disabled={isSubmitting}
+              hitSlop={spacing.sm}
+              onPress={onClose}
+              style={styles.closeButton}
+            >
+              <AppIcon color={colors.muted} name="close" size={20} />
+            </Pressable>
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            style={styles.scroll}
+          >
+            {blocks.map((block, index) => (
+              <BlockRow
+                block={block}
+                count={blocks.length}
+                dragging={draggingIndex === index}
+                index={index}
+                key={block.id}
+                onChangeName={updateBlockName}
+                onMove={(source, target) =>
+                  setBlocks((current) => moveBlock(current, source, target))
+                }
+                onSetDragging={setDraggingIndex}
+              />
+            ))}
+            <AppButton
+              disabled={isSubmitting}
+              icon="add"
+              label="Adicionar bloco"
+              onPress={addBlock}
+              variant="secondary"
+            />
+            {errorMessage ? (
+              <AppText accessibilityRole="alert" style={styles.errorText}>
+                {errorMessage}
+              </AppText>
+            ) : null}
+          </ScrollView>
+          <View style={styles.actions}>
+            <AppButton
+              disabled={isSubmitting}
+              label="Cancelar"
+              onPress={onClose}
+              variant="secondary"
+            />
+            <AppButton
+              accessibilityLabel="Salvar blocos"
+              disabled={!canSubmit}
+              icon="check"
+              label={isSubmitting ? 'Salvando…' : 'Salvar blocos'}
+              onPress={() => onSubmit(blocks)}
+            />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+function createBlockPanResponder(
+  index: number,
+  count: number,
+  onMove: (sourceIndex: number, targetIndex: number) => void,
+  onSetDragging: (index: number | null) => void,
+) {
+  let startIndex = index;
+  let currentIndex = index;
+
+  return PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
+    onPanResponderGrant: () => {
+      startIndex = index;
+      currentIndex = index;
+      onSetDragging(index);
+    },
+    onPanResponderMove: (_, gesture) => {
+      const targetIndex = Math.max(
+        0,
+        Math.min(count - 1, startIndex + Math.round(gesture.dy / 64)),
+      );
+      if (targetIndex === currentIndex) return;
+      onMove(currentIndex, targetIndex);
+      currentIndex = targetIndex;
+    },
+    onPanResponderRelease: () => onSetDragging(null),
+    onPanResponderTerminate: () => onSetDragging(null),
+    onStartShouldSetPanResponder: () => true,
+  });
+}
+
+function BlockRow({
+  block,
+  count,
+  dragging,
+  index,
+  onChangeName,
+  onMove,
+  onSetDragging,
+}: {
+  readonly block: ShowBlockDraft;
+  readonly count: number;
+  readonly dragging: boolean;
+  readonly index: number;
+  readonly onChangeName: (id: string, name: string) => void;
+  readonly onMove: (sourceIndex: number, targetIndex: number) => void;
+  readonly onSetDragging: (index: number | null) => void;
+}) {
+  const panResponder = createBlockPanResponder(
+    index,
+    count,
+    onMove,
+    onSetDragging,
+  );
+
+  return (
+    <View style={[styles.blockRow, dragging && styles.draggingRow]}>
+      <View
+        accessibilityLabel={`Alça para mover o bloco ${block.name}`}
+        accessibilityRole="button"
+        style={styles.dragHandle}
+        {...panResponder.panHandlers}
+      >
+        <AppIcon color={colors.muted} name="more" size={20} />
+      </View>
+      <TextInput
+        accessibilityLabel={`Nome do bloco ${index + 1}`}
+        onChangeText={(value) => onChangeName(block.id, value)}
+        placeholder="Nome do bloco"
+        placeholderTextColor={colors.muted}
+        style={styles.input}
+        value={block.name}
+      />
+      <View style={styles.orderActions}>
+        <Pressable
+          accessibilityLabel={`Mover ${block.name} para cima`}
+          accessibilityRole="button"
+          disabled={index === 0 || dragging}
+          onPress={() => onMove(index, index - 1)}
+          style={styles.orderButton}
+        >
+          <AppIcon color={colors.violet} name="moveUp" size={16} />
+        </Pressable>
+        <Pressable
+          accessibilityLabel={`Mover ${block.name} para baixo`}
+          accessibilityRole="button"
+          disabled={index === count - 1 || dragging}
+          onPress={() => onMove(index, index + 1)}
+          style={styles.orderButton}
+        >
+          <AppIcon color={colors.violet} name="moveDown" size={16} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  actions: {
+    borderTopColor: colors.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    justifyContent: 'flex-end',
+    padding: spacing.lg,
+  },
+  blockRow: {
+    alignItems: 'center',
+    backgroundColor: colors.paper,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: layout.minimumTouchTarget,
+    padding: spacing.sm,
+  },
+  closeButton: {
+    alignItems: 'center',
+    borderRadius: radii.pill,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  content: { gap: spacing.md, padding: spacing.xl },
+  dialog: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    elevation: 8,
+    maxHeight: '92%',
+    maxWidth: 640,
+    overflow: 'hidden',
+    shadowColor: colors.ink,
+    shadowOffset: { height: 4, width: 0 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    width: '92%',
+  },
+  dragHandle: {
+    alignItems: 'center',
+    borderRadius: radii.sm,
+    justifyContent: 'center',
+    minHeight: layout.minimumTouchTarget,
+    width: layout.minimumTouchTarget,
+  },
+  draggingRow: {
+    borderColor: colors.violet,
+    opacity: 0.78,
+  },
+  errorText: { color: colors.amber },
+  header: {
+    alignItems: 'center',
+    borderBottomColor: colors.line,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+  },
+  headerCopy: { flex: 1, gap: spacing.xs },
+  input: {
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    color: colors.ink,
+    flex: 1,
+    minHeight: layout.minimumTouchTarget,
+    minWidth: 0,
+    paddingHorizontal: spacing.md,
+  },
+  modalLayer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(25, 20, 45, 0.48)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  orderActions: { flexDirection: 'row', gap: spacing.xs },
+  orderButton: {
+    alignItems: 'center',
+    borderRadius: radii.sm,
+    justifyContent: 'center',
+    minHeight: layout.minimumTouchTarget,
+    width: layout.minimumTouchTarget,
+  },
+  scroll: { flexGrow: 0 },
+  scrim: { ...StyleSheet.absoluteFill },
+});

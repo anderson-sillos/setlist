@@ -58,8 +58,11 @@ describe('<ShowDetailScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Editar setlist'));
 
-    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(view.getByText(/A edição completa chega/)).toBeTruthy();
+    expect(view.getByTestId('show-block-editor-dialog')).toBeTruthy();
+    expect(view.getByText('Editar blocos')).toBeTruthy();
+    expect(view.getByLabelText('Nome do bloco 1')).toHaveDisplayValue(
+      'Principal',
+    );
   });
 
   it('mostra um estado quando o show não é encontrado', async () => {

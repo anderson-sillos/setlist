@@ -103,3 +103,13 @@ export type {
   ProfileErrorCode,
   UserProfile,
 } from '@/data/supabase/profileMutations';
+
+export {
+  createShowBlock,
+  renameShowBlock,
+  reorderShowBlocks,
+} from '@/data/supabase/showBlockMutations';
+export type {
+  CreateShowBlockInput,
+  ShowBlockDraft,
+} from '@/data/supabase/showBlockMutations';
