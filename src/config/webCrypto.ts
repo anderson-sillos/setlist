@@ -1,5 +1,4 @@
 import * as ExpoCrypto from 'expo-crypto';
-import expoWebCrypto from 'expo-standard-web-crypto';
 import { Platform } from 'react-native';
 
 type RuntimeCrypto = {
@@ -177,7 +176,6 @@ export function installWebCryptoPolyfill(): void {
   const currentCrypto = runtimeGlobals.crypto;
   const getRandomValues =
     currentCrypto?.getRandomValues?.bind(currentCrypto) ??
-    expoWebCrypto.getRandomValues?.bind(expoWebCrypto) ??
     ExpoCrypto.getRandomValues;
   // Expo Go may expose a partial `crypto.subtle` object. Always route SHA-256
   // through the native Expo implementation on mobile so a partial WebCrypto
