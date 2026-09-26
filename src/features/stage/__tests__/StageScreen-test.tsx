@@ -1,6 +1,7 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 
-import { demoIds } from '@/data/demo';
+import { demoIds, demoRepositoryData } from '@/data/demo';
+import { createInMemoryRepositories } from '@/data/in-memory';
 import { StageScreen, buildStageItems } from '@/features/stage/StageScreen';
 import { AppProviders } from '@/providers/AppProviders';
 
@@ -12,6 +13,28 @@ jest.mock('expo-router', () => ({
 describe('<StageScreen />', () => {
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it.each([
+    [demoIds.calendarShow, 'Ensaio Aberto'],
+    [demoIds.readyShow, 'Festival da Praça'],
+  ])('abre o show %s a partir do repositório', async (showId, showName) => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <StageScreen
+          bandId={demoIds.primaryBand}
+          showId={showId}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText(showName)).toBeTruthy();
+    expect(
+      view.getByText('Cronômetro independente neste aparelho'),
+    ).toBeTruthy();
+    expect(view.getByTestId('stage-layout-phone')).toBeTruthy();
   });
 
   it('mostra letra estática, setlist e controla o cronômetro local', async () => {
