@@ -32,4 +32,38 @@ describe('<ShowSetlistEditorScreen />', () => {
 
     expect(view.getByLabelText('Adicionar à setlist')).toBeTruthy();
   });
+
+  it('não permite editar setlist de show que já saiu de rascunho', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId={demoIds.readyShow}
+        />
+      </AppProviders>,
+    );
+
+    expect(
+      await view.findByText(
+        'Este show só pode ser editado enquanto estiver em Rascunho',
+      ),
+    ).toBeTruthy();
+    expect(view.queryByTestId('show-block-editor-dialog')).toBeNull();
+  });
+
+  it('mostra indisponibilidade quando o usuário não tem permissão de edição', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.secondaryBand}
+          showId="show-demo-aurora-dezembro"
+        />
+      </AppProviders>,
+    );
+
+    expect(
+      await view.findByText('Você não pode editar esta setlist'),
+    ).toBeTruthy();
+    expect(view.queryByTestId('show-block-editor-dialog')).toBeNull();
+  });
 });

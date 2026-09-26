@@ -246,3 +246,197 @@ describe('criação de shows no Supabase', () => {
     });
   });
 });
+
+describe('falhas de criação, duplicação e exclusão de shows', () => {
+  const from = jest.fn();
+  const baseShow = {
+    bandId: 'band-1',
+    blocks: [],
+    createdAt: '2026-09-01T10:00:00.000Z',
+    id: 'show-source',
+    name: 'Festival',
+    notes: null,
+    startsAt: '2026-10-01T20:00:00.000Z',
+    status: 'draft' as const,
+    updatedAt: '2026-09-01T10:00:00.000Z',
+    venue: 'Praça',
+  };
+  const makeInsertQuery = (response: { data: unknown; error: unknown }) => ({
+    insert: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue(response),
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetSupabaseClient.mockReturnValue({ from } as never);
+  });
+
+  it.each([null, {}, { id: '' }])(
+    'rejeita resposta de criação sem id: %j',
+    async (data) => {
+      from.mockReturnValue(makeInsertQuery({ data, error: null }));
+
+      await expect(
+        createShow({
+          bandId: 'band-1',
+          name: 'Festival',
+          notes: null,
+          startsAt: '2026-10-01T20:00:00',
+          venue: 'Praça',
+        }),
+      ).rejects.toMatchObject({ code: 'request_failed' });
+    },
+  );
+
+  it.each([
+    [{ code: '42501', message: 'denied' }, 'permission_denied'],
+    [{ message: 'JWT expired' }, 'permission_denied'],
+    [{ message: 'row-level security violation' }, 'permission_denied'],
+    [{ message: 'permission denied' }, 'permission_denied'],
+    [{ message: 'SHOW_DELETE_FORBIDDEN' }, 'permission_denied'],
+    [{ message: 'database offline' }, 'request_failed'],
+  ] as const)('mapeia erros do servidor: %j', async (error, code) => {
+    const rpc = jest.fn().mockResolvedValue({ error });
+    mockGetSupabaseClient.mockReturnValue({ from, rpc } as never);
+
+    await expect(
+      deleteShow({ bandId: 'band-1', showId: 'show-1' }),
+    ).rejects.toMatchObject({ code });
+  });
+
+  it.each([
+    { bandId: ' ', showId: 'show-1' },
+    { bandId: 'band-1', showId: ' ' },
+  ])('rejeita identificadores vazios antes da RPC', async (input) => {
+    const rpc = jest.fn();
+    mockGetSupabaseClient.mockReturnValue({ from, rpc } as never);
+
+    await expect(deleteShow(input)).rejects.toMatchObject({
+      code: 'invalid_show',
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('distingue show inexistente ao excluir', async () => {
+    const rpc = jest.fn().mockResolvedValue({
+      error: { message: 'SHOW_NOT_FOUND' },
+    });
+    mockGetSupabaseClient.mockReturnValue({ from, rpc } as never);
+
+    await expect(
+      deleteShow({ bandId: 'band-1', showId: 'show-1' }),
+    ).rejects.toMatchObject({ code: 'not_found_or_forbidden' });
+  });
+
+  it('recusa duplicar show pertencente a outra banda', async () => {
+    await expect(
+      duplicateShow({
+        bandId: 'band-2',
+        name: 'Cópia',
+        notes: null,
+        show: baseShow,
+        startsAt: '2026-10-01T20:00:00',
+        venue: 'Praça',
+      }),
+    ).rejects.toMatchObject({ code: 'not_found_or_forbidden' });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('pula a inserção de itens ao duplicar um bloco vazio', async () => {
+    const showQuery = makeInsertQuery({ data: { id: 'copy' }, error: null });
+    const blockQuery = makeInsertQuery({
+      data: { id: 'copy-block' },
+      error: null,
+    });
+    from.mockReturnValueOnce(showQuery).mockReturnValueOnce(blockQuery);
+
+    await expect(
+      duplicateShow({
+        bandId: 'band-1',
+        name: 'Cópia',
+        notes: null,
+        show: {
+          ...baseShow,
+          blocks: [{ id: 'empty', name: 'Principal', items: [] }],
+        },
+        startsAt: '2026-10-02T20:00:00',
+        venue: 'Praça',
+      }),
+    ).resolves.toBe('copy');
+    expect(from).toHaveBeenCalledTimes(2);
+  });
+
+  it('faz rollback quando um bloco ou seus itens falham ao duplicar', async () => {
+    const showQuery = makeInsertQuery({ data: { id: 'copy' }, error: null });
+    const failedBlock = makeInsertQuery({
+      data: null,
+      error: { message: 'row-level security violation' },
+    });
+    const rollback = { delete: jest.fn().mockReturnThis(), eq: jest.fn() };
+    from
+      .mockReturnValueOnce(showQuery)
+      .mockReturnValueOnce(failedBlock)
+      .mockReturnValueOnce(rollback);
+
+    await expect(
+      duplicateShow({
+        bandId: 'band-1',
+        name: 'Cópia',
+        notes: null,
+        show: {
+          ...baseShow,
+          blocks: [{ id: 'b', name: 'Principal', items: [] }],
+        },
+        startsAt: '2026-10-02T20:00:00',
+        venue: 'Praça',
+      }),
+    ).rejects.toMatchObject({ code: 'permission_denied' });
+    expect(rollback.eq).toHaveBeenCalledWith('id', 'copy');
+
+    const validBlock = makeInsertQuery({
+      data: { id: 'copy-block' },
+      error: null,
+    });
+    const failedItems = {
+      insert: jest.fn().mockResolvedValue({ error: { message: 'offline' } }),
+    };
+    const secondRollback = {
+      delete: jest.fn().mockReturnThis(),
+      eq: jest.fn(),
+    };
+    from
+      .mockReturnValueOnce(showQuery)
+      .mockReturnValueOnce(validBlock)
+      .mockReturnValueOnce(failedItems)
+      .mockReturnValueOnce(secondRollback);
+
+    await expect(
+      duplicateShow({
+        bandId: 'band-1',
+        name: 'Cópia',
+        notes: null,
+        show: {
+          ...baseShow,
+          blocks: [
+            {
+              id: 'b',
+              name: 'Principal',
+              items: [
+                {
+                  id: 'song-item',
+                  notes: null,
+                  songId: 'song-1',
+                  type: 'song',
+                },
+              ],
+            },
+          ],
+        },
+        startsAt: '2026-10-02T20:00:00',
+        venue: 'Praça',
+      }),
+    ).rejects.toMatchObject({ code: 'request_failed' });
+    expect(secondRollback.eq).toHaveBeenCalledWith('id', 'copy');
+  });
+});

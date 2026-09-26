@@ -81,3 +81,133 @@ describe('mutações de itens da setlist', () => {
     expect(from).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('falhas e validações de itens da setlist', () => {
+  const from = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetSupabaseClient.mockReturnValue({ from } as never);
+  });
+
+  const deleteQuery = (error: unknown = null) => ({
+    delete: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockResolvedValue({ error }),
+  });
+
+  it.each([
+    [{ code: '42501', message: 'denied' }, 'permission_denied'],
+    [{ message: 'JWT expired' }, 'permission_denied'],
+    [{ message: 'row-level security violation' }, 'permission_denied'],
+    [{ message: 'permission denied' }, 'permission_denied'],
+    [{ message: 'SHOW_NOT_EDITABLE' }, 'permission_denied'],
+    [{ message: 'SONG_BAND_MISMATCH' }, 'permission_denied'],
+    [{ message: 'database offline' }, 'request_failed'],
+  ] as const)('traduz falha ao substituir itens: %j', async (error, code) => {
+    from.mockReturnValue(deleteQuery(error));
+
+    await expect(
+      replaceShowBlockItems({
+        blockId: 'block-1',
+        items: [{ id: 'separator', type: 'separator' }],
+      }),
+    ).rejects.toMatchObject({ code });
+  });
+
+  it.each([-1, 1.5])(
+    'rejeita duração de planejamento inválida: %s',
+    async (duration) => {
+      from.mockReturnValue(deleteQuery());
+
+      await expect(
+        replaceShowBlockItems({
+          blockId: 'block-1',
+          items: [
+            {
+              description: 'Pausa',
+              estimatedDurationMs: duration,
+              id: 'planning-1',
+              type: 'planning',
+            },
+          ],
+        }),
+      ).rejects.toMatchObject({ code: 'invalid_show' });
+    },
+  );
+
+  it.each([' ', 'p'.repeat(241)])(
+    'rejeita anotação inválida',
+    async (description) => {
+      from.mockReturnValue(deleteQuery());
+
+      await expect(
+        replaceShowBlockItems({
+          blockId: 'block-1',
+          items: [
+            {
+              description,
+              estimatedDurationMs: null,
+              id: 'planning-1',
+              type: 'planning',
+            },
+          ],
+        }),
+      ).rejects.toMatchObject({ code: 'invalid_show' });
+    },
+  );
+
+  it('normaliza observações vazias e aceita duração zero', async () => {
+    const deletion = deleteQuery();
+    const insertion = { insert: jest.fn().mockResolvedValue({ error: null }) };
+    from.mockReturnValueOnce(deletion).mockReturnValueOnce(insertion);
+
+    await expect(
+      replaceShowBlockItems({
+        blockId: 'block-1',
+        items: [
+          { id: 'song-1', notes: '   ', songId: 'song-1', type: 'song' },
+          {
+            description: 'Pausa curta',
+            estimatedDurationMs: 0,
+            id: 'planning-1',
+            type: 'planning',
+          },
+        ],
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(insertion.insert).toHaveBeenCalledWith([
+      {
+        block_id: 'block-1',
+        item_type: 'song',
+        notes: null,
+        position: 0,
+        song_id: 'song-1',
+      },
+      {
+        block_id: 'block-1',
+        description: 'Pausa curta',
+        estimated_duration_ms: 0,
+        item_type: 'planning',
+        position: 1,
+      },
+    ]);
+  });
+
+  it('traduz erro ao inserir os novos itens', async () => {
+    const deletion = deleteQuery();
+    const insertion = {
+      insert: jest.fn().mockResolvedValue({
+        error: { message: 'database offline' },
+      }),
+    };
+    from.mockReturnValueOnce(deletion).mockReturnValueOnce(insertion);
+
+    await expect(
+      replaceShowBlockItems({
+        blockId: 'block-1',
+        items: [{ id: 'separator', type: 'separator' }],
+      }),
+    ).rejects.toMatchObject({ code: 'request_failed' });
+  });
+});

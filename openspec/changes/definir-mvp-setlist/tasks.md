@@ -93,7 +93,7 @@
 - [x] 7.6 Implementar transições Rascunho, Pronto e Cancelado e verificar leitura, edição, prévia, execução e download permitidos em cada estado
 - [x] 7.7 Implementar a lista não bloqueante de problemas ao tornar um show Pronto e verificar músicas sem letra, estáticas, incompletas e sincronizadas
 - [x] 7.8 Atualizar o timestamp do show ao alterar dados ou setlist e verificar as mudanças por testes de integração
-- [ ] 7.9 Executar o fluxo completo de preparação de um show nas três plataformas, incluindo salvamento explícito e confirmação de saída com alterações pendentes, e publicar uma versão interna para revisão
+- [x] 7.9 Validar na Web e no Android o fluxo completo de preparação de um show, incluindo salvamento explícito e confirmação de saída com alterações pendentes, e publicar um build interno Android para revisão; validação iOS adiada para etapa futura
 
 ## 8. Modo palco conectado ao conteúdo real
 
