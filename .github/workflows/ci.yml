@@ -29,6 +29,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Configurar npm
+        run: npm install --global npm@11.20.0
+
       - name: Instalar dependências
         run: npm ci
 

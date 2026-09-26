@@ -98,7 +98,7 @@ Obrigatórios em qualquer sistema:
 
 - Git;
 - Node.js 24;
-- npm 11;
+- npm 11.20.x;
 - um navegador moderno para executar a versão web.
 
 #### Onde obter os componentes
@@ -108,7 +108,7 @@ Obrigatórios em qualquer sistema:
 | Git                     | Obrigatório                                                          | [Downloads do Git](https://git-scm.com/downloads/)                                              |
 | GitHub CLI              | Recomendado para criar e acompanhar PRs pelo terminal                | [Instalação do GitHub CLI](https://cli.github.com/)                                             |
 | Node.js 24 LTS          | Obrigatório                                                          | [Downloads do Node.js](https://nodejs.org/en/download)                                          |
-| npm 11                  | Obrigatório                                                          | Já acompanha a instalação do Node.js; não precisa ser instalado separadamente                   |
+| npm 11.20.x             | Obrigatório                                                          | Execute `npm install --global npm@11.20.0` se a versão ativa for diferente                      |
 | nvm                     | Recomendado em Linux, macOS e WSL                                    | [Instalação do nvm](https://github.com/nvm-sh/nvm#installing-and-updating)                      |
 | Navegador               | Obrigatório para web                                                 | [Chrome](https://www.google.com/chrome/) ou [Firefox](https://www.mozilla.org/firefox/new/)     |
 | Visual Studio Code      | Editor recomendado                                                   | [Download do VS Code](https://code.visualstudio.com/Download)                                   |
@@ -121,6 +121,7 @@ Obrigatórios em qualquer sistema:
 | Apple Developer Program | Necessário para instalar builds Ad Hoc em iPhone ou iPad             | [Apple Developer Program](https://developer.apple.com/programs/)                                |
 
 O arquivo `.nvmrc` fixa a versão principal do Node.js. O uso do [nvm](https://github.com/nvm-sh/nvm) é recomendado, mas não obrigatório; qualquer instalação compatível do Node.js 24 pode ser usada.
+O projeto fixa npm 11.20.0 em `package.json`, no lockfile e no CI para manter a instalação reproduzível.
 
 Para usar o VS Code com o projeto no WSL:
 
