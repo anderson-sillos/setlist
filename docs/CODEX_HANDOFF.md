@@ -638,9 +638,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      Android EAS `56c043ff-d3a7-4a03-a6cf-75cf1a775c3b` (`preview`, APK,
      commit `4b6350f`) terminou com status `FINISHED` e foi validado no aparelho.
      O usuário adiou a validação iOS para uma etapa futura; a tarefa 7.9 está
-     concluída com esse escopo. O PR #16 deve ser fechado antes de iniciar o
-     grupo 8. No início da revisão final, a cobertura de branches era 79,08% (mínimo
-     de 80%); 82 suítes e 525 testes, lint, typecheck, formatação e OpenSpec
-     passaram localmente. O único check do GitHub falhou nesse limite. O PR #16
-     continua aberto: não fazer merge ignorando o check e não iniciar o grupo 8
-     até resolver esse bloqueio.
+     concluída com esse escopo. O grupo 8 só começa após integrar o PR #16.
+     A PR #16 falhou inicialmente com 79,08% de branches; foram adicionados
+     testes de fluxos de salvamento e ações de show. A validação local final
+     passou: 82 suítes, 540 testes, cobertura de branches em 80,00%, lint,
+     tipos, formatação e OpenSpec. O novo commit precisa rodar os checks no
+     GitHub; manter o PR aberto até o check ficar verde e integrá-lo antes de
+     iniciar o grupo 8.

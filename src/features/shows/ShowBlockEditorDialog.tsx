@@ -986,6 +986,7 @@ export function ShowBlockEditorDialog({
         </AppText>
         <View style={styles.optionList}>
           <AppButton
+            accessibilityLabel="Adicionar músicas"
             icon="musicAdd"
             label="Adicionar músicas"
             onPress={() => {
@@ -997,18 +998,21 @@ export function ShowBlockEditorDialog({
             variant="secondary"
           />
           <AppButton
+            accessibilityLabel="Adicionar anotação"
             icon="planning"
             label="Adicionar anotação"
             onPress={addPlanning}
             variant="secondary"
           />
           <AppButton
+            accessibilityLabel="Adicionar separador"
             icon="remove"
             label="Adicionar separador"
             onPress={addSeparator}
             variant="secondary"
           />
           <AppButton
+            accessibilityLabel="Adicionar bloco"
             icon="add"
             label="Adicionar bloco"
             onPress={addBlock}
