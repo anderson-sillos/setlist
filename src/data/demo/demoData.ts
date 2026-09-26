@@ -16,10 +16,6 @@ export const demoIds = {
   stageSong: 'song-demo-luzes',
 } as const;
 
-export function isDemoBandId(bandId: string): boolean {
-  return bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
-}
-
 export const demoRepositoryData = {
   bands: [
     {

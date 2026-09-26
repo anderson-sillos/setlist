@@ -10,7 +10,7 @@ O **Setlist** é uma aplicação para bandas organizarem repertórios e shows e 
 
 ## Status do projeto
 
-O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O incremento 1 está concluído e o incremento 2 está em revisão funcional. A primeira versão demonstrativa está publicada na web e oferece dados em memória, listas e detalhes responsivos e uma tela de palco com setlist, letra estática e cronômetro manual local.
+O planejamento do MVP está completo no OpenSpec, com proposal, design, seis especificações e um checklist incremental. O incremento 1 está concluído e o incremento 2 está em revisão funcional. A versão inicial autenticada está publicada na web e oferece listas e detalhes responsivos conectados ao Supabase, além de criação e edição de repertório e shows conforme as permissões da banda.
 
 O progresso detalhado pode ser consultado no [checklist de implementação](openspec/changes/definir-mvp-setlist/tasks.md). Cada caixa marcada corresponde a uma atividade implementada, verificada e registrada em commit.
 
@@ -441,7 +441,7 @@ npm run android
 npm run ios
 ```
 
-A rota inicial exibe `Minhas bandas` e, após o login, consulta as bandas e participações da conta no Supabase. Durante a transição, as bandas demonstrativas continuam disponíveis e aparecem identificadas como `Demonstração`. O Repertório de bandas conectadas consulta e salva no Supabase os metadados, a referência externa do YouTube e a letra estruturada em blocos e linhas; Owners e Editors podem adicionar e editar, enquanto Members e bandas de demonstração permanecem somente para leitura. Na edição, a letra pode ser colada ou digitada em um único campo: uma linha iniciada por `#` cria um bloco (por exemplo, `# Refrão`), uma linha contendo apenas `---` preserva uma linha em branco, `**texto**` aplica negrito e `***` cria uma linha de separação. A duração da música é informada separadamente em horas, minutos e segundos com controles de incremento e decremento. O campo Artista/Banda sugere valores distintos de `originalArtist` encontrados nas músicas dos repertórios das bandas da conta. Shows, setlists, sincronização temporal e modo palco ainda estão em incrementos posteriores. Sem sessão autenticada, os testes locais continuam usando dados demonstrativos. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
+A rota inicial exibe `Minhas bandas` e, após o login, consulta exclusivamente as bandas e participações da conta no Supabase. O Repertório consulta e salva no Supabase os metadados, a referência externa do YouTube e a letra estruturada em blocos e linhas; Owners e Editors podem adicionar e editar, enquanto Members permanecem somente para leitura. Na edição, a letra pode ser colada ou digitada em um único campo: uma linha iniciada por `#` cria um bloco (por exemplo, `# Refrão`), uma linha contendo apenas `---` preserva uma linha em branco, `**texto**` aplica negrito e `***` cria uma linha de separação. A duração da música é informada separadamente em horas, minutos e segundos com controles de incremento e decremento. O campo Artista/Banda sugere valores distintos de `originalArtist` encontrados nas músicas dos repertórios das bandas da conta. Shows agora consultam e persistem metadados no Supabase, com criação e edição online por Owner ou Editor; edição de setlists, sincronização temporal e modo palco seguem em incrementos posteriores. Fixtures em memória ficam restritas aos testes automatizados. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
 
 O protótipo técnico do player de referência fica separado da navegação principal. Com a versão web em execução, abra [http://localhost:8081/youtube-prototype](http://localhost:8081/youtube-prototype) para validar o IFrame visível do YouTube, os controles de reproduzir, pausar, buscar dez segundos e a leitura do tempo atual. No Android e no iOS, a mesma rota usa o `react-native-webview` para hospedar o IFrame, enviar comandos pela ponte JavaScript e receber tempo, estado e erros. A validação nativa depende de um aparelho ou simulador e de um build que contenha o módulo nativo.
 
@@ -692,7 +692,7 @@ não puderem ser renovadas retornam com segurança para **Entrar**.
 
 Repita este checklist em pelo menos um aparelho Android e um iPhone ou iPad:
 
-- abrir a tela **Minhas bandas** e selecionar cada banda demonstrativa;
+- abrir a tela **Minhas bandas** e selecionar uma banda da conta;
 - navegar entre **Shows**, **Repertório** e **Banda**;
 - abrir os detalhes de um show e de uma música;
 - conferir os estados de show em preparação, pronto e cancelado;
@@ -713,8 +713,7 @@ o último Owner só pode ser rebaixado depois que outro integrante for promovido
 A própria pessoa também pode usar o ícone de saída na sua linha para sair da
 banda, com confirmação; a mesma proteção impede a saída do último Owner.
 Ações equivalentes não aparecem para Editor ou Member.
-Nas bandas marcadas como `Demonstração`, o app exibe apenas um aviso e preserva
-os dados de exemplo.
+Para validar permissões, repita os fluxos com Owner, Editor e Member em uma banda real; ações de escrita devem aparecer somente para os papéis autorizados.
 
 Para validar a exclusão de conta, abra **Menu geral → Perfil e conta**. A ação
 exige digitar `EXCLUIR` e remove o perfil, a sessão e a última banda selecionada
@@ -725,7 +724,7 @@ integrante de uma banda, exclua a banda pela edição dela antes de excluir a
 conta. A exclusão da banda exige digitar exatamente o nome completo e só é
 permitida ao único Proprietário integrante.
 
-Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Como os dados atuais são demonstrativos e ficam em memória, reiniciar o aplicativo restaura seu estado inicial.
+Para recarregar todos os aparelhos conectados, pressione `r` no terminal do Expo. O Fast Refresh também aplica mudanças salvas automaticamente. Ao terminar, encerre o servidor com `Ctrl+C`. Os dados de produção são carregados do Supabase; fixtures em memória ficam restritas aos testes automatizados.
 
 O Expo Go é adequado para esta revisão antecipada, mas não substitui um aplicativo independente assinado: ele depende do Expo Go e do servidor de desenvolvimento. Recursos futuros que exijam configuração nativa não incluída no Expo Go deverão ser testados em um development build ou build interno. O funcionamento offline planejado para shows também ainda não está implementado.
 
@@ -1125,8 +1124,8 @@ Uma banda pode ter vários Owners, mas o último Owner não pode sair ou perder 
 |   |-- components/feedback/             # Mensagens e avisos compartilhados
 |   |-- components/ui/                   # Componentes visuais reutilizáveis
 |   |-- config/environment.ts            # Leitura e validação tipada do ambiente
-|   |-- data/demo/                        # Bandas, repertórios e shows demonstrativos
-|   |-- data/in-memory/                   # Repositórios locais para testes e demonstração
+|   |-- data/demo/                        # Fixtures de bandas, repertórios e shows usadas nos testes
+|   |-- data/in-memory/                   # Repositórios locais usados pelos testes
 |   |-- data/supabase/                    # Cliente Supabase configurado por ambiente
 |   |-- domain/                          # Entidades e contratos independentes da infraestrutura
 |   |-- features/bands/                  # Minhas bandas e integrantes

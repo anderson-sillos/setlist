@@ -36,6 +36,29 @@ export {
   SupabaseSongRepository,
 } from '@/data/supabase/songRepository';
 export {
+  createSupabaseShowRepository,
+  SupabaseShowRepository,
+} from '@/data/supabase/showRepository';
+export {
+  createShow,
+  deleteShow,
+  duplicateShow,
+  ShowMutationError,
+} from '@/data/supabase/showMutations';
+export type {
+  CreateShowInput,
+  DuplicateShowInput,
+  ShowMutationErrorCode,
+} from '@/data/supabase/showMutations';
+export {
+  updateShow,
+  updateShowStatus,
+} from '@/data/supabase/showUpdateMutations';
+export type {
+  UpdateShowInput,
+  UpdateShowStatusInput,
+} from '@/data/supabase/showUpdateMutations';
+export {
   acceptCurrentBandTerm,
   getCurrentBandTermAcceptance,
   LegalTermMutationError,
@@ -88,3 +111,15 @@ export type {
   ProfileErrorCode,
   UserProfile,
 } from '@/data/supabase/profileMutations';
+
+export {
+  createShowBlock,
+  deleteShowBlock,
+  renameShowBlock,
+  reorderShowBlocks,
+} from '@/data/supabase/showBlockMutations';
+export type {
+  CreateShowBlockInput,
+  ShowBlockDraft,
+} from '@/data/supabase/showBlockMutations';
+export { replaceShowBlockItems } from '@/data/supabase/showSetlistMutations';

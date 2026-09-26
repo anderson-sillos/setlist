@@ -1,5 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
+import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import {
   ChoiceChips,
   FilterMenu,
@@ -42,6 +44,31 @@ describe('<SearchField />', () => {
     await fireEvent.press(clearButton);
 
     expect(onChangeText).toHaveBeenCalledWith('');
+  });
+});
+
+describe('<OptionSheet />', () => {
+  it('exibe um botão X no cabeçalho por padrão', async () => {
+    const onClose = jest.fn();
+    const view = await render(
+      <OptionSheet
+        closeAccessibilityLabel="Fechar seleção de músicas"
+        label="Adicionar músicas"
+        onClose={onClose}
+        sheetStyle={{ height: 520, maxHeight: '90%' }}
+        testID="sized-option-sheet"
+        visible
+      >
+        <></>
+      </OptionSheet>,
+    );
+    expect(
+      StyleSheet.flatten(view.getByTestId('sized-option-sheet').props.style),
+    ).toMatchObject({ height: 520, maxHeight: '90%' });
+
+    await fireEvent.press(view.getByLabelText('Fechar seleção de músicas'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -106,6 +133,12 @@ describe('<OptionMenu />', () => {
 
     await fireEvent.press(trigger);
 
+    expect(view.getByLabelText('Fechar opções')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Fechar opções'));
+    expect(view.queryByLabelText('Fechar opções')).toBeNull();
+
+    await fireEvent.press(trigger);
+
     expect(view.getByLabelText('Título').props.accessibilityState).toEqual({
       checked: true,
     });
@@ -142,9 +175,10 @@ describe('<FilterMenu />', () => {
 
     await fireEvent.press(view.getByLabelText('Abrir filtros'));
 
-    const scrim = view.getByLabelText('Fechar filtros');
+    const scrim = view.getByLabelText('Fechar filtros tocando fora');
 
     expect(scrim.children).toHaveLength(0);
+    expect(view.getByLabelText('Fechar filtros')).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Artista'));
 
@@ -154,6 +188,6 @@ describe('<FilterMenu />', () => {
     await fireEvent.press(view.getByLabelText('Limpar filtros'));
 
     expect(onClear).toHaveBeenCalledTimes(1);
-    expect(view.queryByLabelText('Fechar filtros')).toBeNull();
+    expect(view.queryByLabelText('Fechar filtros tocando fora')).toBeNull();
   });
 });

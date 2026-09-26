@@ -1,10 +1,18 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface MenuButtonProps {
   readonly active?: boolean;
@@ -18,8 +26,11 @@ interface MenuButtonProps {
 interface OptionSheetProps {
   readonly children: ReactNode;
   readonly closeAccessibilityLabel: string;
+  readonly testID?: string;
   readonly label: string;
   readonly onClose: () => void;
+  readonly sheetStyle?: StyleProp<ViewStyle>;
+  readonly showCloseButton?: boolean;
   readonly visible: boolean;
 }
 
@@ -31,6 +42,11 @@ export function MenuButton({
   label,
   onPress,
 }: MenuButtonProps) {
+  const handlePress = () => {
+    blurWebFocus();
+    onPress();
+  };
+
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
@@ -39,7 +55,7 @@ export function MenuButton({
       accessibilityValue={
         accessibilityValueText ? { text: accessibilityValueText } : undefined
       }
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
     >
       {icon ? <AppIcon color={colors.violet} name={icon} size={16} /> : null}
@@ -71,26 +87,63 @@ export function OptionSheet({
   closeAccessibilityLabel,
   label,
   onClose,
+  sheetStyle,
+  showCloseButton = true,
+  testID,
   visible,
 }: OptionSheetProps) {
+  const handleClose = () => {
+    blurWebFocus();
+    onClose();
+  };
+
   return (
     <Modal
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       transparent
       visible={visible}
     >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
-          accessibilityLabel={closeAccessibilityLabel}
+          accessibilityLabel={
+            showCloseButton
+              ? `${closeAccessibilityLabel} tocando fora`
+              : closeAccessibilityLabel
+          }
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={handleClose}
           style={styles.modalScrim}
         />
-        <View style={styles.sheet}>
-          <AppText accessibilityRole="header" variant="heading">
-            {label}
-          </AppText>
+        <View style={[styles.sheet, sheetStyle]} testID={testID}>
+          {showCloseButton ? (
+            <View style={styles.header}>
+              <AppText
+                accessibilityRole="header"
+                numberOfLines={1}
+                style={styles.headerLabel}
+                variant="heading"
+              >
+                {label}
+              </AppText>
+              <Pressable
+                accessibilityLabel={closeAccessibilityLabel}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={handleClose}
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <AppIcon color={colors.muted} name="close" size={20} />
+              </Pressable>
+            </View>
+          ) : (
+            <AppText accessibilityRole="header" variant="heading">
+              {label}
+            </AppText>
+          )}
           {children}
         </View>
       </View>
@@ -99,6 +152,22 @@ export function OptionSheet({
 }
 
 const styles = StyleSheet.create({
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  headerLabel: {
+    flex: 1,
+    minWidth: 0,
+  },
+  closeButton: {
+    alignItems: 'center',
+    borderRadius: radii.pill,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
   menuButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',

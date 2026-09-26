@@ -73,10 +73,7 @@ describe('<SongDetailScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Editar música'));
 
-    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(
-      view.getByText(/músicas de demonstração são só para consulta/i),
-    ).toBeTruthy();
+    expect(view.queryByTestId('demo-action-notice')).toBeNull();
   });
 
   it('abre a referência do YouTube em uma nova janela no web', async () => {

@@ -8,8 +8,10 @@ import {
   Ban,
   CalendarCheck,
   CalendarDays,
+  CalendarMinus,
   CalendarPlus,
   Check,
+  Copy,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -19,6 +21,7 @@ import {
   Hourglass,
   HourglassCog,
   LayoutGrid,
+  Layers,
   Maximize2,
   ListFilter,
   LogIn,
@@ -53,10 +56,13 @@ const iconComponents = {
   back: ChevronLeft,
   band: Users,
   bands: LayoutGrid,
+  block: Layers,
   check: Check,
   chevronDown: ChevronDown,
   close: X,
+  copy: Copy,
   duration: Hourglass,
+  dragHandle: Menu,
   edit: Pencil,
   event: CalendarCheck,
   externalLink: ExternalLink,
@@ -74,6 +80,7 @@ const iconComponents = {
   search: Search,
   shows: CalendarDays,
   showAdd: CalendarPlus,
+  calendarMinus: CalendarMinus,
   stage: Play,
   sort: ArrowUpDown,
   remove: Trash2,
@@ -110,10 +117,7 @@ export function AppIcon({
     const badgeSize = Math.max(12, size * 0.56);
 
     return (
-      <View
-        pointerEvents="none"
-        style={[styles.composedIcon, { height: size, width: size }]}
-      >
+      <View style={[styles.composedIcon, { height: size, width: size }]}>
         <ComposedIcon
           color={color}
           height={size}
@@ -146,6 +150,20 @@ export function AppIcon({
 
   const Icon = iconComponents[name as keyof typeof iconComponents];
 
+  if (name === 'dragHandle') {
+    return (
+      <View style={styles.dragHandleIcon}>
+        <Icon
+          color={color}
+          height={size}
+          size={size}
+          strokeWidth={strokeWidth}
+          width={size}
+        />
+      </View>
+    );
+  }
+
   return (
     <Icon
       color={color}
@@ -160,6 +178,7 @@ export function AppIcon({
 const styles = StyleSheet.create({
   composedIcon: {
     overflow: 'visible',
+    pointerEvents: 'none',
     position: 'relative',
   },
   composedBadge: {
@@ -168,5 +187,9 @@ const styles = StyleSheet.create({
     bottom: -2,
     justifyContent: 'center',
     position: 'absolute',
+  },
+  dragHandleIcon: {
+    pointerEvents: 'none',
+    transform: [{ scaleY: 0.72 }],
   },
 });

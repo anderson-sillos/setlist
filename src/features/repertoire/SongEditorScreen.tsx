@@ -40,7 +40,6 @@ import {
   useUserBands,
   useUserRepertoireSongs,
 } from '@/data/queries';
-import { demoIds } from '@/data/demo';
 import type { EntityId, LyricDocument } from '@/domain';
 import { BandTermAcceptanceDialog } from '@/features/bands/BandTermAcceptanceDialog';
 import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
@@ -97,24 +96,24 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const [lifecycleDialogVisible, setLifecycleDialogVisible] = useState(false);
   const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   const [lifecycleNotice, setLifecycleNotice] = useState<string | null>(null);
+  const [lifecycleNoticeTitle, setLifecycleNoticeTitle] = useState<
+    string | null
+  >(null);
   const [lifecycleSubmitting, setLifecycleSubmitting] = useState(false);
-  const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const song = songQuery.data;
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
-  const isDemoBand =
-    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const termAcceptanceQuery = useCurrentBandTermAcceptance(
     bandId,
     CURRENT_BAND_TERM.version,
-    !isDemoBand && canEdit,
+    canEdit,
   );
   const isLoading =
     userBandsQuery.isPending ||
     (Boolean(songId) && songQuery.isPending) ||
-    (!isDemoBand && canEdit && termAcceptanceQuery.isPending);
+    (canEdit && termAcceptanceQuery.isPending);
   const originalArtistOptions = Array.from(
     new Set(
       userRepertoireSongsQuery.data
@@ -170,13 +169,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       return;
     }
 
-    if (isDemoBand) {
-      setDemoNotice(
-        'As músicas de demonstração são só para consulta. Selecione uma banda conectada para administrar o repertório.',
-      );
-      return;
-    }
-
     setLifecycleError(null);
     setLifecycleDialogVisible(true);
   };
@@ -206,8 +198,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       await archiveSong({ bandId, songId: song.id });
       await invalidateSongQueries();
+      setLifecycleNoticeTitle('Música arquivada');
       setLifecycleNotice(
-        'Música arquivada. Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
+        'Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
       );
       setLifecycleDialogVisible(false);
     } catch (error) {
@@ -227,7 +220,8 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       await restoreSong({ bandId, songId: song.id });
       await invalidateSongQueries();
-      setLifecycleNotice('Música restaurada e disponível para novas setlists.');
+      setLifecycleNoticeTitle('Música restaurada');
+      setLifecycleNotice('Disponível novamente para novas setlists.');
       setLifecycleDialogVisible(false);
     } catch (error) {
       handleLifecycleError(error);
@@ -251,8 +245,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         return;
       }
 
+      setLifecycleNoticeTitle('Música arquivada');
       setLifecycleNotice(
-        'A música está em um show existente, então foi arquivada para preservar a setlist.',
+        'Ela está em um show existente, então foi arquivada para preservar a setlist.',
       );
       setLifecycleDialogVisible(false);
     } catch (error) {
@@ -358,22 +353,19 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {termAcceptanceQuery.isError ? (
         <ErrorFeedback onRetry={() => void termAcceptanceQuery.refetch()} />
       ) : null}
-      {!isLoading && !userBandsQuery.isError && isDemoBand ? (
-        <UnavailableFeedback title="Músicas de demonstração são somente leitura" />
-      ) : null}
-      {!isLoading && !userBandsQuery.isError && !isDemoBand && !canEdit ? (
+      {!isLoading && !userBandsQuery.isError && !canEdit ? (
         <UnavailableFeedback title="Seu papel permite consultar o repertório, não editá-lo" />
       ) : null}
       {!isLoading && songId && !songQuery.isError && !song ? (
         <UnavailableFeedback title="Música indisponível" />
       ) : null}
       <DemoActionNotice
-        message={demoNotice}
-        onClose={() => setDemoNotice(null)}
-      />
-      <DemoActionNotice
         message={lifecycleNotice}
-        onClose={() => setLifecycleNotice(null)}
+        onClose={() => {
+          setLifecycleNotice(null);
+          setLifecycleNoticeTitle(null);
+        }}
+        title={lifecycleNoticeTitle ?? undefined}
       />
       <SongLifecycleDialog
         errorMessage={lifecycleError}
@@ -388,7 +380,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {!isLoading &&
       !userBandsQuery.isError &&
       !songQuery.isError &&
-      !isDemoBand &&
       !termAcceptanceQuery.isError &&
       termAcceptanceQuery.data === true &&
       canEdit &&
@@ -499,7 +490,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       !userBandsQuery.isError &&
       !songQuery.isError &&
       !termAcceptanceQuery.isError &&
-      !isDemoBand &&
       canEdit &&
       termAcceptanceQuery.data === false ? (
         <BandTermAcceptanceDialog

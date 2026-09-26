@@ -177,7 +177,7 @@ O sistema SHALL agrupar os integrantes por papel e ordená-los alfabeticamente d
 
 #### Scenario: Consultar integrantes
 - **WHEN** um integrante abre a área Banda
-- **THEN** o sistema apresenta Proprietários, Editores e Integrantes em grupos, identifica a própria pessoa e não oferece busca ou filtros
+- **THEN** o sistema apresenta Proprietários, Editores e Integrantes em grupos, identifica a própria pessoa, mostra o e-mail do perfil em cada linha quando disponível sem repetir o papel já indicado pelo grupo e não oferece busca ou filtros
 
 #### Scenario: Promover para Proprietário
 - **WHEN** um Owner solicita promover outra pessoa para Owner

@@ -17,6 +17,7 @@ interface SpinButtonProps {
   readonly decrementLabel?: string;
   readonly incrementLabel?: string;
   readonly maxLength?: number;
+  readonly minWidth?: number;
   readonly max?: number;
   readonly min?: number;
   readonly onChangeText: (value: string) => void;
@@ -28,6 +29,7 @@ export function SpinButton({
   decrementLabel = 'Diminuir valor',
   incrementLabel = 'Aumentar valor',
   maxLength = 3,
+  minWidth,
   max = 999,
   min = 0,
   onChangeText,
@@ -77,7 +79,7 @@ export function SpinButton({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, minWidth !== undefined && { minWidth }]}>
       <TextInput
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="spinbutton"

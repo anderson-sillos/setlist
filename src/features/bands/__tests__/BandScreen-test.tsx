@@ -77,6 +77,7 @@ function createMutableBandRepositories() {
   const owner: BandMember = {
     bandId: 'band-real',
     displayName: 'Owner Real',
+    email: 'owner@example.test',
     id: 'membership-real',
     joinedAt: '2026-09-01T12:00:00.000Z',
     role: 'owner',
@@ -85,6 +86,7 @@ function createMutableBandRepositories() {
   const member: BandMember = {
     bandId: 'band-real',
     displayName: 'Membro Real',
+    email: 'membro@example.test',
     id: 'membership-member',
     joinedAt: '2026-09-02T12:00:00.000Z',
     role: 'member',
@@ -177,6 +179,19 @@ describe('<BandScreen />', () => {
     mockLeaveBand.mockResolvedValue(undefined);
   });
 
+  it('mostra o e-mail no lugar do papel repetido na linha do integrante', async () => {
+    const { repositories } = createMutableBandRepositories();
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Membro Real')).toBeTruthy();
+    expect(view.getByText('membro@example.test')).toBeTruthy();
+    expect(view.queryByText('Integrante')).toBeNull();
+  });
+
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
     const ownerView = await render(
       <AppProviders>
@@ -190,32 +205,26 @@ describe('<BandScreen />', () => {
     expect(ownerView.getByText('Você')).toBeTruthy();
     expect(ownerView.getByLabelText('Administrar Bruno Lima')).toBeTruthy();
     await fireEvent.press(ownerView.getByLabelText('Sair da banda'));
-    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(ownerView.getByText(/A saída da banda fica/)).toBeTruthy();
-    await fireEvent.press(
-      ownerView.getByLabelText('Fechar aviso de demonstração'),
-    );
+    expect(ownerView.getByTestId('band-leave-dialog')).toBeTruthy();
+    await fireEvent.press(ownerView.getByText('Cancelar'));
     expect(ownerView.getByLabelText('Editar banda')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Editar banda'));
-    expect(ownerView.getByText(/A administração da banda fica/)).toBeTruthy();
+    expect(ownerView.getByTestId('band-administration-dialog')).toBeTruthy();
     await fireEvent.press(
-      ownerView.getByLabelText('Fechar aviso de demonstração'),
+      ownerView.getAllByLabelText('Fechar edição da banda')[0],
     );
 
     expect(ownerView.getByLabelText('Convidar integrante')).toBeTruthy();
 
     await fireEvent.press(ownerView.getByLabelText('Convidar integrante'));
-    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(ownerView.getByText(/Os convites entram/)).toBeTruthy();
+    expect(ownerView.getByTestId('band-invitation-dialog')).toBeTruthy();
     await fireEvent.press(
-      ownerView.getByLabelText('Fechar aviso de demonstração'),
+      ownerView.getByLabelText('Fechar janela de convites'),
     );
-    expect(ownerView.queryByTestId('demo-action-notice')).toBeNull();
 
     await fireEvent.press(ownerView.getByLabelText('Administrar Bruno Lima'));
-    expect(ownerView.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(ownerView.getByText(/A administração de integrantes/)).toBeTruthy();
+    expect(ownerView.getByTestId('band-member-management-dialog')).toBeTruthy();
     await ownerView.unmount();
 
     const memberView = await render(

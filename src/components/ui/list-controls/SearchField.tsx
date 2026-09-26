@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { SearchFieldProps } from '@/components/ui/list-controls/types';
@@ -12,7 +12,12 @@ export function SearchField({
 }: SearchFieldProps) {
   return (
     <View style={styles.field}>
-      <AppIcon color={colors.muted} name="search" size={20} />
+      <View
+        style={Platform.OS === 'web' ? styles.webSearchIcon : undefined}
+        testID="search-field-icon"
+      >
+        <AppIcon color={colors.muted} name="search" size={20} />
+      </View>
       <TextInput
         accessibilityLabel={accessibilityLabel}
         autoCapitalize="none"
@@ -59,6 +64,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
+  },
+  webSearchIcon: {
+    flexShrink: 0,
+    height: 20,
+    width: 20,
   },
   clearButton: {
     alignItems: 'center',

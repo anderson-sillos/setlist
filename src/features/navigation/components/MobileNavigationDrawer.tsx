@@ -1,13 +1,6 @@
 import type { Href } from 'expo-router';
 import { useCallback } from 'react';
-import {
-  Animated,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/ui/AppText';
@@ -16,6 +9,7 @@ import { NavigationIconButton } from '@/features/navigation/components/Navigatio
 import { NavigationPanel } from '@/features/navigation/components/NavigationPanel';
 import type { BandSection } from '@/features/navigation/routes';
 import { colors, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface MobileNavigationDrawerProps {
   readonly activeSection?: BandSection;
@@ -39,10 +33,7 @@ export function MobileNavigationDrawer({
   visible,
 }: MobileNavigationDrawerProps) {
   const handleClose = useCallback(() => {
-    if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      const activeElement = document.activeElement as HTMLElement | null;
-      activeElement?.blur();
-    }
+    blurWebFocus();
 
     onClose();
   }, [onClose]);

@@ -633,3 +633,15 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      pelo workflow `35992917683` e responde com HTTP 200 em
      `https://setlistbr.app.br/` e `/app/`. O PR #15 permanece aberto para a
      revisão manual do grupo 6; não fazer merge ou encerrá-lo ainda.
+
+143. A tarefa 7.9 foi validada manualmente na Web e no Android. O build interno
+     Android EAS `56c043ff-d3a7-4a03-a6cf-75cf1a775c3b` (`preview`, APK,
+     commit `4b6350f`) terminou com status `FINISHED` e foi validado no aparelho.
+     O usuário adiou a validação iOS para uma etapa futura; a tarefa 7.9 está
+     concluída com esse escopo. O grupo 8 só começa após integrar o PR #16.
+     A PR #16 falhou inicialmente com 79,08% de branches; foram adicionados
+     testes de fluxos de salvamento e ações de show. A validação local final
+     passou: 82 suítes, 540 testes, cobertura de branches em 80,00%, lint,
+     tipos, formatação e OpenSpec. O novo commit precisa rodar os checks no
+     GitHub; manter o PR aberto até o check ficar verde e integrá-lo antes de
+     iniciar o grupo 8.

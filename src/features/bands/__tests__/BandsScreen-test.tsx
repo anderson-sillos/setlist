@@ -34,7 +34,7 @@ describe('<BandsScreen />', () => {
     await clearLastBandId();
   });
 
-  it('carrega Minhas bandas com os destinos demonstrativos', async () => {
+  it('carrega Minhas bandas do repositório conectado', async () => {
     await writeLastBandId('band-demo-horizonte');
     const view = await render(
       <AppProviders>
@@ -90,7 +90,6 @@ describe('<BandsScreen />', () => {
     await waitFor(() =>
       expect(view.queryByTestId('create-band-dialog')).toBeNull(),
     );
-    expect(view.getAllByText('Demonstração')).toHaveLength(2);
   });
 
   it('bloqueia a criação quando o termo não foi aceito', async () => {

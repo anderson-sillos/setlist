@@ -15,6 +15,10 @@ export function getShowHref(bandId: EntityId, showId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/shows/${encodeURIComponent(showId)}` as Href;
 }
 
+export function getShowEditHref(bandId: EntityId, showId: EntityId): Href {
+  return `/bands/${encodeURIComponent(bandId)}/shows/${encodeURIComponent(showId)}/edit` as Href;
+}
+
 export function getSongLyricsHref(bandId: EntityId, songId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/repertoire/${encodeURIComponent(songId)}/lyrics` as Href;
 }

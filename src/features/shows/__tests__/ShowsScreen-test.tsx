@@ -25,6 +25,21 @@ describe('<ShowsScreen />', () => {
     },
   );
 
+  it('considera shows de hoje como próximos mesmo após o horário', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowsScreen
+          bandId={demoIds.primaryBand}
+          now={new Date('2026-09-19T23:00:00-03:00')}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Ensaio Aberto')).toBeTruthy();
+    expect(view.getByText('Show do Bairro')).toBeTruthy();
+  });
+
   it('busca shows e mantém cancelados fora da agenda ativa', async () => {
     const view = await render(
       <AppProviders>
@@ -184,7 +199,19 @@ describe('<ShowsScreen />', () => {
     await fireEvent.press(view.getByLabelText('Aplicar filtros'));
 
     await fireEvent.press(view.getByLabelText('Criar novo show'));
-    expect(view.getByText(/A criação do show em 19 set 2026/)).toBeTruthy();
+    expect(view.getByTestId('show-creation-dialog')).toBeTruthy();
+    expect(view.getByLabelText('Selecionar data do show')).toBeTruthy();
+    expect(view.getAllByText('19 set 2026').length).toBeGreaterThanOrEqual(2);
+    expect(view.getByLabelText('Hora do show')).toBeTruthy();
+    expect(view.getByLabelText('Minutos do show')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Selecionar data do show'));
+    expect(view.getByTestId('shows-month-calendar')).toBeTruthy();
+    expect(view.getByLabelText(/19 de setembro de 2026, 2 shows/)).toBeTruthy();
+    await fireEvent.press(
+      view.getByLabelText('19 de setembro de 2026, 2 shows'),
+    );
+    expect(view.queryByTestId('shows-month-calendar')).toBeNull();
 
     await fireEvent.press(view.getByLabelText(/Remover filtro de data/));
     expect(

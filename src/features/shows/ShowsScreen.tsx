@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import {
-  DemoActionNotice,
-  ErrorFeedback,
-  LoadingFeedback,
-} from '@/components/feedback';
+import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -18,6 +16,7 @@ import {
 } from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { useShows, useSongs, useUserBands } from '@/data/queries';
+import { createShow, ShowMutationError } from '@/data/supabase/showMutations';
 import type { ShowStatus } from '@/domain';
 import { getShowDurationMs } from '@/domain/setlistDuration';
 import { getBrazilianNationalHolidays } from '@/features/calendar/brazilianHolidays';
@@ -30,6 +29,10 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { ShowListRow } from '@/features/shows/ShowListRow';
+import {
+  ShowCreationDialog,
+  type ShowCreationForm,
+} from '@/features/shows/ShowCreationDialog';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { formatDateFilter, getDateKey } from '@/utils/dateTime';
 import { normalizeForSearch } from '@/utils/text';
@@ -65,11 +68,16 @@ export function ShowsScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const showsQuery = useShows(bandId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [creationVisible, setCreationVisible] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
+  const [creationSubmitting, setCreationSubmitting] = useState(false);
+  const [creationInstance, setCreationInstance] = useState(0);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'shows', {
       date: '',
@@ -88,15 +96,18 @@ export function ShowsScreen({
     [songsQuery.data],
   );
   const normalizedSearch = normalizeForSearch(state.search);
+  const todayKey = getDateKey(now);
   const shows = useMemo(() => {
     const result = (showsQuery.data ?? []).filter((show) => {
       const matchesSearch = normalizeForSearch(
         `${show.name} ${show.venue}`,
       ).includes(normalizedSearch);
-      const startsAt = new Date(show.startsAt);
+      const showDateKey = getDateKey(show.startsAt);
       const matchesPeriod =
         state.period === 'all' ||
-        (state.period === 'upcoming' ? startsAt >= now : startsAt < now);
+        (state.period === 'upcoming'
+          ? showDateKey >= todayKey
+          : showDateKey < todayKey);
       const matchesDate =
         !state.date || getDateKey(show.startsAt) === state.date;
       const matchesStatus =
@@ -122,7 +133,18 @@ export function ShowsScreen({
         ? right.startsAt.localeCompare(left.startsAt)
         : left.startsAt.localeCompare(right.startsAt);
     });
-  }, [normalizedSearch, now, showsQuery.data, songsById, state]);
+  }, [normalizedSearch, showsQuery.data, songsById, state, todayKey]);
+  const venueOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (showsQuery.data ?? [])
+            .map(({ venue }) => venue.trim())
+            .filter(Boolean),
+        ),
+      ).sort((left, right) => left.localeCompare(right, 'pt-BR')),
+    [showsQuery.data],
+  );
   const calendarShows = useMemo(
     () =>
       (showsQuery.data ?? []).filter(
@@ -141,6 +163,34 @@ export function ShowsScreen({
       ) ?? null
     );
   }, [state.date]);
+  const handleCreateShow = async (form: ShowCreationForm) => {
+    setCreationError(null);
+    setCreationSubmitting(true);
+
+    try {
+      const showId = await createShow({
+        bandId,
+        name: form.name,
+        notes: form.notes,
+        startsAt: form.date + 'T' + form.time + ':00',
+        venue: form.venue,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['bands', bandId, 'shows'],
+        refetchType: 'all',
+      });
+      setCreationVisible(false);
+      router.push(getShowHref(bandId, showId));
+    } catch (error) {
+      setCreationError(
+        error instanceof ShowMutationError
+          ? error.message
+          : 'Não foi possível criar o show agora. Tente novamente.',
+      );
+    } finally {
+      setCreationSubmitting(false);
+    }
+  };
   const clearFilters = () => {
     update('date', '');
     update('search', '');
@@ -284,12 +334,11 @@ export function ShowsScreen({
               accessibilityLabel: 'Criar novo show',
               icon: 'showAdd',
               label: 'Novo show',
-              onPress: () =>
-                setDemoNotice(
-                  state.date
-                    ? `A criação do show em ${selectedDateLabel} entra no próximo incremento.`
-                    : 'A criação de shows entra no próximo incremento. O palco já está reservado.',
-                ),
+              onPress: () => {
+                setCreationError(null);
+                setCreationInstance((current) => current + 1);
+                setCreationVisible(true);
+              },
             }
           : undefined
       }
@@ -301,6 +350,22 @@ export function ShowsScreen({
       {showsQuery.isPending || songsQuery.isPending ? (
         <LoadingFeedback variation={1} />
       ) : null}
+      <ShowCreationDialog
+        calendarShows={calendarShows}
+        venueOptions={venueOptions}
+        key={`${state.date || 'new-show'}-${creationInstance}`}
+        errorMessage={creationError}
+        initialDate={state.date || undefined}
+        isSubmitting={creationSubmitting}
+        onClose={() => {
+          if (!creationSubmitting) {
+            setCreationVisible(false);
+            setCreationError(null);
+          }
+        }}
+        onSubmit={(form) => void handleCreateShow(form)}
+        visible={creationVisible}
+      />
       {showsQuery.isError || songsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
@@ -333,12 +398,6 @@ export function ShowsScreen({
               }
             />
           ) : null
-        }
-        ListHeaderComponent={
-          <DemoActionNotice
-            message={demoNotice}
-            onClose={() => setDemoNotice(null)}
-          />
         }
         onScroll={(event) =>
           rememberListScrollOffset(event, rememberScrollOffset)

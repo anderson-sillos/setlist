@@ -6,16 +6,21 @@ import { colors, layout, radii, spacing } from '@/theme/tokens';
 interface DemoActionNoticeProps {
   readonly message: string | null;
   readonly onClose: () => void;
+  readonly title?: string;
 }
 
-export function DemoActionNotice({ message, onClose }: DemoActionNoticeProps) {
+export function DemoActionNotice({
+  message,
+  onClose,
+  title = 'Demonstração',
+}: DemoActionNoticeProps) {
   if (!message) return null;
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
-          accessibilityLabel="Fechar popup de demonstração"
+          accessibilityLabel={`Fechar popup de ${title.toLocaleLowerCase('pt-BR')}`}
           accessibilityRole="button"
           onPress={onClose}
           style={styles.scrim}
@@ -28,11 +33,11 @@ export function DemoActionNotice({ message, onClose }: DemoActionNoticeProps) {
           testID="demo-action-notice"
         >
           <AppText accessibilityRole="header" variant="heading">
-            Demonstração
+            {title}
           </AppText>
           <AppText>{message}</AppText>
           <Pressable
-            accessibilityLabel="Fechar aviso de demonstração"
+            accessibilityLabel={`Fechar aviso de ${title.toLocaleLowerCase('pt-BR')}`}
             accessibilityRole="button"
             onPress={onClose}
             style={({ pressed }) => [

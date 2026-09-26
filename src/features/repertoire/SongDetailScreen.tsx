@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+
 import {
   Linking,
   Platform,
@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 
 import {
-  DemoActionNotice,
   ErrorFeedback,
   LoadingFeedback,
   UnavailableFeedback,
@@ -19,7 +18,6 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { demoIds } from '@/data/demo';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
@@ -57,14 +55,11 @@ export function SongDetailScreen({
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
-  const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const song = songQuery.data;
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
-  const isDemoBand =
-    bandId === demoIds.primaryBand || bandId === demoIds.secondaryBand;
   const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
   const openYoutubeReference = () => {
     if (!youtubeReference) {
@@ -91,12 +86,7 @@ export function SongDetailScreen({
               accessibilityLabel: 'Editar música',
               icon: 'edit',
               label: 'Editar música',
-              onPress: () =>
-                isDemoBand
-                  ? setDemoNotice(
-                      'As músicas de demonstração são só para consulta. Selecione uma banda conectada para editar o repertório.',
-                    )
-                  : router.push(getSongEditHref(bandId, songId)),
+              onPress: () => router.push(getSongEditHref(bandId, songId)),
             }
           : undefined
       }
@@ -119,11 +109,6 @@ export function SongDetailScreen({
       {!songQuery.isPending && !songQuery.isError && !song ? (
         <UnavailableFeedback title="Música indisponível" />
       ) : null}
-
-      <DemoActionNotice
-        message={demoNotice}
-        onClose={() => setDemoNotice(null)}
-      />
 
       {song ? (
         <View style={styles.detail} testID={`song-detail-${layoutMode}`}>

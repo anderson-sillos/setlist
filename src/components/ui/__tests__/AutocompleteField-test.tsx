@@ -1,4 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 
 import { AutocompleteField } from '@/components/ui/AutocompleteField';
 
@@ -24,6 +25,66 @@ describe('<AutocompleteField />', () => {
     await fireEvent.press(view.getByLabelText('Usar Trio Aurora'));
 
     expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+  });
+
+  it('mantém o campo focalizável no Android', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+
+    try {
+      const view = await render(
+        <AutocompleteField
+          accessibilityLabel="Artista/Banda"
+          label="Artista/Banda"
+          onChangeText={jest.fn()}
+          options={['Banda Horizonte', 'Trio Aurora']}
+          placeholder="Ex.: Artista original"
+          value="aur"
+        />,
+      );
+
+      await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+
+      expect(view.getByLabelText('Artista/Banda')).toBeTruthy();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
+  it('seleciona a sugestão no início do clique para o web', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'web',
+    });
+
+    const onChangeText = jest.fn();
+    const view = await render(
+      <AutocompleteField
+        accessibilityLabel="Artista/Banda"
+        label="Artista/Banda"
+        onChangeText={onChangeText}
+        options={['Banda Horizonte', 'Trio Aurora']}
+        placeholder="Ex.: Artista original"
+        value="aur"
+      />,
+    );
+
+    await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+    await fireEvent(view.getByLabelText('Usar Trio Aurora'), 'pressIn');
+
+    expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: originalPlatform,
+    });
   });
 
   it('permite selecionar uma sugestão mesmo quando o campo perde o foco', async () => {

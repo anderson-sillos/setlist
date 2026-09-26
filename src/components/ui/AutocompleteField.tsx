@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -36,6 +37,7 @@ export function AutocompleteField({
   const inputRef = useRef<TextInput>(null);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [focused, setFocused] = useState(false);
+  const pendingSelectionRef = useRef<string | null>(null);
 
   const clearBlurTimeout = () => {
     if (blurTimeoutRef.current !== null) {
@@ -77,9 +79,33 @@ export function AutocompleteField({
     normalizeForSearch(suggestions[0] ?? '') !== normalizedValue;
   const showSuggestions =
     focused && (suggestions.length > 1 || hasDifferentSingleSuggestion);
+  const selectSuggestion = (suggestion: string) => {
+    if (pendingSelectionRef.current === suggestion) {
+      pendingSelectionRef.current = null;
+      return;
+    }
+
+    pendingSelectionRef.current = suggestion;
+    setTimeout(() => {
+      if (pendingSelectionRef.current === suggestion) {
+        pendingSelectionRef.current = null;
+      }
+    }, 0);
+    clearBlurTimeout();
+    onChangeText(suggestion);
+    setFocused(true);
+    inputRef.current?.focus();
+  };
 
   return (
-    <View style={[styles.field, containerStyle]}>
+    <View
+      style={[
+        styles.field,
+        Platform.OS === 'web' && styles.fieldWeb,
+        containerStyle,
+        Platform.OS === 'web' && focused && styles.fieldFocused,
+      ]}
+    >
       <AppText variant="caption">{label}</AppText>
       <TextInput
         accessibilityLabel={accessibilityLabel}
@@ -109,18 +135,23 @@ export function AutocompleteField({
         value={value}
       />
       {showSuggestions ? (
-        <View style={styles.suggestions}>
+        <View
+          style={[
+            styles.suggestions,
+            Platform.OS === 'web' && styles.suggestionsWeb,
+          ]}
+        >
           {suggestions.slice(0, 6).map((suggestion) => (
             <Pressable
               accessibilityLabel={`Usar ${suggestion}`}
               accessibilityRole="button"
               key={suggestion}
-              onPress={() => {
-                clearBlurTimeout();
-                onChangeText(suggestion);
-                setFocused(true);
-                inputRef.current?.focus();
-              }}
+              onPressIn={
+                Platform.OS === 'web'
+                  ? () => selectSuggestion(suggestion)
+                  : undefined
+              }
+              onPress={() => selectSuggestion(suggestion)}
               style={({ pressed }) => [
                 styles.suggestion,
                 pressed && styles.pressed,
@@ -147,6 +178,12 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minWidth: 160,
   },
+  fieldFocused: {
+    zIndex: 20,
+  },
+  fieldWeb: {
+    position: 'relative',
+  },
   input: {
     backgroundColor: colors.surface,
     borderColor: colors.line,
@@ -164,6 +201,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     elevation: 4,
     overflow: 'hidden',
+  },
+  suggestionsWeb: {
+    position: 'relative',
     zIndex: 10,
   },
   suggestion: {

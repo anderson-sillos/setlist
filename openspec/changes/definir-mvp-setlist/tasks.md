@@ -57,6 +57,7 @@
 - [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
   - [x] 5.4.1 Atualizar os caches de participações e detalhes após a criação e verificar que o Owner vê as opções de manutenção ao abrir a nova banda
 - [x] 5.5 Implementar integrantes agrupados por papel e administração por Owner e verificar ordenação, identificação do próprio usuário, confirmações e ausência de controles para Editor e Member
+  - [x] 5.5.1 Mostrar o e-mail disponível do perfil na linha de cada integrante em vez de repetir seu papel já indicado pelo grupo; verificar o valor e o caso sem e-mail
 - [x] 5.6 Implementar criação simultânea, rotulagem opcional, compartilhamento, confirmação, revogação e renovação de convites e verificar os fluxos autenticado, não autenticado, expirado e já utilizado, preservando o token durante o login conforme o protótipo 3.4, descartando contexto obsoleto após a aceitação e exibindo a data de aceite em vez da expiração quando disponível
   - [x] 5.6.1 Detectar o replay do deep link de um convite já aceito pela mesma pessoa, remover a rota obsoleta para direcionar a `Minhas bandas` e manter indisponível um convite consumido por outra pessoa
   - [x] 5.6.2 Na lista de convites, substituir a data de expiração pela data de aceite para convites utilizados e não exibir data quando `used_at` estiver ausente; verificar ambos os casos
@@ -84,15 +85,15 @@
 
 ## 7. Shows e setlists
 
-- [ ] 7.1 Implementar lista rolável única, busca, filtros, ordenação, duração, calendário mensal como filtro adicional de data com acesso direto, detalhes, ação de criação no cabeçalho para Owner e Editor e edição online de shows; verificar contagem independente de período, estado e data, uso de `Todos` em período e estado e contagem `1` ao selecionar uma data, restauração de `Próximos` e `Ativo` ao removê-la, restauração do padrão e fechamento do painel por `Limpar`, aplicação imediata da data, marcadores independentes de busca e ordenação, padrão de próximos eventos, feriados nacionais locais, campos, estado inicial Rascunho e permissões
-- [ ] 7.2 Implementar duplicação de show e verificar cópia independente de blocos, músicas, anotações de planejamento, separadores, ordem e observações
-- [ ] 7.3 Implementar criação, nomeação e reordenação de blocos por alça e verificar a existência do bloco Principal em novos shows
-- [ ] 7.4 Implementar uma única ação de inclusão, seleção múltipla de músicas, anotações de planejamento, separadores e reordenação de itens dentro e entre blocos e verificar observações específicas e repetições sem alterar a música do repertório
-- [ ] 7.5 Calcular duração de blocos e do show pela soma dos tempos informados de músicas e planejamento e verificar composição, ausência total de estimativa e atualização imediata durante edição
-- [ ] 7.6 Implementar transições Rascunho, Pronto e Cancelado e verificar leitura, edição, prévia, execução e download permitidos em cada estado
-- [ ] 7.7 Implementar a lista não bloqueante de problemas ao tornar um show Pronto e verificar músicas sem letra, estáticas, incompletas e sincronizadas
-- [ ] 7.8 Atualizar o timestamp do show ao alterar dados ou setlist e verificar as mudanças por testes de integração
-- [ ] 7.9 Executar o fluxo completo de preparação de um show nas três plataformas, incluindo salvamento explícito e confirmação de saída com alterações pendentes, e publicar uma versão interna para revisão
+- [x] 7.1 Implementar lista rolável única, busca, filtros, ordenação, duração, calendário mensal como filtro adicional de data com acesso direto, detalhes, ação de criação no cabeçalho para Owner e Editor e edição online de shows; verificar contagem independente de período, estado e data, uso de `Todos` em período e estado e contagem `1` ao selecionar uma data, restauração de `Próximos` e `Ativo` ao removê-la, restauração do padrão e fechamento do painel por `Limpar`, aplicação imediata da data, marcadores independentes de busca e ordenação, padrão de próximos eventos, feriados nacionais locais, campos, estado inicial Rascunho e permissões
+- [x] 7.2 Implementar duplicação de show e verificar cópia independente de blocos, músicas, anotações de planejamento, separadores, ordem e observações
+- [x] 7.3 Implementar criação, nomeação e reordenação de blocos por alça e verificar a existência do bloco Principal em novos shows
+- [x] 7.4 Implementar uma única ação de inclusão, seleção múltipla de músicas, anotações de planejamento, separadores e reordenação de itens dentro e entre blocos e verificar observações específicas e repetições sem alterar a música do repertório
+- [x] 7.5 Calcular duração de blocos e do show pela soma dos tempos informados de músicas e planejamento e verificar composição, ausência total de estimativa e atualização imediata durante edição
+- [x] 7.6 Implementar transições Rascunho, Pronto e Cancelado e verificar leitura, edição, prévia, execução e download permitidos em cada estado
+- [x] 7.7 Implementar a lista não bloqueante de problemas ao tornar um show Pronto e verificar músicas sem letra, estáticas, incompletas e sincronizadas
+- [x] 7.8 Atualizar o timestamp do show ao alterar dados ou setlist e verificar as mudanças por testes de integração
+- [x] 7.9 Validar na Web e no Android o fluxo completo de preparação de um show, incluindo salvamento explícito e confirmação de saída com alterações pendentes, e publicar um build interno Android para revisão; validação iOS adiada para etapa futura
 
 ## 8. Modo palco conectado ao conteúdo real
 

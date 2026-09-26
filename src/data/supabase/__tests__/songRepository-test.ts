@@ -1,5 +1,4 @@
 import { getSupabaseClient } from '@/data/supabase/client';
-import { demoIds } from '@/data/demo';
 import { SupabaseSongRepository } from '@/data/supabase/songRepository';
 
 jest.mock('@/data/supabase/client', () => ({
@@ -109,76 +108,42 @@ describe('repositório de músicas do Supabase', () => {
     expect(query.is).toHaveBeenCalledWith('archived_at', null);
   });
 
-  it('inclui arquivadas quando solicitado e usa os dados demo só como fallback', async () => {
+  it('inclui arquivadas quando solicitado', async () => {
     const query = createQuery({ data: [], error: null });
     from.mockReturnValue(query);
-    const demoSong = { id: 'demo-song', bandId: 'band-demo' };
-    const demoRepository = {
-      listByBandId: jest.fn().mockResolvedValue([demoSong]),
-    };
 
     await expect(
-      new SupabaseSongRepository(demoRepository as never).listByBandId(
-        demoIds.primaryBand,
-        { includeArchived: true },
-      ),
-    ).resolves.toEqual([demoSong]);
-    expect(query.is).not.toHaveBeenCalled();
-    expect(demoRepository.listByBandId).toHaveBeenCalledWith(
-      demoIds.primaryBand,
-      {
+      new SupabaseSongRepository().listByBandId('band-real', {
         includeArchived: true,
-      },
-    );
+      }),
+    ).resolves.toEqual([]);
+    expect(query.is).not.toHaveBeenCalled();
   });
 
-  it('não substitui uma lista remota válida por dados demo', async () => {
-    const query = createQuery({ data: [songRow], error: null });
+  it('retorna lista remota vazia sem fallback local', async () => {
+    const query = createQuery({ data: [], error: null });
     from.mockReturnValue(query);
-    const demoRepository = {
-      listByBandId: jest.fn().mockResolvedValue([{ id: 'demo-song' }]),
-    };
-
-    const result = await new SupabaseSongRepository(
-      demoRepository as never,
-    ).listByBandId('band-real');
-
-    expect(result).toHaveLength(1);
-    expect(demoRepository.listByBandId).not.toHaveBeenCalled();
+    await expect(
+      new SupabaseSongRepository().listByBandId('band-real'),
+    ).resolves.toEqual([]);
   });
 
   it('consulta uma música dentro do escopo da banda e retorna null sem acesso', async () => {
     const query = createQuery({ data: null, error: null });
     from.mockReturnValue(query);
-    const demoRepository = { findById: jest.fn().mockResolvedValue(null) };
-
     await expect(
-      new SupabaseSongRepository(demoRepository as never).findById(
-        'band-real',
-        'song-real',
-      ),
+      new SupabaseSongRepository().findById('band-real', 'song-real'),
     ).resolves.toBeNull();
     expect(query.eq).toHaveBeenNthCalledWith(1, 'band_id', 'band-real');
     expect(query.eq).toHaveBeenNthCalledWith(2, 'id', 'song-real');
   });
 
-  it('resolve músicas demonstrativas sem consultar o Supabase', async () => {
-    const demoRepository = {
-      findById: jest.fn().mockResolvedValue({ id: demoIds.stageSong }),
-    };
-
+  it('não resolve músicas demo localmente', async () => {
+    const query = createQuery({ data: null, error: null });
+    from.mockReturnValue(query);
     await expect(
-      new SupabaseSongRepository(demoRepository as never).findById(
-        demoIds.primaryBand,
-        demoIds.stageSong,
-      ),
-    ).resolves.toEqual({ id: demoIds.stageSong });
-
-    expect(from).not.toHaveBeenCalled();
-    expect(demoRepository.findById).toHaveBeenCalledWith(
-      demoIds.primaryBand,
-      demoIds.stageSong,
-    );
+      new SupabaseSongRepository().findById('band-demo', 'song-demo'),
+    ).resolves.toBeNull();
   });
 
   it('propaga falhas de leitura e rejeita respostas inválidas', async () => {

@@ -129,7 +129,7 @@ describe('<RepertoireScreen />', () => {
     expect(await searchView.findByText('Luzes da Cidade')).toBeTruthy();
   });
 
-  it('oferece a inclusão ao editor e explica o limite das bandas demo', async () => {
+  it('oferece a inclusão ao editor de uma banda conectada', async () => {
     const view = await render(
       <AppProviders>
         <RepertoireScreen bandId={demoIds.primaryBand} />
@@ -141,10 +141,9 @@ describe('<RepertoireScreen />', () => {
       view.getByLabelText('Adicionar música ao repertório'),
     );
 
-    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
-    expect(
-      view.getByText(/músicas de demonstração são só para consulta/i),
-    ).toBeTruthy();
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      '/bands/band-demo-horizonte/repertoire/new',
+    );
   });
 
   it('não oferece inclusão para uma pessoa Member', async () => {
