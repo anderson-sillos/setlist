@@ -1712,6 +1712,7 @@ function DragGestureHandle({
       onGestureEvent={onGestureEvent}
       onHandlerStateChange={onHandlerStateChange}
       shouldCancelWhenOutside={false}
+      testID={'gesture-' + testID}
     >
       <View
         accessible={accessible}

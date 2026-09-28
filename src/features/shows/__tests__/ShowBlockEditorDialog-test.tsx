@@ -1,39 +1,10 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { State } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 
 import { demoRepositoryData } from '@/data/demo';
 import { ShowBlockEditorDialog } from '@/features/shows/ShowBlockEditorDialog';
 import { formatSongDuration } from '@/utils/duration';
-
-function createResponderEvent(
-  pageY = 0,
-  previousPageY = pageY,
-  timestamp = 10,
-) {
-  return {
-    persist: jest.fn(),
-    nativeEvent: { touches: [{}] },
-    touchHistory: {
-      indexOfSingleActiveTouch: 0,
-      mostRecentTimeStamp: timestamp,
-      numberActiveTouches: 1,
-      touchBank: [
-        {
-          currentPageX: 0,
-          currentPageY: pageY,
-          currentTimeStamp: timestamp,
-          previousPageX: 0,
-          previousPageY,
-          previousTimeStamp: timestamp - 1,
-          startPageX: 0,
-          startPageY: previousPageY,
-          startTimeStamp: 0,
-          touchActive: true,
-        },
-      ],
-    },
-  };
-}
 
 describe('<ShowBlockEditorDialog />', () => {
   it('pede confirmação antes de sair com a setlist alterada', async () => {
@@ -155,11 +126,13 @@ describe('<ShowBlockEditorDialog />', () => {
       />,
     );
 
-    const handle = view.getByTestId('block-drag-handle-block-2');
-    const event = createResponderEvent();
+    const handle = view.getByTestId(
+      'gesture-block-drag-handle-block-2',
+    );
     await act(async () => {
-      handle.props.onStartShouldSetResponderCapture(event);
-      handle.props.onResponderGrant(event);
+      handle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
+      });
     });
 
     expect(
@@ -167,7 +140,9 @@ describe('<ShowBlockEditorDialog />', () => {
         .borderWidth,
     ).toBe(2);
     await act(async () => {
-      handle.props.onResponderRelease(event);
+      handle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.ACTIVE, state: State.END },
+      });
     });
   });
 
@@ -320,28 +295,34 @@ describe('<ShowBlockEditorDialog />', () => {
         visible
       />,
     );
-    const startEvent = createResponderEvent();
-    const initialHandle = view.getByTestId('block-drag-handle-block-1');
-    const initialMoveHandler = initialHandle.props.onResponderMove;
+    const initialHandle = view.getByTestId(
+      'gesture-block-drag-handle-block-1',
+    );
 
     await act(async () => {
-      initialHandle.props.onStartShouldSetResponderCapture(startEvent);
-      initialHandle.props.onResponderGrant(startEvent);
+      initialHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
+      });
     });
 
     expect(view.getByTestId('setlist-drag-preview')).toBeTruthy();
-    const activeHandle = view.getByTestId('block-drag-handle-block-1');
-    expect(activeHandle.props.onResponderMove).toBe(initialMoveHandler);
+    const activeHandle = view.getByTestId(
+      'gesture-block-drag-handle-block-1',
+    );
 
     await act(async () => {
-      activeHandle.props.onResponderMove(createResponderEvent(400, 0, 20));
+      activeHandle.props.onGestureEvent({
+        nativeEvent: { state: State.ACTIVE, translationY: 400 },
+      });
     });
 
     const preview = view.getByTestId('setlist-drag-preview');
     expect(StyleSheet.flatten(preview.props.style).top).toBe(400);
 
     await act(async () => {
-      activeHandle.props.onResponderRelease(createResponderEvent(400, 400, 21));
+      activeHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.ACTIVE, state: State.END },
+      });
     });
 
     expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
@@ -381,21 +362,25 @@ describe('<ShowBlockEditorDialog />', () => {
         visible
       />,
     );
-    const event = createResponderEvent();
-    const initialHandle = view.getByTestId('item-drag-handle-item-1');
-    const initialMoveHandler = initialHandle.props.onResponderMove;
+    const initialHandle = view.getByTestId(
+      'gesture-item-drag-handle-item-1',
+    );
 
     await act(async () => {
-      initialHandle.props.onStartShouldSetResponderCapture(event);
-      initialHandle.props.onResponderGrant(event);
+      initialHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
+      });
     });
 
     expect(view.getByTestId('setlist-drag-preview')).toBeTruthy();
-    const activeHandle = view.getByTestId('item-drag-handle-item-1');
-    expect(activeHandle.props.onResponderMove).toBe(initialMoveHandler);
+    const activeHandle = view.getByTestId(
+      'gesture-item-drag-handle-item-1',
+    );
 
     await act(async () => {
-      activeHandle.props.onResponderTerminate(event);
+      activeHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.ACTIVE, state: State.CANCELLED },
+      });
     });
 
     expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
@@ -426,19 +411,23 @@ describe('<ShowBlockEditorDialog />', () => {
         visible
       />,
     );
-    const startEvent = createResponderEvent();
-    const initialHandle = view.getByTestId('item-drag-handle-item-1');
-    const initialMoveHandler = initialHandle.props.onResponderMove;
+    const initialHandle = view.getByTestId(
+      'gesture-item-drag-handle-item-1',
+    );
 
     await act(async () => {
-      initialHandle.props.onStartShouldSetResponderCapture(startEvent);
-      initialHandle.props.onResponderGrant(startEvent);
+      initialHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
+      });
     });
 
-    const activeHandle = view.getByTestId('item-drag-handle-item-1');
-    expect(activeHandle.props.onResponderMove).toBe(initialMoveHandler);
+    const activeHandle = view.getByTestId(
+      'gesture-item-drag-handle-item-1',
+    );
     await act(async () => {
-      activeHandle.props.onResponderMove(createResponderEvent(120, 0, 20));
+      activeHandle.props.onGestureEvent({
+        nativeEvent: { state: State.ACTIVE, translationY: 120 },
+      });
     });
 
     expect(
@@ -447,7 +436,9 @@ describe('<ShowBlockEditorDialog />', () => {
     ).toBe(120);
 
     await act(async () => {
-      activeHandle.props.onResponderRelease(createResponderEvent(120, 120, 21));
+      activeHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.ACTIVE, state: State.END },
+      });
     });
 
     expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
@@ -512,16 +503,22 @@ describe('<ShowBlockEditorDialog />', () => {
         scrollView.props.onContentSizeChange(320, 800);
       });
 
-      const startEvent = createResponderEvent();
-      const initialHandle = view.getByTestId('item-drag-handle-item-1');
+      const initialHandle = view.getByTestId(
+        'gesture-item-drag-handle-item-1',
+      );
       await act(async () => {
-        initialHandle.props.onStartShouldSetResponderCapture(startEvent);
-        initialHandle.props.onResponderGrant(startEvent);
+        initialHandle.props.onHandlerStateChange({
+          nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
+        });
       });
 
-      const activeHandle = view.getByTestId('item-drag-handle-item-1');
+      const activeHandle = view.getByTestId(
+        'gesture-item-drag-handle-item-1',
+      );
       await act(async () => {
-        activeHandle.props.onResponderMove(createResponderEvent(200, 0, 20));
+        activeHandle.props.onGestureEvent({
+          nativeEvent: { state: State.ACTIVE, translationY: 200 },
+        });
       });
       expect(requestFrame).toHaveBeenCalled();
 
@@ -534,9 +531,9 @@ describe('<ShowBlockEditorDialog />', () => {
       }
 
       await act(async () => {
-        activeHandle.props.onResponderRelease(
-          createResponderEvent(200, 200, 40),
-        );
+        activeHandle.props.onHandlerStateChange({
+          nativeEvent: { oldState: State.ACTIVE, state: State.END },
+        });
       });
       expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
       await fireEvent.press(view.getByLabelText('Salvar setlist'));
