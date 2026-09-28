@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { createElement, useState } from 'react';
+import { Image, Platform, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -30,6 +30,7 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const initials = getInitials(displayName);
+  const handleAvatarError = () => setFailedAvatarUrl(avatarUrl ?? null);
 
   return (
     <View
@@ -39,13 +40,32 @@ export function UserAvatar({
       testID={testID}
     >
       {avatarUrl && failedAvatarUrl !== avatarUrl ? (
-        <Image
-          onError={() => setFailedAvatarUrl(avatarUrl)}
-          resizeMode="cover"
-          source={{ uri: avatarUrl }}
-          style={[styles.image, { height: size, width: size }]}
-          testID={`${testID}-image`}
-        />
+        Platform.OS === 'web' ? (
+          createElement('img', {
+            'aria-hidden': true,
+            alt: '',
+            draggable: false,
+            loading: 'lazy',
+            onError: handleAvatarError,
+            src: avatarUrl,
+            style: {
+              borderRadius: '50%',
+              display: 'block',
+              height: size,
+              objectFit: 'cover',
+              width: size,
+            },
+            'data-testid': `${testID}-image`,
+          })
+        ) : (
+          <Image
+            onError={handleAvatarError}
+            resizeMode="cover"
+            source={{ uri: avatarUrl }}
+            style={[styles.image, { height: size, width: size }]}
+            testID={`${testID}-image`}
+          />
+        )
       ) : initials ? (
         <AppText
           style={{ fontSize: Math.max(12, Math.round(size * 0.34)) }}

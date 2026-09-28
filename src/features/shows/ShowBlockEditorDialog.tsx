@@ -12,6 +12,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import {
+  GestureHandlerRootView,
   PanGestureHandler,
   State,
   type PanGestureHandlerGestureEvent,
@@ -1131,7 +1132,9 @@ export function ShowBlockEditorDialog({
       transparent
       visible={visible}
     >
-      {content}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {content}
+      </GestureHandlerRootView>
     </Modal>
   );
 }
