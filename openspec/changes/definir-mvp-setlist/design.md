@@ -4,6 +4,12 @@ O projeto é novo e ainda não possui implementação ou especificações funcio
 
 O MVP deve compartilhar uma única base entre Android, iOS e web. A preparação será colaborativa e online nas três plataformas; a execução offline será suportada apenas nos aplicativos móveis. O conteúdo pertence à banda, não ao usuário que o criou, e inclui letras potencialmente protegidas por direitos autorais.
 
+## Limite da primeira versão publicável
+
+A primeira entrega publicável será focada na preparação online de bandas, repertório, letras estáticas, shows e setlists, com validação inicial em Web e Android. O modo palco completo, a sincronização manual de letras com o YouTube e os pacotes offline ficam para uma versão complementar. O fluxo já existente de prévia pode permanecer no código, mas não será critério nem promessa da primeira publicação.
+
+Essa divisão corresponde ao adiamento dos grupos 8, 9 e 10 do plano de tarefas. O grupo 10 também fica para a versão complementar porque o uso offline depende da execução de shows no modo palco. Uma validação técnica preparatória no simulador iOS pode ocorrer em paralelo, mas a validação de produto e a distribuição iOS permanecem adiadas conforme o handoff. As tarefas de consolidação e piloto do grupo 11 devem validar somente o escopo da primeira versão e suas plataformas de lançamento.
+
 ## Goals / Non-Goals
 
 **Goals:**

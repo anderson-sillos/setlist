@@ -1,3 +1,5 @@
+> **Escopo da primeira versão publicável:** concluir primeiro as atividades de consolidação do grupo 11 para Web e Android, cobrindo preparação online e letras sem sincronização. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline) ficam adiados para uma versão complementar; o grupo 10 depende do modo palco. Mantenha essas tarefas pendentes até a retomada da versão complementar. Uma build técnica no simulador iOS pode ser validada separadamente; validação de produto e distribuição iOS permanecem fora desta versão.
+
 ## 1. Fundação executável multiplataforma
 
 - [x] 1.1 Criar a aplicação Expo com TypeScript e Expo Router e verificar a inicialização em web, Android e configuração de build para iOS
@@ -95,7 +97,7 @@
 - [x] 7.8 Atualizar o timestamp do show ao alterar dados ou setlist e verificar as mudanças por testes de integração
 - [x] 7.9 Validar na Web e no Android o fluxo completo de preparação de um show, incluindo salvamento explícito e confirmação de saída com alterações pendentes, e publicar um build interno Android para revisão; validação iOS adiada para etapa futura
 
-## 8. Modo palco conectado ao conteúdo real
+## 8. Modo palco conectado ao conteúdo real — adiado para a versão complementar
 
 - [ ] 8.1 Substituir os dados de demonstração do modo palco pelos repositórios reais e verificar abertura de Rascunho online e Pronto online
 - [ ] 8.2 Implementar cronômetro independente com pausa, retomada, mais ou menos cinco segundos e reinício e verificar a máquina de estados com testes unitários
@@ -107,7 +109,7 @@
 - [ ] 8.8 Implementar indicadores discretos de conexão e conteúdo e verificar que nenhum diálogo cobre a letra durante a execução
 - [ ] 8.9 Realizar a revisão de UX/UI e o ensaio guiado do modo palco em celular, tablet e computador e registrar ajustes antes do próximo incremento
 
-## 9. Sincronização manual com YouTube
+## 9. Sincronização manual com YouTube — adiado para a versão complementar
 
 - [ ] 9.1 Integrar o player validado nos protótipos 3.1 e 3.2 à edição da música em web, Android e iOS e verificar visibilidade, controles, origem e indisponibilidade
 - [ ] 9.2 Implementar a ponte de estado e amostragem do tempo atual, aproveitando os eventos prototipados de pronto, estado, tempo e erro, e verificar precisão suficiente em reprodução, pausa e busca
@@ -116,7 +118,7 @@
 - [ ] 9.5 Garantir que o player pare ao deixar a tela e verificar ausência de download, extração, reprodução oculta ou em segundo plano
 - [ ] 9.6 Executar o fluxo completo de sincronizar uma música e reproduzi-la no modo palco nas três plataformas e publicar uma versão interna para revisão
 
-## 10. Pacotes offline em Android e iOS
+## 10. Pacotes offline em Android e iOS — adiado para a versão complementar
 
 - [ ] 10.1 Definir e validar o schema do pacote autocontido de show e verificar serialização de dados, setlist, planejamento, separadores, letras, tempos, observações e timestamp
 - [ ] 10.2 Implementar geração e download somente para shows Prontos e verificar rejeição de Rascunhos, Cancelados e solicitações na web
@@ -129,10 +131,10 @@
 
 ## 11. Consolidação e piloto
 
-- [ ] 11.1 Executar a suíte completa de unidade, componentes, integração RLS, Maestro e Playwright e verificar que todos os cenários críticos passam
-- [ ] 11.2 Revisar acessibilidade, responsividade, desempenho e consistência do tom de voz em celular, tablet e computador e registrar e corrigir bloqueios de uso
+- [ ] 11.1 Executar as suítes de unidade, componentes, integração RLS, Maestro e Playwright aplicáveis à primeira versão (preparação online em Web e Android) e verificar os fluxos críticos, sem incluir modo palco completo, sincronização YouTube ou uso offline
+- [ ] 11.2 Revisar acessibilidade, responsividade, desempenho e consistência do tom de voz nas telas da primeira versão em celular, tablet e computador e registrar e corrigir bloqueios de uso; a revisão do modo palco permanece para 8.9
 - [ ] 11.3 Redigir termo de responsabilidade, política de privacidade e procedimento de remoção e verificar revisão jurídica antes de qualquer distribuição pública
 - [ ] 11.4 Configurar monitoramento de banco, tráfego e usuários ativos e verificar alertas internos ao atingir 80% das cotas do Supabase
 - [ ] 11.5 Configurar ambientes, URLs, associações de links e credenciais definitivas, incluindo os destinos HTTPS e o esquema nativo exercitados no protótipo 3.4, e verificar que nenhum segredo ou chave administrativa está no cliente
-- [ ] 11.6 Gerar candidato a piloto para web, distribuição interna Android e TestFlight e verificar instalação, login, preparação e modo palco em cada plataforma
+- [ ] 11.6 Gerar candidato a piloto para Web e distribuição interna Android e verificar instalação, login, bandas, repertório, shows e preparação online; ocultar os acessos ao protótipo de palco para não expor uma experiência incompleta; iOS e modo palco completo ficam fora desta primeira entrega
 - [ ] 11.7 Conduzir o piloto com uma banda, registrar problemas e decisões e verificar que revisões aprovadas foram incorporadas ou planejadas antes do lançamento seguinte
