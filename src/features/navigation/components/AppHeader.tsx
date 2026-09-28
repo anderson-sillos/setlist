@@ -1,3 +1,4 @@
+import { forwardRef, type ComponentRef } from 'react';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -112,17 +113,24 @@ interface HeaderIconButtonProps {
   readonly role?: 'button' | 'link';
 }
 
-function HeaderIconButton({
-  accessibilityLabel,
-  accessibilityState,
-  color = colors.ink,
-  disabled,
-  icon,
-  onPress,
-  role = 'button',
-}: HeaderIconButtonProps) {
+const HeaderIconButton = forwardRef<
+  ComponentRef<typeof Pressable>,
+  HeaderIconButtonProps
+>(function HeaderIconButton(
+  {
+    accessibilityLabel,
+    accessibilityState,
+    color = colors.ink,
+    disabled,
+    icon,
+    onPress,
+    role = 'button',
+  },
+  ref,
+) {
   return (
     <Pressable
+      ref={ref}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole={role}
       accessibilityState={accessibilityState}
@@ -138,7 +146,7 @@ function HeaderIconButton({
       {icon ? <AppIcon color={color} name={icon} /> : null}
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   header: {
