@@ -211,6 +211,9 @@ async function signInWithBrowserOAuth(
     });
     const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
       options: {
+        ...(Platform.OS === 'web' && provider === 'google'
+          ? { queryParams: { prompt: 'select_account' } }
+          : {}),
         redirectTo,
         skipBrowserRedirect: Platform.OS !== 'web',
       },
