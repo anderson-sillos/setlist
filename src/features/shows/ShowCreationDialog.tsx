@@ -362,8 +362,16 @@ const styles = StyleSheet.create({
   dialog: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)',
-    elevation: 8,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: '#172033',
+        shadowOffset: { height: 4, width: 0 },
+        shadowOpacity: 0.18,
+        shadowRadius: 16,
+      },
+      web: { boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)' },
+    }),
     maxHeight: '92%',
     maxWidth: 640,
     overflow: 'hidden',

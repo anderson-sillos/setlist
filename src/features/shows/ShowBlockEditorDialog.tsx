@@ -1,16 +1,23 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
-  PanResponder,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
-  type PanResponderInstance,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  State,
+  type PanGestureHandlerGestureEvent,
+  type PanGestureHandlerStateChangeEvent,
+} from 'react-native-gesture-handler';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
@@ -845,6 +852,7 @@ export function ShowBlockEditorDialog({
               }}
               ref={scrollViewRef}
               scrollEventThrottle={16}
+              scrollEnabled={!draggingBlockId && !draggingItem}
               testID="setlist-scroll-view"
               style={[styles.scroll, fullScreen && styles.screenScroll]}
             >
@@ -1124,7 +1132,9 @@ export function ShowBlockEditorDialog({
       transparent
       visible={visible}
     >
-      {content}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {content}
+      </GestureHandlerRootView>
     </Modal>
   );
 }
@@ -1189,13 +1199,6 @@ function BlockRow({
   readonly onStartItemDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly songById: ReadonlyMap<string, Song>;
 }) {
-  const panResponder = useBlockPanResponder({
-    blockId: block.id,
-    onCancelDrag: onCancelBlockDrag,
-    onEndDrag: onEndBlockDrag,
-    onMoveDrag: onMoveBlockDrag,
-    onStartDrag: onStartBlockDrag,
-  });
   return (
     <View
       onStartShouldSetResponderCapture={() => {
@@ -1244,15 +1247,20 @@ function BlockRow({
               : formatShowDuration(durationMs)}
           </AppText>
         </View>
-        <View
+        <DragGestureHandle
           accessible
           accessibilityLabel={'Alça para mover o bloco ' + block.name}
           accessibilityRole="button"
           accessibilityState={{ selected: isActive }}
+          callbacks={{
+            onCancelDrag: onCancelBlockDrag,
+            onEndDrag: onEndBlockDrag,
+            onMoveDrag: onMoveBlockDrag,
+            onStartDrag: () => onStartBlockDrag(block.id),
+          }}
           onTouchStart={onSelect}
-          testID={'block-drag-handle-' + block.id}
           style={styles.dragHandleTouchTarget}
-          {...panResponder}
+          testID={'block-drag-handle-' + block.id}
         >
           <View style={[styles.dragHandle, styles.dragIconHitTest]}>
             <AppIcon
@@ -1262,7 +1270,7 @@ function BlockRow({
               strokeWidth={2.5}
             />
           </View>
-        </View>
+        </DragGestureHandle>
       </View>
       {block.items.length === 0 ? (
         <AppText tone="muted" variant="caption">
@@ -1326,14 +1334,6 @@ function SetlistItemRow({
   readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly song?: Song;
 }) {
-  const panResponder = useItemPanResponder({
-    blockId,
-    itemId: item.id,
-    onCancelDrag,
-    onEndDrag,
-    onMoveDrag,
-    onStartDrag,
-  });
   const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
 
   if (item.type === 'separator') {
@@ -1358,7 +1358,10 @@ function SetlistItemRow({
           dragging={dragging}
           itemId={item.id}
           itemLabel={'separador ' + (index + 1)}
-          panHandlers={panResponder}
+          onCancelDrag={onCancelDrag}
+          onEndDrag={onEndDrag}
+          onMoveDrag={onMoveDrag}
+          onStartDrag={() => onStartDrag(blockId, item.id)}
         />
       </View>
     );
@@ -1404,7 +1407,10 @@ function SetlistItemRow({
             dragging={dragging}
             itemId={item.id}
             itemLabel={'planejamento ' + (index + 1)}
-            panHandlers={panResponder}
+            onCancelDrag={onCancelDrag}
+            onEndDrag={onEndDrag}
+            onMoveDrag={onMoveDrag}
+            onStartDrag={() => onStartDrag(blockId, item.id)}
           />
         </View>
         <View style={styles.planningDuration}>
@@ -1563,7 +1569,10 @@ function SetlistItemRow({
         dragging={dragging}
         itemId={item.id}
         itemLabel={'música ' + (index + 1)}
-        panHandlers={panResponder}
+        onCancelDrag={onCancelDrag}
+        onEndDrag={onEndDrag}
+        onMoveDrag={onMoveDrag}
+        onStartDrag={() => onStartDrag(blockId, item.id)}
       />
     </View>
   );
@@ -1596,21 +1605,27 @@ function ItemDragHandle({
   dragging,
   itemId,
   itemLabel,
-  panHandlers,
+  onCancelDrag,
+  onEndDrag,
+  onMoveDrag,
+  onStartDrag,
 }: {
   readonly dragging: boolean;
   readonly itemId: EntityId;
   readonly itemLabel: string;
-  readonly panHandlers: PanResponderInstance['panHandlers'];
+  readonly onCancelDrag: () => void;
+  readonly onEndDrag: () => void;
+  readonly onMoveDrag: (dy: number) => void;
+  readonly onStartDrag: () => void;
 }) {
   return (
-    <View
+    <DragGestureHandle
       accessible
       accessibilityLabel={'Arrastar ' + itemLabel}
       accessibilityRole="button"
+      callbacks={{ onCancelDrag, onEndDrag, onMoveDrag, onStartDrag }}
       hitSlop={spacing.xs}
       testID={'item-drag-handle-' + itemId}
-      {...panHandlers}
       style={[styles.itemDragButton, dragging && styles.draggingHandle]}
     >
       <View style={styles.dragIconHitTest}>
@@ -1620,102 +1635,102 @@ function ItemDragHandle({
           size={18}
         />
       </View>
-    </View>
+    </DragGestureHandle>
   );
 }
 
-interface StablePanResponderCallbacks {
+interface DragGestureCallbacks {
   readonly onCancelDrag: () => void;
   readonly onEndDrag: () => void;
   readonly onMoveDrag: (dy: number) => void;
   readonly onStartDrag: () => void;
 }
 
-class StablePanResponder {
-  private callbacks: StablePanResponderCallbacks;
-  private dragStarted = false;
-  readonly panHandlers: PanResponderInstance['panHandlers'];
+interface DragGestureHandleProps {
+  readonly accessible?: boolean;
+  readonly accessibilityLabel?: string;
+  readonly accessibilityRole?: 'button';
+  readonly accessibilityState?: { readonly selected?: boolean };
+  readonly callbacks: DragGestureCallbacks;
+  readonly children: ReactNode;
+  readonly hitSlop?: number;
+  readonly onTouchStart?: () => void;
+  readonly style: StyleProp<ViewStyle>;
+  readonly testID: string;
+}
 
-  constructor(callbacks: StablePanResponderCallbacks) {
-    this.callbacks = callbacks;
-    this.panHandlers = PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 2,
-      onMoveShouldSetPanResponderCapture: (_, gesture) =>
-        Math.abs(gesture.dy) > 2,
-      onPanResponderGrant: () => this.beginDrag(),
-      onPanResponderMove: (_, gesture) => this.callbacks.onMoveDrag(gesture.dy),
-      onPanResponderRelease: () => this.finishDrag(false),
-      onPanResponderTerminate: () => this.finishDrag(true),
-      onPanResponderTerminationRequest: () => false,
-      onShouldBlockNativeResponder: () => true,
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-    }).panHandlers;
-  }
+function DragGestureHandle({
+  accessible,
+  accessibilityLabel,
+  accessibilityRole,
+  accessibilityState,
+  callbacks,
+  children,
+  hitSlop,
+  onTouchStart,
+  style,
+  testID,
+}: DragGestureHandleProps) {
+  const callbacksRef = useRef(callbacks);
+  const dragStartedRef = useRef(false);
 
-  updateCallbacks(callbacks: StablePanResponderCallbacks) {
-    this.callbacks = callbacks;
-  }
+  useEffect(() => {
+    callbacksRef.current = callbacks;
+  }, [callbacks]);
 
-  private beginDrag() {
-    if (this.dragStarted) return;
-    this.dragStarted = true;
-    this.callbacks.onStartDrag();
-  }
+  const startDrag = () => {
+    if (dragStartedRef.current) return;
+    dragStartedRef.current = true;
+    callbacksRef.current.onStartDrag();
+  };
 
-  private finishDrag(cancelled: boolean) {
-    if (!this.dragStarted) return;
-    this.dragStarted = false;
-    if (cancelled) {
-      this.callbacks.onCancelDrag();
+  const onGestureEvent = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
+    if (nativeEvent.state !== State.ACTIVE) return;
+    startDrag();
+    callbacksRef.current.onMoveDrag(nativeEvent.translationY);
+  };
+
+  const onHandlerStateChange = ({
+    nativeEvent,
+  }: PanGestureHandlerStateChangeEvent) => {
+    if (nativeEvent.state === State.ACTIVE) {
+      startDrag();
       return;
     }
-    this.callbacks.onEndDrag();
-  }
-}
+    if (!dragStartedRef.current || nativeEvent.oldState !== State.ACTIVE)
+      return;
 
-function useStablePanResponder(callbacks: StablePanResponderCallbacks) {
-  const [responder] = useState(() => new StablePanResponder(callbacks));
-  useLayoutEffect(() => {
-    responder.updateCallbacks(callbacks);
-  }, [callbacks, responder]);
-  return responder.panHandlers;
-}
+    dragStartedRef.current = false;
+    if (nativeEvent.state === State.END) {
+      callbacksRef.current.onEndDrag();
+      return;
+    }
+    callbacksRef.current.onCancelDrag();
+  };
 
-function useItemPanResponder(callbacks: ItemPanResponderCallbacks) {
-  return useStablePanResponder({
-    onCancelDrag: callbacks.onCancelDrag,
-    onEndDrag: callbacks.onEndDrag,
-    onMoveDrag: callbacks.onMoveDrag,
-    onStartDrag: () =>
-      callbacks.onStartDrag(callbacks.blockId, callbacks.itemId),
-  });
-}
-
-interface ItemPanResponderCallbacks {
-  readonly blockId: EntityId;
-  readonly itemId: EntityId;
-  readonly onCancelDrag: () => void;
-  readonly onEndDrag: () => void;
-  readonly onMoveDrag: (dy: number) => void;
-  readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
-}
-
-interface BlockPanResponderCallbacks {
-  readonly blockId: EntityId;
-  readonly onCancelDrag: () => void;
-  readonly onEndDrag: () => void;
-  readonly onMoveDrag: (dy: number) => void;
-  readonly onStartDrag: (blockId: EntityId) => void;
-}
-
-function useBlockPanResponder(callbacks: BlockPanResponderCallbacks) {
-  return useStablePanResponder({
-    onCancelDrag: callbacks.onCancelDrag,
-    onEndDrag: callbacks.onEndDrag,
-    onMoveDrag: callbacks.onMoveDrag,
-    onStartDrag: () => callbacks.onStartDrag(callbacks.blockId),
-  });
+  return (
+    <PanGestureHandler
+      activeOffsetY={[-4, 4]}
+      hitSlop={hitSlop}
+      onGestureEvent={onGestureEvent}
+      onHandlerStateChange={onHandlerStateChange}
+      shouldCancelWhenOutside={false}
+      testID={'gesture-' + testID}
+    >
+      <View
+        accessible={accessible}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole={accessibilityRole}
+        accessibilityState={accessibilityState}
+        collapsable={false}
+        onTouchStart={onTouchStart}
+        style={style}
+        testID={testID}
+      >
+        {children}
+      </View>
+    </PanGestureHandler>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -1783,8 +1798,16 @@ const styles = StyleSheet.create({
   dialog: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)',
-    elevation: 8,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: '#172033',
+        shadowOffset: { height: 4, width: 0 },
+        shadowOpacity: 0.18,
+        shadowRadius: 16,
+      },
+      web: { boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)' },
+    }),
     maxHeight: '92%',
     maxWidth: 720,
     overflow: 'hidden',
@@ -1814,8 +1837,16 @@ const styles = StyleSheet.create({
     borderColor: colors.violet,
     borderRadius: radii.md,
     borderWidth: 2,
-    boxShadow: '0px 4px 8px rgba(23, 32, 51, 0.18)',
-    elevation: 8,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: '#172033',
+        shadowOffset: { height: 4, width: 0 },
+        shadowOpacity: 0.18,
+        shadowRadius: 8,
+      },
+      web: { boxShadow: '0px 4px 8px rgba(23, 32, 51, 0.18)' },
+    }),
     flexDirection: 'row',
     gap: spacing.sm,
     left: spacing.xl,
@@ -1992,11 +2023,14 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     borderRadius: 0,
     flex: 1,
-    elevation: 0,
     minHeight: 0,
     maxHeight: '100%',
     maxWidth: layout.contentMaxWidth,
-    boxShadow: 'none',
+    ...Platform.select({
+      android: { elevation: 0 },
+      ios: { shadowOpacity: 0, shadowRadius: 0 },
+      web: { boxShadow: 'none' },
+    }),
     width: '100%',
   },
   screenLayer: {

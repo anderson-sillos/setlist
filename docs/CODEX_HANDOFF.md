@@ -6,7 +6,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 - Repositório: `anderson-sillos/setlist`.
 - Branch principal: `main`.
-- Branch de trabalho: `feat/task-6-1-repertoire`.
+- Branch de trabalho: `review/platform-improvements-no-sdk`.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - PR #10: segunda rodada de melhorias de UI integrada à `main`.
@@ -645,3 +645,14 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      tipos, formatação e OpenSpec. O novo commit precisa rodar os checks no
      GitHub; manter o PR aberto até o check ficar verde e integrá-lo antes de
      iniciar o grupo 8.
+
+144. As correções recentes foram validadas manualmente no Android e na Web. A
+     raiz `GestureHandlerRootView` foi aplicada ao app e ao conteúdo do Modal de
+     edição do setlist, removendo o erro de `PanGestureHandler` no Android. Na
+     Web, o avatar usa uma imagem HTML com carregamento sob demanda; após uma
+     resposta HTTP 429 temporária de `lh3.googleusercontent.com`, as fotos
+     apareceram e o usuário confirmou a validação. O aviso de `aria-hidden` no
+     console é de foco retido na tela anterior durante navegação web e não
+     interrompe a execução. A PR #18 foi reaberta para integração à `main`;
+     o check de CI da reabertura falhou porque o mock de gesture handler não
+     exportava `GestureHandlerRootView`; o mock foi atualizado para incluí-lo.
