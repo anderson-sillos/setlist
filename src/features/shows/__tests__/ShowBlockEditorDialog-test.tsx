@@ -14,6 +14,13 @@ jest.mock('react-native-gesture-handler', () => {
 
   return {
     ...gestureHandler,
+    GestureHandlerRootView: ({
+      children,
+      ...props
+    }: {
+      readonly children?: import('react').ReactNode;
+      readonly [key: string]: unknown;
+    }) => React.createElement('GestureHandlerRootViewMock', props, children),
     PanGestureHandler: ({
       children,
       ...props

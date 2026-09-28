@@ -653,5 +653,6 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      resposta HTTP 429 temporária de `lh3.googleusercontent.com`, as fotos
      apareceram e o usuário confirmou a validação. O aviso de `aria-hidden` no
      console é de foco retido na tela anterior durante navegação web e não
-     interrompe a execução. PR #18 foi fechado sem merge após a validação e o
-     envio do commit de correções.
+     interrompe a execução. A PR #18 foi reaberta para integração à `main`;
+     o check de CI da reabertura falhou porque o mock de gesture handler não
+     exportava `GestureHandlerRootView`; o mock foi atualizado para incluí-lo.
