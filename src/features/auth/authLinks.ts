@@ -61,7 +61,7 @@ export function getRuntimeUrl(path: string): string {
   // apontando para o túnel HTTP. A origem do navegador só é válida no web;
   // Android/iOS precisam do deep link gerado pelo `expo-linking`.
   if (
-    Platform.OS === 'web' &&
+    typeof document !== 'undefined' &&
     typeof window !== 'undefined' &&
     window.location?.origin
   ) {

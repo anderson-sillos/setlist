@@ -5,7 +5,10 @@ import type { Session } from '@supabase/supabase-js';
 
 import { getPublicEnvironment } from '@/config/environment';
 import { getSupabaseClient } from '@/data/supabase/client';
-import { loadNativeGoogleModule } from '@/features/auth/nativeGoogleModule';
+import {
+  loadIosNativeGoogleModule,
+  loadNativeGoogleModule,
+} from '@/features/auth/nativeGoogleModule';
 
 export type NativeGoogleSignInResult = Readonly<{
   readonly inviteToken?: string;
@@ -34,11 +37,19 @@ type NativeGoogleAvailability =
       readonly reason:
         | 'environment_unavailable'
         | 'expo_go'
+        | 'missing_ios_client_id'
         | 'missing_web_client_id'
-        | 'not_android';
+        | 'unsupported_platform';
     }>
   | Readonly<{
       readonly available: true;
+      readonly platform: 'android';
+      readonly webClientId: string;
+    }>
+  | Readonly<{
+      readonly available: true;
+      readonly iosClientId: string;
+      readonly platform: 'ios';
       readonly webClientId: string;
     }>;
 
@@ -72,9 +83,11 @@ function getSafeErrorDetails(error: unknown): Readonly<{
   readonly errorMessage: string;
 }> {
   if (error instanceof Error) {
+    const errorCode = (error as Error & { code?: unknown }).code;
     return {
       errorMessage: error.message.slice(0, 240),
       errorName: error.name,
+      ...(typeof errorCode === 'string' ? { errorCode } : {}),
     };
   }
 
@@ -99,26 +112,40 @@ function getSafeErrorDetails(error: unknown): Readonly<{
 }
 
 function getNativeGoogleAvailability(): NativeGoogleAvailability {
-  if (Platform.OS !== 'android') {
-    return { available: false, reason: 'not_android' };
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return { available: false, reason: 'unsupported_platform' };
   }
 
   if (isExpoGo()) {
     return { available: false, reason: 'expo_go' };
   }
 
-  let webClientId: string | undefined;
+  let environment: ReturnType<typeof getPublicEnvironment>;
   try {
-    webClientId = getPublicEnvironment().googleWebClientId;
+    environment = getPublicEnvironment();
   } catch {
     return { available: false, reason: 'environment_unavailable' };
   }
 
+  const webClientId = environment.googleWebClientId;
   if (!webClientId) {
     return { available: false, reason: 'missing_web_client_id' };
   }
 
-  return { available: true, webClientId };
+  if (Platform.OS === 'android') {
+    return { available: true, platform: 'android', webClientId };
+  }
+
+  if (!environment.googleIosClientId) {
+    return { available: false, reason: 'missing_ios_client_id' };
+  }
+
+  return {
+    available: true,
+    iosClientId: environment.googleIosClientId,
+    platform: 'ios',
+    webClientId,
+  };
 }
 
 type GoogleNonce = Readonly<{
@@ -149,6 +176,149 @@ export function isNativeGoogleSignInAvailable(): boolean {
   return getNativeGoogleAvailability().available;
 }
 
+async function tryIosNativeGoogleSignIn(
+  availability: Extract<NativeGoogleAvailability, { platform: 'ios' }>,
+  inviteToken?: string,
+): Promise<NativeGoogleSignInResult> {
+  let google: Awaited<ReturnType<typeof loadIosNativeGoogleModule>>;
+  let nonce: GoogleNonce;
+  let response: { readonly idToken: string | null };
+  let cancelledCode: string | undefined;
+
+  try {
+    google = await loadIosNativeGoogleModule();
+    cancelledCode = google.statusCodes.SIGN_IN_CANCELLED;
+    nonce = await createGoogleNonce();
+    google.GoogleSignin.configure({
+      iosClientId: availability.iosClientId,
+      webClientId: availability.webClientId,
+    });
+    nativeGoogleLog('ios_configured', {
+      hasIosClientId: true,
+      hasNonce: true,
+    });
+    await google.GoogleSignin.hasPlayServices();
+    response = await google.GoogleSignin.signIn({ nonce: nonce.hashed });
+  } catch (error) {
+    const errorCode = getSafeErrorDetails(error).errorCode;
+    if (errorCode === cancelledCode) {
+      nativeGoogleLog('ios_cancelled');
+      return { inviteToken, status: 'cancelled' };
+    }
+    nativeGoogleLog('ios_sign_in_failed', getSafeErrorDetails(error));
+    nativeGoogleLog('browser_fallback_recommended');
+    return { inviteToken, status: 'unsupported' };
+  }
+
+  const idToken = response.idToken;
+  if (!idToken) {
+    nativeGoogleLog('ios_id_token_missing');
+    nativeGoogleLog('browser_fallback_recommended');
+    return { inviteToken, status: 'unsupported' };
+  }
+
+  const { data, error } = await getSupabaseClient().auth.signInWithIdToken({
+    nonce: nonce.raw,
+    provider: 'google',
+    token: idToken,
+  });
+
+  if (error) {
+    nativeGoogleLog('ios_supabase_exchange_failed', {
+      ...getSafeErrorDetails(error),
+    });
+    return {
+      errorMessage: error.message,
+      inviteToken,
+      status: 'failed',
+    };
+  }
+
+  nativeGoogleLog('ios_supabase_exchange_succeeded', {
+    hasSession: Boolean(data.session),
+  });
+  return {
+    inviteToken,
+    session: data.session ?? undefined,
+    status: 'authenticated',
+  };
+}
+
+async function tryAndroidNativeGoogleSignIn(
+  availability: Extract<NativeGoogleAvailability, { platform: 'android' }>,
+  inviteToken?: string,
+): Promise<NativeGoogleSignInResult> {
+  let google: Awaited<ReturnType<typeof loadNativeGoogleModule>>;
+  let response: { readonly idToken: string | null };
+  let cancelledCode: string | undefined;
+
+  try {
+    nativeGoogleLog('android_module_loading');
+    google = await loadNativeGoogleModule();
+    cancelledCode = google.statusCodes.SIGN_IN_CANCELLED;
+    nativeGoogleLog('android_module_loaded');
+    google.GoogleSignin.configure({ webClientId: availability.webClientId });
+    nativeGoogleLog('android_configured', { hasWebClientId: true });
+    await google.GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
+    nativeGoogleLog('android_play_services_available');
+    // The app's Supabase sign-out does not clear the account cached by the
+    // native Google SDK. Clear it first so each explicit login can choose an
+    // account instead of silently reusing the previous one.
+    await google.GoogleSignin.signOut();
+    nativeGoogleLog('android_previous_account_cleared');
+    response = await google.GoogleSignin.signIn();
+    nativeGoogleLog('android_sign_in_response', {
+      hasIdToken: Boolean(response.idToken),
+    });
+  } catch (error) {
+    const details = getSafeErrorDetails(error);
+    if (details.errorCode === cancelledCode) {
+      nativeGoogleLog('android_cancelled');
+      return { inviteToken, status: 'cancelled' };
+    }
+    nativeGoogleLog('android_sign_in_failed', details);
+    nativeGoogleLog('browser_fallback_recommended');
+    return { inviteToken, status: 'unsupported' };
+  }
+
+  const idToken = response.idToken;
+  if (!idToken) {
+    nativeGoogleLog('android_id_token_missing');
+    nativeGoogleLog('browser_fallback_recommended');
+    return { inviteToken, status: 'unsupported' };
+  }
+
+  // The vendored Google Sign-In 11 Android API does not accept a nonce.
+  // Supabase therefore validates the signed ID token without nonce binding.
+  nativeGoogleLog('android_supabase_exchange_started', { hasIdToken: true });
+  const { data, error } = await getSupabaseClient().auth.signInWithIdToken({
+    provider: 'google',
+    token: idToken,
+  });
+
+  if (error) {
+    nativeGoogleLog('android_supabase_exchange_failed', {
+      ...getSafeErrorDetails(error),
+    });
+    return {
+      errorMessage: error.message,
+      inviteToken,
+      status: 'failed',
+    };
+  }
+
+  nativeGoogleLog('android_supabase_exchange_succeeded', {
+    hasSession: Boolean(data.session),
+  });
+  return {
+    inviteToken,
+    session: data.session ?? undefined,
+    status: 'authenticated',
+  };
+}
+
 /**
  * Tenta o Google nativo somente quando o binário contém o módulo configurado.
  * Qualquer indisponibilidade do runtime nativo retorna `unsupported` para que
@@ -170,90 +340,8 @@ export async function tryNativeGoogleSignIn(
     return { inviteToken, status: 'unsupported' };
   }
 
-  const webClientId = availability.webClientId;
-
-  let response: Awaited<
-    ReturnType<
-      typeof import('react-native-nitro-google-signin').GoogleOneTapSignIn.signIn
-    >
-  >;
-  let nonce: GoogleNonce;
-
-  try {
-    nativeGoogleLog('module_loading');
-    const google = await loadNativeGoogleModule();
-
-    nativeGoogleLog('module_loaded');
-    nonce = await createGoogleNonce();
-    google.GoogleOneTapSignIn.configure({
-      nonce: nonce.hashed,
-      webClientId,
-    });
-    nativeGoogleLog('configured', { hasWebClientId: true });
-    await google.GoogleOneTapSignIn.checkPlayServices();
-    nativeGoogleLog('play_services_available');
-    response = await google.GoogleOneTapSignIn.signIn();
-    nativeGoogleLog('sign_in_response', {
-      responseType: response.type,
-    });
-
-    if (google.isNoSavedCredentialFoundResponse(response)) {
-      nativeGoogleLog('no_saved_credential_found');
-      response = await google.GoogleOneTapSignIn.createAccount();
-      nativeGoogleLog('account_creation_response', {
-        responseType: response.type,
-      });
-    }
-
-    if (google.isCancelledResponse(response)) {
-      nativeGoogleLog('cancelled');
-      return { inviteToken, status: 'cancelled' };
-    }
-
-    if (!google.isSuccessResponse(response)) {
-      nativeGoogleLog('unsupported_response', {
-        responseType: response.type,
-      });
-      nativeGoogleLog('browser_fallback_recommended');
-      return { inviteToken, status: 'unsupported' };
-    }
-  } catch (error) {
-    nativeGoogleLog('runtime_unavailable', getSafeErrorDetails(error));
-    nativeGoogleLog('browser_fallback_recommended');
-    return { inviteToken, status: 'unsupported' };
+  if (availability.platform === 'ios') {
+    return tryIosNativeGoogleSignIn(availability, inviteToken);
   }
-
-  const idToken = response.data.idToken;
-  if (!idToken) {
-    nativeGoogleLog('id_token_missing');
-    nativeGoogleLog('browser_fallback_recommended');
-    return { inviteToken, status: 'unsupported' };
-  }
-
-  nativeGoogleLog('supabase_exchange_started', { hasIdToken: true });
-  const { data, error } = await getSupabaseClient().auth.signInWithIdToken({
-    nonce: nonce.raw,
-    provider: 'google',
-    token: idToken,
-  });
-
-  if (error) {
-    nativeGoogleLog('supabase_exchange_failed', {
-      ...getSafeErrorDetails(error),
-    });
-    return {
-      errorMessage: error.message,
-      inviteToken,
-      status: 'failed',
-    };
-  }
-
-  nativeGoogleLog('supabase_exchange_succeeded', {
-    hasSession: Boolean(data.session),
-  });
-  return {
-    inviteToken,
-    session: data.session ?? undefined,
-    status: 'authenticated',
-  };
+  return tryAndroidNativeGoogleSignIn(availability, inviteToken);
 }

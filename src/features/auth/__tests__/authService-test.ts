@@ -152,22 +152,25 @@ describe('serviço de autenticação social', () => {
     expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
   });
 
-  it('expõe falha na troca do token nativo sem mascará-la como fallback', async () => {
-    Object.defineProperty(Platform, 'OS', {
-      configurable: true,
-      value: 'android',
-    });
-    mockTryNativeGoogleSignIn.mockResolvedValue({
-      errorMessage: 'invalid token',
-      status: 'failed',
-    });
+  it.each(['android', 'ios'] as const)(
+    'expõe falha na troca do token nativo no %s sem iniciar OAuth web',
+    async (platform) => {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: platform,
+      });
+      mockTryNativeGoogleSignIn.mockResolvedValue({
+        errorMessage: 'invalid token',
+        status: 'failed',
+      });
 
-    await expect(signInWithSocialProvider('google')).rejects.toMatchObject({
-      code: 'native_google_exchange_failed',
-      message: 'invalid token',
-    });
-    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
-  });
+      await expect(signInWithSocialProvider('google')).rejects.toMatchObject({
+        code: 'native_google_exchange_failed',
+        message: 'invalid token',
+      });
+      expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+    },
+  );
 
   it('inicia o Apple na web e deixa o redirecionamento para o navegador', async () => {
     Object.defineProperty(Platform, 'OS', {

@@ -8,10 +8,13 @@
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "platforms": [
-      "ios"
+      "ios",
+      "android",
+      "web"
     ],
     "ios": {
       "bundleIdentifier": "com.andersonsillos.setlist",
+      "deploymentTarget": "13.4",
       "icon": "./assets/icons/app-icon-1024.png",
       "supportsTablet": true,
       "infoPlist": {
@@ -41,6 +44,14 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#7c3aed"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "13.4"
+          }
         }
       ]
     ],

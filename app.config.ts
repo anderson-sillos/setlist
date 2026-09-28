@@ -6,9 +6,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     process.env.SETLIST_APP_LINK_HOST?.trim() || 'setlistbr.app.br';
   const appLinkPathPrefix =
     process.env.SETLIST_APP_LINK_PATH_PREFIX?.trim() || '/invite';
-  const enableAndroidNativeGoogle =
-    process.env.SETLIST_NATIVE_GOOGLE_ANDROID === '1' ||
-    process.env.EAS_BUILD_PLATFORM === 'android';
+  const googleIosClientId =
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.trim();
+  const googleIosUrlScheme =
+    process.env.SETLIST_GOOGLE_IOS_URL_SCHEME?.trim() ||
+    (googleIosClientId?.endsWith('.apps.googleusercontent.com')
+      ? `com.googleusercontent.apps.${googleIosClientId.replace(
+          /\.apps\.googleusercontent\.com$/,
+          '',
+        )}`
+      : undefined);
   const plugins = [...(config.plugins ?? [])];
   const androidIntentFilters = config.android?.intentFilters ?? [];
   const associatedDomains = config.ios?.associatedDomains ?? [];
@@ -31,20 +38,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     `applinks:${appLinkHost}`,
   );
 
-  if (
-    enableAndroidNativeGoogle &&
-    !plugins.some((plugin) => plugin === 'react-native-nitro-google-signin')
-  ) {
-    plugins.push([
-      'react-native-nitro-google-signin',
-      {
-        // O plugin exige o esquema reverso mesmo quando o build desta etapa é
-        // somente Android. O fluxo nativo do iOS será configurado depois.
-        iosUrlScheme:
-          process.env.SETLIST_GOOGLE_IOS_URL_SCHEME ??
-          'com.googleusercontent.apps.setlist.android',
-      },
-    ]);
+  const googleIosUrlSchemePlugin = './plugins/withGoogleIosUrlScheme';
+  const hasGoogleIosUrlSchemePlugin = plugins.some((plugin) =>
+    Array.isArray(plugin)
+      ? plugin[0] === googleIosUrlSchemePlugin
+      : plugin === googleIosUrlSchemePlugin,
+  );
+
+  if (googleIosClientId && googleIosUrlScheme && !hasGoogleIosUrlSchemePlugin) {
+    plugins.push([googleIosUrlSchemePlugin, { urlScheme: googleIosUrlScheme }]);
   }
 
   return {
@@ -80,6 +82,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     experiments: {
       ...config.experiments,
       ...(webBaseUrl ? { baseUrl: webBaseUrl } : {}),
+    },
+    web: {
+      ...config.web,
+      // The development server serves an empty #root; static hydration there
+      // causes React to report a server/client markup mismatch. Keep static
+      // rendering for production exports, which include prerendered HTML.
+      output:
+        process.env.NODE_ENV === 'production'
+          ? config.web?.output ?? 'static'
+          : 'single',
     },
     plugins,
   };

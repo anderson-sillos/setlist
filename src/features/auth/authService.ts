@@ -171,6 +171,12 @@ function getCallbackParams(url: string): OAuthCallbackParams {
 export async function completeOAuthCallback(
   params: OAuthCallbackParams,
 ): Promise<SocialAuthResult> {
+  authDebugLog('callback_received', {
+    hasCode: Boolean(params.code),
+    hasFlowId: Boolean(params.flowId),
+    hasProviderError: Boolean(params.error),
+  });
+
   if (params.error) {
     throw new AuthFlowError(
       params.error,
@@ -186,11 +192,32 @@ export async function completeOAuthCallback(
   }
 
   const client = getSupabaseClient();
-  const { session } = await exchangeOAuthCodeOnce(
-    client,
-    params.code,
-    params.flowId,
-  );
+  authDebugLog('callback_exchange_started', {
+    hasFlowId: Boolean(params.flowId),
+  });
+
+  let session: Session | undefined;
+  try {
+    ({ session } = await exchangeOAuthCodeOnce(
+      client,
+      params.code,
+      params.flowId,
+    ));
+  } catch (error) {
+    authDebugLog('callback_exchange_failed', {
+      errorCode: error instanceof AuthFlowError ? error.code : undefined,
+      errorMessage:
+        error instanceof Error
+          ? redactAuthUrl(error.message).slice(0, 180)
+          : 'Erro desconhecido durante a troca do código.',
+      errorName: error instanceof Error ? error.name : undefined,
+    });
+    throw error;
+  }
+
+  authDebugLog('callback_exchange_succeeded', {
+    hasSession: Boolean(session),
+  });
 
   return {
     inviteToken: params.inviteToken,
@@ -264,7 +291,10 @@ export async function signInWithSocialProvider(
   provider: SocialAuthProvider,
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
-  if (provider === 'google' && Platform.OS === 'android') {
+  if (
+    provider === 'google' &&
+    (Platform.OS === 'android' || Platform.OS === 'ios')
+  ) {
     const nativeResult = await tryNativeGoogleSignIn(inviteToken);
 
     if (
