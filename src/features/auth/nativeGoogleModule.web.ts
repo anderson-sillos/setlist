@@ -5,7 +5,3 @@
 export async function loadNativeGoogleModule(): Promise<never> {
   throw new Error('Google Sign-In nativo não está disponível na web.');
 }
-
-export async function loadIosNativeGoogleModule(): Promise<never> {
-  throw new Error('Google Sign-In nativo não está disponível na web.');
-}
