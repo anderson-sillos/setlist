@@ -126,9 +126,7 @@ describe('<ShowBlockEditorDialog />', () => {
       />,
     );
 
-    const handle = view.getByTestId(
-      'gesture-block-drag-handle-block-2',
-    );
+    const handle = view.getByTestId('gesture-block-drag-handle-block-2');
     await act(async () => {
       handle.props.onHandlerStateChange({
         nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
@@ -295,9 +293,7 @@ describe('<ShowBlockEditorDialog />', () => {
         visible
       />,
     );
-    const initialHandle = view.getByTestId(
-      'gesture-block-drag-handle-block-1',
-    );
+    const initialHandle = view.getByTestId('gesture-block-drag-handle-block-1');
 
     await act(async () => {
       initialHandle.props.onHandlerStateChange({
@@ -306,9 +302,7 @@ describe('<ShowBlockEditorDialog />', () => {
     });
 
     expect(view.getByTestId('setlist-drag-preview')).toBeTruthy();
-    const activeHandle = view.getByTestId(
-      'gesture-block-drag-handle-block-1',
-    );
+    const activeHandle = view.getByTestId('gesture-block-drag-handle-block-1');
 
     await act(async () => {
       activeHandle.props.onGestureEvent({
@@ -362,9 +356,7 @@ describe('<ShowBlockEditorDialog />', () => {
         visible
       />,
     );
-    const initialHandle = view.getByTestId(
-      'gesture-item-drag-handle-item-1',
-    );
+    const initialHandle = view.getByTestId('gesture-item-drag-handle-item-1');
 
     await act(async () => {
       initialHandle.props.onHandlerStateChange({
@@ -373,9 +365,7 @@ describe('<ShowBlockEditorDialog />', () => {
     });
 
     expect(view.getByTestId('setlist-drag-preview')).toBeTruthy();
-    const activeHandle = view.getByTestId(
-      'gesture-item-drag-handle-item-1',
-    );
+    const activeHandle = view.getByTestId('gesture-item-drag-handle-item-1');
 
     await act(async () => {
       activeHandle.props.onHandlerStateChange({
@@ -411,9 +401,7 @@ describe('<ShowBlockEditorDialog />', () => {
         visible
       />,
     );
-    const initialHandle = view.getByTestId(
-      'gesture-item-drag-handle-item-1',
-    );
+    const initialHandle = view.getByTestId('gesture-item-drag-handle-item-1');
 
     await act(async () => {
       initialHandle.props.onHandlerStateChange({
@@ -421,9 +409,7 @@ describe('<ShowBlockEditorDialog />', () => {
       });
     });
 
-    const activeHandle = view.getByTestId(
-      'gesture-item-drag-handle-item-1',
-    );
+    const activeHandle = view.getByTestId('gesture-item-drag-handle-item-1');
     await act(async () => {
       activeHandle.props.onGestureEvent({
         nativeEvent: { state: State.ACTIVE, translationY: 120 },
@@ -503,18 +489,14 @@ describe('<ShowBlockEditorDialog />', () => {
         scrollView.props.onContentSizeChange(320, 800);
       });
 
-      const initialHandle = view.getByTestId(
-        'gesture-item-drag-handle-item-1',
-      );
+      const initialHandle = view.getByTestId('gesture-item-drag-handle-item-1');
       await act(async () => {
         initialHandle.props.onHandlerStateChange({
           nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
         });
       });
 
-      const activeHandle = view.getByTestId(
-        'gesture-item-drag-handle-item-1',
-      );
+      const activeHandle = view.getByTestId('gesture-item-drag-handle-item-1');
       await act(async () => {
         activeHandle.props.onGestureEvent({
           nativeEvent: { state: State.ACTIVE, translationY: 200 },
