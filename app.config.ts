@@ -9,6 +9,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const enableAndroidNativeGoogle =
     process.env.SETLIST_NATIVE_GOOGLE_ANDROID === '1' ||
     process.env.EAS_BUILD_PLATFORM === 'android';
+  const enableIosNativeGoogle = process.env.SETLIST_NATIVE_GOOGLE_IOS === '1';
+  const googleIosClientId =
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.trim();
+  const configuredGoogleIosUrlScheme =
+    process.env.SETLIST_GOOGLE_IOS_URL_SCHEME?.trim();
+  const googleIosUrlScheme =
+    configuredGoogleIosUrlScheme ||
+    (googleIosClientId?.endsWith('.apps.googleusercontent.com')
+      ? `com.googleusercontent.apps.${googleIosClientId.slice(0, -'.apps.googleusercontent.com'.length)}`
+      : undefined);
+  const iosAppleTeamId = process.env.SETLIST_IOS_TEAM_ID?.trim();
   const plugins = [...(config.plugins ?? [])];
   const androidIntentFilters = config.android?.intentFilters ?? [];
   const associatedDomains = config.ios?.associatedDomains ?? [];
@@ -31,18 +42,23 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     `applinks:${appLinkHost}`,
   );
 
+  if (enableIosNativeGoogle && !googleIosUrlScheme) {
+    throw new Error(
+      'O login nativo Google no iOS exige EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ou SETLIST_GOOGLE_IOS_URL_SCHEME no ambiente EAS development.',
+    );
+  }
+
   if (
-    enableAndroidNativeGoogle &&
+    (enableAndroidNativeGoogle || enableIosNativeGoogle) &&
     !plugins.some((plugin) => plugin === 'react-native-nitro-google-signin')
   ) {
     plugins.push([
       'react-native-nitro-google-signin',
       {
-        // O plugin exige o esquema reverso mesmo quando o build desta etapa é
-        // somente Android. O fluxo nativo do iOS será configurado depois.
+        // Builds Android mantêm um esquema inerte; builds iOS usam o esquema
+        // reverso do OAuth Client ID iOS cadastrado no Google Cloud.
         iosUrlScheme:
-          process.env.SETLIST_GOOGLE_IOS_URL_SCHEME ??
-          'com.googleusercontent.apps.setlist.android',
+          googleIosUrlScheme ?? 'com.googleusercontent.apps.setlist.android',
       },
     ]);
   }
@@ -73,6 +89,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     ios: {
       ...config.ios,
+      ...(iosAppleTeamId ? { appleTeamId: iosAppleTeamId } : {}),
       associatedDomains: hasAssociatedDomain
         ? associatedDomains
         : [...associatedDomains, `applinks:${appLinkHost}`],

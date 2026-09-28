@@ -156,16 +156,18 @@ describe('Google nativo opcional', () => {
     expect(isNativeGoogleSignInAvailable()).toBe(false);
   });
 
-  it('retorna indisponível e registra o motivo fora do Android', async () => {
+  it('retorna indisponível e registra o motivo em plataformas não nativas', async () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
-      value: 'ios',
+      value: 'web',
     });
 
     await expect(tryNativeGoogleSignIn()).resolves.toEqual({
       status: 'unsupported',
     });
-    expect(JSON.stringify(mockConsoleInfo.mock.calls)).toContain('not_android');
+    expect(JSON.stringify(mockConsoleInfo.mock.calls)).toContain(
+      'unsupported_platform',
+    );
   });
 
   it('retorna indisponível quando a configuração do ambiente falha', async () => {

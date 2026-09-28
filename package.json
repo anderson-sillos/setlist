@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "export:web": "expo export --platform web",
     "build:development:android": "npx --yes eas-cli@latest build --platform android --profile development-android",
+    "build:development:ios-simulator": "npx --yes eas-cli@latest build --platform ios --profile development-ios-simulator",
     "build:preview:android": "npx --yes eas-cli@latest build --platform android --profile preview",
     "build:preview:ios": "npx --yes eas-cli@latest build --platform ios --profile preview",
     "build:preview:all": "npx --yes eas-cli@latest build --platform all --profile preview",

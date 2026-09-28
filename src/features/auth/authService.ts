@@ -267,7 +267,10 @@ export async function signInWithSocialProvider(
   provider: SocialAuthProvider,
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
-  if (provider === 'google' && Platform.OS === 'android') {
+  if (
+    provider === 'google' &&
+    (Platform.OS === 'android' || Platform.OS === 'ios')
+  ) {
     const nativeResult = await tryNativeGoogleSignIn(inviteToken);
 
     if (
