@@ -3,7 +3,7 @@ import {
   createYouTubeWebViewHtml,
   parseYouTubeWebViewMessage,
   YOUTUBE_WEBVIEW_ORIGIN,
-} from '@/features/youtube/youtubeMobilePlayer';
+} from '@/features/youtube/youtubeWebViewPlayer';
 
 describe('youtubeMobilePlayer', () => {
   it('cria HTML do IFrame com origem, referer base e controles do YouTube', () => {

@@ -11,7 +11,7 @@ import {
   parseYouTubeWebViewMessage,
   YOUTUBE_WEBVIEW_ORIGIN,
   type YouTubeWebViewCommand,
-} from '@/features/youtube/youtubeMobilePlayer';
+} from '@/features/youtube/youtubeWebViewPlayer';
 import {
   formatYouTubeTime,
   type YouTubePlayerState,
