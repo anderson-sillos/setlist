@@ -1670,7 +1670,10 @@ function DragGestureHandle({
 }: DragGestureHandleProps) {
   const callbacksRef = useRef(callbacks);
   const dragStartedRef = useRef(false);
-  callbacksRef.current = callbacks;
+
+  useEffect(() => {
+    callbacksRef.current = callbacks;
+  }, [callbacks]);
 
   const startDrag = () => {
     if (dragStartedRef.current) return;
