@@ -424,5 +424,5 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.72 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   timeRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.xs },
-  scrim: { ...StyleSheet.absoluteFillObject },
+  scrim: { ...StyleSheet.absoluteFill },
 });

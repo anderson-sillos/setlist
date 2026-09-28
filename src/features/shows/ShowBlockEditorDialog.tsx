@@ -2014,7 +2014,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   pressed: { opacity: 0.72 },
-  scrim: { ...StyleSheet.absoluteFillObject },
+  scrim: { ...StyleSheet.absoluteFill },
   screenDialog: {
     alignSelf: 'stretch',
     borderRadius: 0,

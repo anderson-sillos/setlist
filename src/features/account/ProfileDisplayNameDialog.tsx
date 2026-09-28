@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   scrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(11, 16, 32, 0.6)',
   },
   dialog: {
