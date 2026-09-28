@@ -6,6 +6,24 @@ import { demoRepositoryData } from '@/data/demo';
 import { ShowBlockEditorDialog } from '@/features/shows/ShowBlockEditorDialog';
 import { formatSongDuration } from '@/utils/duration';
 
+jest.mock('react-native-gesture-handler', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const gestureHandler = jest.requireActual<
+    typeof import('react-native-gesture-handler')
+  >('react-native-gesture-handler');
+
+  return {
+    ...gestureHandler,
+    PanGestureHandler: ({
+      children,
+      ...props
+    }: {
+      readonly children?: import('react').ReactNode;
+      readonly [key: string]: unknown;
+    }) => React.createElement('PanGestureHandlerMock', props, children),
+  };
+});
+
 describe('<ShowBlockEditorDialog />', () => {
   it('pede confirmação antes de sair com a setlist alterada', async () => {
     const onClose = jest.fn();
