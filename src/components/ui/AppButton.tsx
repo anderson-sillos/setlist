@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
-import type { ReactNode } from 'react';
+import { forwardRef, type ComponentRef, type ReactNode } from 'react';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -16,16 +16,22 @@ type AppButtonProps = Omit<PressableProps, 'children'> & {
   variant?: ButtonVariant;
 };
 
-export function AppButton({
-  disabled,
-  icon,
-  label,
-  leading,
-  onPress,
-  style,
-  variant = 'primary',
-  ...props
-}: AppButtonProps) {
+export const AppButton = forwardRef<
+  ComponentRef<typeof Pressable>,
+  AppButtonProps
+>(function AppButton(
+  {
+    disabled,
+    icon,
+    label,
+    leading,
+    onPress,
+    style,
+    variant = 'primary',
+    ...props
+  },
+  ref,
+) {
   const contentColor = variant === 'primary' ? colors.surface : colors.violet;
   const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
     blurWebFocus();
@@ -36,6 +42,7 @@ export function AppButton({
     <Pressable
       disabled={disabled}
       {...props}
+      ref={ref}
       accessibilityRole="button"
       onPress={handlePress}
       style={(state) => [
@@ -56,7 +63,7 @@ export function AppButton({
       </AppText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   base: {
