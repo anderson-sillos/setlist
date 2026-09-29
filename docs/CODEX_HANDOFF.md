@@ -15,7 +15,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
 - Próxima atividade de produto: grupo 11, ajustado para validar e preparar a primeira versão Web/Android. A validação de produto e a distribuição iOS permanecem adiadas.
 - Preparação técnica iOS: build EAS de simulador concluído, mas requer iOS 16.4; o Mac disponível tem Xcode 14.2 e runtime iOS 16.2. A validação no simulador está pendente de runtime compatível. Builds para aparelho dependem do provisionamento EAS.
-- CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. A atualização da PR e a confirmação de CI verde estão pendentes.
+- CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
 - Progresso OpenSpec: 74 de 106 tarefas concluídas; as atividades de decisão do escopo MVP e preparação técnica iOS estão documentadas na PR #19.
 
 ## Fontes de verdade
@@ -695,5 +695,6 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      cenários em `nativeGoogleSignIn-test.ts` para o requisito e a configuração
      do Client ID iOS. `npm run test:ci` passou localmente com 82 suítes, 544
      testes e cobertura de branches de 80,05%; formatação, lint e TypeScript
-     também passaram. Atualizar a branch da PR, aguardar a CI remota e revisar
-     todos os checks antes de integrar.
+     também passaram. O commit `bc85f44` foi enviado à PR #19; o run remoto
+     `36518619647` aprovou formatação, lint, tipos e testes. A revisão do diff
+     não encontrou bloqueios; a PR segue aberta, sem merge.
