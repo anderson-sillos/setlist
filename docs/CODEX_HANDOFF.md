@@ -5,18 +5,18 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 ## Estado atual
 
 - Repositório: `anderson-sillos/setlist`.
-- Branch principal: `main`.
-- Branch de trabalho: `review/platform-improvements-no-sdk`.
+- Branch principal: `main`, sincronizada com `origin/main` no commit `1beb994`.
+- Branch de trabalho: `feat/ios-eas-simulator-prep`, criada a partir da principal para separar a decisão de escopo MVP da preparação técnica do iOS.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- PR #10: segunda rodada de melhorias de UI integrada à `main`.
-- PR #11: grupo 3 integrado à `main` por squash no commit `74be3c3` e encerrado após aprovação manual e CI aprovado.
-- PR #12: grupo 4 integrado à `main` por squash no commit `2d72009` e encerrado antes do início da tarefa 5.3.
-- PR #15: branch `feat/task-6-1-repertoire` permanece aberta para revisão, com as tarefas 6.1–6.6 implementadas; não fazer merge ou fechar antes da aprovação manual.
-- Implementação: Incrementos 1 e 2 concluídos até a tarefa 2.13; todo o grupo 3 foi implementado, validado e documentado; todo o grupo 4 foi concluído até a tarefa 4.8.
-- Entrega atual: prévia web publicada e build interno Android final `76bdb0d2` concluído; build e acesso remoto no iOS adiados e registrados em `REVISAO_INCREMENTO_2.md`.
-- Revisão: o relatório funcional, as decisões de UX/UI e os refinamentos finais foram aprovados explicitamente pelo usuário.
-- Estado atual: a tarefa 5.1 permanece aberta para habilitar/validar o provedor Apple e concluir a validação no iOS; Google foi validado na web, Expo Go Android e development build Android. As tarefas 5.2–5.9 foram implementadas e validadas manualmente. A tarefa 5.10.1 (papéis e convites em web/Android) também foi validada manualmente; a 5.10.2 no iOS permanece adiada. As tarefas 6.1, 6.2 e 6.3 agora estão implementadas: repertório conectado consulta e grava metadados, referência externa do YouTube e letra JSONB estruturada, com editor multilinha por marcadores, duração assistida, autocomplete de artistas originais e classificação de estado da letra. `npm run validate` passou com 70 suítes e 382 testes; a tentativa da suíte SQL local foi bloqueada pelo CLI ao tentar gravar telemetria em `~/.supabase`, antes de iniciar os serviços, e nenhuma alteração foi feita no Supabase remoto. O PR #14 foi integrado por squash em `main` no commit `4603c69`. A próxima atividade é exigir o aceite do termo vigente antes da edição da música na 6.4; iOS/Apple segue como pendência futura.
+- Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
+- PR #18: integrada por squash à `main` no commit `1beb994`; CI aprovado.
+- PR #19: aberta contra `main` na branch `feat/ios-eas-simulator-prep`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS.
+- Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
+- Próxima atividade de produto: grupo 11, ajustado para validar e preparar a primeira versão Web/Android. A validação de produto e a distribuição iOS permanecem adiadas.
+- Preparação técnica iOS: build EAS de simulador concluído, mas requer iOS 16.4; o Mac disponível tem Xcode 14.2 e runtime iOS 16.2. A validação no simulador está pendente de runtime compatível. Builds para aparelho dependem do provisionamento EAS.
+- CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
+- Progresso OpenSpec: 74 de 106 tarefas concluídas; as atividades de decisão do escopo MVP e preparação técnica iOS estão documentadas na PR #19.
 
 ## Fontes de verdade
 
@@ -656,3 +656,45 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      interrompe a execução. A PR #18 foi reaberta para integração à `main`;
      o check de CI da reabertura falhou porque o mock de gesture handler não
      exportava `GestureHandlerRootView`; o mock foi atualizado para incluí-lo.
+
+145. A PR #18 foi integrada por squash à `main` no commit `1beb994`; o CI ficou
+     verde e o usuário confirmou a validação Android/Web antes da integração.
+     A limpeza prévia ao próximo incremento alinhou `main` ao remoto, removeu a
+     branch local da PR já integrada e preservou a branch experimental e a
+     branch remota da PR. O Metro segue ativo na porta 8081 com um cliente
+     conectado. Antes de iniciar o item 8.1, o usuário decidiu adiar os grupos
+     8, 9 e 10 para uma versão complementar e concluir primeiro a consolidação
+     e o piloto da primeira versão publicável em Web e Android. Essa decisão foi
+     registrada no design e no plano de tarefas; nenhum item dos grupos adiados
+     foi marcado como concluído.
+
+146. A preparação da primeira versão começou pelo item 11.1. `npm run validate`
+     passou com formatação, lint, TypeScript e 82 suítes/542 testes Jest; a
+     cobertura global de branches foi 80,01%. Os testes de banco pgTAP não foram
+     executados porque Docker não está instalado neste ambiente. Não há
+     configuração de Maestro ou Playwright no repositório. O item 11.1 continua
+     pendente até completar a validação de RLS e definir/executar os fluxos e2e
+     aplicáveis à versão 1. A validação OpenSpec estrita passou após a mudança
+     de escopo.
+
+147. O usuário iniciou a preparação do iOS via EAS. O perfil
+     `development-ios-simulator` gera um development build com Google nativo
+     no iOS. `EXPO_PUBLIC_APP_ENV`, as
+     duas variáveis Supabase, os Client IDs Google Web/iOS e
+     `EXPO_PUBLIC_WEB_BASE_URL` foram sincronizados do `.env.local` para o EAS
+     `development`. `SETLIST_IOS_TEAM_ID` foi configurado no EAS `development`
+     e `production`, e `app.config.ts` o mapeia para `ios.appleTeamId`. A mesma
+     variável foi configurada e conferida como variável de repositório no
+     GitHub Actions para gerar o AASA. O build EAS de simulador
+     `c9f1ca0e-2feb-4395-9c6d-3cf5961e2c0d` concluiu. A instalação falhou porque
+     o artefato exige iOS 16.4 e o Mac tem somente runtime 16.2 no Xcode 14.2;
+     instalar Xcode/runtime compatível antes de retomar a validação.
+
+148. A CI da PR #19 executou 82 suítes e 542 testes, todos aprovados, mas ficou
+     abaixo do limite global de branches (79,92%). Foram acrescentados dois
+     cenários em `nativeGoogleSignIn-test.ts` para o requisito e a configuração
+     do Client ID iOS. `npm run test:ci` passou localmente com 82 suítes, 544
+     testes e cobertura de branches de 80,05%; formatação, lint e TypeScript
+     também passaram. O commit `bc85f44` foi enviado à PR #19; o run remoto
+     `36518619647` aprovou formatação, lint, tipos e testes. A revisão do diff
+     não encontrou bloqueios; a PR segue aberta, sem merge.

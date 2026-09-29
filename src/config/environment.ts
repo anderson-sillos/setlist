@@ -15,6 +15,7 @@ const publicEnvironmentSchema = z.object({
     .trim()
     .min(20, 'deve ser uma chave pública válida'),
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: z.string().trim().min(1).optional(),
+  EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: z.string().trim().min(1).optional(),
   EXPO_PUBLIC_WEB_BASE_URL: z
     .string()
     .trim()
@@ -28,6 +29,7 @@ export type PublicEnvironmentSource = {
   readonly EXPO_PUBLIC_SUPABASE_URL?: string;
   readonly EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
   readonly EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?: string;
+  readonly EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?: string;
   readonly EXPO_PUBLIC_WEB_BASE_URL?: string;
 };
 
@@ -38,6 +40,7 @@ export type PublicEnvironment = Readonly<{
     publishableKey: string;
   }>;
   googleWebClientId?: string;
+  googleIosClientId?: string;
   webBaseUrl?: string;
 }>;
 
@@ -85,6 +88,9 @@ export function parsePublicEnvironment(
     ...(result.data.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
       ? { googleWebClientId: result.data.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }
       : {}),
+    ...(result.data.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+      ? { googleIosClientId: result.data.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID }
+      : {}),
     ...(result.data.EXPO_PUBLIC_WEB_BASE_URL
       ? { webBaseUrl: result.data.EXPO_PUBLIC_WEB_BASE_URL.replace(/\/+$/, '') }
       : {}),
@@ -103,6 +109,8 @@ export function getPublicEnvironment(): PublicEnvironment {
       process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:
       process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:
+      process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     EXPO_PUBLIC_WEB_BASE_URL: process.env.EXPO_PUBLIC_WEB_BASE_URL,
   });
 }

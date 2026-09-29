@@ -210,13 +210,15 @@ cp .env.development.example .env.local
 
 No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar produção localmente, substitua pelo modelo `.env.production.example`. Nunca versione o arquivo `.env.local` preenchido.
 
-| Variável                               | Uso                                                        |
-| -------------------------------------- | ---------------------------------------------------------- |
-| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production`          |
-| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente                  |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                           |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web opcional para Google nativo no Android |
-| `EXPO_PUBLIC_WEB_BASE_URL`             | URL HTTPS pública usada nos links de convite               |
+| Variável                               | Uso                                                                   |
+| -------------------------------------- | --------------------------------------------------------------------- |
+| `EXPO_PUBLIC_APP_ENV`                  | Ambiente explícito: `development` ou `production`                     |
+| `EXPO_PUBLIC_SUPABASE_URL`             | URL HTTPS do projeto Supabase do ambiente                             |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública usada pelo cliente                                      |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`     | Client ID OAuth Web usado pelo login Google nativo em Android e iOS   |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`     | Client ID OAuth iOS opcional; necessário para o login nativo no iOS   |
+| `EXPO_PUBLIC_WEB_BASE_URL`             | URL HTTPS pública usada nos links de convite                          |
+| `SETLIST_IOS_TEAM_ID`                  | Team ID Apple para `ios.appleTeamId` e associações de Universal Links |
 
 Enquanto `setlistbr.app.br` aguarda a publicação DNS, mantenha no `.env.local`
 o endereço temporário `https://anderson-sillos.github.io/setlist/app`. Depois
@@ -281,7 +283,9 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
 3. Mantenha `EXPO_PUBLIC_SUPABASE_URL` e
    `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no `.env.local` ou nos ambientes EAS
    correspondentes. Para habilitar Google nativo no Android, cadastre também
-   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` com o Client ID OAuth do tipo Web. Client
+   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` com o Client ID OAuth do tipo Web. Para
+   habilitar o login Google nativo em iOS, cadastre também
+   `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` com o Client ID OAuth do tipo iOS. Client
    IDs podem ser públicos no aplicativo, mas client secrets, chaves privadas
    Apple e tokens nunca devem ser versionados.
 
@@ -293,11 +297,11 @@ navegador, o retorno troca o `code` por uma sessão; no Android e iOS, o
 `WebBrowser` abre o provedor e devolve o resultado à aplicação.
 
 O login seguirá um fluxo híbrido. Em um development build ou build distribuído
-Android com a integração nativa do Google configurada, o botão poderá apresentar
-a tela nativa de contas e enviará o ID Token para o Supabase. No Expo Go, na
-web, em aparelhos sem Google Play Services ou quando o módulo nativo não estiver
-disponível, o aplicativo usará automaticamente o OAuth pelo navegador. O
-cancelamento explícito da tela nativa apenas encerra a tentativa e não abre o
+Android ou iOS com a integração nativa do Google configurada, o botão poderá
+apresentar a tela nativa de contas e enviará o ID Token para o Supabase. No Expo
+Go, na web, em aparelhos Android sem Google Play Services ou quando o módulo
+nativo não estiver disponível, o aplicativo usará automaticamente o OAuth pelo
+navegador. O cancelamento explícito da tela nativa apenas encerra a tentativa e não abre o
 navegador sem uma nova ação. A integração nativa exige dependência e configuração
 de build próprias; instalar o pacote JavaScript não altera o funcionamento do
 Expo Go.
@@ -312,7 +316,7 @@ quando o aplicativo móvel vai para segundo plano e retomada quando volta ao
 primeiro plano.
 
 Para gerar um development build Android com o módulo nativo, o plugin é
-habilitado somente para a plataforma Android. Em uma execução local, use:
+habilitado para a plataforma Android. Em uma execução local, use:
 
 ```bash
 SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo prebuild --platform android
@@ -322,8 +326,23 @@ SETLIST_NATIVE_GOOGLE_ANDROID=1 npx expo run:android
 No EAS, `EAS_BUILD_PLATFORM=android` habilita o plugin automaticamente. O
 Client ID Android precisa estar cadastrado no Google Cloud com o pacote
 `com.andersonsillos.setlist` e a impressão digital SHA-1 correspondente à
-assinatura do build (EAS, local ou Google Play). O iOS continua usando o OAuth
-no navegador nesta etapa; sua integração nativa será configurada futuramente.
+assinatura do build (EAS, local ou Google Play).
+
+Para preparar o login Google nativo em um simulador iOS, cadastre os Client IDs
+Web e iOS no ambiente `development` do EAS e gere um development build no
+simulador:
+
+```bash
+npm run build:development:ios-simulator
+```
+
+O perfil `development-ios-simulator` habilita explicitamente o plugin iOS e
+gera um artefato para simulador, sem assinatura de distribuição para aparelhos.
+O esquema reverso do Client ID iOS e `ios.appleTeamId` são configurados pelo
+`app.config.ts`. Para instalar em iPhone/iPad ou publicar, será necessário um
+perfil separado, a conta Apple Developer ativa, credenciais de assinatura e,
+para distribuição Ad Hoc, registrar os aparelhos. O Team ID não substitui a
+assinatura do app.
 
 #### Modelo de identidade e vinculação de provedores
 

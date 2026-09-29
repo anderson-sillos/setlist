@@ -84,6 +84,15 @@ function useAndroidRuntime(): void {
   mockConstants.executionEnvironment = 'standalone';
 }
 
+function useIosRuntime(): void {
+  Object.defineProperty(Platform, 'OS', {
+    configurable: true,
+    value: 'ios',
+  });
+  mockConstants.appOwnership = null;
+  mockConstants.executionEnvironment = 'standalone';
+}
+
 describe('Google nativo opcional', () => {
   const platform = Platform.OS;
 
@@ -156,16 +165,24 @@ describe('Google nativo opcional', () => {
     expect(isNativeGoogleSignInAvailable()).toBe(false);
   });
 
-  it('retorna indisponível e registra o motivo fora do Android', async () => {
+  it('não anuncia suporte no iOS sem Client ID específico da plataforma', () => {
+    useIosRuntime();
+
+    expect(isNativeGoogleSignInAvailable()).toBe(false);
+  });
+
+  it('retorna indisponível e registra o motivo em plataformas não nativas', async () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
-      value: 'ios',
+      value: 'web',
     });
 
     await expect(tryNativeGoogleSignIn()).resolves.toEqual({
       status: 'unsupported',
     });
-    expect(JSON.stringify(mockConsoleInfo.mock.calls)).toContain('not_android');
+    expect(JSON.stringify(mockConsoleInfo.mock.calls)).toContain(
+      'unsupported_platform',
+    );
   });
 
   it('retorna indisponível quando a configuração do ambiente falha', async () => {
@@ -226,6 +243,28 @@ describe('Google nativo opcional', () => {
       .join('\n');
     expect(logText).toContain('supabase_exchange_succeeded');
     expect(logText).not.toContain('id-token');
+  });
+
+  it('configura o Client ID iOS no login nativo do Google', async () => {
+    useIosRuntime();
+    mockGetPublicEnvironment.mockReturnValue({
+      appEnvironment: 'development',
+      googleIosClientId: 'ios-client-id',
+      googleWebClientId: 'web-client-id',
+      supabase: {
+        publishableKey: 'publishable-key',
+        url: 'https://example.supabase.co',
+      },
+    });
+
+    await expect(tryNativeGoogleSignIn()).resolves.toMatchObject({
+      status: 'authenticated',
+    });
+    expect(mockGoogleModule.GoogleOneTapSignIn.configure).toHaveBeenCalledWith({
+      iosClientId: 'ios-client-id',
+      nonce: 'hashed-nonce',
+      webClientId: 'web-client-id',
+    });
   });
 
   it('tenta criar uma conta quando não há credencial salva', async () => {

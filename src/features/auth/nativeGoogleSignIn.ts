@@ -34,11 +34,13 @@ type NativeGoogleAvailability =
       readonly reason:
         | 'environment_unavailable'
         | 'expo_go'
+        | 'missing_ios_client_id'
         | 'missing_web_client_id'
-        | 'not_android';
+        | 'unsupported_platform';
     }>
   | Readonly<{
       readonly available: true;
+      readonly iosClientId?: string;
       readonly webClientId: string;
     }>;
 
@@ -99,23 +101,34 @@ function getSafeErrorDetails(error: unknown): Readonly<{
 }
 
 function getNativeGoogleAvailability(): NativeGoogleAvailability {
-  if (Platform.OS !== 'android') {
-    return { available: false, reason: 'not_android' };
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return { available: false, reason: 'unsupported_platform' };
   }
 
   if (isExpoGo()) {
     return { available: false, reason: 'expo_go' };
   }
 
-  let webClientId: string | undefined;
+  let environment: ReturnType<typeof getPublicEnvironment>;
   try {
-    webClientId = getPublicEnvironment().googleWebClientId;
+    environment = getPublicEnvironment();
   } catch {
     return { available: false, reason: 'environment_unavailable' };
   }
 
+  const webClientId = environment.googleWebClientId;
   if (!webClientId) {
     return { available: false, reason: 'missing_web_client_id' };
+  }
+
+  if (Platform.OS === 'ios') {
+    const iosClientId = environment.googleIosClientId;
+
+    if (!iosClientId) {
+      return { available: false, reason: 'missing_ios_client_id' };
+    }
+
+    return { available: true, iosClientId, webClientId };
   }
 
   return { available: true, webClientId };
@@ -187,6 +200,9 @@ export async function tryNativeGoogleSignIn(
     nonce = await createGoogleNonce();
     google.GoogleOneTapSignIn.configure({
       nonce: nonce.hashed,
+      ...(availability.iosClientId
+        ? { iosClientId: availability.iosClientId }
+        : {}),
       webClientId,
     });
     nativeGoogleLog('configured', { hasWebClientId: true });
