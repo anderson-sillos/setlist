@@ -748,3 +748,24 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      futuramente essa suíte para os fluxos Web críticos, incluindo navegação e
      operações de bandas, repertório e shows, mantendo a cobertura de callbacks
      OAuth isolada de credenciais pessoais.
+
+154. Em 29/09/2026, o item 11.2 avançou com revisão estática de acessibilidade,
+     responsividade, desempenho e tom de voz. O texto `muted` tinha contraste
+     4,46:1 sobre o fundo principal; o token foi ajustado para 5,07:1 e os pares
+     principais de texto/fundo agora têm testes de contraste AA. O foco visível
+     de teclado foi restaurado para campos de texto na Web; o drawer móvel
+     informa que é modal e o foco do botão de navegação é removido antes de
+     abrir o modal para evitar foco dentro de conteúdo ocultado. O CI da PR #20
+     passou nos três checks: qualidade/testes, pgTAP/RLS e Playwright. Os testes
+     Playwright atuais verificam a tela de autenticação em 320, 768 e 1280 px,
+     axe nessa tela e o foco visível do botão Google. O build Android release
+     local com bundle JS foi concluído (`android/app/build/outputs/apk/release/app-release.apk`,
+     47 MB, somente arm64-v8a), mas não foi possível instalar/validar no aparelho
+     porque nenhum dispositivo estava conectado ao ADB nesta sessão. A revisão
+     de desempenho foi estática: listas de bandas, repertório e shows usam
+     `FlatList`, enquanto telas de detalhe/editor usam conteúdo rolável
+     delimitado; não houve medição em profiler. A leitura do guia de tom não
+     encontrou inconsistências que exigissem alteração. O item 11.2 permanece
+     pendente: ainda falta validar as telas autenticadas e fluxos principais em
+     celular/tablet/computador, medir desempenho em uso representativo e fazer
+     validação visual no Android conectado.
