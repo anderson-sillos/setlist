@@ -734,3 +734,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      pgTAP/RLS, Playwright e as validações manuais Web/Android aprovadas, a
      tarefa 11.1 foi marcada como concluída. Progresso OpenSpec: 75/106; as
      demais tarefas do grupo 11 seguem pendentes.
+
+152. Registrar como melhoria futura a ampliação da cobertura Maestro para
+     fluxos Android além da abertura e da tela de autenticação: login Google e
+     jornadas críticas de bandas, repertório e shows. O smoke test atual foi
+     considerado suficiente para o item 11.1 porque os fluxos críticos também
+     foram validados manualmente pelo usuário; a ampliação não bloqueia essa
+     conclusão.
