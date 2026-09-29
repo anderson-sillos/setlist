@@ -789,3 +789,15 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      tablet/computador e medições de desempenho representativas. O detalhe de
      show ainda expõe o acesso ao modo palco, que deve ser ocultado conforme a
      tarefa 11.6 antes do candidato a piloto.
+
+156. Ainda em 29/09/2026, a revisão Web autenticada foi retomada no Chrome com
+     Metro na porta 19006. Minhas bandas, lista de shows, integrantes,
+     repertório, detalhe do show e detalhe da música carregaram; os avatares dos
+     integrantes foram exibidos. A letra de `Cowboys from Hell` rolou até o fim
+     e a navegação inferior permaneceu visível. A tela de detalhes do show foi
+     revisada em larguras de janela de aproximadamente 1120, 768 e 390 px, sem
+     cortes horizontais aparentes. O Metro não registrou exceções durante essa
+     navegação. As larguras menores foram simuladas redimensionando o Chrome,
+     não em tablets ou celulares físicos. O item 11.2 permanece pendente para
+     medir desempenho em uso representativo e revisar interações adicionais;
+     o acesso ao modo palco continua visível até a tarefa 11.6.
