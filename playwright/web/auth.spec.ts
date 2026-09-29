@@ -59,14 +59,17 @@ test('mantém um indicador visível ao navegar com o teclado', async ({
   page,
 }) => {
   await page.goto('/');
+  const googleButton = page.getByRole('button', {
+    name: 'Continuar com Google',
+  });
+  await expect(googleButton).toBeVisible();
   await page.keyboard.press('Tab');
 
-  const focusedElement = page.locator(':focus-visible');
-  await expect(focusedElement).toBeVisible();
+  await expect(googleButton).toBeFocused();
 
   await expect
     .poll(() =>
-      focusedElement.evaluate(
+      googleButton.evaluate(
         (element) => getComputedStyle(element).outlineWidth,
       ),
     )
