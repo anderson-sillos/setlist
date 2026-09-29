@@ -766,7 +766,11 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      autenticação em um celular. A revisão de desempenho foi estática: listas
      de bandas, repertório e shows usam `FlatList`, enquanto telas de
      detalhe/editor usam conteúdo rolável delimitado; não houve medição em
-     profiler. A leitura do guia de tom não encontrou inconsistências que
-     exigissem alteração. O item 11.2 permanece pendente: ainda falta validar
+     profiler. Como referência inicial no `SM_S731B`, `am start -W` reportou
+     420 ms para iniciar a Activity em cold start; no estado de autenticação,
+     `dumpsys meminfo` mostrou PSS total de aproximadamente 174 MiB. São
+     amostras pontuais, sem comparação e sem representar uma jornada completa.
+     A leitura do guia de tom não encontrou inconsistências que exigissem
+     alteração. O item 11.2 permanece pendente: ainda falta validar
      as telas autenticadas e fluxos principais em celular/tablet/computador e
      medir desempenho em uso representativo.
