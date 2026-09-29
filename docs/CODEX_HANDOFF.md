@@ -774,3 +774,18 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      alteração. O item 11.2 permanece pendente: ainda falta validar
      as telas autenticadas e fluxos principais em celular/tablet/computador e
      medir desempenho em uso representativo.
+
+155. Ainda em 29/09/2026, o aparelho `SM_S731B` foi conectado. O APK release foi
+     instalado por cima da versão anterior e manteve a sessão; após o login, a
+     revisão visual em celular percorreu Minhas bandas, integrantes da banda,
+     listas e detalhes de shows, repertório e música. Os avatares dos integrantes
+     carregaram, a letra longa rolou até o final mantendo a navegação acessível
+     e o logcat não mostrou exceções durante a navegação. O detalhe de música
+     exibia um cartão contextual vazio quando a música não tinha observações nem
+     referência externa; a renderização agora omite o cartão nesse caso e o
+     teste `SongDetailScreen-test.tsx` passou (12 testes). O APK foi reconstruído
+     e reinstalado para confirmar a correção na tela; o cartão vazio não aparece.
+     O item 11.2 permanece pendente para revisão das telas autenticadas em
+     tablet/computador e medições de desempenho representativas. O detalhe de
+     show ainda expõe o acesso ao modo palco, que deve ser ocultado conforme a
+     tarefa 11.6 antes do candidato a piloto.

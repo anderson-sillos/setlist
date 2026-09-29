@@ -50,6 +50,7 @@ describe('<SongDetailScreen />', () => {
     expect(view.getByText('Tom · G')).toBeTruthy();
     expect(view.getByLabelText('Abrir letra em tela cheia')).toBeTruthy();
     expect(view.getByText('BPM · 118')).toBeTruthy();
+    expect(view.getByTestId('song-detail-context')).toBeTruthy();
     expect(view.getByLabelText('Editar música')).toBeTruthy();
     expect(view.getByLabelText('Abrir referência no YouTube')).toBeTruthy();
     expect(
@@ -57,6 +58,29 @@ describe('<SongDetailScreen />', () => {
         name: 'Abrir referência no YouTube',
       }),
     ).toBeTruthy();
+  });
+
+  it('não renderiza o cartão contextual quando não há notas nem referência', async () => {
+    const songs = demoRepositoryData.songs.map((song) =>
+      song.id === demoIds.stageSong
+        ? { ...song, notes: null, youtubeReference: null }
+        : song,
+    );
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      songs,
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(view.queryByTestId('song-detail-context')).toBeNull();
   });
 
   it('apresenta a edição da música como ação contextual acessível', async () => {
