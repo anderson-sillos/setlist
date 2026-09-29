@@ -6,6 +6,8 @@ node_modules/
 coverage/
 dist/
 web-build/
+playwright-report/
+test-results/
 expo-env.d.ts
 /android/
 /ios/

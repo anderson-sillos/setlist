@@ -710,3 +710,17 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      automatizadas RLS, Maestro e Playwright. O Mac está no macOS 12.7.6 e não
      possui runtime Docker; executar RLS em runner Linux do GitHub Actions é o
      próximo caminho a avaliar.
+
+150. Em 29/09/2026, a suíte pgTAP/RLS foi adicionada ao workflow do GitHub
+     Actions e passou na PR #20 junto com os checks de qualidade. O workflow de
+     qualidade agora também gera um export Web com valores públicos fictícios
+     e executa um smoke test Playwright para a tela de autenticação; o teste
+     verifica os provedores visíveis e ausência de exceções JavaScript. O fluxo
+     Maestro `.maestro/flows/android-auth-screen.yaml` cobre a abertura da tela
+     Android e os botões de provedores. O usuário confirmou a validação manual
+     de Web e Android. A execução local de Playwright não foi possível porque
+     o export Metro permaneceu sem concluir nesta máquina e o Playwright não
+     oferece Chromium para macOS 12; o daemon ADB também não iniciou nesta
+     sessão. Aguardar os checks da PR #20 para validar Playwright no runner
+     Linux e executar Maestro quando um dispositivo/emulador estiver acessível.
+     O item 11.1 permanece pendente até esses resultados serem registrados.
