@@ -804,11 +804,25 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
 
 157. Em 29/09/2026, foi coletada uma referência inicial de desempenho Web a
      partir do export estático de produção, em três contextos novos de Chrome
-     headless e sem throttling, servido por loopback. As medianas foram: TTFB
-     4 ms, DOMContentLoaded 429 ms, load 431 ms, FCP 136 ms e LCP 840 ms; não
-     houve erros de página nem de console. O bundle JavaScript único mede
-     5.455.098 bytes sem compressão e 980.922 bytes em gzip. É uma linha de
-     base local de desktop e da rota inicial, sem sessão autenticada; não
-     representa latência de rede, dispositivo móvel nem uma jornada completa.
-     O item 11.2 continua pendente até revisar as interações do editor de
-     setlist na Web e medir uma jornada representativa em dispositivo móvel.
+     headless e sem throttling, servido por loopback. No desktop, as medianas
+     foram: TTFB 4 ms, DOMContentLoaded 429 ms, load 431 ms, FCP 136 ms e LCP
+     840 ms. Em viewport móvel emulada de 390×844 px: TTFB 3 ms,
+     DOMContentLoaded 423 ms, load 424 ms, FCP 140 ms e LCP 788 ms; as três
+     sessões não tiveram overflow horizontal. Não houve erros de página nem de
+     console. O bundle JavaScript único mede 5.455.098 bytes sem compressão e
+     980.922 bytes em gzip. São referências locais da rota inicial, sem sessão
+     autenticada, throttling ou latência de rede; as larguras móveis são
+     emulação no desktop, não medição em aparelho.
+
+158. Ainda em 29/09/2026, o editor do setlist foi revisado na Web em larguras
+     de janela de aproximadamente 1120, 768 e 390 px; os campos e ações
+     principais permaneceram visíveis. No fluxo de arraste, o usuário moveu
+     `Bloco 2` acima de `Principal` e Cancelar abriu o diálogo de descarte. Com
+     autorização do usuário, o editor foi fechado sem salvar; a tela de
+     detalhes voltou a mostrar a ordem persistida original. A confirmação foi
+     concluída por navegação para fora do editor porque o macOS bloqueou o
+     clique automatizado no diálogo. Em conjunto com a revisão Android física,
+     amostras Android de cold start/PSS já registradas, verificações de
+     acessibilidade e voz documentadas no item 154 e as referências Web dos
+     itens 156–157, o item 11.2 está concluído. As métricas são linhas de base
+     locais e não estabelecem metas de desempenho para rede real.
