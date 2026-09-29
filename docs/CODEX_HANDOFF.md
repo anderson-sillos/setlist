@@ -721,6 +721,8 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      de Web e Android. A execução local de Playwright não foi possível porque
      o export Metro permaneceu sem concluir nesta máquina e o Playwright não
      oferece Chromium para macOS 12; o daemon ADB também não iniciou nesta
-     sessão. Aguardar os checks da PR #20 para validar Playwright no runner
-     Linux e executar Maestro quando um dispositivo/emulador estiver acessível.
-     O item 11.1 permanece pendente até esses resultados serem registrados.
+     sessão. Na PR #20, passaram os três checks: qualidade (run `36578740301`),
+     pgTAP/RLS (run `36578740356`) e smoke Playwright (run `36578740301`). Não
+     havia dispositivo conectado ao ADB ao tentar executar Maestro. O item 11.1
+     permanece pendente até rodar o fluxo Maestro em dispositivo/emulador; a
+     validação Android manual foi confirmada pelo usuário.
