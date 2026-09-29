@@ -698,3 +698,15 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      também passaram. O commit `bc85f44` foi enviado à PR #19; o run remoto
      `36518619647` aprovou formatação, lint, tipos e testes. A revisão do diff
      não encontrou bloqueios; a PR segue aberta, sem merge.
+
+149. Em 29/09/2026, a PR #19 foi integrada por squash ao `main` no commit
+     `3cc8d5e`; o GitHub Pages em `https://setlistbr.app.br` respondeu HTTP 200
+     e o deploy mais recente publicou esse commit. O usuário confirmou a
+     validação funcional da versão Web e Android. O APK
+     standalone local de release foi gerado em `android/app/build/outputs/apk/release/app-release.apk`,
+     com bundle JS embutido, somente `arm64-v8a`, assinado pelo keystore local
+     (SHA-1 `5e8f16062ea3cd2c4a0d547876baa6f38cabf625`), instalado via ADB e
+     validado pelo usuário sem Metro. O item 11.1 segue aberto para as suítes
+     automatizadas RLS, Maestro e Playwright. O Mac está no macOS 12.7.6 e não
+     possui runtime Docker; executar RLS em runner Linux do GitHub Actions é o
+     próximo caminho a avaliar.
