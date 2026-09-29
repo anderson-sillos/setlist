@@ -17,9 +17,15 @@ export default function Root({ children }: { children: ReactNode }) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              input:focus,
-              textarea:focus {
-                outline: none !important;
+              :focus-visible {
+                outline: 3px solid #5b21b6 !important;
+                outline-offset: 2px;
+              }
+
+              input:focus-visible,
+              textarea:focus-visible {
+                outline: 3px solid #5b21b6 !important;
+                outline-offset: 2px;
               }
             `,
           }}

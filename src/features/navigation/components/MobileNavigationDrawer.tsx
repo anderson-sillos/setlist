@@ -47,7 +47,11 @@ export function MobileNavigationDrawer({
     >
       <View style={styles.layer}>
         <Animated.View style={[styles.frame, { transform: [{ translateX }] }]}>
-          <SafeAreaView style={styles.drawer} testID="navigation-drawer">
+          <SafeAreaView
+            accessibilityViewIsModal
+            style={styles.drawer}
+            testID="navigation-drawer"
+          >
             <View style={styles.header}>
               <AppText tone="inverse" variant="eyebrow">
                 Menu geral
