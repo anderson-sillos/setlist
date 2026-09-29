@@ -1,0 +1,39 @@
+name: Testes do banco
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-tests:
+    name: Migrações e testes pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
+
+      - name: Configurar Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Iniciar banco local com migrações e seed
+        run: supabase db start
+
+      - name: Executar testes pgTAP
+        run: supabase test db
+
+      - name: Parar banco local
+        if: always()
+        run: supabase stop --no-backup
