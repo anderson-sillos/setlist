@@ -741,3 +741,10 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      considerado suficiente para o item 11.1 porque os fluxos críticos também
      foram validados manualmente pelo usuário; a ampliação não bloqueia essa
      conclusão.
+
+153. O Playwright cobre a versão Web no navegador: o smoke test atual abre o
+     export estático e verifica a tela inicial de autenticação, os provedores
+     apresentados e a ausência de exceções JavaScript não tratadas. Ampliar
+     futuramente essa suíte para os fluxos Web críticos, incluindo navegação e
+     operações de bandas, repertório e shows, mantendo a cobertura de callbacks
+     OAuth isolada de credenciais pessoais.
