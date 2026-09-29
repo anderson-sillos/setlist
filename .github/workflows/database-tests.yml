@@ -26,7 +26,7 @@ jobs:
       - name: Configurar Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
 
       - name: Iniciar banco local com migrações e seed
         run: supabase db start
