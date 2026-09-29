@@ -801,3 +801,14 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      não em tablets ou celulares físicos. O item 11.2 permanece pendente para
      medir desempenho em uso representativo e revisar interações adicionais;
      o acesso ao modo palco continua visível até a tarefa 11.6.
+
+157. Em 29/09/2026, foi coletada uma referência inicial de desempenho Web a
+     partir do export estático de produção, em três contextos novos de Chrome
+     headless e sem throttling, servido por loopback. As medianas foram: TTFB
+     4 ms, DOMContentLoaded 429 ms, load 431 ms, FCP 136 ms e LCP 840 ms; não
+     houve erros de página nem de console. O bundle JavaScript único mede
+     5.455.098 bytes sem compressão e 980.922 bytes em gzip. É uma linha de
+     base local de desktop e da rota inicial, sem sessão autenticada; não
+     representa latência de rede, dispositivo móvel nem uma jornada completa.
+     O item 11.2 continua pendente até revisar as interações do editor de
+     setlist na Web e medir uma jornada representativa em dispositivo móvel.
