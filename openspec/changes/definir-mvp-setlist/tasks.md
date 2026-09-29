@@ -131,7 +131,7 @@
 
 ## 11. Consolidação e piloto
 
-- [ ] 11.1 Executar as suítes de unidade, componentes, integração RLS, Maestro e Playwright aplicáveis à primeira versão (preparação online em Web e Android) e verificar os fluxos críticos, sem incluir modo palco completo, sincronização YouTube ou uso offline
+- [x] 11.1 Executar as suítes de unidade, componentes, integração RLS, Maestro e Playwright aplicáveis à primeira versão (preparação online em Web e Android) e verificar os fluxos críticos, sem incluir modo palco completo, sincronização YouTube ou uso offline
 - [ ] 11.2 Revisar acessibilidade, responsividade, desempenho e consistência do tom de voz nas telas da primeira versão em celular, tablet e computador e registrar e corrigir bloqueios de uso; a revisão do modo palco permanece para 8.9
 - [ ] 11.3 Redigir termo de responsabilidade, política de privacidade e procedimento de remoção e verificar revisão jurídica antes de qualquer distribuição pública
 - [ ] 11.4 Configurar monitoramento de banco, tráfego e usuários ativos e verificar alertas internos ao atingir 80% das cotas do Supabase

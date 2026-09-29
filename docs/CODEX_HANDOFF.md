@@ -726,3 +726,11 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      havia dispositivo conectado ao ADB ao tentar executar Maestro. O item 11.1
      permanece pendente até rodar o fluxo Maestro em dispositivo/emulador; a
      validação Android manual foi confirmada pelo usuário.
+
+151. Em 29/09/2026, o aparelho Android `SM_S731B` conectou via ADB Wi-Fi e o
+     fluxo Maestro `.maestro/flows/android-auth-screen.yaml` passou com Maestro
+     2.11.0: o app abriu após limpar o estado e exibiu Setlist, Continuar com
+     Google e Continuar com Apple (em breve). Com as 82 suítes/544 testes Jest,
+     pgTAP/RLS, Playwright e as validações manuais Web/Android aprovadas, a
+     tarefa 11.1 foi marcada como concluída. Progresso OpenSpec: 75/106; as
+     demais tarefas do grupo 11 seguem pendentes.
