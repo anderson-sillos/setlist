@@ -760,12 +760,13 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      Playwright atuais verificam a tela de autenticação em 320, 768 e 1280 px,
      axe nessa tela e o foco visível do botão Google. O build Android release
      local com bundle JS foi concluído (`android/app/build/outputs/apk/release/app-release.apk`,
-     47 MB, somente arm64-v8a), mas não foi possível instalar/validar no aparelho
-     porque nenhum dispositivo estava conectado ao ADB nesta sessão. A revisão
-     de desempenho foi estática: listas de bandas, repertório e shows usam
-     `FlatList`, enquanto telas de detalhe/editor usam conteúdo rolável
-     delimitado; não houve medição em profiler. A leitura do guia de tom não
-     encontrou inconsistências que exigissem alteração. O item 11.2 permanece
-     pendente: ainda falta validar as telas autenticadas e fluxos principais em
-     celular/tablet/computador, medir desempenho em uso representativo e fazer
-     validação visual no Android conectado.
+     47 MB, somente arm64-v8a). Inicialmente não havia aparelho no ADB; depois,
+     o APK foi instalado no `SM_S731B`, abriu na tela de autenticação e o logcat
+     não mostrou exceção fatal. Essa revisão visual cobriu somente a tela de
+     autenticação em um celular. A revisão de desempenho foi estática: listas
+     de bandas, repertório e shows usam `FlatList`, enquanto telas de
+     detalhe/editor usam conteúdo rolável delimitado; não houve medição em
+     profiler. A leitura do guia de tom não encontrou inconsistências que
+     exigissem alteração. O item 11.2 permanece pendente: ainda falta validar
+     as telas autenticadas e fluxos principais em celular/tablet/computador e
+     medir desempenho em uso representativo.
