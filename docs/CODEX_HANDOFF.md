@@ -11,10 +11,12 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
 - PR #18: integrada por squash à `main` no commit `1beb994`; CI aprovado.
+- PR #19: aberta contra `main` na branch `feat/ios-eas-simulator-prep`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS.
 - Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
 - Próxima atividade de produto: grupo 11, ajustado para validar e preparar a primeira versão Web/Android. A validação de produto e a distribuição iOS permanecem adiadas.
-- Preparação técnica iOS: perfil EAS de simulador configurado com login Google nativo; falta executar o build e validar no simulador. Builds para aparelhos aguardam a ativação da assinatura Apple Developer.
-- Progresso OpenSpec: 74 de 106 tarefas concluídas; as alterações de escopo MVP e preparação iOS seguem pendentes de commit/PR.
+- Preparação técnica iOS: build EAS de simulador concluído, mas requer iOS 16.4; o Mac disponível tem Xcode 14.2 e runtime iOS 16.2. A validação no simulador está pendente de runtime compatível. Builds para aparelho dependem do provisionamento EAS.
+- CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. A atualização da PR e a confirmação de CI verde estão pendentes.
+- Progresso OpenSpec: 74 de 106 tarefas concluídas; as atividades de decisão do escopo MVP e preparação técnica iOS estão documentadas na PR #19.
 
 ## Fontes de verdade
 
@@ -675,13 +677,23 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      aplicáveis à versão 1. A validação OpenSpec estrita passou após a mudança
      de escopo.
 
-147. O usuário iniciou a preparação do iOS via EAS enquanto aguarda a ativação
-     da assinatura Apple Developer. O perfil `development-ios-simulator` gera
-     um development build com Google nativo no iOS. `EXPO_PUBLIC_APP_ENV`, as
+147. O usuário iniciou a preparação do iOS via EAS. O perfil
+     `development-ios-simulator` gera um development build com Google nativo
+     no iOS. `EXPO_PUBLIC_APP_ENV`, as
      duas variáveis Supabase, os Client IDs Google Web/iOS e
      `EXPO_PUBLIC_WEB_BASE_URL` foram sincronizados do `.env.local` para o EAS
      `development`. `SETLIST_IOS_TEAM_ID` foi configurado no EAS `development`
      e `production`, e `app.config.ts` o mapeia para `ios.appleTeamId`. A mesma
      variável foi configurada e conferida como variável de repositório no
-     GitHub Actions para gerar o AASA. A checagem TypeScript passou; o build de
-     simulador ainda não foi iniciado.
+     GitHub Actions para gerar o AASA. O build EAS de simulador
+     `c9f1ca0e-2feb-4395-9c6d-3cf5961e2c0d` concluiu. A instalação falhou porque
+     o artefato exige iOS 16.4 e o Mac tem somente runtime 16.2 no Xcode 14.2;
+     instalar Xcode/runtime compatível antes de retomar a validação.
+
+148. A CI da PR #19 executou 82 suítes e 542 testes, todos aprovados, mas ficou
+     abaixo do limite global de branches (79,92%). Foram acrescentados dois
+     cenários em `nativeGoogleSignIn-test.ts` para o requisito e a configuração
+     do Client ID iOS. `npm run test:ci` passou localmente com 82 suítes, 544
+     testes e cobertura de branches de 80,05%; formatação, lint e TypeScript
+     também passaram. Atualizar a branch da PR, aguardar a CI remota e revisar
+     todos os checks antes de integrar.
