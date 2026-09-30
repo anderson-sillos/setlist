@@ -14,15 +14,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - PR #19: integrada à `main`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS. A PR #20 consolidou as validações do grupo 11 no commit `c4c031f`.
 - Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
 - Grupo 11: validação Web e Android concluída pelo usuário. A validação de produto e a distribuição iOS permanecem adiadas.
-- Preparação técnica iOS: build EAS de simulador concluído, mas requer iOS 16.4; o Mac disponível tem Xcode 14.2 e runtime iOS 16.2. A validação no simulador está pendente de runtime compatível. Builds para aparelho dependem do provisionamento EAS.
+- Preparação técnica iOS: o build EAS de simulador requer iOS 16.4, indisponível no Mac atual (Xcode 14.2/runtime 16.2). A validação funcional foi feita em iPhone físico pelo build Ad Hoc `preview-ios`; não depende do simulador.
 - CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
-- Autenticação Apple: login Web e Android validado manualmente pelo usuário nos cenários de sucesso e falha. A implementação nativa iOS tem IPA Ad Hoc pronto para iPhone físico; falta a validação manual no aparelho.
+- Autenticação: login Web, Android e iOS validado manualmente. No iPhone físico, o usuário confirmou sucesso e falha no login Apple, sucesso no login Google, navegação pelas telas e testes ponta a ponta de papéis e convites.
 - Supabase `setlist-dev`: `site_url` está configurado para `https://setlistbr.app.br/auth/callback` como fallback global de erros sem estado OAuth válido. O código envia `redirectTo` por plataforma no início do fluxo; em falha de `state`, o fallback do servidor continua sendo global. Produção não foi alterada.
 - APK Android de desenvolvimento instalado no aparelho e conectado ao Metro na porta 19006 para a validação Apple.
-- EAS iOS preview interno: build `4dcab6d9-67c6-4d92-87ef-c24742faf799` concluído para o iPhone XR. O perfil `preview-ios` não ativa Development Client; instalação e validação nativa no iPhone ainda pendentes.
+- EAS iOS preview interno: build `4dcab6d9-67c6-4d92-87ef-c24742faf799` concluído e instalado no iPhone XR. O perfil `preview-ios` não ativa Development Client; login Google, login Apple e navegação principal foram validados no aparelho.
 - O perfil `preview-ios` herda a distribuição interna do `preview`, seleciona o ambiente de desenvolvimento e ativa o plugin Google nativo necessário aos pods iOS. O perfil geral `preview`, Android e Web não foram alterados.
 - As versões patch de `expo`, `expo-constants`, `expo-linking` e `expo-router` foram alinhadas ao SDK 57 após a primeira build falhar no Expo Doctor. `npx expo install --check` passou.
-- Progresso OpenSpec: consultar `openspec status --change definir-mvp-setlist`; o item 5.1 continua aberto até a validação nativa iOS.
+- Progresso OpenSpec: consultar `openspec status --change definir-mvp-setlist`; os fluxos de autenticação, papéis, convites, retorno e renovação de sessão foram validados em Web, Android e iOS. A tarefa 5.1 está concluída.
 
 ## Fontes de verdade
 
@@ -1143,5 +1143,21 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      dos module maps. A terceira compilação concluiu como IPA Ad Hoc para o
      iPhone XR registrado. Build EAS: `4dcab6d9-67c6-4d92-87ef-c24742faf799`.
      O IPA está pronto para instalação pelo link/QR da página da build. Ainda
-     faltam a instalação e a validação manual do login Apple no iOS; as
-     validações Web/Android continuam aprovadas.
+     naquele momento faltavam a instalação e a validação manual no iOS; as
+     validações Web/Android já estavam aprovadas.
+
+189. O usuário instalou e validou o build EAS `preview-ios` em um iPhone físico.
+     Os logins Google e Apple concluíram com sucesso e a navegação pelas telas
+     foi verificada. A validação funcional básica do iOS está aprovada. Ainda
+     faltava confirmar o fluxo de falha Apple e os testes e2e de papéis e
+     convites no iOS; o teste não foi feito em simulador.
+
+190. O usuário confirmou que o fluxo de falha do login Apple e os testes de
+     papéis e convites também foram validados no iOS. As tarefas OpenSpec
+     5.1.2.4 e 5.10.2 foram concluídas. Com isso, os fluxos funcionais de
+     autenticação, papéis e convites estão validados em Web, Android e iOS.
+
+191. O usuário confirmou que retorno e renovação de sessão foram validados em
+     Web, Android e iOS. A tarefa OpenSpec 5.1 está concluída; os fluxos de
+     autenticação Google/Apple e o ciclo de sessão estão validados nas três
+     plataformas.
