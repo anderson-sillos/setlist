@@ -157,6 +157,23 @@ export class SupabaseBandRepository implements BandRepository {
         .select('id, band_id, user_id, role, joined_at')
         .eq('user_id', userId);
 
+    if (__DEV__) {
+      const details = {
+        rowCount: membershipData?.length ?? 0,
+        userIdProvided: Boolean(userId),
+      };
+
+      if (membershipError) {
+        console.warn('[bands:listForUser] membership query failed', {
+          ...details,
+          code: membershipError.code,
+          message: membershipError.message,
+        });
+      } else {
+        console.info('[bands:listForUser] membership query completed', details);
+      }
+    }
+
     if (membershipError) {
       throw membershipError;
     }
@@ -172,6 +189,23 @@ export class SupabaseBandRepository implements BandRepository {
       .from('bands')
       .select('id, name, created_at, updated_at')
       .in('id', bandIds);
+
+    if (__DEV__) {
+      const details = {
+        requestedCount: bandIds.length,
+        rowCount: bandData?.length ?? 0,
+      };
+
+      if (bandError) {
+        console.warn('[bands:listForUser] bands query failed', {
+          ...details,
+          code: bandError.code,
+          message: bandError.message,
+        });
+      } else {
+        console.info('[bands:listForUser] bands query completed', details);
+      }
+    }
 
     if (bandError) {
       throw bandError;

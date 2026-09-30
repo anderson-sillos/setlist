@@ -9,6 +9,7 @@ import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConnectionBanner } from '@/components/feedback';
+import { ListRefreshControl } from '@/components/ui/ScreenDataRefresh';
 import { AppHeader } from '@/features/navigation/components/AppHeader';
 import { BottomNavigation } from '@/features/navigation/components/BottomNavigation';
 import { MobileNavigationDrawer } from '@/features/navigation/components/MobileNavigationDrawer';
@@ -40,6 +41,8 @@ export function AppNavigationShell({
   fixedContent,
   headerAction,
   onConnectionRetry,
+  onRefresh,
+  refreshing = false,
   screenKind = 'main',
   scrollable = true,
   subtitle,
@@ -136,6 +139,14 @@ export function AppNavigationShell({
               contentOffset={{ x: 0, y: initialScrollOffset }}
               keyboardShouldPersistTaps="handled"
               onScroll={handleScroll}
+              refreshControl={
+                onRefresh ? (
+                  <ListRefreshControl
+                    onRefresh={onRefresh}
+                    refreshing={refreshing}
+                  />
+                ) : undefined
+              }
               scrollEventThrottle={120}
               testID="screen-scroll-area"
             >

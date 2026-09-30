@@ -51,6 +51,7 @@ import {
   getSongHref,
 } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { LyricDocumentEditor } from './LyricDocumentEditor';
 import { SongLifecycleDialog } from './SongLifecycleDialog';
 import {
@@ -76,6 +77,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const userBandsQuery = useUserBands();
+  useScreenDataRefresh([userBandsQuery]);
   const userRepertoireSongsQuery = useUserRepertoireSongs();
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
   const [isAcceptingTerm, setIsAcceptingTerm] = useState(false);

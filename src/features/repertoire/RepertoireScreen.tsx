@@ -7,6 +7,10 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
+  ListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
+import {
   ListControls,
   OptionMenu,
   SearchField,
@@ -25,6 +29,7 @@ import {
   rememberListScrollOffset,
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeForSearch } from '@/utils/text';
@@ -117,6 +122,10 @@ export function RepertoireScreen({
   const router = useRouter();
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
+  const { onRefresh, refreshing } = useScreenDataRefresh([
+    songsQuery,
+    userBandsQuery,
+  ]);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'repertoire', {
       filter: 'all' as RepertoireFilter,
@@ -195,6 +204,7 @@ export function RepertoireScreen({
             value={state.search}
           />
           <View style={styles.controlToolbarEnd}>
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
             <OptionMenu
               active={state.filter !== 'all'}
               accessibilityLabel="Alterar filtros do repertório"
@@ -224,14 +234,22 @@ export function RepertoireScreen({
       viewportWidth={viewportWidth}
     >
       {songsQuery.isPending ? <LoadingFeedback /> : null}
-      {songsQuery.isError ? (
-        <ErrorFeedback onRetry={() => void songsQuery.refetch()} />
+      {songsQuery.isError || userBandsQuery.isError ? (
+        <ErrorFeedback
+          onRetry={() => {
+            void songsQuery.refetch();
+            void userBandsQuery.refetch();
+          }}
+        />
       ) : null}
       <FlatList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={songs}
         keyExtractor={({ id }) => id}
+        refreshControl={
+          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
+        }
         ListEmptyComponent={
           !songsQuery.isPending && !songsQuery.isError ? (
             <ListEmptyState

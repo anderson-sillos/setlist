@@ -8,8 +8,13 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
+import {
+  ListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import type { BandRole, Show } from '@/domain';
 import {
   BandCreationDialog,
@@ -54,6 +59,7 @@ export function BandsScreen({
   const router = useRouter();
   const queryClient = useQueryClient();
   const bandsQuery = useUserBandSummaries();
+  const { onRefresh, refreshing } = useScreenDataRefresh([bandsQuery]);
   const { clearLastBand, isHydrated, lastBandId, setLastBand } =
     useLastBandSelection();
   const [search, setSearch] = useState('');
@@ -157,6 +163,9 @@ export function BandsScreen({
             placeholder="Buscar banda"
             value={search}
           />
+          <View style={styles.refreshAction}>
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+          </View>
         </ListControls>
       }
       headerAction={{
@@ -192,6 +201,9 @@ export function BandsScreen({
         data={bands}
         keyboardShouldPersistTaps="handled"
         keyExtractor={({ band }) => band.id}
+        refreshControl={
+          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
+        }
         ListEmptyComponent={
           !bandsQuery.isPending && !bandsQuery.isError ? (
             normalizedSearch ? (
@@ -270,6 +282,9 @@ export function BandsScreen({
 }
 
 const styles = StyleSheet.create({
+  refreshAction: {
+    alignItems: 'flex-end',
+  },
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,

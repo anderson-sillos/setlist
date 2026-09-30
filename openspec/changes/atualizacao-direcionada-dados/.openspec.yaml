@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-30
+goal: Permitir que integrantes atualizem dados alterados por outras pessoas com
+  consultas limitadas às telas ativas, sem polling global.

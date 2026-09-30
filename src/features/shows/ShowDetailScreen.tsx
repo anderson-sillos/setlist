@@ -12,6 +12,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
@@ -31,6 +32,7 @@ import {
   getShowDurationBreakdown,
 } from '@/domain/setlistDuration';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import {
   getBandSectionHref,
   getShowEditHref,
@@ -156,6 +158,16 @@ export function ShowDetailScreen({
   const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const refreshEnabled =
+    !editVisible &&
+    !duplicateVisible &&
+    !actionsSheetVisible &&
+    !statusSheetVisible &&
+    !deleteSheetVisible;
+  const { onRefresh, refreshing } = useScreenDataRefresh(
+    [showQuery, songsQuery, userBandsQuery],
+    refreshEnabled,
+  );
   const show = showQuery.data;
   const editInitialValues = useMemo(
     () => (show ? toEditForm(show) : undefined),
@@ -378,6 +390,8 @@ export function ShowDetailScreen({
             }
           : undefined
       }
+      onRefresh={onRefresh}
+      refreshing={refreshing}
       screenKind="detail"
       title="Detalhes do show"
       viewportHeight={viewportHeight}
@@ -595,6 +609,7 @@ export function ShowDetailScreen({
       {!showQuery.isPending && !showQuery.isError && !show ? (
         <UnavailableFeedback title="Show indisponível" />
       ) : null}
+      <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
 
       {show ? (
         <View

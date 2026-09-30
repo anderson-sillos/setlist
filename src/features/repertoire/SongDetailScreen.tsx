@@ -17,6 +17,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
@@ -28,6 +29,7 @@ import {
   getSongLyricsHref,
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
@@ -55,6 +57,10 @@ export function SongDetailScreen({
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
+  const { onRefresh, refreshing } = useScreenDataRefresh([
+    songQuery,
+    userBandsQuery,
+  ]);
   const song = songQuery.data;
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
@@ -91,6 +97,8 @@ export function SongDetailScreen({
           : undefined
       }
       screenKind="detail"
+      onRefresh={onRefresh}
+      refreshing={refreshing}
       title="Detalhes da música"
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
@@ -109,6 +117,7 @@ export function SongDetailScreen({
       {!songQuery.isPending && !songQuery.isError && !song ? (
         <UnavailableFeedback title="Música indisponível" />
       ) : null}
+      <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
 
       {song ? (
         <View style={styles.detail} testID={`song-detail-${layoutMode}`}>

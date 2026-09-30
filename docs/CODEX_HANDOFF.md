@@ -5,8 +5,8 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 ## Estado atual
 
 - Repositório: `anderson-sillos/setlist`.
-- Branch principal: `main`, sincronizada com `origin/main` no commit `c4c031f` antes desta atividade.
-- Branch de trabalho atual: `feat/apple-sign-in`, isolando as alterações de autenticação Apple para revisão antes de uma PR.
+- Branch principal: `main`, integrada até o PR #22 no commit `e30d9f5`.
+- Branch de trabalho atual: `feat/pull-to-refresh-data`, para continuar a implementação e validar atualização manual dos dados compartilhados. A PR ainda não foi aberta; não integrar antes da validação funcional.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
@@ -14,6 +14,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - PR #19: integrada à `main`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS. A PR #20 consolidou as validações do grupo 11 no commit `c4c031f`.
 - Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
 - Grupo 11: validação Web e Android concluída pelo usuário. A validação de produto e a distribuição iOS permanecem adiadas.
+- Atualização de dados compartilhados: change OpenSpec `atualizacao-direcionada-dados` em andamento na branch `feat/pull-to-refresh-data`; apenas a inspeção 3.1 está marcada como concluída. A validação manual permanece pendente.
+- Ponto de retomada: a tela Minhas bandas aparece vazia na Web e no Android. Ao tocar em Atualizar na Web, a consulta retornou 2 vínculos e 2 bandas, sem erro do Supabase, mas o usuário ainda percebe a lista vazia. Limpar a busca e confirmar qual estado vazio aparece é o próximo diagnóstico; depois revisar a renderização. O sintoma também foi relatado no Android, mas não há aparelho conectado ao ADB para obter os logs nativos.
+- Instrumentação temporária em `src/data/supabase/repositories.ts`: logs somente em desenvolvimento indicam presença de userId, contagem de vínculos/bandas e código/mensagem de erros, sem imprimir identificadores ou conteúdo pessoal. Remover após encontrar a causa da lista vazia.
+- Metro Expo ativo na porta `19006`; bundles Web e Android responderam HTTP 200. O log de consulta das bandas veio da Web. Android não foi conectado ao Metro/ADB durante a última verificação.
 - Preparação técnica iOS: o build EAS de simulador requer iOS 16.4, indisponível no Mac atual (Xcode 14.2/runtime 16.2). A validação funcional foi feita em iPhone físico pelo build Ad Hoc `preview-ios`; não depende do simulador.
 - CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
 - Autenticação: login Web, Android e iOS validado manualmente. No iPhone físico, o usuário confirmou sucesso e falha no login Apple, sucesso no login Google, navegação pelas telas e testes ponta a ponta de papéis e convites.
@@ -1161,3 +1165,20 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      Web, Android e iOS. A tarefa OpenSpec 5.1 está concluída; os fluxos de
      autenticação Google/Apple e o ciclo de sessão estão validados nas três
      plataformas.
+
+192. Após integrar o PR #22, foi aberta a branch `feat/pull-to-refresh-data`
+     para adicionar atualização manual e revalidação ao foco, limitada às
+     queries da tela ativa, em Minhas bandas, Banda, Repertório e Shows. O
+     change OpenSpec `atualizacao-direcionada-dados` acompanha o trabalho; as
+     tarefas de implementação e validação manual ainda não foram concluídas.
+     A validação atual revelou a tela Minhas bandas vazia em Web e Android.
+     Na Web, ao tocar em Atualizar, logs de desenvolvimento confirmaram 2
+     vínculos e 2 registros de bandas sem erro do Supabase, embora a lista
+     continue visualmente vazia. O próximo passo é conferir se há busca ativa,
+     qual mensagem vazia é exibida e revisar a renderização; depois remover a
+     instrumentação temporária de contagens em
+     `src/data/supabase/repositories.ts`. Não havia aparelho conectado ao ADB
+     para inspecionar a execução Android. O Metro está na porta `19006` e
+     serviu bundles Web e Android com HTTP 200. O trabalho foi salvo na branch
+     de feature para retomar esse diagnóstico; não integrar a PR antes de o
+     usuário validar manualmente.

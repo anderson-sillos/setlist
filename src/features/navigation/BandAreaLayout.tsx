@@ -28,6 +28,8 @@ interface BandAreaLayoutProps extends PropsWithChildren {
   readonly editActions?: EditActions;
   readonly fixedContent?: ReactNode;
   readonly headerAction?: HeaderAction;
+  readonly onRefresh?: () => void | Promise<void>;
+  readonly refreshing?: boolean;
   readonly screenKind?: NavigationScreenKind;
   readonly scrollable?: boolean;
   readonly title: string;
@@ -45,6 +47,8 @@ export function BandAreaLayout({
   editActions,
   fixedContent,
   headerAction,
+  onRefresh,
+  refreshing,
   screenKind,
   scrollable,
   title,
@@ -65,6 +69,8 @@ export function BandAreaLayout({
       editActions={editActions}
       fixedContent={fixedContent}
       headerAction={headerAction}
+      onRefresh={onRefresh}
+      refreshing={refreshing}
       screenKind={screenKind}
       scrollable={scrollable}
       subtitle={sectionLabels[activeSection]}
