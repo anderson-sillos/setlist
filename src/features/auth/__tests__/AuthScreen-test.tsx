@@ -5,8 +5,9 @@ import { AuthScreen } from '@/features/auth/AuthScreen';
 import { colors } from '@/theme/tokens';
 
 jest.mock('@/features/auth/AppleSignInButton', () => {
-  const { Pressable, Text } =
-    require('react-native') as typeof import('react-native');
+  const { Pressable, Text } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
 
   return {
     AppleSignInButton: ({
