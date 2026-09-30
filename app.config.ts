@@ -90,6 +90,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       ...config.ios,
       ...(iosAppleTeamId ? { appleTeamId: iosAppleTeamId } : {}),
+      usesAppleSignIn: true,
       associatedDomains: hasAssociatedDomain
         ? associatedDomains
         : [...associatedDomains, `applinks:${appLinkHost}`],
@@ -98,6 +99,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...config.experiments,
       ...(webBaseUrl ? { baseUrl: webBaseUrl } : {}),
     },
-    plugins,
+    plugins: plugins.includes('expo-apple-authentication')
+      ? plugins
+      : [...plugins, 'expo-apple-authentication'],
   };
 };

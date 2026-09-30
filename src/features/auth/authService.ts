@@ -11,6 +11,7 @@ import type {
 import '@/config/webCrypto';
 import { getPublicEnvironment } from '@/config/environment';
 import { getSupabaseClient } from '@/data/supabase/client';
+import { tryNativeAppleSignIn } from '@/features/auth/nativeAppleSignIn';
 import {
   getAuthCallbackPath,
   getRuntimeUrl,
@@ -267,6 +268,29 @@ export async function signInWithSocialProvider(
   provider: SocialAuthProvider,
   inviteToken?: string,
 ): Promise<SocialAuthResult> {
+  if (provider === 'apple' && Platform.OS === 'ios') {
+    const nativeResult = await tryNativeAppleSignIn(inviteToken);
+
+    if (
+      nativeResult.status === 'authenticated' ||
+      nativeResult.status === 'cancelled'
+    ) {
+      return {
+        inviteToken: nativeResult.inviteToken,
+        session: nativeResult.session,
+        status: nativeResult.status,
+      };
+    }
+
+    if (nativeResult.status === 'failed') {
+      throw new AuthFlowError(
+        'native_apple_sign_in_failed',
+        nativeResult.errorMessage ??
+          'A Apple não entregou uma sessão válida ao Supabase.',
+      );
+    }
+  }
+
   if (
     provider === 'google' &&
     (Platform.OS === 'android' || Platform.OS === 'ios')

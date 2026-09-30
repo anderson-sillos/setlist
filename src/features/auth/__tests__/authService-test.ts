@@ -33,12 +33,19 @@ jest.mock('@/features/auth/nativeGoogleSignIn', () => ({
   tryNativeGoogleSignIn: jest.fn(),
 }));
 
+jest.mock('@/features/auth/nativeAppleSignIn', () => ({
+  tryNativeAppleSignIn: jest.fn(),
+}));
+
 const mockGetSupabaseClient = jest.mocked(getSupabaseClient);
 const mockOpenAuthSessionAsync = jest.requireMock('expo-web-browser')
   .openAuthSessionAsync as jest.Mock;
 const mockTryNativeGoogleSignIn = jest.requireMock(
   '@/features/auth/nativeGoogleSignIn',
 ).tryNativeGoogleSignIn as jest.Mock;
+const mockTryNativeAppleSignIn = jest.requireMock(
+  '@/features/auth/nativeAppleSignIn',
+).tryNativeAppleSignIn as jest.Mock;
 
 function createAuthMock() {
   const subscription = { unsubscribe: jest.fn() };
@@ -67,6 +74,7 @@ describe('serviço de autenticação social', () => {
 
   beforeEach(() => {
     mockTryNativeGoogleSignIn.mockResolvedValue({ status: 'unsupported' });
+    mockTryNativeAppleSignIn.mockResolvedValue({ status: 'unsupported' });
   });
 
   it('usa o OAuth pelo navegador quando o Google nativo não está disponível', async () => {

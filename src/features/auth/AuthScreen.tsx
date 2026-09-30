@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/Screen';
 import { AuthErrorNotice } from '@/features/auth/AuthErrorNotice';
 import { AuthLoadingState } from '@/features/auth/AuthLoadingState';
 import { AuthProviderIcon } from '@/features/auth/AuthProviderIcon';
+import { AppleSignInButton } from '@/features/auth/AppleSignInButton';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import {
   AuthFlowError,
@@ -97,8 +98,8 @@ export function AuthScreen() {
 
         <View style={styles.centerContent}>
           <AppText style={styles.loginExplanation} tone="muted">
-            Entre com sua conta Google. O acesso com Apple chegará em breve. Se
-            ainda não tiver banda, você pode aceitar um convite depois.
+            Entre com sua conta Google ou Apple. Se ainda não tiver banda, você
+            pode aceitar um convite depois.
           </AppText>
           {inviteToken ? (
             <AppText style={styles.inviteNotice} tone="accent">
@@ -124,13 +125,9 @@ export function AuthScreen() {
               testID="auth-google"
               variant="secondary"
             />
-            <AppButton
-              disabled
-              leading={<AuthProviderIcon provider="apple" size={28} />}
-              label="Continuar com Apple (em breve)"
-              onPress={() => undefined}
-              testID="auth-apple"
-              variant="secondary"
+            <AppleSignInButton
+              disabled={authState.status === 'loading'}
+              onPress={() => void handleSignIn('apple')}
             />
             {authState.status === 'error' ? (
               <AuthErrorNotice message={authState.message} />

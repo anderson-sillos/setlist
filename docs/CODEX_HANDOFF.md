@@ -5,18 +5,21 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 ## Estado atual
 
 - Repositório: `anderson-sillos/setlist`.
-- Branch principal: `main`, sincronizada com `origin/main` no commit `1beb994`.
-- Branch de trabalho: `feat/ios-eas-simulator-prep`, criada a partir da principal para separar a decisão de escopo MVP da preparação técnica do iOS.
+- Branch principal: `main`, sincronizada com `origin/main` no commit `c4c031f` antes desta atividade.
+- Branch de trabalho atual: `feat/apple-sign-in`, isolando as alterações de autenticação Apple para revisão antes de uma PR.
 - Change ativo: `definir-mvp-setlist`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
 - PR #18: integrada por squash à `main` no commit `1beb994`; CI aprovado.
-- PR #19: aberta contra `main` na branch `feat/ios-eas-simulator-prep`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS.
+- PR #19: integrada à `main`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS. A PR #20 consolidou as validações do grupo 11 no commit `c4c031f`.
 - Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
-- Próxima atividade de produto: grupo 11, ajustado para validar e preparar a primeira versão Web/Android. A validação de produto e a distribuição iOS permanecem adiadas.
+- Grupo 11: validação Web e Android concluída pelo usuário. A validação de produto e a distribuição iOS permanecem adiadas.
 - Preparação técnica iOS: build EAS de simulador concluído, mas requer iOS 16.4; o Mac disponível tem Xcode 14.2 e runtime iOS 16.2. A validação no simulador está pendente de runtime compatível. Builds para aparelho dependem do provisionamento EAS.
 - CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
-- Progresso OpenSpec: 74 de 106 tarefas concluídas; as atividades de decisão do escopo MVP e preparação técnica iOS estão documentadas na PR #19.
+- Autenticação Apple: login Web e Android validado manualmente pelo usuário nos cenários de sucesso e falha. A implementação nativa iOS está no código, mas aguarda build e validação quando houver simulador compatível.
+- Supabase `setlist-dev`: `site_url` está configurado para `https://setlistbr.app.br/auth/callback` como fallback global de erros sem estado OAuth válido. O código envia `redirectTo` por plataforma no início do fluxo; em falha de `state`, o fallback do servidor continua sendo global. Produção não foi alterada.
+- APK Android de desenvolvimento instalado no aparelho e conectado ao Metro na porta 19006 para a validação Apple; não foi feito build iOS.
+- Progresso OpenSpec: consultar `openspec status --change definir-mvp-setlist`; o item 5.1 continua aberto até a validação nativa iOS.
 
 ## Fontes de verdade
 
@@ -1115,3 +1118,13 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      etiquetas separadas para privacidade/remoção e incidentes e a conferência
      dos acessos. A disponibilidade da caixa não confirma, por si só, a
      inclusão do endereço na Web/aplicativos ou a configuração das etiquetas.
+
+187. A integração Sign in with Apple foi validada manualmente pelo usuário na
+     Web e no Android, tanto no sucesso quanto na falha. O APK de desenvolvimento
+     foi instalado no aparelho e conectado ao Metro em `19006`; o login Apple
+     concluiu e retornou ao app. O `site_url` do projeto Supabase de
+     desenvolvimento está em HTTPS para servir de fallback global quando o
+     estado OAuth não puder ser recuperado; os redirects explícitos continuam
+     sendo calculados por plataforma no início do login. A configuração de
+     produção não foi alterada. A validação nativa iOS, inclusive falha, segue
+     pendente até haver simulador compatível; nenhum build iOS foi feito.

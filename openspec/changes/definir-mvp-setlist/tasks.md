@@ -54,6 +54,11 @@
 ## 5. Autenticação, bandas e integrantes
 
 - [ ] 5.1 Integrar autenticação Google e Apple com Supabase e verificar entrada, retorno e renovação de sessão em web, Android e iOS; usar Google nativo no Android quando houver development build ou build distribuído com o módulo configurado, trocar o ID Token por sessão Supabase, preservar OAuth pelo navegador como fallback no Expo Go, web, ausência de Google Play Services ou configuração nativa e validar `code`, `state` e o contexto de convite nos caminhos aplicáveis
+  - [x] 5.1.1 Habilitar Sign in with Apple nativo no iOS com `expo-apple-authentication`, trocar o ID Token por sessão Supabase com nonce, preservar o convite e salvar o nome retornado na primeira autorização; manter OAuth Apple em navegador no Android e redirecionamento web
+  - [ ] 5.1.2 Configurar o App ID e a capability Sign in with Apple no Apple Developer; para OAuth em web/Android, configurar também Services ID, chave Apple e provedor Supabase; validar os fluxos nos três ambientes
+    - [x] 5.1.2.1 Configurar App ID, Services ID e provedor Apple no Supabase de desenvolvimento
+    - [x] 5.1.2.2 Validar autenticação Apple com sucesso e falha na Web e no Android
+    - [ ] 5.1.2.3 Validar autenticação Apple nativa com sucesso e falha no iOS quando o simulador estiver disponível
 - [x] 5.2 Implementar persistência de sessão com SecureStore nos aplicativos e armazenamento do navegador na web e verificar restauração e expiração segura
 - [x] 5.3 Implementar `Minhas bandas`, busca por nome, próximo show, seleção e restauração da última banda autorizada e verificar o fluxo sem banda, a criação e a entrada exclusivamente por link de convite
 - [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor

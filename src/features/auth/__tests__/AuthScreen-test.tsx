@@ -4,6 +4,32 @@ import { StyleSheet } from 'react-native';
 import { AuthScreen } from '@/features/auth/AuthScreen';
 import { colors } from '@/theme/tokens';
 
+jest.mock('@/features/auth/AppleSignInButton', () => {
+  const { Pressable, Text } =
+    require('react-native') as typeof import('react-native');
+
+  return {
+    AppleSignInButton: ({
+      disabled,
+      onPress,
+      testID,
+    }: {
+      disabled?: boolean;
+      onPress: () => void;
+      testID?: string;
+    }) => (
+      <Pressable
+        accessibilityRole="button"
+        disabled={disabled}
+        onPress={onPress}
+        testID={testID}
+      >
+        <Text>Continuar com Apple</Text>
+      </Pressable>
+    ),
+  };
+});
+
 const mockReplace = jest.fn();
 const mockRouter = { replace: mockReplace };
 
@@ -44,7 +70,7 @@ describe('tela de autenticação', () => {
     ).toBeTruthy();
     expect(
       view.getByText(
-        'Entre com sua conta Google. O acesso com Apple chegará em breve. Se ainda não tiver banda, você pode aceitar um convite depois.',
+        'Entre com sua conta Google ou Apple. Se ainda não tiver banda, você pode aceitar um convite depois.',
       ),
     ).toBeTruthy();
     expect(
@@ -65,14 +91,9 @@ describe('tela de autenticação', () => {
       backgroundColor: colors.surface,
       borderColor: colors.violet,
     });
-    expect(buttonStyle('auth-apple')).toMatchObject({
-      backgroundColor: colors.surface,
-      borderColor: colors.violet,
-      opacity: 0.5,
-    });
     expect(
-      view.getByRole('button', { name: 'Continuar com Apple (em breve)' }),
-    ).toBeDisabled();
+      view.getByRole('button', { name: 'Continuar com Apple' }),
+    ).toBeEnabled();
   });
 
   it('retorna diretamente ao convite ao concluir o login', async () => {
@@ -142,7 +163,7 @@ describe('tela de autenticação', () => {
       view.getByRole('button', { name: 'Continuar com Google' }),
     ).toBeDisabled();
     expect(
-      view.getByRole('button', { name: 'Continuar com Apple (em breve)' }),
+      view.getByRole('button', { name: 'Continuar com Apple' }),
     ).toBeDisabled();
   });
 });
