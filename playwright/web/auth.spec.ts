@@ -14,8 +14,8 @@ test('abre a tela de autenticação e apresenta os provedores disponíveis', asy
     page.getByRole('button', { name: 'Continuar com Google' }),
   ).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Continuar com Apple (em breve)' }),
-  ).toBeDisabled();
+    page.getByRole('button', { name: 'Continuar com Apple' }),
+  ).toBeEnabled();
   expect(pageErrors).toEqual([]);
 });
 

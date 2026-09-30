@@ -53,7 +53,14 @@
 
 ## 5. Autenticação, bandas e integrantes
 
-- [ ] 5.1 Integrar autenticação Google e Apple com Supabase e verificar entrada, retorno e renovação de sessão em web, Android e iOS; usar Google nativo no Android quando houver development build ou build distribuído com o módulo configurado, trocar o ID Token por sessão Supabase, preservar OAuth pelo navegador como fallback no Expo Go, web, ausência de Google Play Services ou configuração nativa e validar `code`, `state` e o contexto de convite nos caminhos aplicáveis
+- [x] 5.1 Integrar autenticação Google e Apple com Supabase e verificar entrada, retorno e renovação de sessão em web, Android e iOS; usar Google nativo no Android quando houver development build ou build distribuído com o módulo configurado, trocar o ID Token por sessão Supabase, preservar OAuth pelo navegador como fallback no Expo Go, web, ausência de Google Play Services ou configuração nativa e validar `code`, `state` e o contexto de convite nos caminhos aplicáveis
+  - [x] 5.1.1 Habilitar Sign in with Apple nativo no iOS com `expo-apple-authentication`, trocar o ID Token por sessão Supabase com nonce, preservar o convite e salvar o nome retornado na primeira autorização; manter OAuth Apple em navegador no Android e redirecionamento web
+  - [x] 5.1.2 Configurar o App ID e a capability Sign in with Apple no Apple Developer; para OAuth em web/Android, configurar também Services ID, chave Apple e provedor Supabase; validar os fluxos nos três ambientes
+    - [x] 5.1.2.1 Configurar App ID, Services ID e provedor Apple no Supabase de desenvolvimento
+    - [x] 5.1.2.2 Validar autenticação Apple com sucesso e falha na Web e no Android
+    - [x] 5.1.2.3 Validar autenticação Apple nativa com sucesso em iPhone físico
+    - [x] 5.1.2.4 Validar o tratamento de falha da autenticação Apple nativa no iPhone
+  - [x] 5.1.3 Validar login nativo Google e navegação principal em iPhone físico
 - [x] 5.2 Implementar persistência de sessão com SecureStore nos aplicativos e armazenamento do navegador na web e verificar restauração e expiração segura
 - [x] 5.3 Implementar `Minhas bandas`, busca por nome, próximo show, seleção e restauração da última banda autorizada e verificar o fluxo sem banda, a criação e a entrada exclusivamente por link de convite
 - [x] 5.4 Implementar criação de banda condicionada ao aceite explícito do termo e verificar o registro de usuário, banda, versão e horário do servidor
@@ -73,7 +80,7 @@
   - [x] 5.9.5 Centralizar verticalmente o avatar junto à coluna do nome e e-mail no menu lateral, mantendo ambos os textos alinhados à esquerda; verificar estrutura e alinhamento
   - [x] 5.9.6 Agrupar nome e e-mail em uma coluna explícita junto ao avatar, sem quebra ou desalinhamento entre os dois textos em telas estreitas
 - [x] 5.10.1 Executar testes ponta a ponta dos papéis e convites na web e Android, publicar a versão interna desse incremento e validar manualmente os fluxos
-- [ ] 5.10.2 Executar os testes ponta a ponta dos papéis e convites no iOS e publicar uma versão interna para revisão dessa plataforma; atividade adiada até a disponibilidade do build iOS
+- [x] 5.10.2 Executar os testes ponta a ponta dos papéis e convites no iOS e publicar uma versão interna para revisão dessa plataforma
 
 ## 6. Repertório e letras estáticas
 

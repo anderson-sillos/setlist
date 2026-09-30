@@ -253,7 +253,7 @@ export function NavigationPanel({
           }}
         />
         <AppText style={styles.muted} variant="caption">
-          Google ativo · Apple em breve.
+          Login com Google e Apple.
         </AppText>
       </View>
     </ScrollView>
