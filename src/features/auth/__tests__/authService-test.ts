@@ -177,6 +177,20 @@ describe('serviço de autenticação social', () => {
     expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
   });
 
+  it('usa mensagem padrão quando o Google nativo falha sem detalhes', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    mockTryNativeGoogleSignIn.mockResolvedValue({ status: 'failed' });
+
+    await expect(signInWithSocialProvider('google')).rejects.toMatchObject({
+      code: 'native_google_exchange_failed',
+      message: 'O Google não entregou uma sessão válida ao Supabase.',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
   it('inicia o Apple na web e deixa o redirecionamento para o navegador', async () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
@@ -190,6 +204,79 @@ describe('serviço de autenticação social', () => {
 
     await expect(signInWithSocialProvider('apple')).resolves.toEqual({
       status: 'redirecting',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('retorna a sessão Apple nativa no iOS preservando o convite', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'ios',
+    });
+    const session = { user: { id: 'apple-user' } };
+    mockTryNativeAppleSignIn.mockResolvedValue({
+      inviteToken: 'invite-ios',
+      session,
+      status: 'authenticated',
+    });
+
+    await expect(
+      signInWithSocialProvider('apple', 'invite-ios'),
+    ).resolves.toEqual({
+      inviteToken: 'invite-ios',
+      session,
+      status: 'authenticated',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('preserva o cancelamento do login Apple nativo no iOS', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'ios',
+    });
+    mockTryNativeAppleSignIn.mockResolvedValue({
+      inviteToken: 'invite-ios',
+      status: 'cancelled',
+    });
+
+    await expect(
+      signInWithSocialProvider('apple', 'invite-ios'),
+    ).resolves.toEqual({
+      inviteToken: 'invite-ios',
+      session: undefined,
+      status: 'cancelled',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('expõe falha do login Apple nativo sem abrir o navegador', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'ios',
+    });
+    mockTryNativeAppleSignIn.mockResolvedValue({
+      errorMessage: 'Apple token rejected',
+      status: 'failed',
+    });
+
+    await expect(signInWithSocialProvider('apple')).rejects.toMatchObject({
+      code: 'native_apple_sign_in_failed',
+      message: 'Apple token rejected',
+    });
+    expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
+  });
+
+  it('fornece mensagem padrão se a falha Apple nativa não trouxer detalhes', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'ios',
+    });
+    mockTryNativeAppleSignIn.mockResolvedValue({ status: 'failed' });
+
+    await expect(signInWithSocialProvider('apple')).rejects.toMatchObject({
+      code: 'native_apple_sign_in_failed',
+      message: 'A Apple não entregou uma sessão válida ao Supabase.',
     });
     expect(mockOpenAuthSessionAsync).not.toHaveBeenCalled();
   });
@@ -334,6 +421,11 @@ describe('serviço de autenticação social', () => {
     auth.refreshSession.mockResolvedValue({ data: { session }, error: null });
 
     await expect(refreshAuthSession()).resolves.toBe(session);
+    auth.refreshSession.mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
+    await expect(refreshAuthSession()).resolves.toBeUndefined();
     const callback = jest.fn();
     expect(subscribeToAuthState(callback)).toBe(subscription);
     expect(auth.onAuthStateChange).toHaveBeenCalledWith(callback);
