@@ -46,3 +46,39 @@ jobs:
 
       - name: Executar testes
         run: npm run test:ci
+
+  web-e2e:
+    name: Smoke test Web (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPO_PUBLIC_APP_ENV: development
+      EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder_for_ci_e2e
+      EXPO_PUBLIC_WEB_BASE_URL: https://setlistbr.app.br
+      EXPO_WEB_BASE_URL: .
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Configurar npm
+        run: npm install --global npm@11.20.0
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar export Web
+        run: npm run export:web
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Executar smoke test Web
+        run: npm run test:e2e:web

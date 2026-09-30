@@ -698,3 +698,420 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      também passaram. O commit `bc85f44` foi enviado à PR #19; o run remoto
      `36518619647` aprovou formatação, lint, tipos e testes. A revisão do diff
      não encontrou bloqueios; a PR segue aberta, sem merge.
+
+149. Em 29/09/2026, a PR #19 foi integrada por squash ao `main` no commit
+     `3cc8d5e`; o GitHub Pages em `https://setlistbr.app.br` respondeu HTTP 200
+     e o deploy mais recente publicou esse commit. O usuário confirmou a
+     validação funcional da versão Web e Android. O APK
+     standalone local de release foi gerado em `android/app/build/outputs/apk/release/app-release.apk`,
+     com bundle JS embutido, somente `arm64-v8a`, assinado pelo keystore local
+     (SHA-1 `5e8f16062ea3cd2c4a0d547876baa6f38cabf625`), instalado via ADB e
+     validado pelo usuário sem Metro. O item 11.1 segue aberto para as suítes
+     automatizadas RLS, Maestro e Playwright. O Mac está no macOS 12.7.6 e não
+     possui runtime Docker; executar RLS em runner Linux do GitHub Actions é o
+     próximo caminho a avaliar.
+
+150. Em 29/09/2026, a suíte pgTAP/RLS foi adicionada ao workflow do GitHub
+     Actions e passou na PR #20 junto com os checks de qualidade. O workflow de
+     qualidade agora também gera um export Web com valores públicos fictícios
+     e executa um smoke test Playwright para a tela de autenticação; o teste
+     verifica os provedores visíveis e ausência de exceções JavaScript. O fluxo
+     Maestro `.maestro/flows/android-auth-screen.yaml` cobre a abertura da tela
+     Android e os botões de provedores. O usuário confirmou a validação manual
+     de Web e Android. A execução local de Playwright não foi possível porque
+     o export Metro permaneceu sem concluir nesta máquina e o Playwright não
+     oferece Chromium para macOS 12; o daemon ADB também não iniciou nesta
+     sessão. Na PR #20, passaram os três checks: qualidade (run `36578740301`),
+     pgTAP/RLS (run `36578740356`) e smoke Playwright (run `36578740301`). Não
+     havia dispositivo conectado ao ADB ao tentar executar Maestro. O item 11.1
+     permanece pendente até rodar o fluxo Maestro em dispositivo/emulador; a
+     validação Android manual foi confirmada pelo usuário.
+
+151. Em 29/09/2026, o aparelho Android `SM_S731B` conectou via ADB Wi-Fi e o
+     fluxo Maestro `.maestro/flows/android-auth-screen.yaml` passou com Maestro
+     2.11.0: o app abriu após limpar o estado e exibiu Setlist, Continuar com
+     Google e Continuar com Apple (em breve). Com as 82 suítes/544 testes Jest,
+     pgTAP/RLS, Playwright e as validações manuais Web/Android aprovadas, a
+     tarefa 11.1 foi marcada como concluída. Progresso OpenSpec: 75/106; as
+     demais tarefas do grupo 11 seguem pendentes.
+
+152. Registrar como melhoria futura a ampliação da cobertura Maestro para
+     fluxos Android além da abertura e da tela de autenticação: login Google e
+     jornadas críticas de bandas, repertório e shows. O smoke test atual foi
+     considerado suficiente para o item 11.1 porque os fluxos críticos também
+     foram validados manualmente pelo usuário; a ampliação não bloqueia essa
+     conclusão.
+
+153. O Playwright cobre a versão Web no navegador: o smoke test atual abre o
+     export estático e verifica a tela inicial de autenticação, os provedores
+     apresentados e a ausência de exceções JavaScript não tratadas. Ampliar
+     futuramente essa suíte para os fluxos Web críticos, incluindo navegação e
+     operações de bandas, repertório e shows, mantendo a cobertura de callbacks
+     OAuth isolada de credenciais pessoais.
+
+154. Em 29/09/2026, o item 11.2 avançou com revisão estática de acessibilidade,
+     responsividade, desempenho e tom de voz. O texto `muted` tinha contraste
+     4,46:1 sobre o fundo principal; o token foi ajustado para 5,07:1 e os pares
+     principais de texto/fundo agora têm testes de contraste AA. O foco visível
+     de teclado foi restaurado para campos de texto na Web; o drawer móvel
+     informa que é modal e o foco do botão de navegação é removido antes de
+     abrir o modal para evitar foco dentro de conteúdo ocultado. O CI da PR #20
+     passou nos três checks: qualidade/testes, pgTAP/RLS e Playwright. Os testes
+     Playwright atuais verificam a tela de autenticação em 320, 768 e 1280 px,
+     axe nessa tela e o foco visível do botão Google. O build Android release
+     local com bundle JS foi concluído (`android/app/build/outputs/apk/release/app-release.apk`,
+     47 MB, somente arm64-v8a). Inicialmente não havia aparelho no ADB; depois,
+     o APK foi instalado no `SM_S731B`, abriu na tela de autenticação e o logcat
+     não mostrou exceção fatal. Essa revisão visual cobriu somente a tela de
+     autenticação em um celular. A revisão de desempenho foi estática: listas
+     de bandas, repertório e shows usam `FlatList`, enquanto telas de
+     detalhe/editor usam conteúdo rolável delimitado; não houve medição em
+     profiler. Como referência inicial no `SM_S731B`, `am start -W` reportou
+     420 ms para iniciar a Activity em cold start; no estado de autenticação,
+     `dumpsys meminfo` mostrou PSS total de aproximadamente 174 MiB. São
+     amostras pontuais, sem comparação e sem representar uma jornada completa.
+     A leitura do guia de tom não encontrou inconsistências que exigissem
+     alteração. O item 11.2 permanece pendente: ainda falta validar
+     as telas autenticadas e fluxos principais em celular/tablet/computador e
+     medir desempenho em uso representativo.
+
+155. Ainda em 29/09/2026, o aparelho `SM_S731B` foi conectado. O APK release foi
+     instalado por cima da versão anterior e manteve a sessão; após o login, a
+     revisão visual em celular percorreu Minhas bandas, integrantes da banda,
+     listas e detalhes de shows, repertório e música. Os avatares dos integrantes
+     carregaram, a letra longa rolou até o final mantendo a navegação acessível
+     e o logcat não mostrou exceções durante a navegação. O detalhe de música
+     exibia um cartão contextual vazio quando a música não tinha observações nem
+     referência externa; a renderização agora omite o cartão nesse caso e o
+     teste `SongDetailScreen-test.tsx` passou (12 testes). O APK foi reconstruído
+     e reinstalado para confirmar a correção na tela; o cartão vazio não aparece.
+     O item 11.2 permanece pendente para revisão das telas autenticadas em
+     tablet/computador e medições de desempenho representativas. O detalhe de
+     show ainda expõe o acesso ao modo palco, que deve ser ocultado conforme a
+     tarefa 11.6 antes do candidato a piloto.
+
+156. Ainda em 29/09/2026, a revisão Web autenticada foi retomada no Chrome com
+     Metro na porta 19006. Minhas bandas, lista de shows, integrantes,
+     repertório, detalhe do show e detalhe da música carregaram; os avatares dos
+     integrantes foram exibidos. A letra de `Cowboys from Hell` rolou até o fim
+     e a navegação inferior permaneceu visível. A tela de detalhes do show foi
+     revisada em larguras de janela de aproximadamente 1120, 768 e 390 px, sem
+     cortes horizontais aparentes. O Metro não registrou exceções durante essa
+     navegação. As larguras menores foram simuladas redimensionando o Chrome,
+     não em tablets ou celulares físicos. O item 11.2 permanece pendente para
+     medir desempenho em uso representativo e revisar interações adicionais;
+     o acesso ao modo palco continua visível até a tarefa 11.6.
+
+157. Em 29/09/2026, foi coletada uma referência inicial de desempenho Web a
+     partir do export estático de produção, em três contextos novos de Chrome
+     headless e sem throttling, servido por loopback. No desktop, as medianas
+     foram: TTFB 4 ms, DOMContentLoaded 429 ms, load 431 ms, FCP 136 ms e LCP
+     840 ms. Em viewport móvel emulada de 390×844 px: TTFB 3 ms,
+     DOMContentLoaded 423 ms, load 424 ms, FCP 140 ms e LCP 788 ms; as três
+     sessões não tiveram overflow horizontal. Não houve erros de página nem de
+     console. O bundle JavaScript único mede 5.455.098 bytes sem compressão e
+     980.922 bytes em gzip. São referências locais da rota inicial, sem sessão
+     autenticada, throttling ou latência de rede; as larguras móveis são
+     emulação no desktop, não medição em aparelho.
+
+158. Ainda em 29/09/2026, o editor do setlist foi revisado na Web em larguras
+     de janela de aproximadamente 1120, 768 e 390 px; os campos e ações
+     principais permaneceram visíveis. No fluxo de arraste, o usuário moveu
+     `Bloco 2` acima de `Principal` e Cancelar abriu o diálogo de descarte. Com
+     autorização do usuário, o editor foi fechado sem salvar; a tela de
+     detalhes voltou a mostrar a ordem persistida original. A confirmação foi
+     concluída por navegação para fora do editor porque o macOS bloqueou o
+     clique automatizado no diálogo. Em conjunto com a revisão Android física,
+     amostras Android de cold start/PSS já registradas, verificações de
+     acessibilidade e voz documentadas no item 154 e as referências Web dos
+     itens 156–157, o item 11.2 está concluído. As métricas são linhas de base
+     locais e não estabelecem metas de desempenho para rede real.
+
+159. Em 29/09/2026, foi iniciado o item 11.3. Foram criados rascunhos de
+     termos de uso, política de privacidade e procedimento de remoção em
+     `docs/TERMOS_DE_USO_RASCUNHO.md`,
+     `docs/POLITICA_DE_PRIVACIDADE_RASCUNHO.md` e
+     `docs/PROCEDIMENTO_DE_REMOCAO_RASCUNHO.md`. O conteúdo reflete o schema e
+     os fluxos atuais: dados básicos de perfil, conteúdo compartilhado por
+     banda, aceites e convites; exclusão de conta com desvinculação/anonimização
+     de referências e preservação do conteúdo das bandas ativas. Não foram
+     presumidos controlador, canal de privacidade, prazos de retenção, região de
+     hospedagem, política para menores, bases legais ou processo operacional de
+     denúncias; esses pontos estão destacados como pendências. Os documentos
+     são rascunhos e precisam de confirmação do responsável e revisão jurídica.
+     A tarefa 11.3 continua pendente e não pode ser tratada como concluída até
+     essa revisão. Progresso OpenSpec: 76/106.
+
+160. Na revisão guiada dos documentos, o responsável informou que opera o
+     Setlist como pessoa física e questionou a divulgação pública de nome e
+     documento. Os rascunhos agora separam identificação do controlador e canal
+     de contato, registram o operador como pessoa física e deixam CPF/endereço
+     sem preenchimento até avaliação jurídica. O canal de contato dedicado
+     ainda precisa ser escolhido. Foi esclarecido que a LGPD enumera
+     identificação e contato do controlador separadamente; exigências do
+     Decreto nº 7.962/2013 podem depender de o serviço se enquadrar como oferta
+     ou contratação de consumo em meio eletrônico. O modelo comercial
+     (gratuito/pago e eventual contratação pelo app/site) e a decisão jurídica
+     permanecem pendentes.
+
+161. O responsável confirmou em 29/09/2026 que o Setlist será gratuito para
+     usuários e que pretende disponibilizar o código-fonte como open source.
+     Os rascunhos de termos e privacidade agora registram essa decisão e
+     distinguem o código aberto do conteúdo privado das bandas. A licença do
+     repositório ainda não foi escolhida: não há arquivo `LICENSE` na raiz nem
+     campo `license` ou `repository` no `package.json`. A política também deixa
+     pendente confirmar publicidade, patrocínio ou receita indireta; não se
+     presume que gratuidade, por si só, resolva a aplicabilidade das regras de
+     consumo. A revisão jurídica continua necessária.
+
+162. O responsável confirmou que pretende abrir o repositório inteiro, sem
+     preferência de licença. O documento de termos esclarece que a intenção
+     abrange o código original de app, migrações e documentação, enquanto
+     arquivos de terceiros continuam sujeitos aos avisos/licenças próprios.
+     Foi verificado que não existe licença geral na raiz; o único arquivo
+     encontrado é `vendor/decode-uri-component/LICENSE`. A escolha da licença
+     continua pendente de decisão explícita; não foi criada licença nem
+     declarada a publicação legal do projeto como open source.
+
+163. Em 29/09/2026, o responsável escolheu GNU AGPL-3.0 para o repositório
+     inteiro. Foi adicionada a cópia oficial e inalterada da licença em
+     `LICENSE`, com identificador `AGPL-3.0-only` em `package.json`. O README e
+     os rascunhos de termos e privacidade registram que o material original do
+     projeto (app, migrações e documentação) usa AGPL-3.0-only, que componentes
+     de terceiros retêm seus avisos e licenças e que isso não licencia dados ou
+     letras enviadas pelos usuários. O item 162 registra o estado anterior à
+     decisão. A revisão jurídica dos documentos de produto continua pendente.
+
+164. Na revisão guiada em 29/09/2026, o responsável confirmou que não haverá
+     anúncios, patrocínios, doações ou receita ligada ao aplicativo nos planos
+     atuais e que os custos serão cobertos pelo responsável. A política de
+     privacidade foi atualizada com essa informação e orienta nova revisão se
+     o modelo mudar.
+
+165. O responsável escolheu um canal geral de contato, em vez de um endereço
+     exclusivo para privacidade. Os três rascunhos agora indicam que o mesmo
+     e-mail geral receberá dúvidas, solicitações de titulares e pedidos de
+     remoção de conteúdo. O endereço ainda não foi definido e permanece como
+     campo pendente; antes da publicação será necessário monitorá-lo para esses
+     tipos de solicitação.
+
+166. O responsável definiu `contato@setlistbr.app.br` como canal geral. O
+     endereço foi inserido nos três rascunhos e será monitorado. O
+     responsável também decidiu destinar o Setlist apenas a pessoas com 18 anos
+     ou mais. Termos e política registram essa regra, mas o app ainda precisa
+     de uma forma de confirmação de idade e de procedimento para contas que
+     eventualmente pertençam a menores. O item 11.3 continua pendente, inclusive
+     de revisão jurídica. A LGPD exige melhor interesse no tratamento de dados
+     de crianças e adolescentes (art. 14):
+     <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
+
+167. O responsável não quer publicar nome ou documento pessoal e perguntou se
+     o domínio do app pode servir como identificação. Os rascunhos registram
+     provisoriamente `Setlist — setlistbr.app.br` como identificação pública
+     pretendida, sem inserir nome ou CPF; a suficiência jurídica dessa forma
+     para identificar o controlador pessoa física permanece pendente de
+     assessoria. A LGPD lista identificação e contato do controlador como
+     informações distintas (art. 9º). O domínio pode estar associado a dados do
+     titular consultáveis publicamente; o responsável aceita essa possibilidade.
+     Referência jurídica: <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
+
+168. O responsável decidiu usar `Setlist — setlistbr.app.br` como identificação
+     pública nos documentos. Termos e política foram ajustados de “pretendida”
+     para “escolhida”; não foram inseridos nome ou CPF. A validação jurídica de
+     que essa identificação é suficiente continua pendente. A tarefa 11.3
+     permanece aberta.
+
+169. O responsável confirmou que não se opõe à divulgação de dados do titular
+     que possam aparecer em consultas públicas sobre o domínio. Esse ponto
+     deixa de ser uma pendência para a escolha do domínio. Continua pendente a revisão
+     jurídica sobre se `Setlist — setlistbr.app.br` identifica suficientemente
+     o controlador pessoa física; a tarefa 11.3 permanece aberta.
+
+170. O responsável confirmou que o e-mail geral `contato@setlistbr.app.br` será
+     devidamente monitorado. Os três rascunhos agora registram esse
+     compromisso; a tarefa 11.3 permanece aberta.
+
+171. Para a regra de acesso a maiores de 18 anos, o responsável escolheu uma
+     autodeclaração antes do login. Termos e política agora dizem que a pessoa
+     confirmará ter 18 anos ou mais antes de iniciar a autenticação, sem pedir
+     data de nascimento para esse fim. O controle ainda não está implementado.
+
+172. O responsável questionou se é necessário detalhar um fluxo específico para
+     contas de menores. Os rascunhos agora usam uma regra geral: o serviço pode
+     restringir ou suspender o acesso se houver motivo para entender que os
+     critérios de elegibilidade não foram atendidos, e tratar os dados conforme
+     a política e as obrigações legais, sem prometer exclusão automática. A LGPD
+     exige que o tratamento de dados de crianças e adolescentes observe seu
+     melhor interesse (art. 14); não foi afirmada uma obrigação de exclusão
+     automática. O item 11.3 continua pendente de implementação e revisão
+     jurídica. Referência: <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
+
+173. O responsável escolheu não nomear encarregado formal, usando o canal geral
+     `contato@setlistbr.app.br` para comunicação com titulares, condicionado à
+     confirmação jurídica de que se aplica a dispensa para agentes de
+     tratamento de pequeno porte. A política e o procedimento registram a
+     intenção e mantêm pendente verificar os requisitos e as exclusões, como
+     tratamento de alto risco. A Resolução CD/ANPD nº 2/2022 prevê a dispensa
+     para agentes elegíveis e exige que mantenham canal de comunicação:
+     <https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022>.
+     O item 11.3 continua pendente de confirmação jurídica.
+
+174. A apuração de retenção para a política foi retomada em 30/09/2026. O
+     workflow do GitHub Pages configura o artefato estático de publicação com
+     retenção de 1 dia. Pela API autenticada do GitHub, a retenção configurada
+     para artefatos e logs do Actions neste repositório é de 90 dias (máximo
+     permitido também 90). O CLI Supabase lista `setlist-dev` e `setlist-prod`
+     na organização; o `.env.local` deste checkout aponta para `setlist-dev`.
+     A listagem não informa o plano nem PITR. A documentação Supabase informa
+     logs API/DB por 1 dia no Free, 7 no Pro, 28 no Team e 90 no Enterprise;
+     backups automáticos diários não estão incluídos no Free, ficam 7 dias no
+     Pro, 14 no Team e têm prazo personalizado no Enterprise. Confirmar o plano
+     e o PITR no painel Supabase; ainda falta definir retenção de dados ativos,
+     aceites e exclusão dos backups. A nota interna da política foi atualizada
+     com os achados e deve ser substituída por prazos do projeto antes da
+     publicação. Referências: <https://supabase.com/pricing>,
+     <https://supabase.com/features/database-backups>,
+     <https://supabase.com/docs/reference/api/v1-get-an-organization> e
+     <https://docs.github.com/en/organizations/managing-organization-settings/configuring-the-retention-period-for-github-actions-artifacts-and-logs-in-your-organization>.
+
+175. O responsável concordou que os termos concedam ao Setlist uma autorização
+     não exclusiva e sem cobrança, limitada a armazenar, processar, fazer cópias
+     técnicas necessárias e exibir conteúdo às pessoas autorizadas da banda para
+     operar o serviço. A cláusula exclui publicação fora da banda, anúncios e
+     treinamento de modelos; permite operações pelos fornecedores de
+     infraestrutura; e prevê que conteúdo compartilhado pode permanecer após a
+     exclusão da conta de quem o enviou, terminando a autorização após remoção
+     dos sistemas ativos, ressalvados backups e retenções legais. A seção 3 dos
+     termos foi atualizada. Confirmar redação, alcance e compatibilidade com
+     fluxos de exclusão na revisão jurídica; item 11.3 continua aberto.
+
+176. O responsável concordou que mudanças relevantes e encerramento planejado
+     sejam comunicados pelo e-mail cadastrado e por aviso dentro do app, com
+     antecedência razoável sempre que possível. Pedidos de acesso/portabilidade
+     de dados pessoais serão avaliados pelo canal geral conforme a política e a
+     lei. Não se promete exportação completa do conteúdo das bandas, pois o app
+     não oferece essa função; o destino do conteúdo deve ser explicado no aviso
+     de encerramento, respeitando direitos e obrigações legais. A seção 5 dos
+     termos foi atualizada. Revisar a formulação jurídica antes da publicação;
+     item 11.3 continua aberto.
+
+177. O responsável confirmou que o app não tem finalidades adicionais como
+     analytics, publicidade, marketing, venda de dados ou compartilhamento
+     comercial. A seção 3 da política agora descreve os propósitos observados e
+     inclui um mapeamento preliminar de bases legais candidatas, sem as
+     apresentar como conclusões: execução de contrato para funções pedidas;
+     obrigação legal ou exercício regular de direitos conforme a operação; e legítimo
+     interesse para segurança/abuso apenas após avaliação documentada. A seção
+     4 registra a ausência de monetização/comercialização e mantém pendente o
+     inventário dos fornecedores e compartilhamentos operacionais. A LGPD prevê
+     as hipóteses do art. 7º; a ANPD orienta teste de finalidade, necessidade,
+     balanceamento e salvaguardas para legítimo interesse:
+     <https://www.planalto.gov.br/ccivil_03/leis/l13709.htm> e
+     <https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia_orientativo_hipoteses_legais_tratamento_de_dados_pessoais_legitimo_interesse>.
+     O mapa requer revisão jurídica e confirmação de retenção e dados técnicos;
+     item 11.3 permanece aberto.
+
+178. O inventário técnico identificou Google OAuth, Supabase (Auth e banco),
+     GitHub Pages para a versão Web e player oficial do YouTube. O CLI Supabase
+     lista dev e prod em `sa-east-1` (São Paulo); a região primária não prova que
+     todo processamento/subprocessamento ocorre no Brasil, pois o DPA permite
+     subprocessadores em outros locais. O GitHub declara que registra IPs de
+     visitantes do Pages por segurança; prazo desses registros de visita não
+     foi confirmado e é separado da retenção de logs/artifacts do Actions. O
+     código usa `youtube.com/iframe_api`, portanto o player externo é carregado
+     quando usado. A Apple foi incluída como integração planejada: o botão de
+     login está desabilitado e indica “em breve”, então ainda não foi incluída
+     como fluxo ativo. O fornecedor da caixa `contato@setlistbr.app.br`, os
+     escopos Google, contratos e suboperadores, destinos e mecanismos para
+     transferências internacionais ainda precisam ser inventariados. Política
+     §2 e §4 recebeu o inventário e ressalvas. Referências: <https://supabase.com/docs/guides/platform/regions>,
+     <https://supabase.com/legal/customer-resources/data-processing-addendum>,
+     <https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages>,
+     <https://developers.google.com/identity/protocols/oauth2/policies>,
+     <https://www.apple.com/legal/privacy/data/en/sign-in-with-apple/> e
+     <https://developers.google.com/youtube/terms/developer-policies>.
+     A tarefa 11.3 continua aberta.
+
+179. Por solicitação do responsável, Apple foi incluída no inventário como
+     integração planejada, não ativa: o botão atual diz “em breve” e não inicia
+     login. Uma consulta aos registros MX públicos de `setlistbr.app.br` retornou
+     `route1/2/3.mx.cloudflare.net`, compatível com roteamento de entrada do
+     Cloudflare Email Routing. Isso identifica o primeiro salto do e-mail, mas
+     não revela a regra nem a caixa de destino. A política agora registra
+     Cloudflare para o roteamento e deixa o destino final pendente. Confirmar
+     com o responsável a plataforma que recebe as mensagens. Documentação:
+     <https://developers.cloudflare.com/email-service/configuration/domains/>.
+
+180. O responsável confirmou que as mensagens encaminhadas pela Cloudflare para
+     `contato@setlistbr.app.br` chegam a uma caixa Gmail/Google. A política agora
+     identifica Cloudflare como roteador de entrada e Google como destinatário
+     final das mensagens, que podem conter dados pessoais inseridos pela pessoa
+     solicitante. Item registrado sob a mesma seção de fornecedores; verificar
+     os termos efetivamente usados na revisão jurídica. O item 11.3 continua
+     aberto.
+
+181. O responsável aprovou a confirmação de recebimento de pedidos gerais e
+     denúncias de conteúdo em até 5 dias úteis. Os rascunhos da política de
+     privacidade e do procedimento de remoção agora distinguem esse aviso do
+     prazo de atendimento ou resposta de mérito, que segue o prazo legal
+     aplicável ou a análise necessária ao caso. Ainda falta definir prazo de
+     retenção dos registros de solicitações. Referências oficiais: a ANPD indica
+     os prazos legais por categoria de pedido e a Resolução nº 2/2022 prevê
+     prazos diferenciados para agentes de pequeno porte elegíveis:
+     <https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/direito-dos-titulares>
+     e
+     <https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022>.
+
+182. O responsável aprovou verificar pedidos de conta primeiro pelo e-mail
+     associado à conta e pedir apenas confirmação adicional mínima se houver
+     divergência ou dúvida sobre autoridade. Denúncias de conteúdo também terão
+     verificação proporcional da relação com o conteúdo/direito invocado. Não
+     pedir documento oficial de identidade por padrão; em caso excepcional,
+     explicar a necessidade e usar canal seguro. A política e o procedimento
+     foram atualizados. Falta definir o procedimento seguro para documentos
+     excepcionais e revisar a redação juridicamente; item 11.3 permanece aberto.
+
+183. O responsável aprovou usar a caixa Gmail do canal como registro de casos,
+     com uma etiqueta dedicada a privacidade/remoção, acesso restrito e sem
+     planilha paralela. Acompanhar cada pedido pelo histórico da própria
+     mensagem, anotando data, tipo, situação e encerramento; manter somente uma
+     justificativa resumida e necessária. O responsável aprovou uma regra de
+     retenção orientada à finalidade: conservar registros enquanto necessários
+     para tratar/documentar o caso, cumprir obrigações ou exercer direitos;
+     depois excluir ou anonimizar, salvo hipótese legal de guarda adicional,
+     sem retenção indefinida. Política e procedimento foram atualizados. O
+     inventário deve confirmar prazos e exceções concretos com assessoria
+     jurídica antes da publicação. A LGPD (arts. 15 e 16) não fixa um prazo
+     universal; a ANPD orienta que a necessidade seja avaliada conforme o caso:
+     <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>
+     e
+     <https://www.gov.br/anpd/pt-br/acesso-a-informacao/perguntas-frequentes/perguntas-frequentes>.
+     Item 11.3 continua aberto.
+
+184. O responsável aprovou o procedimento excepcional para documentos de
+     identidade: não solicitar por padrão nem receber na caixa geral de e-mail;
+     se indispensável, explicar o motivo, usar apenas canal seguro previamente
+     habilitado, apagar a cópia após a verificação salvo obrigação legal de
+     retenção e guardar no caso somente justificativa, data e resultado, sem
+     reproduzir dados do documento. Se o canal seguro não estiver disponível,
+     buscar meio alternativo proporcional e não pedir o envio do documento. A
+     política e o procedimento foram atualizados. Continua pendente habilitar
+     um canal seguro antes de qualquer coleta excepcional, caso ela venha a ser
+     necessária, além da revisão jurídica. Item 11.3 permanece aberto.
+
+185. O responsável aprovou que o controlador receba e trate alertas de
+     segurança pela caixa `contato@setlistbr.app.br`, usando etiqueta separada
+     para incidentes e acesso restrito. O procedimento de remoção agora inclui
+     triagem, preservação limitada de evidências, avaliação de risco, mitigação
+     e registro mínimo das decisões; a política também lista incidentes como
+     assunto que pode ser encaminhado ao canal geral. Ainda é necessário
+     validar medidas técnicas concretas, completar o plano operacional de
+     resposta e revisar prazos/comunicações conforme as regras aplicáveis; item
+     11.3 continua aberto.
+
+186. O responsável informou que já tem acesso à caixa postal
+     `contato@setlistbr.app.br`. O procedimento agora registra esse estado e
+     mantém como verificação operacional antes da ativação a criação das
+     etiquetas separadas para privacidade/remoção e incidentes e a conferência
+     dos acessos. A disponibilidade da caixa não confirma, por si só, a
+     inclusão do endereço na Web/aplicativos ou a configuração das etiquetas.

@@ -153,7 +153,9 @@ describe('shell de navegação', () => {
     await view.findByText('Festival da Praça');
     await fireEvent.press(view.getByLabelText('Abrir menu geral'));
 
-    expect(view.getByTestId('navigation-drawer')).toBeTruthy();
+    expect(
+      view.getByTestId('navigation-drawer').props.accessibilityViewIsModal,
+    ).toBe(true);
     const myBandsLink = view.getByLabelText('Ir para Minhas bandas');
     const youtubePrototypeLink = view.getByLabelText(
       'Ir para Player YouTube (protótipo)',

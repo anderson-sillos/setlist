@@ -1184,6 +1184,19 @@ openspec status --change definir-mvp-setlist
 - adicionar backend e funcionalidades em incrementos revisáveis;
 - conduzir o piloto com uma banda após as validações técnicas e jurídicas.
 
+## Licença
+
+O material original deste repositório é disponibilizado sob a licença
+[GNU Affero General Public License, versão 3 (AGPL-3.0-only)](LICENSE). Isso
+inclui o aplicativo, as migrações e a documentação do projeto. Se uma versão
+modificada for oferecida como serviço pela rede, a AGPL-3.0 exige disponibilizar
+aos seus usuários o código-fonte correspondente, conforme os termos da licença.
+
+Componentes de terceiros mantêm suas próprias licenças e avisos; por exemplo,
+`vendor/decode-uri-component` continua sob MIT. A licença do código não concede
+direitos sobre letras, dados ou outros conteúdos inseridos pelos usuários no
+serviço.
+
 ## Apresentação
 
 A apresentação pode ser aberta pela [visualização publicada no GitHub Pages](https://setlistbr.app.br/docs/apresentacao.html) quando o domínio estiver liberado. Durante a transição DNS, use a [prévia temporária](https://anderson-sillos.github.io/setlist/docs/apresentacao.html). O arquivo-fonte autossuficiente está em [`docs/apresentacao.html`](docs/apresentacao.html) e possui layout responsivo para navegadores de computadores, Android, iPhone e iPad. Use as setas do teclado, os botões na tela ou gestos horizontais para navegar; a impressão do navegador gera uma versão em PDF com um slide por página.

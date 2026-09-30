@@ -2,6 +2,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { colors, layout, radii } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface NavigationIconButtonProps {
   readonly accessibilityLabel: string;
@@ -21,7 +22,10 @@ export function NavigationIconButton({
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       hitSlop={8}
-      onPress={onPress}
+      onPress={() => {
+        blurWebFocus();
+        onPress();
+      }}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
       <AppIcon color={color} name={icon} />

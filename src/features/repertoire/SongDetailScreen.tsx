@@ -166,27 +166,29 @@ export function SongDetailScreen({
             </View>
           </Card>
 
-          <Card style={styles.secondaryCard}>
-            {song.notes ? (
-              <View style={styles.notes}>
-                <AppText accessibilityRole="header" variant="heading">
-                  Observações
-                </AppText>
-                <AppText>{song.notes}</AppText>
-              </View>
-            ) : null}
+          {song.notes || youtubeReference ? (
+            <Card style={styles.secondaryCard} testID="song-detail-context">
+              {song.notes ? (
+                <View style={styles.notes}>
+                  <AppText accessibilityRole="header" variant="heading">
+                    Observações
+                  </AppText>
+                  <AppText>{song.notes}</AppText>
+                </View>
+              ) : null}
 
-            {youtubeReference ? (
-              <AppButton
-                accessibilityLabel="Abrir referência no YouTube"
-                icon="externalLink"
-                label="Abrir no YouTube"
-                onPress={openYoutubeReference}
-                style={styles.youtubeButton}
-                variant="secondary"
-              />
-            ) : null}
-          </Card>
+              {youtubeReference ? (
+                <AppButton
+                  accessibilityLabel="Abrir referência no YouTube"
+                  icon="externalLink"
+                  label="Abrir no YouTube"
+                  onPress={openYoutubeReference}
+                  style={styles.youtubeButton}
+                  variant="secondary"
+                />
+              ) : null}
+            </Card>
+          ) : null}
 
           <Card style={styles.lyricCard} tone="dark">
             <View style={styles.lyricHeader}>

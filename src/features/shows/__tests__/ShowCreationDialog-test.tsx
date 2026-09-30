@@ -103,8 +103,9 @@ describe('<ShowCreationDialog />', () => {
   });
   it('salva a data selecionada no calendário integrado', async () => {
     const onSubmit = jest.fn();
-    const selectedDate = new Date();
-    selectedDate.setDate(selectedDate.getDate() + 1);
+    const today = new Date();
+    const selectedDate = new Date(today);
+    selectedDate.setDate(today.getDate() + 1);
     const dateKey = [
       selectedDate.getFullYear(),
       String(selectedDate.getMonth() + 1).padStart(2, '0'),
@@ -119,6 +120,12 @@ describe('<ShowCreationDialog />', () => {
     );
 
     await fireEvent.press(view.getByLabelText('Selecionar data do show'));
+    if (
+      selectedDate.getMonth() !== today.getMonth() ||
+      selectedDate.getFullYear() !== today.getFullYear()
+    ) {
+      await fireEvent.press(view.getByLabelText('Próximo mês'));
+    }
     await fireEvent.press(view.getByTestId('calendar-day-' + dateKey));
     await fireEvent.press(view.getByLabelText('Confirmar criação do show'));
 

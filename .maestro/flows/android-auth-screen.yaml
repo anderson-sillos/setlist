@@ -1,0 +1,7 @@
+appId: com.andersonsillos.setlist
+---
+- launchApp:
+    clearState: true
+- assertVisible: Setlist
+- assertVisible: Continuar com Google
+- assertVisible: Continuar com Apple (em breve)
