@@ -16,9 +16,12 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Grupo 11: validação Web e Android concluída pelo usuário. A validação de produto e a distribuição iOS permanecem adiadas.
 - Preparação técnica iOS: build EAS de simulador concluído, mas requer iOS 16.4; o Mac disponível tem Xcode 14.2 e runtime iOS 16.2. A validação no simulador está pendente de runtime compatível. Builds para aparelho dependem do provisionamento EAS.
 - CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
-- Autenticação Apple: login Web e Android validado manualmente pelo usuário nos cenários de sucesso e falha. A implementação nativa iOS está no código, mas aguarda build e validação quando houver simulador compatível.
+- Autenticação Apple: login Web e Android validado manualmente pelo usuário nos cenários de sucesso e falha. A implementação nativa iOS tem IPA Ad Hoc pronto para iPhone físico; falta a validação manual no aparelho.
 - Supabase `setlist-dev`: `site_url` está configurado para `https://setlistbr.app.br/auth/callback` como fallback global de erros sem estado OAuth válido. O código envia `redirectTo` por plataforma no início do fluxo; em falha de `state`, o fallback do servidor continua sendo global. Produção não foi alterada.
-- APK Android de desenvolvimento instalado no aparelho e conectado ao Metro na porta 19006 para a validação Apple; não foi feito build iOS.
+- APK Android de desenvolvimento instalado no aparelho e conectado ao Metro na porta 19006 para a validação Apple.
+- EAS iOS preview interno: build `4dcab6d9-67c6-4d92-87ef-c24742faf799` concluído para o iPhone XR. O perfil `preview-ios` não ativa Development Client; instalação e validação nativa no iPhone ainda pendentes.
+- O perfil `preview-ios` herda a distribuição interna do `preview`, seleciona o ambiente de desenvolvimento e ativa o plugin Google nativo necessário aos pods iOS. O perfil geral `preview`, Android e Web não foram alterados.
+- As versões patch de `expo`, `expo-constants`, `expo-linking` e `expo-router` foram alinhadas ao SDK 57 após a primeira build falhar no Expo Doctor. `npx expo install --check` passou.
 - Progresso OpenSpec: consultar `openspec status --change definir-mvp-setlist`; o item 5.1 continua aberto até a validação nativa iOS.
 
 ## Fontes de verdade
@@ -1128,3 +1131,17 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      sendo calculados por plataforma no início do login. A configuração de
      produção não foi alterada. A validação nativa iOS, inclusive falha, segue
      pendente até haver simulador compatível; nenhum build iOS foi feito.
+
+188. Para validar em iPhone físico sem Development Client, foi criado o perfil
+     EAS `preview-ios`, isolado do preview Android/Web. Ele herda distribuição
+     interna, não define `developmentClient`, ativa o plugin Google nativo para
+     aplicar os `modular_headers` necessários a `AppCheckCore`,
+     `GoogleUtilities` e `RecaptchaInterop` e informa o URL scheme reverso do
+     cliente iOS durante a avaliação inicial do app config. Os quatro pacotes
+     Expo fora do patch esperado pelo SDK 57 foram atualizados; a primeira
+     tentativa de build falhou no Expo Doctor e a segunda revelou a dependência
+     dos module maps. A terceira compilação concluiu como IPA Ad Hoc para o
+     iPhone XR registrado. Build EAS: `4dcab6d9-67c6-4d92-87ef-c24742faf799`.
+     O IPA está pronto para instalação pelo link/QR da página da build. Ainda
+     faltam a instalação e a validação manual do login Apple no iOS; as
+     validações Web/Android continuam aprovadas.

@@ -37,6 +37,15 @@
         "buildType": "apk"
       }
     },
+    "preview-ios": {
+      "extends": "preview",
+      "environment": "development",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "development",
+        "SETLIST_NATIVE_GOOGLE_IOS": "1",
+        "SETLIST_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.993309278725-t2bmmn8f99qr34qtnhus4q32ckh15eor"
+      }
+    },
     "production": {
       "environment": "production",
       "env": {
