@@ -73,31 +73,25 @@ verificação terminar, salvo obrigação legal de retenção. Manter no histór
 caso apenas a justificativa para a coleta, a data e o resultado da verificação,
 sem copiar dados do documento.
 
-**Limite técnico atual:** o comando de remover música a apaga do banco ativo
-somente quando não há referência em shows. Havendo referência, ele a **arquiva**;
-o registro e a letra permanecem no banco e a política de leitura ainda permite
-acesso aos integrantes da banda. Arquivar não é medida de indisponibilização
-para uma denúncia. O app não oferece ao controlador uma fila de moderação nem
-um comando administrativo de bloqueio por conteúdo. A tabela de músicas também
-não guarda quem criou ou alterou cada registro; não é possível presumir que o
-responsável pelo envio será identificável. Também não há filtro automático de
-conteúdo pornográfico; a proibição contratual, sozinha, não impede que alguém
-insira esse material. Antes de ativar este procedimento,
-definir e validar um meio autorizado de retirar ou restringir
-efetivamente o conteúdo denunciado, inclusive quando estiver ligado a shows,
-com registro da decisão, controle de acesso e possibilidade de revisão. Definir
-como ouvir o responsável pela banda quando não for possível identificar quem
-inseriu o material, sem atribuir a essa pessoa autoria ou responsabilidade
-individual por presunção.
+**Limite técnico e primeiro corte:** arquivar música vinculada a show não a
+torna inacessível. A implementação desta change cria registro administrativo
+separado para ocultação, aplicado nas consultas de músicas e itens de show, e
+filtro simples que recusa gravações sinalizadas. O filtro não identifica todas
+as infrações. A tabela de músicas ainda não guarda quem criou ou alterou cada
+registro; não se deve presumir a autoria do Proprietário ou Editor. A medida
+administrativa e o fluxo abaixo precisam ser validados no ambiente de destino
+antes de sua ativação operacional.
 
 ## 3. Revisão posterior por denúncia ou inspeção
 
-O modelo decidido pelo responsável é um processo paralelo **após** a edição
-salva na banda, acionado por denúncias enviadas por e-mail ou por inspeções.
-Não existe aprovação de cada publicação antes de sua leitura pelos integrantes.
+O primeiro corte aplica filtro preventivo simples às gravações de músicas e
+mantém revisão **posterior** por denúncia ou inspeção. Não há fila de aprovação
+prévia de cada envio. Integrantes denunciam música ou usuário pelo formulário
+do app; o serviço encaminha identificadores e a descrição à caixa
+**contato@setlistbr.app.br** sem anexar automaticamente a letra. Pessoas externas
+e quem contesta uma recusa do filtro podem escrever diretamente ao endereço.
 O responsável ainda precisa definir critérios, frequência, pessoa autorizada e
-registro mínimo das inspeções. A ausência de filtro automático ou aprovação
-prévia não dispensa a retirada efetiva de conteúdo quando a análise exigir.
+registro mínimo das inspeções.
 
 1. Registrar e acompanhar denúncias recebidas por e-mail na caixa Gmail do
    canal, usando uma etiqueta dedicada a privacidade/remoção para organização.
@@ -129,8 +123,8 @@ prévia não dispensa a retirada efetiva de conteúdo quando a análise exigir.
    desnecessária do material durante a apuração.
 3. Registrar quem decidiu a prioridade, qual conteúdo foi localizado, o risco
    considerado e a medida tecnicamente disponível. Se uma restrição imediata
-   for necessária, usar somente um meio que realmente retire o acesso ao
-   material para o público afetado; **não usar o arquivamento da música como
+   for necessária, aplicar o registro administrativo de ocultação e conferir
+   suas políticas de leitura; **não usar o arquivamento da música como
    bloqueio**. Se não houver meio validado, escalar ao responsável técnico e à
    assessoria jurídica para definir uma ação proporcional e documentar a
    limitação; não responder à pessoa que o conteúdo foi removido sem verificar.
@@ -168,6 +162,65 @@ extrajudicial obriga retirada automática. Se o Setlist for classificado como
 serviço direcionado a menores ou de acesso provável por eles, aplicar também
 os requisitos de notificação, retirada e recurso dos arts. 28 a 30 do ECA
 Digital, com prazos procedimentais definidos antes da ativação.
+
+### Rotina mínima da caixa e contestação do filtro
+
+1. Na caixa restrita de `contato@setlistbr.app.br`, identificar o assunto
+   `[Setlist] Denúncia <UUID>` e etiquetar o caso. O UUID do assunto liga a
+   resposta à denúncia. Para e-mail direto ou contestação de filtro, criar um
+   identificador interno e manter a conversa na mesma sequência de mensagens.
+2. Registrar no histórico da mensagem a data de recebimento, tipo de alvo,
+   banda, responsável pela análise, estado e prazo de retorno. Conferir os
+   identificadores no ambiente administrativo antes de consultar conteúdo.
+3. Em contestação de recusa automática, pedir apenas o campo e o contexto
+   necessários; verificar se a regra atingiu material permitido. Uma exceção
+   nunca deve ser feita por um editor da banda no banco: corrigir a regra por
+   migration revisada ou orientar uma redação permitida, mantendo o registro da
+   decisão e a possibilidade de nova tentativa.
+4. Responder pelo mesmo e-mail com recebimento, decisão ou prazo de análise.
+   Registrar a medida aplicada e o resultado da conferência; encerrar a etiqueta
+   somente após comunicar o resultado. Evitar copiar letras para o e-mail.
+
+### Ocultação administrativa de música
+
+Executar no SQL Editor do projeto correto, com acesso administrativo, depois
+de conferir o UUID da música e registrar motivo, responsável e caso no histórico
+restrito. Não conceder acesso de escrita às tabelas administrativas aos papéis
+`anon` ou `authenticated`.
+
+```sql
+insert into public.moderated_songs (song_id, reason, recorded_by)
+values ('<song-uuid>', '<motivo e identificador do caso>', '<responsável>')
+on conflict (song_id) do nothing;
+```
+
+Conferir como integrante e editor que a música não aparece no repertório, no
+detalhe nem na setlist do show. Revogar o acesso do cliente às cópias locais
+requer reconexão ou abertura do app; a pessoa que recebeu a letra antes da
+ocultação pode ter conservado uma cópia fora do Setlist. Para reverter após
+decisão documentada:
+
+```sql
+delete from public.moderated_songs where song_id = '<song-uuid>';
+```
+
+### Suspensão administrativa de conta
+
+Conferir a identidade pelo UUID de `auth.users`; registrar o caso e executar
+primeiro a restrição de banco, que também atinge sessões com JWT ainda válido:
+
+```sql
+insert into public.suspended_accounts (user_id, reason, recorded_by)
+values ('<user-uuid>', '<motivo e identificador do caso>', '<responsável>')
+on conflict (user_id) do nothing;
+```
+
+Em seguida, aplicar o banimento da pessoa em **Supabase Auth → Users** no projeto
+correto e confirmar que novo login não é aceito. Conferir que a sessão anterior
+não lê nem altera dados pelo Data API. Para reverter, desbanir no Auth após
+decisão documentada e excluir a restrição de banco; confirmar o acesso com
+novo login. Se qualquer etapa falhar, manter o caso aberto e registrar o estado
+parcial. Os comandos de banco exigem acesso administrativo ao projeto.
 
 ## 4. Incidentes de segurança
 
@@ -232,15 +285,13 @@ rascunho como plano operacional.
   recurso conforme o enquadramento jurídico aplicável.
 - Definir o processo paralelo de inspeção posterior: critérios, frequência,
   pessoa autorizada, base legal, acesso ao conteúdo, registro mínimo e descarte.
-  Tornar o canal de denúncia por e-mail facilmente acessível no aplicativo,
-  mantendo o e-mail como meio de envio; validar se a apresentação desse fluxo
-  atende às exigências de denúncia dentro do app nas lojas.
-- Alinhar o termo de aceite da banda à proibição de conteúdo pornográfico e à
-  responsabilidade individual de quem insere ou edita, antes de pôr em vigor
-  os novos termos gerais; definir como colher e registrar novo aceite.
-- Implementar e validar um mecanismo de restrição ou retirada efetiva de
-  conteúdo denunciado, inclusive música ligada a shows, com autorização
-  administrativa controlada. O arquivamento atual não atende a essa finalidade.
+  Validar em Web, Android e iOS o formulário interno de denúncia e o recebimento
+  do e-mail transacional na caixa. Configurar chave API do Brevo e remetente
+  verificado como segredos da Edge Function, sem colocá-los no aplicativo.
+- Confirmar o novo aceite do termo da banda após a atualização material e a
+  sincronização entre a versão do aplicativo e a versão vigente no banco.
+- Executar em ambiente controlado a ocultação de música associada a show e a
+  suspensão com sessão anterior; conferir que integrantes não revertem a medida.
 - Revisar política, termos e procedimento com profissional jurídico.
 
 ### Referência para resposta a incidentes

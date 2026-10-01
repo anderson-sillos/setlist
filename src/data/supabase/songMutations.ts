@@ -20,6 +20,7 @@ export interface SongWriteInput {
 
 export type SongMutationErrorCode =
   | 'authentication_required'
+  | 'content_rejected'
   | 'invalid_song'
   | 'not_found_or_forbidden'
   | 'permission_denied'
@@ -153,6 +154,13 @@ function toDatabaseInput(input: SongWriteInput) {
 }
 
 function mapSupabaseError(error: { code?: string; message: string }) {
+  if (error.message.includes('CONTENT_REJECTED')) {
+    return new SongMutationError(
+      'content_rejected',
+      'O conteúdo foi recusado pelo filtro preventivo. Revise a música ou solicite uma análise em contato@setlistbr.app.br.',
+    );
+  }
+
   if (
     error.message.includes('JWT') ||
     error.message.includes('AUTHENTICATION_REQUIRED')

@@ -39,6 +39,7 @@ import {
 } from '@/data/supabase/invitationMutations';
 import type { BandMember, BandRole } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
+import { ContentReportDialog } from '@/features/moderation/ContentReportDialog';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import {
   type BandSectionScreenProps,
@@ -86,6 +87,7 @@ export function BandScreen({
   )?.membership;
   const canManage = currentMembership?.role === 'owner';
   const [managedMember, setManagedMember] = useState<BandMember | null>(null);
+  const [reportedMember, setReportedMember] = useState<BandMember | null>(null);
   const [memberManagementError, setMemberManagementError] = useState<
     string | null
   >(null);
@@ -389,6 +391,14 @@ export function BandScreen({
         onClose={closeMemberManagement}
         onConfirm={(action) => void handleMemberManagement(action)}
       />
+      <ContentReportDialog
+        bandId={bandId}
+        kind="user"
+        onClose={() => setReportedMember(null)}
+        targetId={reportedMember?.userId ?? ''}
+        targetName={reportedMember?.displayName ?? 'Integrante'}
+        visible={reportedMember !== null}
+      />
       <BandLeaveDialog
         bandName={bandQuery.data?.name ?? 'esta banda'}
         errorMessage={leaveError}
@@ -450,6 +460,7 @@ export function BandScreen({
             member={item}
             onLeave={openLeaveFlow}
             onManage={() => openMemberManagement(item)}
+            onReport={() => setReportedMember(item)}
           />
         )}
         renderSectionHeader={({ section }) => (
@@ -476,12 +487,14 @@ function MemberRow({
   member,
   onLeave,
   onManage,
+  onReport,
 }: {
   readonly canManage: boolean;
   readonly current: boolean;
   readonly member: BandMember;
   readonly onLeave: () => void;
   readonly onManage: () => void;
+  readonly onReport: () => void;
 }) {
   return (
     <View style={styles.rowFrame}>
@@ -501,6 +514,19 @@ function MemberRow({
             </AppText>
           ) : null}
         </View>
+        {!current ? (
+          <Pressable
+            accessibilityLabel={`Denunciar ${member.displayName}`}
+            accessibilityRole="button"
+            onPress={onReport}
+            style={({ pressed }) => [
+              styles.overflowButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon color={colors.muted} name="flag" size={17} />
+          </Pressable>
+        ) : null}
         {current ? (
           <Pressable
             accessibilityLabel="Sair da banda"

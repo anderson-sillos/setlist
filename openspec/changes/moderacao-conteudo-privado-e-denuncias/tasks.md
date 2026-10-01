@@ -28,3 +28,28 @@
 ## 5. Verificação de liberação
 
 - [ ] 5.1 Verificar em conjunto criação e edição aceitas/recusadas, denúncia, ocultação, suspensão, isolamento por banda e recuperação após falha; registrar evidências do checklist de liberação antes de ativar o primeiro corte.
+
+## Estado da implementação (01/10/2026)
+
+O código do primeiro corte está preparado no cliente, nas migrations, na Edge
+Function e na rotina operacional. No projeto Supabase do aplicativo foram
+aplicadas somente as migrations `20261001183000`, `20261001183500` e
+`20261001184000` para denúncia. A função `report-content` foi implantada com
+autenticação de usuário no handler. O preflight retornou HTTP 200 e uma chamada
+sem sessão retornou HTTP 401. Uma denúncia de música pela Web local exibiu
+confirmação e o responsável confirmou o recebimento do e-mail na caixa; o banco
+registrou uma reserva de envio. A consulta de privilégios confirmou que apenas
+`authenticated` executa `claim_report_slot` e apenas `service_role` executa
+`release_report_slot`.
+
+As caixas acima permanecem abertas até a verificação de cada fluxo no ambiente
+de destino. Antes da ativação completa, faltam:
+
+- aplicar as migrations restantes em ambiente controlado e executar os cenários
+  de filtro, ocultação e suspensão no banco;
+- verificar denúncia de integrante e falha/repetição de envio; o teste de música
+  cobriu somente o caminho de aceite do Brevo;
+- verificar o app na Web, Android e iOS, incluindo sessão anterior à suspensão,
+  música ligada a show e atualização do cache após reconexão;
+- publicar o cliente e a versão `2026-10` do termo de banda junto com a migration
+  correspondente, para que o novo aceite possa ser registrado.

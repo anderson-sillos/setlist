@@ -82,14 +82,18 @@ Letras e observações são campos preenchidos pelas pessoas usuárias. Elas pod
 incluir informações sobre terceiros que não possuem conta no Setlist, inclusive
 dados sensíveis, embora isso não seja necessário para a finalidade principal do
 serviço. Os termos de uso proíbem conteúdo pornográfico e outras formas de
-conteúdo sexual ilícito, inclusive em links. Não há filtro automático para
-identificar esse material nem aprovação prévia de cada edição. O processo
-paralelo previsto de revisão posterior, por denúncia enviada a
-**contato@setlistbr.app.br** ou por inspeção, pode exigir acesso limitado ao
-conteúdo da banda, aos dados associados e às mensagens recebidas, apenas por
-quem estiver autorizado a tratar o caso. Os critérios de inspeção, os acessos,
-a base legal e a retenção dos registros precisam ser definidos antes da
-publicação.
+conteúdo sexual ilícito, inclusive em links. A versão pública prevista aplicará
+um filtro simples aos campos textuais de músicas dentro do banco do Setlist,
+antes da gravação. Tentativas sinalizadas serão recusadas, sem fila ou cópia
+separada do envio; a pessoa poderá contestar a regra pelo canal de contato. A
+análise automática não envia letras a um serviço externo de moderação. A
+denúncia feita dentro do app transmite à função de envio a descrição escrita
+pela pessoa, identificadores da banda, do alvo e do denunciante, sem anexar a
+letra completa automaticamente. O envio transacional usa o Brevo e a mensagem
+segue para **contato@setlistbr.app.br**. Denúncias e inspeções podem exigir
+acesso limitado ao conteúdo da banda e às mensagens recebidas, somente por
+responsável autorizado. Os critérios de inspeção, acessos, base legal e
+retenção dos registros precisam ser confirmados antes da publicação.
 
 > **Nota interna para revisão jurídica — bases candidatas, não conclusão legal:**
 > os tratamentos necessários para fornecer as funções solicitadas pela pessoa
@@ -124,6 +128,7 @@ Os fornecedores e integrações identificados no código e na configuração sã
 | YouTube                          | Referência externa aberta somente a pedido da pessoa usuária; o protótipo com player incorporado está sem acesso na primeira versão pública | Ao acionar a referência de uma música, o app abre o endereço no aplicativo ou navegador externo. O tratamento resultante é feito pelo YouTube conforme seus próprios termos e política. O Setlist não envia letras ou repertórios para sincronização.                                                                                      |
 | Apple — Iniciar sessão com Apple | Ativo como opção de autenticação; usa fluxo nativo no iOS e OAuth nas demais plataformas configuradas                                       | No fluxo nativo de iOS, o app solicita e-mail e nome completo; a Apple pode fornecer nome apenas na primeira autorização e e-mail, inclusive endereço de retransmissão privada, conforme a escolha da pessoa. Confirmar no Apple Developer e no Supabase os atributos efetivamente recebidos e os escopos do fluxo OAuth.                  |
 | Cloudflare Email Routing         | Roteamento de entrada do e-mail de contato, conforme os registros MX públicos do domínio                                                    | O recebimento passa primeiro por servidores MX da Cloudflare e, conforme confirmação do responsável, é encaminhado a uma caixa Gmail/Google.                                                                                                                                                                                               |
+| Brevo                            | Envio transacional das denúncias feitas no app, previsto para a versão pública                                                              | Recebe identificadores do caso e a descrição escrita pela pessoa denunciante para encaminhar ao e-mail de contato. A letra completa não é anexada automaticamente. Confirmar contrato, locais de tratamento e retenção antes da publicação.                                                                                                |
 
 O responsável confirma que o Setlist não veicula publicidade própria, faz
 marketing, vende dados ou mantém patrocínio ou compartilhamento comercial. O

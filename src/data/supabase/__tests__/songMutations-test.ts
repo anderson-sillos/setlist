@@ -242,4 +242,29 @@ describe('mutations de músicas no Supabase', () => {
       updateSong({ bandId: 'band-real', song: validSong, songId: 'missing' }),
     ).rejects.toMatchObject({ code: 'not_found_or_forbidden' });
   });
+
+  it('explica a recusa do filtro e preserva a possibilidade de reenviar', async () => {
+    const rejectedQuery = createMutationQuery({
+      data: null,
+      error: { code: 'P0001', message: 'CONTENT_REJECTED' },
+    });
+    from.mockReturnValueOnce(rejectedQuery);
+
+    await expect(
+      createSong({ bandId: 'band-real', song: validSong }),
+    ).rejects.toMatchObject({
+      code: 'content_rejected',
+      message: expect.stringContaining('contato@setlistbr.app.br'),
+    });
+
+    const acceptedQuery = createMutationQuery({
+      data: { id: 'song-new', updated_at: '2026-10-01T12:00:00.000Z' },
+      error: null,
+    });
+    from.mockReturnValueOnce(acceptedQuery);
+
+    await expect(
+      createSong({ bandId: 'band-real', song: validSong }),
+    ).resolves.toBe('song-new');
+  });
 });

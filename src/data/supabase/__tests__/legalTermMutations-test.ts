@@ -55,7 +55,7 @@ describe('aceite do termo vigente no Supabase', () => {
     expect(from).toHaveBeenCalledWith('legal_acceptances');
     expect(query.select).toHaveBeenCalledWith('id');
     expect(query.eq).toHaveBeenNthCalledWith(1, 'band_id', 'band-1');
-    expect(query.eq).toHaveBeenNthCalledWith(2, 'term_version', '2026-09');
+    expect(query.eq).toHaveBeenNthCalledWith(2, 'term_version', '2026-10');
     expect(query.eq).toHaveBeenNthCalledWith(3, 'user_id', 'user-1');
   });
 
@@ -80,7 +80,7 @@ describe('aceite do termo vigente no Supabase', () => {
 
     expect(rpc).toHaveBeenCalledWith('accept_current_band_term', {
       p_band_id: 'band-1',
-      p_term_version: '2026-09',
+      p_term_version: '2026-10',
     });
   });
 

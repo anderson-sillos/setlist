@@ -1,4 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
+import { AppState } from 'react-native';
 import {
   createContext,
   type PropsWithChildren,
@@ -59,6 +61,38 @@ function SessionQueryProvider({
       });
     }
   }, [queryClient, sessionUserId]);
+
+  useEffect(() => {
+    const clearContent = () => {
+      // Descarta letras e setlists antigos antes de buscar a versão autorizada.
+      void queryClient.resetQueries({
+        predicate: ({ queryKey }) =>
+          queryKey.includes('songs') ||
+          queryKey.includes('shows') ||
+          queryKey.includes('summaries'),
+      });
+    };
+    let wasOffline = false;
+    const unsubscribeNetwork = NetInfo.addEventListener((state) => {
+      const isOnline =
+        state.isConnected === true && state.isInternetReachable !== false;
+      if (wasOffline && isOnline) {
+        clearContent();
+      }
+      wasOffline = !isOnline;
+    });
+    let lastAppState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (lastAppState !== 'active' && nextState === 'active') {
+        clearContent();
+      }
+      lastAppState = nextState;
+    });
+    return () => {
+      unsubscribeNetwork();
+      subscription.remove();
+    };
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

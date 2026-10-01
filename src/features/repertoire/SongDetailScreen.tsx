@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 
 import {
   Linking,
   Platform,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -22,6 +24,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { useSong, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
+import { ContentReportDialog } from '@/features/moderation/ContentReportDialog';
 import {
   getBandSectionHref,
   getSongEditHref,
@@ -30,7 +33,7 @@ import {
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
-import { colors, spacing } from '@/theme/tokens';
+import { colors, layout, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
@@ -53,6 +56,7 @@ export function SongDetailScreen({
   viewportWidth,
 }: SongDetailScreenProps) {
   const router = useRouter();
+  const [reportVisible, setReportVisible] = useState(false);
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
@@ -103,6 +107,14 @@ export function SongDetailScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
+      <ContentReportDialog
+        bandId={bandId}
+        kind="song"
+        onClose={() => setReportVisible(false)}
+        targetId={songId}
+        targetName={song?.title ?? 'Música'}
+        visible={reportVisible}
+      />
       {songQuery.isPending || userBandsQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
@@ -221,6 +233,18 @@ export function SongDetailScreen({
             </View>
             <SongLyricsContent lyrics={song.lyrics} />
           </Card>
+          <Pressable
+            accessibilityLabel="Denunciar música"
+            accessibilityRole="button"
+            hitSlop={4}
+            onPress={() => setReportVisible(true)}
+            style={({ pressed }) => [
+              styles.reportAction,
+              pressed && styles.reportActionPressed,
+            ]}
+          >
+            <AppIcon color={colors.muted} name="flag" size={17} />
+          </Pressable>
         </View>
       ) : null}
     </BandAreaLayout>
@@ -296,5 +320,15 @@ const styles = StyleSheet.create({
   youtubeButton: {
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.md,
+  },
+  reportAction: {
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  reportActionPressed: {
+    opacity: 0.6,
   },
 });

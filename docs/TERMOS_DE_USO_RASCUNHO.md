@@ -118,18 +118,20 @@ afasta essas proibições.
 Cada pessoa responde, na medida de seus atos e da legislação aplicável, pelo
 conteúdo que inserir ou editar e pelos direitos necessários para compartilhá-lo.
 Ser Proprietário ou Editor de uma banda, por si só, não comprova a autoria de
-todo o material nela armazenado. O Setlist não produz, endossa nem aprova
-previamente o conteúdo enviado pelas pessoas usuárias; o aplicativo não possui
-filtro automático para identificar esse tipo de material. O conteúdo salvo pode
-ser visto pelos integrantes autorizados da banda antes de análise pelo Setlist.
-Haverá um processo separado de revisão posterior, iniciado por denúncia enviada
-por e-mail ou por inspeção, com providências proporcionais quando for encontrado
-conteúdo indevido. Essa distribuição de responsabilidades não afasta os deveres
-legais do responsável pelo Setlist, inclusive de avaliar denúncias e adotar as
-providências exigíveis em cada caso.
+todo o material nela armazenado. A versão pública prevista aplicará regras
+automáticas simples antes de salvar músicas; uma gravação sinalizada será
+recusada e poderá ser contestada pelo canal de contato. O filtro não examina
+todo contexto nem garante identificar todas as infrações. O Setlist não produz
+nem endossa o conteúdo salvo. Denúncias e inspeções poderão motivar a ocultação
+de uma música ou a suspensão de uma conta, com avaliação e medidas
+proporcionais. Essa distribuição de responsabilidades não afasta os deveres
+legais do responsável pelo Setlist.
 
-Para denunciar conteúdo no Setlist, envie um e-mail a
-**contato@setlistbr.app.br**.
+Integrantes poderão denunciar uma música ou outro integrante dentro do app; a
+descrição informada será encaminhada por e-mail a
+**contato@setlistbr.app.br**, sem anexar automaticamente a letra completa.
+Pessoas sem acesso à banda e pedidos de contestação também poderão escrever
+diretamente a esse endereço.
 Identifique a banda e o conteúdo, explique o motivo e informe uma forma de
 contato. Se a denúncia tratar de um direito seu, indique o direito invocado;
 você também pode denunciar uma violação destes termos sem ser titular do

@@ -41,7 +41,7 @@ describe('criação de banda no Supabase', () => {
     expect(rpc).toHaveBeenCalledWith('create_band', {
       p_accepted: true,
       p_name: 'Banda Horizonte',
-      p_term_version: '2026-09',
+      p_term_version: '2026-10',
     });
   });
 
