@@ -2,13 +2,13 @@
 
 O projeto é novo e ainda não possui implementação ou especificações funcionais. Consulte `proposal.md` para a motivação e o escopo do produto.
 
-O MVP deve compartilhar uma única base entre Android, iOS e web. A preparação será colaborativa e online nas três plataformas; a execução offline será suportada apenas nos aplicativos móveis. O conteúdo pertence à banda, não ao usuário que o criou, e inclui letras potencialmente protegidas por direitos autorais.
+O MVP deve compartilhar uma única base entre Android, iOS e web. A preparação será colaborativa e online nas três plataformas; a execução offline será suportada apenas nos aplicativos móveis. O conteúdo funcional fica vinculado à banda e pode permanecer disponível a seus integrantes após a saída de quem o cadastrou. Esse vínculo não define a titularidade autoral das letras, que podem estar protegidas por direitos de terceiros.
 
 ## Limite da primeira versão publicável
 
-A primeira entrega publicável será focada na preparação online de bandas, repertório, letras estáticas, shows e setlists, com validação inicial em Web e Android. O modo palco completo, a sincronização manual de letras com o YouTube e os pacotes offline ficam para uma versão complementar. O fluxo já existente de prévia pode permanecer no código, mas não será critério nem promessa da primeira publicação.
+A primeira entrega publicável será focada na preparação online de bandas, repertório, letras estáticas, shows e setlists, com validação em Web, Android e iOS. A distribuição pública está prevista pela Web, Google Play e App Store. O modo palco completo, a sincronização manual de letras com o YouTube e os pacotes offline ficam para uma versão complementar. O fluxo já existente de prévia pode permanecer no código, mas não será critério nem promessa da primeira publicação.
 
-Essa divisão corresponde ao adiamento dos grupos 8, 9 e 10 do plano de tarefas. O grupo 10 também fica para a versão complementar porque o uso offline depende da execução de shows no modo palco. Uma validação técnica preparatória no simulador iOS pode ocorrer em paralelo, mas a validação de produto e a distribuição iOS permanecem adiadas conforme o handoff. As tarefas de consolidação e piloto do grupo 11 devem validar somente o escopo da primeira versão e suas plataformas de lançamento.
+Essa divisão corresponde ao adiamento dos grupos 8, 9 e 10 do plano de tarefas. O grupo 10 também fica para a versão complementar porque o uso offline depende da execução de shows no modo palco. A validação técnica já realizada em iOS não substitui a validação completa da preparação online nem as exigências de publicação da App Store. As tarefas de consolidação e piloto do grupo 11 devem cobrir as três plataformas de lançamento.
 
 ## Goals / Non-Goals
 
@@ -149,7 +149,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 
 ### Exclusão de conta
 
-- A exclusão removerá perfil, sessões e pacotes locais do usuário, mas preservará o conteúdo pertencente às bandas.
+- A exclusão removerá perfil, sessões e pacotes locais do usuário, mas preservará o conteúdo vinculado às bandas remanescentes, observados os direitos de seus titulares e os pedidos de remoção aplicáveis.
 - Referências históricas ao autor ficarão sem dados pessoais e serão apresentadas como `Usuário removido`.
 - A exclusão será bloqueada enquanto o usuário for o último Owner de uma banda com outros integrantes.
 - Se for o único integrante, o usuário poderá excluir a banda e seu conteúdo mediante confirmação reforçada antes de excluir a própria conta.

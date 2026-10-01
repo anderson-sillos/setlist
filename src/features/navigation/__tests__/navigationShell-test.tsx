@@ -161,13 +161,9 @@ describe('shell de navegação', () => {
       view.getByTestId('navigation-drawer').props.accessibilityViewIsModal,
     ).toBe(true);
     const myBandsLink = view.getByLabelText('Ir para Minhas bandas');
-    const youtubePrototypeLink = view.getByLabelText(
-      'Ir para Player YouTube (protótipo)',
-    );
 
     expect(myBandsLink.props.accessibilityRole).toBe('tab');
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
-    expect(youtubePrototypeLink.props.accessibilityRole).toBe('tab');
     expect(view.getByLabelText('Perfil e conta')).toBeTruthy();
     expect(view.getByText('Sessão não iniciada')).toBeTruthy();
     expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();

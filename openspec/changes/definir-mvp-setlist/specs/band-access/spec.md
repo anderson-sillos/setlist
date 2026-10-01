@@ -214,7 +214,7 @@ O sistema MUST permitir a exclusão de uma banda somente quando o Owner solicita
 - **THEN** a janela se ajusta ao teclado e permite rolar o formulário para manter o campo e as ações acessíveis
 
 ### Requirement: Exclusão de conta e preservação do conteúdo
-O sistema SHALL oferecer exclusão de conta dentro da aplicação, remover os dados pessoais e as sessões da pessoa e preservar o conteúdo pertencente às bandas remanescentes.
+O sistema SHALL oferecer exclusão de conta dentro da aplicação, remover os dados pessoais e as sessões da pessoa e preservar o conteúdo vinculado às bandas remanescentes, sem atribuir à banda a titularidade autoral desse conteúdo.
 
 #### Scenario: Excluir conta sem impedir continuidade da banda
 - **WHEN** uma pessoa apta confirma a exclusão da conta
