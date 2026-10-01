@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import { StageScreen } from '@/features/stage/StageScreen';
+import { StageUnavailableScreen } from '@/features/stage/StageUnavailableScreen';
 
 export default function StageRoute() {
   const { bandId, showId } = useLocalSearchParams<{
@@ -8,5 +8,5 @@ export default function StageRoute() {
     showId: string;
   }>();
 
-  return <StageScreen bandId={bandId} showId={showId} />;
+  return <StageUnavailableScreen bandId={bandId} showId={showId} />;
 }

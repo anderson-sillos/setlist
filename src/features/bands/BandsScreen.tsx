@@ -8,8 +8,13 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
+import {
+  getListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import type { BandRole, Show } from '@/domain';
 import {
   BandCreationDialog,
@@ -54,6 +59,7 @@ export function BandsScreen({
   const router = useRouter();
   const queryClient = useQueryClient();
   const bandsQuery = useUserBandSummaries();
+  const { onRefresh, refreshing } = useScreenDataRefresh([bandsQuery]);
   const { clearLastBand, isHydrated, lastBandId, setLastBand } =
     useLastBandSelection();
   const [search, setSearch] = useState('');
@@ -151,12 +157,17 @@ export function BandsScreen({
       currentRoute="/"
       fixedContent={
         <ListControls>
-          <SearchField
-            accessibilityLabel="Buscar banda pelo nome"
-            onChangeText={setSearch}
-            placeholder="Buscar banda"
-            value={search}
-          />
+          <View style={styles.searchRow}>
+            <View style={styles.searchField}>
+              <SearchField
+                accessibilityLabel="Buscar banda pelo nome"
+                onChangeText={setSearch}
+                placeholder="Buscar banda"
+                value={search}
+              />
+            </View>
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+          </View>
         </ListControls>
       }
       headerAction={{
@@ -192,6 +203,7 @@ export function BandsScreen({
         data={bands}
         keyboardShouldPersistTaps="handled"
         keyExtractor={({ band }) => band.id}
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !bandsQuery.isPending && !bandsQuery.isError ? (
             normalizedSearch ? (
@@ -270,6 +282,16 @@ export function BandsScreen({
 }
 
 const styles = StyleSheet.create({
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  searchField: {
+    flex: 1,
+    minWidth: 0,
+  },
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,

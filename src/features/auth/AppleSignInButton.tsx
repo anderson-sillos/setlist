@@ -15,7 +15,7 @@ export function AppleSignInButton({
   return (
     <AppButton
       disabled={disabled}
-      leading={<AuthProviderIcon provider="apple" size={24} />}
+      leading={<AuthProviderIcon provider="apple" size={28} />}
       label="Continuar com Apple"
       onPress={onPress}
       testID={testID}

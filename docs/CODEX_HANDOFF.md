@@ -5,15 +5,20 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 ## Estado atual
 
 - Repositório: `anderson-sillos/setlist`.
-- Branch principal: `main`, sincronizada com `origin/main` no commit `c4c031f` antes desta atividade.
-- Branch de trabalho atual: `feat/apple-sign-in`, isolando as alterações de autenticação Apple para revisão antes de uma PR.
-- Change ativo: `definir-mvp-setlist`.
+- Branch principal: `main`, integrada até o PR #22 no commit `e30d9f5`.
+- Branch de trabalho atual: `feat/pull-to-refresh-data`, acompanhando `origin/feat/pull-to-refresh-data`. A PR ainda não foi aberta; não integrar antes de concluir as tarefas pendentes do change de atualização de dados.
+- Change do MVP: `definir-mvp-setlist`. A implementação de atualização de dados compartilhados é acompanhada separadamente pelo change ativo `atualizacao-direcionada-dados`.
 - Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
 - Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
 - PR #18: integrada por squash à `main` no commit `1beb994`; CI aprovado.
 - PR #19: integrada à `main`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS. A PR #20 consolidou as validações do grupo 11 no commit `c4c031f`.
 - Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
-- Grupo 11: validação Web e Android concluída pelo usuário. A validação de produto e a distribuição iOS permanecem adiadas.
+- Grupo 11: tarefas 11.1 e 11.2 concluídas para o escopo Web/Android. Autenticação, papéis, convites e sessão também foram validados manualmente em iPhone físico; distribuição e piloto iOS continuam fora da primeira entrega.
+- Atualização de dados compartilhados: o change OpenSpec `atualizacao-direcionada-dados` tem os artefatos de planejamento completos; os controles compartilhados (1.1) e a inspeção de fluxos (3.1) estão concluídos. O usuário confirmou que Minhas bandas voltou a exibir dados na Web e no Android. A validação do gesto e botão nas outras telas e as demais tarefas do change seguem pendentes.
+- Ponto de retomada: os logs confirmaram que a consulta entrega 2 bandas e que a tela prepara 2 linhas. A causa foi a prop `refreshControl`: um componente wrapper era passado no lugar de um `RefreshControl` real; no Web e no Android o `ScrollView` clona o controle para envolver o conteúdo e o wrapper descartava esse conteúdo. A implementação foi corrigida para passar o `RefreshControl` nativo diretamente no mobile e `undefined` no Web. O usuário confirmou que a lista voltou a aparecer no Web e no Android e que o pull-to-refresh Android funciona bem. Os botões Web de atualização agora mostram somente o ícone em todas as telas; nos filtros de repertório e shows, o ícone fica ao lado da busca.
+- Os logs temporários de diagnóstico foram removidos após localizar a causa. O estilo experimental aplicado à `FlatList` também foi removido.
+- Estado de execução desta sessão: Metro ativo na porta `19006`; Web em `http://localhost:19006` e QR Expo apontando para `http://192.168.0.222:19006`. O comando `adb` não está disponível no PATH. O CLI informou falha de `simctl`, mas iniciou normalmente o Metro.
+- Ferramentas verificadas: Node `24.21.0`, npm `11.20.0` conforme `package.json`, e OpenSpec CLI `1.14.0`.
 - Preparação técnica iOS: o build EAS de simulador requer iOS 16.4, indisponível no Mac atual (Xcode 14.2/runtime 16.2). A validação funcional foi feita em iPhone físico pelo build Ad Hoc `preview-ios`; não depende do simulador.
 - CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
 - Autenticação: login Web, Android e iOS validado manualmente. No iPhone físico, o usuário confirmou sucesso e falha no login Apple, sucesso no login Google, navegação pelas telas e testes ponta a ponta de papéis e convites.
@@ -30,6 +35,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - `openspec/changes/definir-mvp-setlist/design.md`: arquitetura, decisões e riscos.
 - `openspec/changes/definir-mvp-setlist/specs/`: contratos de comportamento por capacidade.
 - `openspec/changes/definir-mvp-setlist/tasks.md`: estratégia incremental e checklist de implementação.
+- `openspec/changes/atualizacao-direcionada-dados/`: change ativo para atualizar dados compartilhados apenas nas telas relevantes.
 
 Antes de implementar, executar:
 
@@ -1161,3 +1167,101 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      Web, Android e iOS. A tarefa OpenSpec 5.1 está concluída; os fluxos de
      autenticação Google/Apple e o ciclo de sessão estão validados nas três
      plataformas.
+
+192. Após integrar o PR #22, foi aberta a branch `feat/pull-to-refresh-data`
+     para adicionar atualização manual e revalidação ao foco, limitada às
+     queries da tela ativa, em Minhas bandas, Banda, Repertório e Shows. O
+     change OpenSpec `atualizacao-direcionada-dados` acompanha o trabalho; as
+     tarefas de implementação e validação manual ainda não foram concluídas.
+     A validação atual revelou a tela Minhas bandas vazia em Web e Android.
+     Na Web, ao tocar em Atualizar, logs de desenvolvimento confirmaram 2
+     vínculos e 2 registros de bandas sem erro do Supabase, embora a lista
+     continue visualmente vazia. O próximo passo é conferir se há busca ativa,
+     qual mensagem vazia é exibida e revisar a renderização; depois remover a
+     instrumentação temporária de contagens em
+     `src/data/supabase/repositories.ts`. Não havia aparelho conectado ao ADB
+     para inspecionar a execução Android. O Metro está na porta `19006` e
+     serviu bundles Web e Android com HTTP 200. O trabalho foi salvo na branch
+     de feature para retomar esse diagnóstico; não integrar a PR antes de o
+     usuário validar manualmente.
+
+193. Na retomada, antes de revisar este handoff, confirmei que a branch atual é
+     `feat/pull-to-refresh-data`, no commit `7332d6b`, rastreando
+     `origin/feat/pull-to-refresh-data`, com a árvore limpa. O OpenSpec CLI
+     `1.14.0` reconhece
+     `atualizacao-direcionada-dados` e informa 4/4 artefatos de planejamento;
+     no checklist, 3.1 é a única tarefa concluída. Não há processo ouvindo na
+     porta `19006` e o comando `adb` não está disponível nesta máquina. Node
+     `24.21.0` e npm `11.20.0` atendem às versões fixadas pelo projeto.
+
+194. Os logs da Web mostraram que `useUserBandSummaries` conclui com 2 bandas,
+     e `BandsScreen` recebe `queryStatus: success`, `sourceCount: 2`,
+     `displayedCount: 2` e `searchActive: false`. Isso descartou falha na
+     consulta e no filtro como causa da lista vazia.
+
+195. A implementação do gesto de atualização passava `<ListRefreshControl />`
+     dentro da prop `refreshControl`. O `ScrollView` do React Native Web clona
+     essa prop envolvendo o próprio conteúdo; como o wrapper retornava `null`
+     na Web e descartava `children` no Android, o conteúdo inteiro da lista era
+     removido nas duas plataformas. O helper agora retorna `undefined` na Web
+     e um elemento `RefreshControl` nativo diretamente no Android/iOS. As
+     referências foram atualizadas em todas as telas afetadas. Uma edição
+     intermediária de diagnóstico também causou erro de sintaxe no Metro; a
+     sintaxe foi corrigida, os logs temporários removidos e o último bundle Web
+     compilou. Naquele momento, faltava a validação visual final no Web e no
+     Android; ela foi confirmada pelo usuário no item 196.
+
+196. O usuário confirmou que, após corrigir a prop `refreshControl`, as
+     informações voltaram a aparecer no Web e no Android. A instrumentação
+     temporária `[bands:*]` não está mais no código; os logs de diagnóstico do
+     repositório também foram removidos. Revisei os demais callsites alterados:
+     listas de integrantes, repertório e shows, letra em tela cheia e o shell
+     de detalhes passam um `RefreshControl` nativo direto e mantêm o botão Web
+     visível onde previsto. Não identifiquei outro wrapper descartando conteúdo.
+     Ainda falta validar manualmente gesto/botão e revalidação nessas telas; o
+     change `atualizacao-direcionada-dados` permanece incompleto; a revisão dos
+     controles compartilhados concluiu a tarefa 1.1 no checklist.
+
+197. A pedido do usuário, em Minhas bandas o botão de atualização Web foi
+     alinhado à direita do campo de busca e passou a exibir somente o ícone.
+     Enquanto atualiza, o ícone é substituído por um indicador de atividade;
+     o rótulo acessível informa o estado. O botão continua exclusivo da Web e
+     o gesto nativo de atualização Android não foi alterado.
+
+198. O mesmo padrão compacto foi aplicado aos outros botões de atualização
+     Web: integrantes, repertório, shows, letra em tela cheia e detalhes de
+     música/show. Repertório e shows exibem a ação à direita da busca; os
+     controles de detalhes e integrantes preservam seu alinhamento. Todos
+     mantêm rótulos acessíveis e indicador visual durante a atualização.
+
+199. Corrigido o botão `Compartilhar convite novamente` na Web: quando o link
+     ativo não está no cache da tela, a ação agora chama `renew_invitation`
+     para revogar o link anterior, gerar o substituto e compartilhá-lo. Isso
+     evita deixar dois convites ativos para a mesma ação. Se o link já está em
+     cache, ele continua sendo compartilhado sem renovação. O fluxo nativo não
+     foi alterado.
+
+200. A revisão seguinte confirmou que a causa não era exclusiva da Web: sem a
+     URL em memória, o fallback antigo chamava `onCreate` em qualquer
+     plataforma. O recompartilhamento agora usa `onRenew` em Web, Android e
+     iOS quando o link não está no cache; quando está, compartilha o link sem
+     renovação. O teste existente foi ajustado para esperar a renovação, mas
+     não foi executado.
+
+201. O modo palco foi ocultado nesta primeira versão: o item Palco abre um
+     popup informando que a função estará disponível no futuro. URLs antigas
+     do palco também exibem o popup e voltam para a tela anterior ao fechá-lo.
+     O botão de entrada no palco foi removido do detalhe do show.
+
+202. O menu lateral foi alinhado e compactado, mantendo o item Palco com a
+     mesma apresentação dos demais. Os itens Player YouTube e Perfil e conta
+     compartilham a mesma estrutura visual dos links da banda. O rodapé do
+     menu lateral e a tela de login exibem discretamente a versão do app.
+     O usuário confirmou visualmente os ajustes de navegação antes do commit.
+
+203. Os botões de login Apple e Google usam imagens dos logos oficiais em
+     Web, Android e iOS; no iOS, o botão Apple usa o mesmo componente visual
+     do Google. A configuração do build de desenvolvimento para simulador iOS
+     recebeu o esquema de URL do cliente Google. Os registros anteriores sobre
+     indisponibilidade do simulador referem-se a uma etapa anterior: depois o
+     usuário disponibilizou um simulador com iOS 18.3.

@@ -1,14 +1,16 @@
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConnectionBanner } from '@/components/feedback';
+import { getListRefreshControl } from '@/components/ui/ScreenDataRefresh';
 import { AppHeader } from '@/features/navigation/components/AppHeader';
 import { BottomNavigation } from '@/features/navigation/components/BottomNavigation';
 import { MobileNavigationDrawer } from '@/features/navigation/components/MobileNavigationDrawer';
@@ -18,6 +20,7 @@ import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { useBandNavigationState } from '@/features/navigation/hooks/useBandNavigationState';
 import { useNavigationDrawer } from '@/features/navigation/hooks/useNavigationDrawer';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
+import { StageAvailabilityDialog } from '@/features/stage/StageAvailabilityDialog';
 import { getLayoutMode, getNavigationPresentation } from '@/theme/responsive';
 import { colors, layout, spacing } from '@/theme/tokens';
 
@@ -40,6 +43,8 @@ export function AppNavigationShell({
   fixedContent,
   headerAction,
   onConnectionRetry,
+  onRefresh,
+  refreshing = false,
   screenKind = 'main',
   scrollable = true,
   subtitle,
@@ -50,6 +55,8 @@ export function AppNavigationShell({
 }: AppNavigationShellProps) {
   const router = useRouter();
   const { setLastBand } = useLastBandSelection();
+  const [stageDialogVisible, setStageDialogVisible] = useState(false);
+  const stageDialogPending = useRef(false);
 
   useEffect(() => {
     if (bandId) {
@@ -80,6 +87,22 @@ export function AppNavigationShell({
     });
   const { closeDrawer, drawerOpen, drawerTranslateX, edgeGesture, openDrawer } =
     useNavigationDrawer({ persistentSidebar, screenKind, width });
+  const handleStagePress = useCallback(() => {
+    if (drawerOpen && Platform.OS === 'ios') {
+      stageDialogPending.current = true;
+      closeDrawer();
+      return;
+    }
+
+    closeDrawer();
+    setStageDialogVisible(true);
+  }, [closeDrawer, drawerOpen]);
+  const handleDrawerDismiss = useCallback(() => {
+    if (stageDialogPending.current) {
+      stageDialogPending.current = false;
+      setStageDialogVisible(true);
+    }
+  }, []);
 
   const showBottomNavigation =
     !persistentSidebar &&
@@ -100,6 +123,7 @@ export function AppNavigationShell({
               bandName={bandName}
               getSectionHref={getSectionHref}
               onLogout={handleLogout}
+              onStagePress={handleStagePress}
             />
           </View>
         ) : null}
@@ -136,6 +160,14 @@ export function AppNavigationShell({
               contentOffset={{ x: 0, y: initialScrollOffset }}
               keyboardShouldPersistTaps="handled"
               onScroll={handleScroll}
+              refreshControl={
+                onRefresh
+                  ? getListRefreshControl({
+                      onRefresh,
+                      refreshing,
+                    })
+                  : undefined
+              }
               scrollEventThrottle={120}
               testID="screen-scroll-area"
             >
@@ -154,6 +186,7 @@ export function AppNavigationShell({
             <BottomNavigation
               activeSection={activeSection}
               getSectionHref={getSectionHref}
+              onStagePress={handleStagePress}
             />
           ) : null}
 
@@ -176,11 +209,18 @@ export function AppNavigationShell({
           bandName={bandName}
           getSectionHref={getSectionHref}
           onClose={closeDrawer}
+          onDismiss={handleDrawerDismiss}
           onLogout={handleLogout}
+          onStagePress={handleStagePress}
           translateX={drawerTranslateX}
           visible={drawerOpen}
         />
       ) : null}
+
+      <StageAvailabilityDialog
+        onClose={() => setStageDialogVisible(false)}
+        visible={stageDialogVisible}
+      />
     </SafeAreaView>
   );
 }

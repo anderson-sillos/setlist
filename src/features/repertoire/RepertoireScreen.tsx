@@ -7,6 +7,10 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
+  getListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
+import {
   ListControls,
   OptionMenu,
   SearchField,
@@ -25,6 +29,7 @@ import {
   rememberListScrollOffset,
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeForSearch } from '@/utils/text';
@@ -117,6 +122,10 @@ export function RepertoireScreen({
   const router = useRouter();
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
+  const { onRefresh, refreshing } = useScreenDataRefresh([
+    songsQuery,
+    userBandsQuery,
+  ]);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'repertoire', {
       filter: 'all' as RepertoireFilter,
@@ -188,12 +197,17 @@ export function RepertoireScreen({
       }
       fixedContent={
         <ListControls>
-          <SearchField
-            accessibilityLabel="Buscar música por título ou artista"
-            onChangeText={(value) => update('search', value)}
-            placeholder="Buscar música ou artista/banda"
-            value={state.search}
-          />
+          <View style={styles.searchRow}>
+            <View style={styles.searchField}>
+              <SearchField
+                accessibilityLabel="Buscar música por título ou artista"
+                onChangeText={(value) => update('search', value)}
+                placeholder="Buscar música ou artista/banda"
+                value={state.search}
+              />
+            </View>
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+          </View>
           <View style={styles.controlToolbarEnd}>
             <OptionMenu
               active={state.filter !== 'all'}
@@ -224,14 +238,20 @@ export function RepertoireScreen({
       viewportWidth={viewportWidth}
     >
       {songsQuery.isPending ? <LoadingFeedback /> : null}
-      {songsQuery.isError ? (
-        <ErrorFeedback onRetry={() => void songsQuery.refetch()} />
+      {songsQuery.isError || userBandsQuery.isError ? (
+        <ErrorFeedback
+          onRetry={() => {
+            void songsQuery.refetch();
+            void userBandsQuery.refetch();
+          }}
+        />
       ) : null}
       <FlatList
         contentContainerStyle={styles.listContent}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={songs}
         keyExtractor={({ id }) => id}
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !songsQuery.isPending && !songsQuery.isError ? (
             <ListEmptyState
@@ -261,6 +281,16 @@ export function RepertoireScreen({
 }
 
 const styles = StyleSheet.create({
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  searchField: {
+    flex: 1,
+    minWidth: 0,
+  },
   controlToolbarEnd: {
     alignItems: 'center',
     flexDirection: 'row',

@@ -18,6 +18,7 @@ import {
 } from '@/data/supabase';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { getShowEditHref, getShowHref } from '@/features/navigation/routes';
 import {
   ShowBlockEditorDialog,
@@ -38,6 +39,7 @@ export function ShowSetlistEditorScreen({
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
+  useScreenDataRefresh([userBandsQuery, songsQuery]);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

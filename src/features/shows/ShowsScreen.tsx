@@ -8,6 +8,10 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
+  getListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
+import {
   ChoiceChips,
   FilterMenu,
   ListControls,
@@ -28,6 +32,7 @@ import {
   rememberListScrollOffset,
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { ShowListRow } from '@/features/shows/ShowListRow';
 import {
   ShowCreationDialog,
@@ -73,6 +78,11 @@ export function ShowsScreen({
   const showsQuery = useShows(bandId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
+  const { onRefresh, refreshing } = useScreenDataRefresh([
+    showsQuery,
+    songsQuery,
+    userBandsQuery,
+  ]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [creationVisible, setCreationVisible] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
@@ -216,12 +226,17 @@ export function ShowsScreen({
 
   const controls = (
     <ListControls>
-      <SearchField
-        accessibilityLabel="Buscar show por nome ou local"
-        onChangeText={(value) => update('search', value)}
-        placeholder="Buscar show ou local"
-        value={state.search}
-      />
+      <View style={styles.searchRow}>
+        <View style={styles.searchField}>
+          <SearchField
+            accessibilityLabel="Buscar show por nome ou local"
+            onChangeText={(value) => update('search', value)}
+            placeholder="Buscar show ou local"
+            value={state.search}
+          />
+        </View>
+        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+      </View>
       <View style={styles.controlToolbar}>
         <Pressable
           accessibilityLabel="Abrir calendário para filtrar por data"
@@ -366,11 +381,12 @@ export function ShowsScreen({
         onSubmit={(form) => void handleCreateShow(form)}
         visible={creationVisible}
       />
-      {showsQuery.isError || songsQuery.isError ? (
+      {showsQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showsQuery.refetch();
             void songsQuery.refetch();
+            void userBandsQuery.refetch();
           }}
         />
       ) : null}
@@ -380,10 +396,12 @@ export function ShowsScreen({
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={shows}
         keyExtractor={({ id }) => id}
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !showsQuery.isPending &&
           !songsQuery.isPending &&
           !showsQuery.isError &&
+          !userBandsQuery.isError &&
           !songsQuery.isError ? (
             <ListEmptyState
               actionLabel={hasQuery ? 'Limpar filtros' : undefined}
@@ -419,6 +437,16 @@ export function ShowsScreen({
 }
 
 const styles = StyleSheet.create({
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  searchField: {
+    flex: 1,
+    minWidth: 0,
+  },
   controlToolbar: {
     alignItems: 'center',
     flexDirection: 'row',

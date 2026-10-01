@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   waitFor,
@@ -20,6 +21,7 @@ import { AppProviders } from '@/providers/AppProviders';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
+  useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({
     bandId: 'band-demo-horizonte',
     showId: 'show-demo-festival',
@@ -99,7 +101,9 @@ describe('shell de navegação', () => {
 
       if (presentation === 'bottom-navigation') {
         expect(view.queryByTestId('navigation-sidebar')).toBeNull();
-        expect(view.getByLabelText('Ir para Palco')).toBeTruthy();
+        expect(
+          view.getByRole('button', { name: 'Palco, em breve' }),
+        ).toBeTruthy();
         const bottomNavigationStyle = StyleSheet.flatten(
           view.getByTestId('bottom-navigation').props.style,
         );
@@ -112,7 +116,7 @@ describe('shell de navegação', () => {
         expect(bottomNavigationStyle.marginHorizontal).toBeUndefined();
         expect(bottomNavigationStyle.paddingHorizontal).toBeUndefined();
         const navigationTabs = view.getAllByRole('tab');
-        expect(navigationTabs).toHaveLength(4);
+        expect(navigationTabs).toHaveLength(3);
         navigationTabs.forEach((tab) => {
           const tabStyle = StyleSheet.flatten(tab.props.style);
           expect(tabStyle).toMatchObject({
@@ -173,6 +177,50 @@ describe('shell de navegação', () => {
     await waitFor(() =>
       expect(view.queryByTestId('navigation-drawer')).toBeNull(),
     );
+  });
+
+  it('mostra o aviso do palco sem sair da tela atual', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowsScreen
+          bandId={demoIds.primaryBand}
+          viewportHeight={844}
+          viewportWidth={390}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Festival da Praça')).toBeTruthy();
+    await fireEvent.press(
+      within(view.getByTestId('bottom-navigation')).getByRole('button', {
+        name: 'Palco, em breve',
+      }),
+    );
+
+    expect(await view.findByTestId('stage-availability-dialog')).toBeTruthy();
+    expect(view.getByText('Festival da Praça')).toBeTruthy();
+
+    await fireEvent.press(
+      view.getByLabelText('Fechar aviso de modo palco em breve'),
+    );
+    expect(view.queryByTestId('stage-availability-dialog')).toBeNull();
+
+    await fireEvent.press(view.getByLabelText('Abrir menu geral'));
+    const dismissDrawer = view.getByTestId('navigation-drawer-modal').props
+      .onDismiss as () => void;
+    await fireEvent.press(
+      within(view.getByTestId('navigation-drawer')).getByRole('button', {
+        name: 'Palco, em breve',
+      }),
+    );
+
+    await waitFor(() =>
+      expect(view.queryByTestId('navigation-drawer')).toBeNull(),
+    );
+    await act(async () => {
+      dismissDrawer();
+    });
+    expect(await view.findByTestId('stage-availability-dialog')).toBeTruthy();
   });
 
   it('apresenta nome e e-mail da sessão no menu lateral', async () => {

@@ -3,13 +3,16 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { AppVersionLabel } from '@/components/ui/AppVersionLabel';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import type { EntityId } from '@/domain';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { useCurrentProfile } from '@/features/account/useCurrentProfile';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { colors, radii, spacing } from '@/theme/tokens';
+
+const menuItemHeight = 28;
 
 interface NavigationPanelProps {
   readonly activeSection?: BandSection;
@@ -18,6 +21,26 @@ interface NavigationPanelProps {
   readonly getSectionHref: (section: BandSection) => Href;
   readonly onNavigate?: () => void;
   readonly onLogout?: () => void | Promise<void>;
+  readonly onStagePress: () => void;
+}
+
+function NavigationItemContent({
+  icon,
+  label,
+}: {
+  readonly icon: AppIconName;
+  readonly label: string;
+}) {
+  return (
+    <View style={styles.sectionContent}>
+      <View style={styles.sectionIcon}>
+        <AppIcon color={colors.surface} name={icon} size={20} />
+      </View>
+      <AppText style={styles.sectionLabel} tone="inverse">
+        {label}
+      </AppText>
+    </View>
+  );
 }
 
 function SidebarNavigationLink({
@@ -26,32 +49,37 @@ function SidebarNavigationLink({
   icon,
   label,
   onNavigate,
+  onPress,
 }: {
   readonly active: boolean;
-  readonly href: Href;
+  readonly href?: Href;
   readonly icon: AppIconName;
   readonly label: string;
   readonly onNavigate?: () => void;
+  readonly onPress?: () => void;
 }) {
-  return (
+  const item = (
+    <Pressable
+      accessibilityLabel={onPress ? `${label}, em breve` : `Ir para ${label}`}
+      accessibilityRole={onPress ? 'button' : 'tab'}
+      accessibilityState={onPress ? undefined : { selected: active }}
+      onPress={onPress}
+      onPressIn={onPress ? undefined : onNavigate}
+      style={StyleSheet.flatten([
+        styles.sectionItem,
+        active && styles.sectionItemActive,
+      ])}
+    >
+      <NavigationItemContent icon={icon} label={label} />
+    </Pressable>
+  );
+
+  return href ? (
     <Link href={href} replace asChild>
-      <Pressable
-        accessibilityLabel={`Ir para ${label}`}
-        accessibilityRole="tab"
-        accessibilityState={{ selected: active }}
-        onPressIn={onNavigate}
-        style={({ pressed }) => [
-          styles.sectionItem,
-          active && styles.sectionItemActive,
-          pressed && styles.pressed,
-        ]}
-      >
-        <View style={styles.sectionContent}>
-          <AppIcon color={colors.surface} name={icon} size={20} />
-          <AppText tone="inverse">{label}</AppText>
-        </View>
-      </Pressable>
+      {item}
     </Link>
+  ) : (
+    item
   );
 }
 
@@ -86,12 +114,9 @@ function GeneralNavigationLink({
         accessibilityLabel={label}
         accessibilityRole="link"
         onPressIn={onNavigate}
-        style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
+        style={styles.sectionItem}
       >
-        <View style={styles.sectionContent}>
-          <AppIcon color={colors.surface} name={icon} size={20} />
-          <AppText tone="inverse">{label}</AppText>
-        </View>
+        <NavigationItemContent icon={icon} label={label} />
       </Pressable>
     </Link>
   );
@@ -113,10 +138,7 @@ function GeneralNavigationAction({
       onPress={onPress}
       style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
     >
-      <View style={styles.sectionContent}>
-        <AppIcon color={colors.surface} name={icon} size={20} />
-        <AppText tone="inverse">{label}</AppText>
-      </View>
+      <NavigationItemContent icon={icon} label={label} />
     </Pressable>
   );
 }
@@ -128,6 +150,7 @@ export function NavigationPanel({
   getSectionHref,
   onNavigate,
   onLogout,
+  onStagePress,
 }: NavigationPanelProps) {
   const { session } = useAuthSession();
   const profileQuery = useCurrentProfile();
@@ -213,11 +236,16 @@ export function NavigationPanel({
             {navigationItems.map((item) => (
               <SidebarNavigationLink
                 active={activeSection === item.section}
-                href={getSectionHref(item.section)}
+                href={
+                  item.section === 'stage'
+                    ? undefined
+                    : getSectionHref(item.section)
+                }
                 icon={item.icon}
                 key={item.section}
                 label={item.label}
                 onNavigate={onNavigate}
+                onPress={item.section === 'stage' ? onStagePress : undefined}
               />
             ))}
           </View>
@@ -252,9 +280,7 @@ export function NavigationPanel({
             void onLogout?.();
           }}
         />
-        <AppText style={styles.muted} variant="caption">
-          Login com Google e Apple.
-        </AppText>
+        <AppVersionLabel inverse />
       </View>
     </ScrollView>
   );
@@ -314,34 +340,46 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   sidebarTabs: {
-    gap: spacing.xs,
+    gap: 0,
   },
   sectionItem: {
+    alignSelf: 'stretch',
     borderRadius: radii.md,
-    minHeight: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    minHeight: menuItemHeight,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.xs,
+    width: '100%',
   },
   sectionItemActive: {
     backgroundColor: colors.navyRaised,
   },
   sectionContent: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
     gap: spacing.md,
+  },
+  sectionIcon: {
+    height: 20,
+    marginTop: 2,
+    width: 20,
+  },
+  sectionLabel: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   generalNavigation: {
     borderTopColor: colors.navyRaised,
     borderTopWidth: 1,
-    gap: spacing.xs,
+    gap: 0,
     paddingTop: spacing.md,
   },
   generalItem: {
     borderRadius: radii.md,
     justifyContent: 'center',
-    minHeight: layout.minimumTouchTarget,
+    minHeight: menuItemHeight,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   footer: {
     gap: spacing.xs,

@@ -6,12 +6,14 @@ import { colors, layout, radii, spacing } from '@/theme/tokens';
 interface DemoActionNoticeProps {
   readonly message: string | null;
   readonly onClose: () => void;
+  readonly testID?: string;
   readonly title?: string;
 }
 
 export function DemoActionNotice({
   message,
   onClose,
+  testID = 'demo-action-notice',
   title = 'Demonstração',
 }: DemoActionNoticeProps) {
   if (!message) return null;
@@ -30,7 +32,7 @@ export function DemoActionNotice({
           accessibilityRole="alert"
           accessible
           style={styles.dialog}
-          testID="demo-action-notice"
+          testID={testID}
         >
           <AppText accessibilityRole="header" variant="heading">
             {title}

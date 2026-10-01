@@ -9,6 +9,7 @@ const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
+  useFocusEffect: jest.fn(),
   useRouter: () => mockRouter,
 }));
 

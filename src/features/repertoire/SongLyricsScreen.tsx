@@ -9,9 +9,14 @@ import {
 } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import {
+  getListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
 import { useSong } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { getSongHref } from '@/features/navigation/routes';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { SongLyricsContent } from './SongLyricsContent';
 
@@ -22,6 +27,7 @@ interface SongLyricsScreenProps {
 
 export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
   const songQuery = useSong(bandId, songId);
+  const { onRefresh, refreshing } = useScreenDataRefresh([songQuery]);
   const song = songQuery.data;
 
   return (
@@ -64,7 +70,9 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
       >
+        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
         {songQuery.isPending ? <LoadingFeedback /> : null}
         {songQuery.isError ? (
           <ErrorFeedback

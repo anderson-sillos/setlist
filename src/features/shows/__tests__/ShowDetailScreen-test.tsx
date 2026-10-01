@@ -26,6 +26,7 @@ jest.mock('@/data/supabase/showUpdateMutations', () => ({
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
+  useFocusEffect: jest.fn(),
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }));
 
@@ -74,7 +75,7 @@ describe('<ShowDetailScreen />', () => {
     expect(
       StyleSheet.flatten(songRow.props.style).borderTopWidth,
     ).toBeUndefined();
-    expect(view.getByLabelText('Abrir modo palco')).toBeTruthy();
+    expect(view.queryByLabelText('Abrir modo palco')).toBeNull();
   });
 
   it('abre a edição da setlist em uma tela própria para shows editáveis', async () => {

@@ -1,7 +1,7 @@
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import {
   ErrorFeedback,
@@ -12,6 +12,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
@@ -31,11 +32,11 @@ import {
   getShowDurationBreakdown,
 } from '@/domain/setlistDuration';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import {
   getBandSectionHref,
   getShowEditHref,
   getShowHref,
-  getStageHref,
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -66,7 +67,7 @@ function getShowStatusActions(status: ShowStatus) {
         status: 'ready' as const,
       },
       {
-        confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
+        confirm: 'O show será cancelado. Você poderá reabri-lo depois.',
         icon: 'calendarMinus' as const,
         label: 'Cancelar show',
         status: 'cancelled' as const,
@@ -83,7 +84,7 @@ function getShowStatusActions(status: ShowStatus) {
         status: 'draft' as const,
       },
       {
-        confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
+        confirm: 'O show será cancelado. Você poderá reabri-lo depois.',
         icon: 'calendarMinus' as const,
         label: 'Cancelar show',
         status: 'cancelled' as const,
@@ -156,6 +157,16 @@ export function ShowDetailScreen({
   const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const refreshEnabled =
+    !editVisible &&
+    !duplicateVisible &&
+    !actionsSheetVisible &&
+    !statusSheetVisible &&
+    !deleteSheetVisible;
+  const { onRefresh, refreshing } = useScreenDataRefresh(
+    [showQuery, songsQuery, userBandsQuery],
+    refreshEnabled,
+  );
   const show = showQuery.data;
   const editInitialValues = useMemo(
     () => (show ? toEditForm(show) : undefined),
@@ -378,6 +389,8 @@ export function ShowDetailScreen({
             }
           : undefined
       }
+      onRefresh={onRefresh}
+      refreshing={refreshing}
       screenKind="detail"
       title="Detalhes do show"
       viewportHeight={viewportHeight}
@@ -595,6 +608,7 @@ export function ShowDetailScreen({
       {!showQuery.isPending && !showQuery.isError && !show ? (
         <UnavailableFeedback title="Show indisponível" />
       ) : null}
+      <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
 
       {show ? (
         <View
@@ -649,21 +663,6 @@ export function ShowDetailScreen({
                 <AppText variant="heading">Observações</AppText>
                 <AppText>{show.notes}</AppText>
               </View>
-            ) : null}
-
-            {show.status !== 'cancelled' ? (
-              <Link href={getStageHref(bandId, show.id)} asChild>
-                <Pressable
-                  accessibilityLabel="Abrir modo palco"
-                  accessibilityRole="link"
-                  style={({ pressed }) => [
-                    styles.stageLink,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText tone="inverse">Abrir modo palco</AppText>
-                </Pressable>
-              </Link>
             ) : null}
           </Card>
 
@@ -902,13 +901,6 @@ const styles = StyleSheet.create({
   itemCopy: {
     flex: 1,
     gap: spacing.xs,
-  },
-  stageLink: {
-    alignItems: 'center',
-    backgroundColor: colors.violet,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
   },
   pressed: {
     opacity: 0.72,

@@ -11,6 +11,7 @@ import { AppProviders, useAppData } from '@/providers/AppProviders';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
+  useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({
     bandId: 'band-demo-horizonte',
     showId: 'show-demo-festival',
@@ -23,27 +24,31 @@ describe('integração das rotas', () => {
   it.each([
     {
       Route: ShowsRoute,
+      backLabel: undefined,
       navigationLabel: 'Ir para Shows',
       content: 'Festival da Praça',
     },
     {
       Route: RepertoireRoute,
+      backLabel: undefined,
       navigationLabel: 'Ir para Repertório',
       content: 'Luzes da Cidade',
     },
     {
       Route: StageHubRoute,
-      navigationLabel: 'Ir para Palco',
-      content: 'Escolha um show',
+      backLabel: 'Voltar para Shows',
+      navigationLabel: 'Palco, em breve',
+      content: 'Modo palco em breve',
     },
     {
       Route: BandRoute,
+      backLabel: undefined,
       navigationLabel: 'Ir para Banda',
       content: 'Ana Martins',
     },
   ])(
     'carrega a rota $navigationLabel com os dados da banda',
-    async ({ Route, navigationLabel, content }) => {
+    async ({ Route, backLabel, navigationLabel, content }) => {
       const view = await render(
         <AppProviders>
           <Route />
@@ -55,14 +60,17 @@ describe('integração das rotas', () => {
         (await view.findAllByText('Banda Horizonte')).length,
       ).toBeGreaterThan(0);
       expect(view.getByLabelText(navigationLabel)).toBeTruthy();
-      expect(view.getByLabelText('Abrir menu geral')).toBeTruthy();
+      expect(view.getByLabelText(backLabel ?? 'Abrir menu geral')).toBeTruthy();
+      if (Route === StageHubRoute) {
+        expect(view.getByTestId('stage-availability-dialog')).toBeTruthy();
+      }
     },
   );
 
   it.each([
     { Route: ShowDetailRoute, content: 'Festival da Praça' },
     { Route: SongDetailRoute, content: 'A rua acende devagar' },
-    { Route: StageRoute, content: 'A rua acende devagar' },
+    { Route: StageRoute, content: 'Modo palco em breve' },
   ])('carrega uma rota de detalhe', async ({ Route, content }) => {
     const view = await render(
       <AppProviders>
@@ -71,6 +79,9 @@ describe('integração das rotas', () => {
     );
 
     expect(await view.findByText(content)).toBeTruthy();
+    if (Route === StageRoute) {
+      expect(view.getByTestId('stage-availability-dialog')).toBeTruthy();
+    }
   });
 
   it('exige o provedor para acessar os repositórios', async () => {

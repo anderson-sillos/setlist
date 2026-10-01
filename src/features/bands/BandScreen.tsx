@@ -7,6 +7,10 @@ import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import {
+  getListRefreshControl,
+  WebRefreshButton,
+} from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
@@ -41,6 +45,7 @@ import {
   rememberListScrollOffset,
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import {
   BandAdministrationDialog,
@@ -70,6 +75,11 @@ export function BandScreen({
   const bandQuery = useBand(bandId);
   const membersQuery = useBandMembers(bandId);
   const userBandsQuery = useUserBands();
+  const { onRefresh, refreshing } = useScreenDataRefresh([
+    bandQuery,
+    membersQuery,
+    userBandsQuery,
+  ]);
   const { clearLastBand } = useLastBandSelection();
   const currentMembership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
@@ -363,9 +373,10 @@ export function BandScreen({
       {membersQuery.isPending || userBandsQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
-      {membersQuery.isError || userBandsQuery.isError ? (
+      {bandQuery.isError || membersQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
+            void bandQuery.refetch();
             void membersQuery.refetch();
             void userBandsQuery.refetch();
           }}
@@ -415,15 +426,18 @@ export function BandScreen({
         contentOffset={{ x: 0, y: initialScrollOffset }}
         keyExtractor={(member) => member.id}
         ListHeaderComponent={
-          canManage ? (
-            <AppButton
-              accessibilityLabel="Convidar integrante"
-              icon="band"
-              label="Convidar"
-              onPress={openInviteFlow}
-              variant="secondary"
-            />
-          ) : null
+          <View style={styles.listHeaderActions}>
+            {canManage ? (
+              <AppButton
+                accessibilityLabel="Convidar integrante"
+                icon="band"
+                label="Convidar"
+                onPress={openInviteFlow}
+                variant="secondary"
+              />
+            ) : null}
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+          </View>
         }
         ListHeaderComponentStyle={styles.listHeader}
         onScroll={(event) =>
@@ -447,6 +461,7 @@ export function BandScreen({
         )}
         scrollEventThrottle={120}
         sections={sections}
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled
         testID="band-members-list"
@@ -517,6 +532,12 @@ function MemberRow({
 }
 
 const styles = StyleSheet.create({
+  listHeaderActions: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
   listHeader: {
     marginBottom: spacing.md,
   },
