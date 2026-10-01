@@ -62,7 +62,9 @@ export function AppProviders({
     sessionUserId ??
     currentUserId ??
     (isTestEnvironment ? demoIds.currentUser : '');
-  const [queryClient] = useState(
+  // Band-scoped query keys do not include the account ID. A fresh client on
+  // account changes prevents a later session from reading cached band data.
+  const queryClient = useMemo(
     () =>
       new QueryClient({
         defaultOptions: {
@@ -73,6 +75,7 @@ export function AppProviders({
           },
         },
       }),
+    [sessionUserId],
   );
 
   useEffect(() => {

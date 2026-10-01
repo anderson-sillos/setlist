@@ -54,7 +54,7 @@ export function AppNavigationShell({
   viewportWidth,
 }: AppNavigationShellProps) {
   const router = useRouter();
-  const { setLastBand } = useLastBandSelection();
+  const { clearLastBand, setLastBand } = useLastBandSelection();
   const [stageDialogVisible, setStageDialogVisible] = useState(false);
   const stageDialogPending = useRef(false);
 
@@ -67,11 +67,12 @@ export function AppNavigationShell({
   const handleLogout = useCallback(async () => {
     try {
       await signOut();
+      await clearLastBand();
       router.replace('/auth' as Href);
     } catch (error) {
       console.error('[auth] Falha ao sair.', error);
     }
-  }, [router]);
+  }, [clearLastBand, router]);
   const window = useWindowDimensions();
   const width = viewportWidth ?? window.width;
   const height = viewportHeight ?? window.height;

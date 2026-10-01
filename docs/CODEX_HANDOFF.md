@@ -12,8 +12,8 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
 - PR #18: integrada por squash à `main` no commit `1beb994`; CI aprovado.
 - PR #19: integrada à `main`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS. A PR #20 consolidou as validações do grupo 11 no commit `c4c031f`.
-- Escopo da versão 1: preparação online em Web e Android. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
-- Grupo 11: tarefas 11.1 e 11.2 concluídas para o escopo Web/Android. Autenticação, papéis, convites e sessão também foram validados manualmente em iPhone físico; distribuição e piloto iOS continuam fora da primeira entrega.
+- Escopo atual da versão 1: preparação online em Web, Android e iOS, com distribuição pública prevista pela Web, Google Play e App Store. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
+- Grupo 11: tarefas 11.1 e 11.2 concluídas no escopo anterior Web/Android. O ambiente de testes iOS está disponível; autenticação, papéis, convites e sessão já foram validados manualmente em iPhone físico. A validação da preparação online completa e os requisitos de publicação iOS estão abertos nas tarefas 11.1.1, 11.2.1, 11.6 e 11.8.
 - Atualização de dados compartilhados: o change OpenSpec `atualizacao-direcionada-dados` tem os artefatos de planejamento completos; os controles compartilhados (1.1) e a inspeção de fluxos (3.1) estão concluídos. O usuário confirmou que Minhas bandas voltou a exibir dados na Web e no Android. A validação do gesto e botão nas outras telas e as demais tarefas do change seguem pendentes.
 - Ponto de retomada: os logs confirmaram que a consulta entrega 2 bandas e que a tela prepara 2 linhas. A causa foi a prop `refreshControl`: um componente wrapper era passado no lugar de um `RefreshControl` real; no Web e no Android o `ScrollView` clona o controle para envolver o conteúdo e o wrapper descartava esse conteúdo. A implementação foi corrigida para passar o `RefreshControl` nativo diretamente no mobile e `undefined` no Web. O usuário confirmou que a lista voltou a aparecer no Web e no Android e que o pull-to-refresh Android funciona bem. Os botões Web de atualização agora mostram somente o ícone em todas as telas; nos filtros de repertório e shows, o ícone fica ao lado da busca.
 - Os logs temporários de diagnóstico foram removidos após localizar a causa. O estilo experimental aplicado à `FlatList` também foi removido.
@@ -1265,3 +1265,285 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      recebeu o esquema de URL do cliente Google. Os registros anteriores sobre
      indisponibilidade do simulador referem-se a uma etapa anterior: depois o
      usuário disponibilizou um simulador com iOS 18.3.
+
+204. Em 01/10/2026, a retomada do item 11.3 revisou os três rascunhos e o
+     comportamento atual do app. A tela de login já oferece Google e Apple,
+     enquanto os rascunhos descreviam Apple como indisponível; a tabela da
+     política também descrevia YouTube como integrado à sincronização, embora
+     hoje esteja apenas no protótipo. Os textos foram corrigidos para refletir
+     o código. O procedimento de incidentes agora registra a comunicação à
+     ANPD e às pessoas afetadas em até 3 dias úteis quando houver risco ou dano
+     relevante, com complementação fundamentada em até 20 dias úteis quando
+     aplicável, conforme a Resolução CD/ANPD nº 15/2024 e orientação da ANPD.
+205. A revisão jurídica identificou que a autodeclaração de idade, decisão
+     anterior do responsável e ainda não implementada no app, precisa ser
+     reavaliada diante do ECA Digital (Lei nº 15.211/2025), em vigor desde
+     17/03/2026, e das orientações preliminares da ANPD sobre aferição de idade.
+     Assessoria deve determinar se o Setlist é serviço direcionado a menores ou
+     de acesso provável por eles e qual mecanismo atende ao caso; não presumir
+     que autodeclaração é suficiente. Referências: <https://planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15211.htm>
+     e <https://www.gov.br/anpd/pt-br/assuntos/eca-digital/mecanismos-confiaveis-de-afericao-de-idade-orientacoes-preliminares.pdf>.
+206. O item 11.3 continua aberto. A caixa `contato@setlistbr.app.br` foi
+     confirmada como acessível pelo responsável, mas ainda não foi verificada
+     a criação das etiquetas separadas e a restrição dos acessos. O contato
+     ainda não aparece na Web/app; `Termos e privacidade` está desabilitado no
+     menu, e a mensagem de login não contém links para os documentos. Permanecem
+     pendentes identificação pública suficiente do controlador, URL canônica,
+     escopos/contratos e subprocessadores dos fornecedores, transferências
+     internacionais, prazos de retenção e backups, medidas de segurança
+     confirmadas, critérios de remoção e revisão por profissional jurídico.
+     Progresso OpenSpec permanece 85/113; 11.3 não foi marcada como concluída.
+
+207. Em 01/10/2026, foi feita revisão jurídica preliminar dos três rascunhos,
+     documentada em `docs/REVISAO_JURIDICA_PRELIMINAR.md`. Os textos foram
+     confrontados com LGPD, Lei de Direitos Autorais, regulamentos e orientações
+     da ANPD e com o comportamento do app. Foram corrigidos: a afirmação de que
+     o conteúdo pertence à banda, referências públicas ao procedimento interno,
+     a omissão dos dados recebidos no canal de contato, a enumeração dos direitos
+     dos titulares, os prazos de pedidos de acesso, a apresentação da etiqueta
+     do Gmail como restrição de acesso e a ambiguidade dos 20 dias para
+     complementar comunicação de incidente à ANPD. O ECA Digital foi revisto
+     com as orientações atuais da ANPD, inclusive o limiar do art. 31 para
+     relatório de transparência. Continuam pendentes a identificação suficiente
+     do controlador, acesso público e aceite dos documentos, inventário e
+     retenção dos dados, transferências internacionais, enquadramento como
+     pequeno porte, aferição de idade e avaliação por profissional habilitado.
+     Os três textos continuam rascunhos; o item 11.3 permanece aberto.
+
+208. Em 01/10/2026, o responsável confirmou as URLs canônicas futuras dos
+     documentos públicos: `https://setlistbr.app.br/termos/` e
+     `https://setlistbr.app.br/privacidade/`. As minutas passaram a registrar
+     esses endereços como aprovados para publicação futura, sem afirmar que as
+     páginas já existem. O procedimento de remoção continuará interno, com
+     orientações públicas nos termos. A versão e a data de vigência serão
+     definidas na aprovação final; a identificação pública previamente
+     escolhida permanece `Setlist — setlistbr.app.br`, cuja suficiência jurídica
+     ainda depende de avaliação profissional. O item 11.3 continua aberto.
+
+209. A revisão da retenção do item 11.3 acrescentou à política uma matriz do
+     ciclo de dados no banco ativo, baseada nas migrações: exclusão de conta
+     remove perfil e autenticação, mas preserva conteúdo de bandas ativas;
+     convites históricos e aceites permanecem até a exclusão da banda, com
+     referências ao perfil desvinculadas quando a conta é excluída. Não foi
+     encontrada limpeza automática para convites usados, vencidos ou revogados.
+     É preciso definir e, se necessário, implementar o descarte desses registros.
+     O plano, backups e PITR de `setlist-prod` ainda aguardam conferência no
+     painel; a intenção anterior era começar no Free, mas isso não comprova a
+     configuração ativa. Nenhum prazo específico de fornecedor foi publicado
+     nas minutas como fato confirmado.
+
+210. A etapa seguinte do item 11.3 mapeou bases legais candidatas por operação
+     em `docs/REVISAO_JURIDICA_PRELIMINAR.md`: prestação do serviço, aceites,
+     atendimento de pedidos e segurança exigem análise separada. O texto
+     ressalva que letras e observações livres podem conter dados pessoais de
+     terceiros, inclusive sensíveis; o aceite dos termos não é consentimento
+     geral e legítimo interesse do art. 7º não substitui hipótese do art. 11.
+     As minutas de termos e privacidade passaram a orientar a minimização
+     desses dados. A política também descreve apenas medidas comprovadas no
+     código: URL HTTPS do Supabase, variável destinada à chave publicável,
+     RLS, SecureStore móvel com fallback em memória e armazenamento de sessão
+     no navegador. A
+     configuração efetiva de produção e as bases finais continuam pendentes.
+
+211. A avaliação preliminar de idade foi detalhada na revisão jurídica: o
+     ECA Digital usa critérios de acesso provável por menores (art. 1º), e a
+     vedação expressa à autodeclaração do art. 9º, § 1º, refere-se a conteúdo,
+     produto ou serviço impróprio, inadequado ou proibido a menores. A opção do
+     operador por contas 18+ não resolve sozinha o enquadramento nem comprova
+     que a autodeclaração basta. O app permite convites e conteúdo livre, mas
+     não foi identificada disseminação social em larga escala no código
+     consultado; o protótipo YouTube também deve entrar na avaliação. A
+     classificação e o mecanismo proporcional dependem de análise jurídica.
+
+212. A etapa seguinte do item 11.3 mapeou os fluxos de Supabase, Google/Apple,
+     GitHub Pages, YouTube e Cloudflare → Gmail na revisão jurídica preliminar.
+     A política agora separa a região primária brasileira do Supabase das
+     possíveis operações fora do país, descreve a coleta do player já na
+     abertura da tela e distingue anúncios próprios do Setlist de publicidade
+     eventualmente exibida pelo YouTube. Os termos passaram a descrever o
+     player incorporado e a vincular os Termos de Serviço do YouTube. A
+     Resolução CD/ANPD nº 19/2024 exige classificar cada fluxo como coleta
+     direta ou transferência entre agentes; o DPA público do Supabase cita
+     cláusulas europeias, mas isso não comprova mecanismo brasileiro válido.
+     Faltam checagem dos contratos/configurações efetivos, países de destino,
+     bases legais e eventual transparência do art. 17. As minutas seguem sem
+     autorização para publicação; o item 11.3 permanece aberto.
+
+213. A revisão de retenção local identificou que a última banda selecionada
+     fica em SecureStore no móvel e localStorage na Web. O logout não a limpava;
+     a ação agora a remove. O QueryClient também mantinha cache em memória por
+     tempo indefinido, com chaves de banda sem identificador da conta; ele
+     agora é recriado quando muda a conta autenticada para impedir reutilização
+     de dados em outra sessão no mesmo processo. A política e a revisão jurídica
+     preliminar foram atualizadas com esse ciclo. Não foram executados testes
+     nesta etapa. Plano, backup/PITR e logs efetivos de produção ainda exigem
+     conferência; as minutas não estão aprovadas para publicação e 11.3 segue
+     pendente.
+
+214. Uma revisão cruzada do item 11.3 encontrou no design, na spec
+     `band-access` e na apresentação pública a expressão de que o conteúdo
+     pertenceria à banda. Esses materiais agora descrevem somente o vínculo
+     técnico e a preservação do conteúdo para integrantes remanescentes, sem
+     transferir titularidade autoral.
+     A apresentação recebeu uma nota separando a visão do MVP completo da
+     primeira versão Web/Android, que cobre apenas preparação online; os
+     rótulos que sugeriam palco/offline já no primeiro ciclo foram ajustados.
+     A revisão jurídica também registrou que as minutas prometem avisos de
+     mudanças por e-mail e no app, mas o fluxo correspondente ainda não foi
+     identificado na implementação. Antes de publicar, definir e validar o
+     procedimento real de aviso e adequar a redação. As minutas permanecem
+     rascunhos; 11.3 continua aberta.
+
+215. O inventário preliminar de retenção foi ampliado com uma separação entre
+     banco ativo, logs de API/banco, auditoria de autenticação, backups/PITR,
+     visitas ao GitHub Pages, registros de encaminhamento da Cloudflare e
+     mensagens no Gmail. O Supabase grava eventos de autenticação em logs
+     externos e pode gravá-los também em `auth.audit_log_entries`, opção ainda
+     não conferida em `setlist-prod`; excluir `auth.users` não comprova a
+     eliminação desses registros. As janelas publicadas nos planos representam
+     acesso/recuperação e não demonstram, sozinhas, a eliminação definitiva.
+     Confirmar no painel o plano da organização, PITR e auditoria do projeto,
+     além dos prazos e configurações efetivos de Cloudflare/Gmail. A política,
+     o procedimento interno e a revisão jurídica preliminar foram atualizados
+     sem atribuir prazos presumidos à produção. Não foram executados testes;
+     as minutas seguem sem aprovação para publicação e 11.3 permanece aberta.
+
+216. A etapa seguinte examinou a promessa de aviso de alterações nas minutas.
+     O login não oferece links para termos e política, o menu mantém “Termos e
+     privacidade” desabilitado e não há fluxo de avisos legais no app. A caixa
+     de contato foi confirmada para recebimento, mas o remetente de saída e a
+     entrega aos e-mails das contas não foram verificados. Termos e política
+     agora preveem comunicação direta com destaque por e-mail cadastrado quando
+     disponível ou outro meio adequado, sem prometer simultaneamente aviso no
+     app. A revisão jurídica preliminar recebeu um procedimento para classificar
+     mudanças, preservar versões, conferir envio e falhas e colher novo aceite
+     quando necessário. Esse processo ainda precisa ser implementado e validado
+     antes da publicação; a simples atualização da página não comprova ciência
+     ou concordância. O item 11.3 continua aberto.
+
+217. A revisão do procedimento de denúncias encontrou duas limitações técnicas
+     que impedem tratar a minuta como fluxo operacional ativo. A função
+     `remove_song` arquiva músicas ligadas a shows; a RLS ainda permite que
+     integrantes leiam a música arquivada, portanto arquivar não retira o
+     conteúdo. Não há comando administrativo de bloqueio ou fila de moderação.
+     Além disso, `songs` não registra quem criou ou alterou cada item; a pessoa
+     que enviou o conteúdo pode não ser identificável. O procedimento e os
+     termos agora distinguem triagem, medida urgente efetiva, manifestação,
+     decisão e contestação, com interlocução alternativa junto aos responsáveis
+     pela banda sem presumir autoria. A revisão jurídica preliminar registra
+     os limites e a necessidade de classificar cada tipo de denúncia à luz do
+     Marco Civil, dos Temas 533/987 do STF e, se aplicável, do ECA Digital.
+     Antes de publicar, validar mecanismo real de restrição/retirada, acesso
+     administrativo, prazos de recurso e critérios jurídicos. O item 11.3
+     permanece aberto.
+
+218. Na análise ponto a ponto das decisões jurídicas do item 11.3, o
+     responsável informou que não há menores de 18 anos nem bandas escolares
+     entre os usuários atuais ou as bandas previstas para o piloto. A revisão
+     jurídica preliminar registra esse fato e corrige a redação anterior, que
+     poderia sugerir participação efetiva de adolescentes. O código ainda não
+     verifica idade: a tela inicia Google/Apple sem convite e, após autenticação,
+     oferece criação de banda. A configuração de cadastro do Supabase em
+     produção não foi confirmada. Para avaliar acesso provável por menores no
+     lançamento público, falta decidir se a entrada será aberta ou limitada por
+     convite/allowlist, conferir a implementação e a classificação etária nas
+     lojas. A ausência de menores no piloto não encerra, por si, a avaliação
+     do ECA Digital. As minutas seguem rascunhos e 11.3 continua aberto.
+
+219. O responsável esclareceu que o primeiro lançamento Web/Android será
+     aberto ao público, sem convite ou allowlist para criar uma conta. A revisão
+     jurídica preliminar foi atualizada: a facilidade de acesso passa a integrar
+     expressamente a avaliação de acesso provável por menores do art. 1º do ECA
+     Digital, embora não determine sozinha o enquadramento. Permanecem sem
+     conferência a configuração real de cadastro do Supabase em produção, a
+     classificação etária nas lojas e a política para conteúdo livre de letras
+     e observações. O público pretendido continua 18+, mas não há aferição de
+     idade implementada. Nenhuma minuta foi aprovada para publicação; 11.3
+     segue aberto.
+
+220. O responsável definiu que conteúdo pornográfico deve ser expressamente
+     proibido, inclusive quando inserido em letras, observações ou links, e
+     que a pessoa que o insere ou edita responde por seus atos. As três minutas
+     receberam essa orientação: termos com proibição e canal de denúncia,
+     política com transparência sobre a ausência de filtro automático e
+     procedimento interno com triagem específica e urgência para indícios de
+     exploração ou abuso sexual de menores. A revisão jurídica preliminar
+     ressalva que a cláusula não elimina deveres legais do operador, não bloqueia
+     tecnicamente conteúdo e não resolve sozinha a avaliação etária; também
+     aponta que o aceite vigente da banda ainda precisa ser alinhado antes da
+     publicação. O item 11.3 permanece aberto para revisão profissional.
+
+221. Na etapa seguinte da avaliação etária do item 11.3, foi confirmado que o
+     item `Player YouTube (protótipo)` ainda está visível no menu lateral e a
+     rota carrega um vídeo de referência. A primeira versão pública foi
+     descrita como preparação online, mas ainda não há decisão sobre incluir
+     esse protótipo no lançamento. O `app.json` não comprova a classificação
+     etária definida na loja. A revisão jurídica registra esse fato e aguarda a
+     decisão do responsável; cadastro público e campos livres continuam na
+     análise mesmo se o protótipo for retirado. O item 11.3 segue aberto.
+
+222. O responsável decidiu inibir o acesso ao protótipo do YouTube na primeira
+     versão pública Web/Android. O item temporário foi removido do menu lateral
+     e a rota `/youtube-prototype` foi excluída, de modo que um endereço direto
+     também não carregue o player. O componente técnico foi preservado para a
+     futura integração. A referência do YouTube no detalhe de uma música ainda
+     abre o aplicativo ou navegador externo somente após ação da pessoa. Termos,
+     política, arquitetura de telas e revisão jurídica preliminar foram
+     alinhados a esse escopo. O teste de navegação deixou de esperar o item
+     temporário; nenhuma suíte foi executada nesta etapa. A classificação
+     etária, a avaliação do ECA Digital e o item 11.3 continuam pendentes.
+
+223. O responsável definiu que a primeira disponibilização pública será pela
+     Web e pelo Google Play no Android. O repositório só comprova APKs internos
+     nos perfis `development-android` e `preview`; o perfil `production` ainda
+     não define envio à loja. A revisão jurídica foi atualizada com essa decisão
+     e distingue público-alvo 18+ da classificação de conteúdo IARC, ambos a
+     conferir no Play Console. Ainda não há evidência local de cadastro do app
+     na loja ou dos valores declarados. A análise da Web e da aferição de idade
+     permanece independente do preenchimento da loja; o item 11.3 segue aberto.
+
+224. O responsável esclareceu que a limitação dos testes iOS foi resolvida e
+     incluiu distribuição pública pela App Store na primeira versão, junto com
+     Web e Google Play. O escopo atual de design, tarefas, termos, apresentação
+     e revisão jurídica foi atualizado para Web/Android/iOS. As validações já
+     realizadas em iPhone físico incluem login, navegação, papéis e convites;
+     não há evidência de validação completa da preparação online nem de build
+     pública aprovada. As tarefas 11.1 e 11.2 seguem marcadas conforme o escopo
+     anterior; 11.1.1 e 11.2.1 registram a validação iOS restante, e 11.6/11.8
+     cobrem piloto e distribuição das três plataformas. A diretriz 1.2 da App
+     Store exige meios de filtragem de conteúdo inadequado, denúncia, resposta,
+     bloqueio de usuários abusivos e contato, ainda não implementados em
+     conjunto; 11.8.1 registra a pendência. Os questionários etários e de
+     privacidade das lojas continuam sem confirmação. O item 11.3 permanece
+     aberto e nenhuma minuta foi aprovada para publicação.
+
+225. O responsável confirmou que o Setlist ainda não está cadastrado no Google
+     Play Console nem no App Store Connect. Não há classificação IARC, faixa
+     etária da App Store nem declarações de privacidade das lojas já preenchidas.
+     A revisão jurídica preliminar foi corrigida para tratar criação dos
+     cadastros e preenchimento dos questionários como etapas futuras, sem
+     atribuir ao app uma classificação não obtida. O próximo ponto jurídico e
+     operacional é o tratamento do conteúdo enviado por usuários exigido pela
+     diretriz 1.2 da Apple. O item 11.3 segue aberto.
+
+226. O responsável decidiu assumir um processo paralelo de filtragem de
+     conteúdo indevido para a distribuição pública, separado da edição da banda.
+     A revisão jurídica e a tarefa 11.8.1 registram a decisão como plano
+     operacional, sem afirmar que o fluxo já está implementado ou que a App
+     Store o aceitará. Permanecem por definir o momento da análise, quem a
+     executa, o acesso ao conteúdo, o efeito técnico de uma decisão, o registro,
+     denúncia, recurso e bloqueio de usuários abusivos. A diretriz 1.2 da Apple
+     exige método de filtragem de material inadequado antes da postagem; o
+     funcionamento concreto precisa ser confrontado com isso antes do envio.
+
+227. O responsável definiu o processo paralelo como revisão **posterior** à
+     publicação, acionada por denúncia ou inspeção. Todas as denúncias de
+     usuários devem ser enviadas por e-mail a `contato@setlistbr.app.br`. Termos,
+     política, procedimento interno e revisão jurídica foram ajustados para não
+     prometer aprovação prévia ou filtro automático. A diretriz 1.2 da Apple
+     pede método de filtragem antes da postagem; o fluxo posterior não comprova
+     atendimento a esse ponto. A política de UGC do Google Play pede denúncia
+     acessível dentro do app; o e-mail pode ser o meio de envio, mas é preciso
+     criar e validar uma ação interna, além de definir controles proporcionais
+     de bloqueio. A tarefa 11.8.1 registra essas pendências. O processo ainda
+     não está implementado e o item 11.3 segue aberto.

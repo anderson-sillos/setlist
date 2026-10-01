@@ -1,7 +1,8 @@
 # Procedimento de remoção e solicitações — rascunho
 
-> **RASCUNHO OPERACIONAL. Não publicar antes de confirmar o acesso ao canal de contato,
-> responsáveis, prazos e revisão jurídica.**
+> **RASCUNHO OPERACIONAL INTERNO. Não publicar este documento como termo do
+> serviço.** Confirmar acesso ao canal de contato, responsáveis, prazos e
+> revisão jurídica antes de ativá-lo.
 
 - Versão de trabalho: 0.1
 - Data de preparação: 29/09/2026
@@ -32,14 +33,24 @@ de criação/uso de convites. O conteúdo de bandas ainda ativas permanece para 
 demais integrantes e pode continuar associado à banda. A remoção de dados em
 logs, backups e sistemas dos fornecedores segue prazos ainda não confirmados:
 **[COMPLETAR COM O INVENTÁRIO DE RETENÇÃO]**.
+Na apuração de cada pedido, considerar separadamente os registros de auditoria
+de autenticação do Supabase: há armazenamento externo de logs e pode haver
+cópia opcional na tabela `auth.audit_log_entries`. A exclusão da identidade de
+autenticação não comprova a eliminação desses registros; conferir a configuração
+e o tratamento aplicável antes de responder sobre eliminação completa.
 
 ## 2. Remoção de conteúdo de banda
 
-Conteúdo pertence à banda. Um Proprietário ou Editor pode editar conteúdo
+O conteúdo é compartilhado na banda; os direitos autorais permanecem com seus
+respectivos titulares. Os papéis na banda controlam o acesso técnico e não
+transferem direitos sobre obras. A pessoa que insere ou edita conteúdo responde
+por seus próprios atos, conforme a lei; o operador mantém os deveres legais de
+tratar denúncias. Um Proprietário ou Editor pode editar conteúdo
 conforme as permissões disponíveis. A exclusão de uma banda elimina seu
 conteúdo, mas só está habilitada quando o solicitante é Proprietário e o único
-integrante. Para solicitar remoção por motivo de direito autoral, privacidade
-ou erro, contate **contato@setlistbr.app.br** e informe:
+integrante. Denúncias de conteúdo proibido e pedidos de remoção por direito
+autoral, privacidade ou erro devem ser enviados por e-mail a
+**contato@setlistbr.app.br** com:
 
 - nome da banda e localização/identificador do conteúdo;
 - descrição objetiva do problema e a providência solicitada;
@@ -62,26 +73,82 @@ verificação terminar, salvo obrigação legal de retenção. Manter no histór
 caso apenas a justificativa para a coleta, a data e o resultado da verificação,
 sem copiar dados do documento.
 
-## 3. Triagem de uma denúncia
+**Limite técnico atual:** o comando de remover música a apaga do banco ativo
+somente quando não há referência em shows. Havendo referência, ele a **arquiva**;
+o registro e a letra permanecem no banco e a política de leitura ainda permite
+acesso aos integrantes da banda. Arquivar não é medida de indisponibilização
+para uma denúncia. O app não oferece ao controlador uma fila de moderação nem
+um comando administrativo de bloqueio por conteúdo. A tabela de músicas também
+não guarda quem criou ou alterou cada registro; não é possível presumir que o
+responsável pelo envio será identificável. Também não há filtro automático de
+conteúdo pornográfico; a proibição contratual, sozinha, não impede que alguém
+insira esse material. Antes de ativar este procedimento,
+definir e validar um meio autorizado de retirar ou restringir
+efetivamente o conteúdo denunciado, inclusive quando estiver ligado a shows,
+com registro da decisão, controle de acesso e possibilidade de revisão. Definir
+como ouvir o responsável pela banda quando não for possível identificar quem
+inseriu o material, sem atribuir a essa pessoa autoria ou responsabilidade
+individual por presunção.
 
-1. Registrar e acompanhar o caso na caixa Gmail do canal, usando uma etiqueta
-   dedicada a privacidade/remoção e acesso restrito ao responsável. Usar o
-   histórico da própria mensagem como registro, anotando apenas data, tipo,
-   situação e encerramento; não duplicar mensagens, anexos ou documentos em
-   planilha paralela. Confirmar à pessoa o recebimento em até **5 dias úteis**.
-2. Avaliar se há informação suficiente. Para pedidos sobre conta, conferir o
-   e-mail associado e pedir confirmação adicional mínima somente se necessário;
-   para denúncias de conteúdo, verificar proporcionalmente a relação da pessoa
-   com o conteúdo ou a autoridade para agir. Não exigir documento oficial por
-   padrão.
-3. Encaminhar o caso ao responsável designado. Em caso de risco plausível de
-   exposição de dados ou violação de direitos, limitar temporariamente o acesso
-   quando tecnicamente possível, sem prometer remoção automática.
-4. Quando apropriado, informar a pessoa que enviou o conteúdo e permitir que
-   apresente esclarecimentos, respeitando privacidade e obrigações legais.
-5. Registrar no próprio histórico da mensagem a decisão, uma justificativa
-   resumida, as alterações feitas e eventual recurso, limitando o detalhe ao
-   necessário para acompanhar o caso.
+## 3. Revisão posterior por denúncia ou inspeção
+
+O modelo decidido pelo responsável é um processo paralelo **após** a edição
+salva na banda, acionado por denúncias enviadas por e-mail ou por inspeções.
+Não existe aprovação de cada publicação antes de sua leitura pelos integrantes.
+O responsável ainda precisa definir critérios, frequência, pessoa autorizada e
+registro mínimo das inspeções. A ausência de filtro automático ou aprovação
+prévia não dispensa a retirada efetiva de conteúdo quando a análise exigir.
+
+1. Registrar e acompanhar denúncias recebidas por e-mail na caixa Gmail do
+   canal, usando uma etiqueta dedicada a privacidade/remoção para organização.
+   Restringir o acesso à conta e às mensagens ao responsável; etiquetas comuns
+   do Gmail não limitam quem
+   pode ler a caixa. Usar o histórico da própria mensagem como registro,
+   anotando apenas data, tipo, situação e encerramento; não duplicar mensagens,
+   anexos ou documentos em planilha paralela. Para inspeção iniciada internamente,
+   documentar o mesmo mínimo em meio de acesso restrito a definir, sem copiar
+   o material sensível para o e-mail. Confirmar à pessoa denunciante o recebimento
+   em até **5 dias úteis**, sem adiar a resposta simplificada de confirmação ou
+   acesso aos dados quando a LGPD exigir atendimento imediato. Para declaração
+   completa, observar o prazo legal de até 15 dias do requerimento. Aplicar
+   prazo diferenciado somente após confirmar o enquadramento como agente de
+   pequeno porte.
+2. Avaliar se há informação suficiente para localizar o registro e classificar
+   o pedido: dado pessoal ou conta, direito autoral, conteúdo pornográfico
+   proibido pelos termos, exposição de intimidade, possível exploração ou abuso
+   sexual de criança ou adolescente, outra possível ilicitude ou erro comum.
+   Para pedidos sobre conta, conferir o e-mail associado e pedir confirmação
+   adicional mínima somente se necessário; para denúncias de conteúdo,
+   verificar proporcionalmente a relação da pessoa com o conteúdo ou sua
+   autoridade para agir. Não exigir documento oficial por padrão. Pedidos com
+   risco atual de dano grave devem receber avaliação imediata, sem aguardar a
+   meta geral de confirmação em cinco dias úteis. Indício de exploração ou abuso
+   sexual de criança ou adolescente exige avaliação e encaminhamento urgentes,
+   incluindo a comunicação às autoridades competentes quando exigida pelo art.
+   27 do ECA Digital, conforme a regulamentação aplicável. Evitar circulação
+   desnecessária do material durante a apuração.
+3. Registrar quem decidiu a prioridade, qual conteúdo foi localizado, o risco
+   considerado e a medida tecnicamente disponível. Se uma restrição imediata
+   for necessária, usar somente um meio que realmente retire o acesso ao
+   material para o público afetado; **não usar o arquivamento da música como
+   bloqueio**. Se não houver meio validado, escalar ao responsável técnico e à
+   assessoria jurídica para definir uma ação proporcional e documentar a
+   limitação; não responder à pessoa que o conteúdo foi removido sem verificar.
+4. Antes da decisão definitiva, quando cabível, informar a pessoa que enviou o
+   conteúdo **se for identificável**; caso contrário, contatar o Proprietário
+   ou Editor responsável pela banda para obter esclarecimentos, sem atribuir-lhe
+   autoria ou responsabilidade individual. Informar apenas o material e o
+   fundamento necessários para a manifestação. Não revelar dados desnecessários
+   da pessoa denunciante ou informações que aumentem o risco para a vítima. Uma
+   medida urgente pode preceder essa manifestação, seguida de revisão.
+5. Decidir e documentar a providência proporcional: corrigir informação,
+   retirar o trecho ou registro, manter o conteúdo por insuficiência de
+   fundamento, ou encaminhar a questão à autoridade competente quando exigido.
+   Conferir o efeito no banco ativo, nas consultas e nas referências de shows;
+   comunicar o resultado e o caminho de contestação às pessoas envolvidas,
+   respeitando sigilo e direitos de terceiros. Uma contestação deve ser
+   examinada por pessoa que considere os novos elementos e registre se mantém
+   ou revê a decisão; não restaurar conteúdo em risco antes dessa análise.
 6. Concluir a análise e responder conforme o prazo legal aplicável ou, quando
    não houver prazo específico para aquela denúncia, após análise diligente,
    informando o andamento quando necessário. Guardar somente os registros
@@ -94,18 +161,36 @@ sem copiar dados do documento.
 
 O responsável deve aprovar os critérios de prova, contranotificação, bloqueio,
 recurso, comunicações a titulares e eventual comunicação à ANPD com assessoria
-jurídica antes de lançar o serviço.
+jurídica antes de lançar o serviço. A classificação jurídica de cada denúncia
+deve considerar a legislação específica e os [Temas 533 e 987 do STF](https://noticias.stf.jus.br/postsnoticias/nota-a-imprensa-43/);
+não presumir que toda reclamação exige ordem judicial ou que toda notificação
+extrajudicial obriga retirada automática. Se o Setlist for classificado como
+serviço direcionado a menores ou de acesso provável por eles, aplicar também
+os requisitos de notificação, retirada e recurso dos arts. 28 a 30 do ECA
+Digital, com prazos procedimentais definidos antes da ativação.
 
 ## 4. Incidentes de segurança
 
 O controlador é responsável por receber e tratar suspeitas de acesso indevido,
 exposição ou perda de dados. Usar a caixa **contato@setlistbr.app.br**, com uma
-etiqueta separada para incidentes e acesso restrito ao responsável. Registrar
-somente as informações necessárias, preservar evidências com acesso limitado,
-avaliar riscos às pessoas afetadas, mitigar o incidente e documentar as decisões.
-Prazos e critérios de comunicação à ANPD e aos titulares devem seguir a
-regulamentação vigente e o procedimento interno aprovado; não usar este rascunho
-como substituto desse plano.
+etiqueta separada para organizar incidentes e acesso à caixa restrito ao
+responsável. Registrar somente as informações necessárias, preservar evidências
+com acesso limitado, avaliar riscos às pessoas afetadas, mitigar o incidente e
+documentar as decisões.
+Confirmado incidente que envolva dados pessoais e possa acarretar risco ou dano
+relevante aos titulares, o controlador deve comunicar a ANPD e as pessoas
+afetadas em até **3 dias úteis**, ressalvado prazo diferente previsto em lei
+específica e eventual prazo diferenciado se confirmado o enquadramento como
+agente de pequeno porte. A comunicação aos titulares não é substituída pela
+comunicação à ANPD e deve ocorrer diretamente, sempre que possível. Se ainda
+faltarem informações, a comunicação à ANPD pode ser feita em etapas, com
+justificativa, e complementada em até **20 dias úteis** após a comunicação
+preliminar, conforme a regulamentação. Isso não autoriza adiar a comunicação
+aos titulares por 20 dias. Registrar quando o controlador tomou conhecimento,
+a avaliação de risco, as decisões, as medidas de mitigação e as comunicações
+realizadas. O responsável deve confirmar com assessoria jurídica o
+procedimento aplicável e os critérios do incidente antes de ativar este
+rascunho como plano operacional.
 
 ## 5. Pendências para ativar este procedimento
 
@@ -115,13 +200,19 @@ como substituto desse plano.
   caixa monitorada e restringir o acesso conforme a natureza do caso.
 - O responsável já dispõe de acesso à caixa postal. Antes da ativação, criar e
   conferir as etiquetas separadas para privacidade/remoção e incidentes e
-  verificar quem tem acesso a cada caso.
+  verificar quem tem acesso à conta e às mensagens; a etiqueta não restringe
+  acesso.
 - Confirmar se o controlador se enquadra na dispensa de nomeação de encarregado
   para agente de tratamento de pequeno porte, inclusive quanto aos critérios de
   exclusão previstos na regulamentação.
-- Implementar a autodeclaração de idade mínima de 18 anos antes do login e
-  registrar internamente a resposta geral para uso que não atenda a esse
-  critério, alinhada aos termos, à política de privacidade e às obrigações legais.
+- Confirmar que o procedimento de resposta a incidente permite avaliar e
+  cumprir o prazo de 3 dias úteis quando a comunicação à ANPD e às pessoas
+  afetadas for exigida; registrar eventual justificativa e complementação em
+  etapas conforme o regulamento.
+- Definir com assessoria jurídica o mecanismo de aferição de idade aplicável,
+  considerando o público efetivo, os riscos e o ECA Digital, e implementá-lo
+  antes da distribuição pública; registrar internamente a resposta geral para
+  uso que não atenda ao critério de 18 anos.
 - Confirmar no inventário de retenção e com assessoria jurídica os prazos e
   exceções aplicáveis aos registros dos pedidos; excluir ou anonimizar os
   registros após o encerramento das finalidades que justificam sua guarda.
@@ -130,7 +221,29 @@ como substituto desse plano.
   alternativo proporcional. Apagar a cópia após a verificação, salvo obrigação
   legal de retenção.
 - Confirmar como tratar cópias de backup e registros operacionais com os
-  fornecedores.
+  fornecedores. No Supabase, verificar o plano da organização, backups/PITR do
+  projeto e a opção de gravar auditoria de autenticação em
+  `auth.audit_log_entries`; apurar se e quando os registros identificáveis são
+  eliminados após a exclusão da conta. Para pedidos recebidos por e-mail,
+  distinguir mensagens e anexos no Gmail dos registros de encaminhamento do
+  Cloudflare Email Routing; definir o descarte de ambos.
 - Aprovar critérios de denúncias de direitos autorais, conteúdo de terceiros e
-  solicitações de remoção de dados.
+  solicitações de remoção de dados; definir prazos internos de manifestação e
+  recurso conforme o enquadramento jurídico aplicável.
+- Definir o processo paralelo de inspeção posterior: critérios, frequência,
+  pessoa autorizada, base legal, acesso ao conteúdo, registro mínimo e descarte.
+  Tornar o canal de denúncia por e-mail facilmente acessível no aplicativo,
+  mantendo o e-mail como meio de envio; validar se a apresentação desse fluxo
+  atende às exigências de denúncia dentro do app nas lojas.
+- Alinhar o termo de aceite da banda à proibição de conteúdo pornográfico e à
+  responsabilidade individual de quem insere ou edita, antes de pôr em vigor
+  os novos termos gerais; definir como colher e registrar novo aceite.
+- Implementar e validar um mecanismo de restrição ou retirada efetiva de
+  conteúdo denunciado, inclusive música ligada a shows, com autorização
+  administrativa controlada. O arquivamento atual não atende a essa finalidade.
 - Revisar política, termos e procedimento com profissional jurídico.
+
+### Referência para resposta a incidentes
+
+- Resolução CD/ANPD nº 15/2024 e orientações da ANPD:
+  <https://www.gov.br/anpd/pt-br/canais_atendimento/agente-de-tratamento/comunicado-de-incidente-de-seguranca-cis>

@@ -1,4 +1,4 @@
-> **Escopo da primeira versão publicável:** concluir primeiro as atividades de consolidação do grupo 11 para Web e Android, cobrindo preparação online e letras sem sincronização. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline) ficam adiados para uma versão complementar; o grupo 10 depende do modo palco. Mantenha essas tarefas pendentes até a retomada da versão complementar. Uma build técnica no simulador iOS pode ser validada separadamente; validação de produto e distribuição iOS permanecem fora desta versão.
+> **Escopo da primeira versão publicável:** concluir as atividades de consolidação do grupo 11 para Web, Android e iOS, cobrindo preparação online e letras sem sincronização. A distribuição pública está prevista pela Web, Google Play e App Store. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline) ficam adiados para uma versão complementar; o grupo 10 depende do modo palco. Mantenha essas tarefas pendentes até a retomada da versão complementar. As validações já concluídas para Web/Android e a validação técnica iOS não encerram as pendências específicas de iOS registradas abaixo.
 
 ## 1. Fundação executável multiplataforma
 
@@ -138,10 +138,14 @@
 
 ## 11. Consolidação e piloto
 
-- [x] 11.1 Executar as suítes de unidade, componentes, integração RLS, Maestro e Playwright aplicáveis à primeira versão (preparação online em Web e Android) e verificar os fluxos críticos, sem incluir modo palco completo, sincronização YouTube ou uso offline
+- [x] 11.1 Executar as suítes de unidade, componentes, integração RLS, Maestro e Playwright aplicáveis à preparação online em Web e Android e verificar os fluxos críticos, sem incluir modo palco completo, sincronização YouTube ou uso offline
+- [ ] 11.1.1 Validar os fluxos críticos da preparação online também em iOS, incluindo instalação, autenticação, bandas, convites, repertório, shows, edição e exclusão de conta
 - [x] 11.2 Revisar acessibilidade, responsividade, desempenho e consistência do tom de voz nas telas da primeira versão em celular, tablet e computador e registrar e corrigir bloqueios de uso; a revisão do modo palco permanece para 8.9
+- [ ] 11.2.1 Revisar em iOS as telas da preparação online quanto a acessibilidade, responsividade, desempenho e consistência antes da distribuição pela App Store
 - [ ] 11.3 Redigir termo de responsabilidade, política de privacidade e procedimento de remoção e verificar revisão jurídica antes de qualquer distribuição pública
 - [ ] 11.4 Configurar monitoramento de banco, tráfego e usuários ativos e verificar alertas internos ao atingir 80% das cotas do Supabase
 - [ ] 11.5 Configurar ambientes, URLs, associações de links e credenciais definitivas, incluindo os destinos HTTPS e o esquema nativo exercitados no protótipo 3.4, e verificar que nenhum segredo ou chave administrativa está no cliente
-- [ ] 11.6 Gerar candidato a piloto para Web e distribuição interna Android e verificar instalação, login, bandas, repertório, shows e preparação online; ocultar os acessos ao protótipo de palco para não expor uma experiência incompleta; iOS e modo palco completo ficam fora desta primeira entrega
+- [ ] 11.6 Gerar candidato a piloto para Web e distribuição interna Android/iOS e verificar instalação, login, bandas, repertório, shows e preparação online nas três plataformas; manter inacessíveis os protótipos de palco e do player incorporado do YouTube para não expor experiências incompletas
 - [ ] 11.7 Conduzir o piloto com uma banda, registrar problemas e decisões e verificar que revisões aprovadas foram incorporadas ou planejadas antes do lançamento seguinte
+- [ ] 11.8 Preparar a distribuição pública Web, Google Play e App Store: conferir links e textos legais aprovados, declarações de público e classificação etária nas lojas, informações de privacidade, mecanismos exigidos para conteúdo de usuários e validação final das builds antes do envio para revisão
+- [ ] 11.8.1 Definir, documentar e integrar o processo paralelo de revisão posterior à publicação, por denúncia enviada por e-mail ou inspeção; implementar entrada de denúncia acessível dentro do app que encaminhe por e-mail, resposta, restrição efetiva e controles de bloqueio de usuários; resolver separadamente a exigência preventiva da diretriz 1.2 da App Store antes de submeter às lojas
