@@ -72,10 +72,7 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
         keyboardShouldPersistTaps="handled"
         refreshControl={getListRefreshControl({ onRefresh, refreshing })}
       >
-        <WebRefreshButton
-          onRefresh={onRefresh}
-          refreshing={refreshing}
-        />
+        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
         {songQuery.isPending ? <LoadingFeedback /> : null}
         {songQuery.isError ? (
           <ErrorFeedback

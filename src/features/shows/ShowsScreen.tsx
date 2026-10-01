@@ -235,10 +235,7 @@ export function ShowsScreen({
             value={state.search}
           />
         </View>
-        <WebRefreshButton
-          onRefresh={onRefresh}
-          refreshing={refreshing}
-        />
+        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
       </View>
       <View style={styles.controlToolbar}>
         <Pressable

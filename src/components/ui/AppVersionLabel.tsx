@@ -25,7 +25,6 @@ export function AppVersionLabel({ inverse = false }: AppVersionLabelProps) {
 const styles = StyleSheet.create({
   label: {
     fontSize: 10,
-    opacity: 0.8,
     textAlign: 'center',
   },
   inverse: {

@@ -166,10 +166,7 @@ export function BandsScreen({
                 value={search}
               />
             </View>
-            <WebRefreshButton
-              onRefresh={onRefresh}
-              refreshing={refreshing}
-            />
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
           </View>
         </ListControls>
       }

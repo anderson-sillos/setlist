@@ -436,10 +436,7 @@ export function BandScreen({
                 variant="secondary"
               />
             ) : null}
-            <WebRefreshButton
-              onRefresh={onRefresh}
-              refreshing={refreshing}
-            />
+            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
           </View>
         }
         ListHeaderComponentStyle={styles.listHeader}
