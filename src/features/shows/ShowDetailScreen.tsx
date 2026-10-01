@@ -1,7 +1,7 @@
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import {
   ErrorFeedback,
@@ -37,7 +37,6 @@ import {
   getBandSectionHref,
   getShowEditHref,
   getShowHref,
-  getStageHref,
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -68,7 +67,7 @@ function getShowStatusActions(status: ShowStatus) {
         status: 'ready' as const,
       },
       {
-        confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
+        confirm: 'O show será cancelado. Você poderá reabri-lo depois.',
         icon: 'calendarMinus' as const,
         label: 'Cancelar show',
         status: 'cancelled' as const,
@@ -85,7 +84,7 @@ function getShowStatusActions(status: ShowStatus) {
         status: 'draft' as const,
       },
       {
-        confirm: 'O show será cancelado e não poderá ser aberto no modo palco.',
+        confirm: 'O show será cancelado. Você poderá reabri-lo depois.',
         icon: 'calendarMinus' as const,
         label: 'Cancelar show',
         status: 'cancelled' as const,
@@ -665,21 +664,6 @@ export function ShowDetailScreen({
                 <AppText>{show.notes}</AppText>
               </View>
             ) : null}
-
-            {show.status !== 'cancelled' ? (
-              <Link href={getStageHref(bandId, show.id)} asChild>
-                <Pressable
-                  accessibilityLabel="Abrir modo palco"
-                  accessibilityRole="link"
-                  style={({ pressed }) => [
-                    styles.stageLink,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText tone="inverse">Abrir modo palco</AppText>
-                </Pressable>
-              </Link>
-            ) : null}
           </Card>
 
           <View style={styles.setlist}>
@@ -917,13 +901,6 @@ const styles = StyleSheet.create({
   itemCopy: {
     flex: 1,
     gap: spacing.xs,
-  },
-  stageLink: {
-    alignItems: 'center',
-    backgroundColor: colors.violet,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
   },
   pressed: {
     opacity: 0.72,

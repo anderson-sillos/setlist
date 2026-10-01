@@ -8,7 +8,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import {
-  ListRefreshControl,
+  getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -436,7 +436,10 @@ export function BandScreen({
                 variant="secondary"
               />
             ) : null}
-            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+            <WebRefreshButton
+              onRefresh={onRefresh}
+              refreshing={refreshing}
+            />
           </View>
         }
         ListHeaderComponentStyle={styles.listHeader}
@@ -461,9 +464,7 @@ export function BandScreen({
         )}
         scrollEventThrottle={120}
         sections={sections}
-        refreshControl={
-          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
-        }
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled
         testID="band-members-list"

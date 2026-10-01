@@ -7,7 +7,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
-  ListRefreshControl,
+  getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import {
@@ -197,14 +197,21 @@ export function RepertoireScreen({
       }
       fixedContent={
         <ListControls>
-          <SearchField
-            accessibilityLabel="Buscar música por título ou artista"
-            onChangeText={(value) => update('search', value)}
-            placeholder="Buscar música ou artista/banda"
-            value={state.search}
-          />
+          <View style={styles.searchRow}>
+            <View style={styles.searchField}>
+              <SearchField
+                accessibilityLabel="Buscar música por título ou artista"
+                onChangeText={(value) => update('search', value)}
+                placeholder="Buscar música ou artista/banda"
+                value={state.search}
+              />
+            </View>
+            <WebRefreshButton
+              onRefresh={onRefresh}
+              refreshing={refreshing}
+            />
+          </View>
           <View style={styles.controlToolbarEnd}>
-            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
             <OptionMenu
               active={state.filter !== 'all'}
               accessibilityLabel="Alterar filtros do repertório"
@@ -247,9 +254,7 @@ export function RepertoireScreen({
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={songs}
         keyExtractor={({ id }) => id}
-        refreshControl={
-          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
-        }
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !songsQuery.isPending && !songsQuery.isError ? (
             <ListEmptyState
@@ -279,6 +284,16 @@ export function RepertoireScreen({
 }
 
 const styles = StyleSheet.create({
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  searchField: {
+    flex: 1,
+    minWidth: 0,
+  },
   controlToolbarEnd: {
     alignItems: 'center',
     flexDirection: 'row',

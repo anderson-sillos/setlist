@@ -10,7 +10,7 @@ import {
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import {
-  ListRefreshControl,
+  getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import { useSong } from '@/data/queries';
@@ -70,11 +70,12 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
-        }
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
       >
-        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+        <WebRefreshButton
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+        />
         {songQuery.isPending ? <LoadingFeedback /> : null}
         {songQuery.isError ? (
           <ErrorFeedback

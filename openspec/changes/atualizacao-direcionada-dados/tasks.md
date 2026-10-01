@@ -2,7 +2,7 @@
 
 ## 1. Infraestrutura de atualização
 
-- [ ] 1.1 Criar controles compartilhados para pull-to-refresh nativo, botão web e detalhes sem lista; verificar carregamento, acessibilidade e preservação dos dados existentes por revisão de uso nas plataformas suportadas.
+- [x] 1.1 Criar controles compartilhados para pull-to-refresh nativo, botão web e detalhes sem lista; verificar carregamento, acessibilidade e preservação dos dados existentes por revisão de uso nas plataformas suportadas.
 - [ ] 1.2 Criar revalidação ao foco limitada às queries da tela atual e à janela de 60 segundos; verificar que foco recente não busca e foco com cache antigo busca uma vez.
 
 ## 2. Aplicação às telas de dados compartilhados

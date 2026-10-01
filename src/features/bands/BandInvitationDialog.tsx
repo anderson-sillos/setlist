@@ -123,15 +123,15 @@ export function BandInvitationDialog({
       return;
     }
 
-    const created = await onCreate(invitation.label ?? '');
+    const renewed = await onRenew(invitation.id);
 
-    if (created) {
+    if (renewed) {
       setShareableUrls((current) => ({
         ...current,
-        [created.id]: created.url,
+        [renewed.id]: renewed.url,
       }));
 
-      await shareUrl(created.url);
+      await shareUrl(renewed.url);
     }
   }
 

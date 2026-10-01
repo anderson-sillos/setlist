@@ -1,23 +1,35 @@
-import { Platform, RefreshControl, StyleSheet, View } from 'react-native';
+import type { ReactElement } from 'react';
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+  type RefreshControlProps,
+} from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
+import { colors, layout, radii } from '@/theme/tokens';
 
 interface ScreenDataRefreshProps {
   readonly onRefresh: () => void | Promise<void>;
   readonly refreshing: boolean;
 }
 
-export function ListRefreshControl({
+export function getListRefreshControl({
   onRefresh,
   refreshing,
-}: ScreenDataRefreshProps) {
+}: ScreenDataRefreshProps): ReactElement<RefreshControlProps> | undefined {
   if (Platform.OS === 'web') {
-    return null;
+    return undefined;
   }
 
   return (
     <RefreshControl
-      onRefresh={() => void onRefresh()}
+      onRefresh={() => {
+        void onRefresh();
+      }}
       refreshing={refreshing}
     />
   );
@@ -33,14 +45,27 @@ export function WebRefreshButton({
 
   return (
     <View style={styles.webAction}>
-      <AppButton
-        accessibilityLabel="Atualizar dados desta tela"
+      <Pressable
+        accessibilityLabel={
+          refreshing
+            ? 'Atualizando dados desta tela'
+            : 'Atualizar dados desta tela'
+        }
+        accessibilityRole="button"
         disabled={refreshing}
-        icon="renew"
-        label={refreshing ? 'Atualizando…' : 'Atualizar'}
         onPress={() => void onRefresh()}
-        variant="secondary"
-      />
+        style={({ pressed }) => [
+          styles.webIconButton,
+          refreshing && styles.webIconButtonDisabled,
+          pressed && styles.webIconButtonPressed,
+        ]}
+      >
+        {refreshing ? (
+          <ActivityIndicator color={colors.violet} size="small" />
+        ) : (
+          <AppIcon color={colors.violet} name="renew" size={18} />
+        )}
+      </Pressable>
     </View>
   );
 }
@@ -48,5 +73,22 @@ export function WebRefreshButton({
 const styles = StyleSheet.create({
   webAction: {
     alignSelf: 'flex-end',
+    height: layout.minimumTouchTarget,
+  },
+  webIconButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.violet,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  webIconButtonDisabled: {
+    opacity: 0.5,
+  },
+  webIconButtonPressed: {
+    opacity: 0.72,
   },
 });

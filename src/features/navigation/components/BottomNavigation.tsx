@@ -10,11 +10,13 @@ import { colors, layout, radii, spacing } from '@/theme/tokens';
 interface BottomNavigationProps {
   readonly activeSection: BandSection;
   readonly getSectionHref: (section: BandSection) => Href;
+  readonly onStagePress: () => void;
 }
 
 export function BottomNavigation({
   activeSection,
   getSectionHref,
+  onStagePress,
 }: BottomNavigationProps) {
   return (
     <View
@@ -24,8 +26,46 @@ export function BottomNavigation({
     >
       {navigationItems.map((item) => {
         const active = activeSection === item.section;
+        const stage = item.section === 'stage';
+        const content = (
+          <Pressable
+            key={item.section}
+            accessibilityLabel={
+              stage ? 'Palco, em breve' : `Ir para ${item.label}`
+            }
+            accessibilityRole={stage ? 'button' : 'tab'}
+            accessibilityState={stage ? undefined : { selected: active }}
+            onPress={stage ? onStagePress : undefined}
+            style={StyleSheet.flatten([
+              styles.item,
+              active && styles.itemActive,
+            ])}
+          >
+            <View
+              style={styles.content}
+              testID="bottom-navigation-item-content"
+            >
+              <AppIcon
+                color={active ? colors.violet : colors.muted}
+                name={item.icon}
+                size={22}
+                strokeWidth={active ? 2.5 : 2}
+              />
+              <AppText
+                numberOfLines={1}
+                style={styles.label}
+                tone={active ? 'accent' : 'muted'}
+                variant="caption"
+              >
+                {item.label}
+              </AppText>
+            </View>
+          </Pressable>
+        );
 
-        return (
+        return stage ? (
+          content
+        ) : (
           <Link
             href={getSectionHref(item.section)}
             key={item.section}
@@ -33,36 +73,7 @@ export function BottomNavigation({
             asChild
             disabled={active}
           >
-            <Pressable
-              accessibilityLabel={`Ir para ${item.label}`}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              style={({ pressed }) => [
-                styles.item,
-                active && styles.itemActive,
-                pressed && styles.pressed,
-              ]}
-            >
-              <View
-                style={styles.content}
-                testID="bottom-navigation-item-content"
-              >
-                <AppIcon
-                  color={active ? colors.violet : colors.muted}
-                  name={item.icon}
-                  size={22}
-                  strokeWidth={active ? 2.5 : 2}
-                />
-                <AppText
-                  numberOfLines={1}
-                  style={styles.label}
-                  tone={active ? 'accent' : 'muted'}
-                  variant="caption"
-                >
-                  {item.label}
-                </AppText>
-              </View>
-            </Pressable>
+            {content}
           </Link>
         );
       })}
@@ -106,8 +117,5 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     textAlign: 'center',
     width: '100%',
-  },
-  pressed: {
-    opacity: 0.7,
   },
 });

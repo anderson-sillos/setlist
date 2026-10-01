@@ -4,6 +4,7 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
+import { AppVersionLabel } from '@/components/ui/AppVersionLabel';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { AuthErrorNotice } from '@/features/auth/AuthErrorNotice';
@@ -145,6 +146,9 @@ export function AuthScreen() {
           Ao continuar, você concorda com os termos de uso e a política de
           privacidade do Setlist.
         </AppText>
+        <View style={styles.versionLabel}>
+          <AppVersionLabel />
+        </View>
       </View>
     </Screen>
   );
@@ -200,5 +204,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     maxWidth: 460,
     textAlign: 'center',
+  },
+  versionLabel: {
+    alignItems: 'center',
+    marginTop: spacing.sm,
   },
 });

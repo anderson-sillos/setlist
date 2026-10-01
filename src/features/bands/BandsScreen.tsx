@@ -9,7 +9,7 @@ import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { ListControls, SearchField } from '@/components/ui/ListControls';
 import {
-  ListRefreshControl,
+  getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
@@ -157,14 +157,19 @@ export function BandsScreen({
       currentRoute="/"
       fixedContent={
         <ListControls>
-          <SearchField
-            accessibilityLabel="Buscar banda pelo nome"
-            onChangeText={setSearch}
-            placeholder="Buscar banda"
-            value={search}
-          />
-          <View style={styles.refreshAction}>
-            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+          <View style={styles.searchRow}>
+            <View style={styles.searchField}>
+              <SearchField
+                accessibilityLabel="Buscar banda pelo nome"
+                onChangeText={setSearch}
+                placeholder="Buscar banda"
+                value={search}
+              />
+            </View>
+            <WebRefreshButton
+              onRefresh={onRefresh}
+              refreshing={refreshing}
+            />
           </View>
         </ListControls>
       }
@@ -201,9 +206,7 @@ export function BandsScreen({
         data={bands}
         keyboardShouldPersistTaps="handled"
         keyExtractor={({ band }) => band.id}
-        refreshControl={
-          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
-        }
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !bandsQuery.isPending && !bandsQuery.isError ? (
             normalizedSearch ? (
@@ -282,8 +285,15 @@ export function BandsScreen({
 }
 
 const styles = StyleSheet.create({
-  refreshAction: {
-    alignItems: 'flex-end',
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  searchField: {
+    flex: 1,
+    minWidth: 0,
   },
   listContent: {
     flexGrow: 1,

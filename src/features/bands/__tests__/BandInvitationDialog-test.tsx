@@ -106,8 +106,9 @@ describe('<BandInvitationDialog />', () => {
     expect(view.queryByText(/2099/)).toBeNull();
   });
 
-  it('compartilha um convite recriado sem abrir o popup de link pronto', async () => {
+  it('renova e compartilha o convite sem abrir o popup de link pronto', async () => {
     const onCreate = jest.fn(async () => created);
+    const onRenew = jest.fn(async () => created);
     const shareSpy = jest
       .spyOn(Share, 'share')
       .mockResolvedValue({ action: 'sharedAction' });
@@ -118,7 +119,7 @@ describe('<BandInvitationDialog />', () => {
         isSubmitting={false}
         onClose={jest.fn()}
         onCreate={onCreate}
-        onRenew={jest.fn(async () => null)}
+        onRenew={onRenew}
         onRevoke={jest.fn()}
         visible
       />,
@@ -128,7 +129,8 @@ describe('<BandInvitationDialog />', () => {
       view.getByLabelText('Compartilhar convite novamente'),
     );
 
-    await waitFor(() => expect(onCreate).toHaveBeenCalledWith('Baixista'));
+    await waitFor(() => expect(onRenew).toHaveBeenCalledWith('invite-active'));
+    expect(onCreate).not.toHaveBeenCalled();
     expect(shareSpy).toHaveBeenCalledWith({
       message: created.url,
       url: created.url,

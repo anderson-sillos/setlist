@@ -8,7 +8,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
-  ListRefreshControl,
+  getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import {
@@ -226,15 +226,20 @@ export function ShowsScreen({
 
   const controls = (
     <ListControls>
-      <View style={styles.refreshAction}>
-        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+      <View style={styles.searchRow}>
+        <View style={styles.searchField}>
+          <SearchField
+            accessibilityLabel="Buscar show por nome ou local"
+            onChangeText={(value) => update('search', value)}
+            placeholder="Buscar show ou local"
+            value={state.search}
+          />
+        </View>
+        <WebRefreshButton
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+        />
       </View>
-      <SearchField
-        accessibilityLabel="Buscar show por nome ou local"
-        onChangeText={(value) => update('search', value)}
-        placeholder="Buscar show ou local"
-        value={state.search}
-      />
       <View style={styles.controlToolbar}>
         <Pressable
           accessibilityLabel="Abrir calendário para filtrar por data"
@@ -394,9 +399,7 @@ export function ShowsScreen({
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={shows}
         keyExtractor={({ id }) => id}
-        refreshControl={
-          <ListRefreshControl onRefresh={onRefresh} refreshing={refreshing} />
-        }
+        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !showsQuery.isPending &&
           !songsQuery.isPending &&
@@ -437,8 +440,15 @@ export function ShowsScreen({
 }
 
 const styles = StyleSheet.create({
-  refreshAction: {
-    alignItems: 'flex-end',
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  searchField: {
+    flex: 1,
+    minWidth: 0,
   },
   controlToolbar: {
     alignItems: 'center',

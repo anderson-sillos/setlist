@@ -17,7 +17,9 @@ interface MobileNavigationDrawerProps {
   readonly bandName?: string;
   readonly getSectionHref: (section: BandSection) => Href;
   readonly onClose: () => void;
+  readonly onDismiss: () => void;
   readonly onLogout?: () => void | Promise<void>;
+  readonly onStagePress: () => void;
   readonly translateX: Animated.Value;
   readonly visible: boolean;
 }
@@ -28,7 +30,9 @@ export function MobileNavigationDrawer({
   bandName,
   getSectionHref,
   onClose,
+  onDismiss,
   onLogout,
+  onStagePress,
   translateX,
   visible,
 }: MobileNavigationDrawerProps) {
@@ -41,7 +45,9 @@ export function MobileNavigationDrawer({
   return (
     <Modal
       animationType="none"
+      onDismiss={onDismiss}
       onRequestClose={handleClose}
+      testID="navigation-drawer-modal"
       transparent
       visible={visible}
     >
@@ -70,6 +76,7 @@ export function MobileNavigationDrawer({
               getSectionHref={getSectionHref}
               onNavigate={handleClose}
               onLogout={onLogout}
+              onStagePress={onStagePress}
             />
           </SafeAreaView>
         </Animated.View>

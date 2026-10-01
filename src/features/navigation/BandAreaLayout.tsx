@@ -32,6 +32,7 @@ interface BandAreaLayoutProps extends PropsWithChildren {
   readonly refreshing?: boolean;
   readonly screenKind?: NavigationScreenKind;
   readonly scrollable?: boolean;
+  readonly subtitle?: string;
   readonly title: string;
   readonly viewportHeight?: number;
   readonly viewportWidth?: number;
@@ -51,6 +52,7 @@ export function BandAreaLayout({
   refreshing,
   screenKind,
   scrollable,
+  subtitle,
   title,
   viewportHeight,
   viewportWidth,
@@ -73,7 +75,7 @@ export function BandAreaLayout({
       refreshing={refreshing}
       screenKind={screenKind}
       scrollable={scrollable}
-      subtitle={sectionLabels[activeSection]}
+      subtitle={subtitle ?? sectionLabels[activeSection]}
       testID={`band-area-${activeSection}`}
       title={title}
       viewportHeight={viewportHeight}
