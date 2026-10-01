@@ -9,6 +9,7 @@ import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
+  useFocusEffect: jest.fn(),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
