@@ -31,6 +31,40 @@ interface AppProvidersProps extends PropsWithChildren {
 
 const AppDataContext = createContext<AppDataContextValue | null>(null);
 
+interface SessionQueryProviderProps extends PropsWithChildren {
+  readonly sessionUserId?: string;
+}
+
+function SessionQueryProvider({
+  children,
+  sessionUserId,
+}: SessionQueryProviderProps) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            gcTime: Number.POSITIVE_INFINITY,
+            retry: false,
+            staleTime: Number.POSITIVE_INFINITY,
+          },
+        },
+      }),
+  );
+
+  useEffect(() => {
+    if (sessionUserId) {
+      void queryClient.invalidateQueries({
+        queryKey: ['profiles', sessionUserId],
+      });
+    }
+  }, [queryClient, sessionUserId]);
+
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
+
 export function AppProviders({
   children,
   currentUserId,
@@ -62,29 +96,6 @@ export function AppProviders({
     sessionUserId ??
     currentUserId ??
     (isTestEnvironment ? demoIds.currentUser : '');
-  // Band-scoped query keys do not include the account ID. A fresh client on
-  // account changes prevents a later session from reading cached band data.
-  const queryClient = useMemo(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            gcTime: Number.POSITIVE_INFINITY,
-            retry: false,
-            staleTime: Number.POSITIVE_INFINITY,
-          },
-        },
-      }),
-    [sessionUserId],
-  );
-
-  useEffect(() => {
-    if (sessionUserId) {
-      void queryClient.invalidateQueries({
-        queryKey: ['profiles', sessionUserId],
-      });
-    }
-  }, [queryClient, session, sessionUserId]);
 
   return (
     <AppDataContext.Provider
@@ -93,11 +104,14 @@ export function AppProviders({
         repositories: resolvedRepositories,
       }}
     >
-      <QueryClientProvider client={queryClient}>
+      <SessionQueryProvider
+        key={sessionUserId ?? 'anonymous'}
+        sessionUserId={sessionUserId}
+      >
         <LastBandSelectionProvider>
           <NavigationMemoryProvider>{children}</NavigationMemoryProvider>
         </LastBandSelectionProvider>
-      </QueryClientProvider>
+      </SessionQueryProvider>
     </AppDataContext.Provider>
   );
 }
