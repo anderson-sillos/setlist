@@ -1,5 +1,5 @@
 import { Link, type Href } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -8,6 +8,7 @@ import { UserAvatar } from '@/components/ui/UserAvatar';
 import type { EntityId } from '@/domain';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { useCurrentProfile } from '@/features/account/useCurrentProfile';
+import { legalUrls } from '@/features/legal/legalUrls';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -259,7 +260,22 @@ export function NavigationPanel({
           label="Perfil e conta"
           onNavigate={onNavigate}
         />
-        <DisabledGeneralItem label="Termos e privacidade" />
+        <GeneralNavigationAction
+          icon="externalLink"
+          label="Termos de uso"
+          onPress={() => {
+            onNavigate?.();
+            void Linking.openURL(legalUrls.terms);
+          }}
+        />
+        <GeneralNavigationAction
+          icon="externalLink"
+          label="Política de privacidade"
+          onPress={() => {
+            onNavigate?.();
+            void Linking.openURL(legalUrls.privacy);
+          }}
+        />
         <DisabledGeneralItem label="Sobre o Setlist" />
       </View>
 

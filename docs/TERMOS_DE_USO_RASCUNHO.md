@@ -1,30 +1,31 @@
 # Termos de uso do Setlist — rascunho
 
 > **RASCUNHO PARA DISCUSSÃO. Não publicar nem usar como contrato vigente.**
-> Requer identificação do responsável pelo serviço, preenchimento dos campos
-> entre colchetes e revisão por profissional jurídico antes de qualquer
-> distribuição pública.
+> A revisão por profissional jurídico foi informada como concluída pelo
+> responsável; decisões e configurações restantes precisam ser incorporadas
+> antes de qualquer distribuição pública.
 
 - Versão de trabalho: 0.1
-- Data de preparação: 29/09/2026
+- Data de preparação: 29/09/2026; revisão de moderação: 02/10/2026
 - URL canônica aprovada para publicação futura:
   **https://setlistbr.app.br/termos/** (página ainda não publicada)
-- Responsável pelo serviço: pessoa física. Identificação pública escolhida:
-  **Setlist — setlistbr.app.br**; confirmar com assessoria jurídica se é
-  suficiente para identificar o responsável.
+- Nome definitivo de apresentação do serviço: **Setlist**
+  (`setlistbr.app.br`). Segundo o responsável, a revisão jurídica aprovou
+  **Setlist** como identificação pública do responsável pessoa física.
 - Canal de contato: e-mail geral, também destinado a pedidos de privacidade e
   remoção de conteúdo — **contato@setlistbr.app.br**
-- O endereço será devidamente monitorado para dúvidas, solicitações de
-  privacidade e pedidos de remoção de conteúdo.
-- CPF e endereço: **não preencher nesta etapa; avaliar necessidade de divulgação com assessoria jurídica**
+- O responsável acompanhará a caixa em todos os dias úteis para dúvidas,
+  solicitações de privacidade e pedidos de remoção de conteúdo.
+- Nome civil, CPF e endereço não constarão da versão pública, conforme a
+  conclusão da revisão jurídica informada pelo responsável.
 
 ## 1. Sobre o serviço
 
 O Setlist ajuda integrantes de bandas a organizar repertório, letras, shows e
-setlists. O serviço é operado por uma pessoa física. A identificação pública
-escolhida é **Setlist — setlistbr.app.br**; sua suficiência para identificar
-o responsável será confirmada com assessoria jurídica ("responsável pelo
-Setlist"). Conforme a
+setlists. **Setlist** é o nome definitivo de apresentação do serviço, operado
+por uma pessoa física. Segundo o responsável, a revisão jurídica aprovou
+**Setlist** como sua identificação pública e o e-mail acima como canal de
+contato. Conforme a
 decisão atual do responsável, o uso será gratuito, sem cobrança de assinatura
 ou taxa de acesso. A disponibilidade das funções e plataformas pode variar
 conforme a versão publicada.
@@ -44,12 +45,12 @@ pacotes offline não fazem parte dessa entrega.
 
 ## 2. Conta e acesso às bandas
 
-O serviço é destinado exclusivamente a pessoas com 18 anos ou mais. O mecanismo
-de confirmação de idade ainda não está implementado. A opção de autodeclaração
-antes do login, sem coleta da data de nascimento, foi escolhida para avaliação;
-sua adequação precisa ser confirmada por assessoria jurídica à luz do Estatuto
-Digital da Criança e do Adolescente (Lei nº 15.211/2025) e das orientações da
-ANPD antes de definir o fluxo e publicar estes termos.
+O serviço é destinado exclusivamente a pessoas com 18 anos ou mais. Você deve
+atender a esse critério para usar uma conta. Segundo a conclusão da revisão
+jurídica informada pelo responsável, o Setlist é um serviço adulto, sem acesso
+provável por menores. O cadastro do Setlist não confirma a idade; as lojas de
+aplicativos poderão aplicar controles próprios de distribuição, que não abrangem
+o acesso pela Web.
 
 Você deve usar uma conta de autenticação aceita pelo Setlist, manter seus dados
 de acesso protegidos e fornecer informações corretas. O acesso a uma banda é
@@ -68,6 +69,12 @@ diferentes. Conteúdo de uma banda é compartilhado com as pessoas que mantêm
 acesso a ela. Links de convite são de uso único, podem ser revogados e têm prazo
 de validade; qualquer pessoa que receba um link ainda válido poderá tentar
 aceitá-lo. Compartilhe-os somente com quem deve ingressar.
+
+Antes de contribuir com conteúdo, a pessoa aceita o termo de responsabilidade
+da banda. A versão `2026-10`, implementada no cliente e no banco de
+desenvolvimento, inclui a proibição de material indevido e informa sobre filtro
+preventivo, ocultação e canal de contestação. Sua aplicação em produção exige
+implantação coordenada do cliente e do banco.
 
 ## 3. Conteúdo e direitos autorais
 
@@ -101,9 +108,11 @@ Como o conteúdo é compartilhado com a banda, ele pode continuar disponível ao
 demais integrantes se a conta de quem o enviou for excluída. A autorização para
 esse conteúdo termina quando ele for removido da banda e dos sistemas ativos,
 ressalvadas cópias técnicas de segurança e retenções exigidas por lei, que
-permanecerão apenas pelo prazo aplicável. Os prazos de backup precisam ser
-confirmados na política de privacidade. Esta cláusula não transfere direitos
-autorais ao Setlist nem substitui autorização de terceiros quando necessária.
+permanecerão apenas pelo prazo aplicável. O plano de backup próprio prevê
+conservar as 12 cópias semanais mais recentes, conforme detalhado na política
+de privacidade; a rotina ainda depende de implantação. Esta cláusula não
+transfere direitos autorais ao Setlist nem substitui autorização de terceiros
+quando necessária.
 
 ## 4. Uso aceitável e denúncias
 
@@ -118,31 +127,40 @@ afasta essas proibições.
 Cada pessoa responde, na medida de seus atos e da legislação aplicável, pelo
 conteúdo que inserir ou editar e pelos direitos necessários para compartilhá-lo.
 Ser Proprietário ou Editor de uma banda, por si só, não comprova a autoria de
-todo o material nela armazenado. A versão pública prevista aplicará regras
-automáticas simples antes de salvar músicas; uma gravação sinalizada será
-recusada e poderá ser contestada pelo canal de contato. O filtro não examina
-todo contexto nem garante identificar todas as infrações. O Setlist não produz
-nem endossa o conteúdo salvo. Denúncias e inspeções poderão motivar a ocultação
-de uma música ou a suspensão de uma conta, com avaliação e medidas
-proporcionais. Essa distribuição de responsabilidades não afasta os deveres
-legais do responsável pelo Setlist.
+todo o material nela armazenado. O primeiro controle preventivo, implementado
+e validado no ambiente de desenvolvimento, verifica campos textuais de músicas
+no servidor antes de criar ou alterar um registro. Se uma regra sinalizar a
+gravação, ela será recusada; uma edição recusada preserva a versão anterior.
+A pessoa poderá pedir revisão pelo canal de contato e, após ajuste do texto ou
+da regra, tentar salvar novamente. O envio recusado não fica aguardando
+aprovação humana. As regras iniciais reconhecem apenas alguns padrões
+explícitos de material proibido: não examinam todo o contexto, não reavaliam
+automaticamente músicas antigas e não garantem identificar todas as infrações.
+O Setlist não produz nem endossa o conteúdo salvo. Após análise de denúncia ou
+de indício concreto documentado, o responsável poderá ocultar uma música ou
+suspender uma conta,
+inclusive impedindo operações protegidas mesmo que a autenticação ainda ocorra.
+Essas medidas são manuais e podem ser revistas. Essa distribuição de
+responsabilidades não afasta os deveres legais do responsável pelo Setlist.
 
-Integrantes poderão denunciar uma música ou outro integrante dentro do app; a
-descrição informada será encaminhada por e-mail a
+Integrantes poderão denunciar uma música ou outro integrante da própria banda
+no app. O serviço verificará o vínculo com a banda e encaminhará a descrição
+informada e os identificadores necessários ao atendimento por e-mail a
 **contato@setlistbr.app.br**, sem anexar automaticamente a letra completa.
+A confirmação do app significa que o serviço de e-mail aceitou o envio; se
+isso não for confirmado, o app informará a falha e permitirá nova tentativa.
 Pessoas sem acesso à banda e pedidos de contestação também poderão escrever
 diretamente a esse endereço.
 Identifique a banda e o conteúdo, explique o motivo e informe uma forma de
 contato. Se a denúncia tratar de um direito seu, indique o direito invocado;
 você também pode denunciar uma violação destes termos sem ser titular do
 conteúdo. Evite anexar cópias de material íntimo ou dados sensíveis quando a
-localização do conteúdo no serviço for suficiente. O procedimento de análise e
-contestação está em elaboração. O Setlist avaliará as informações recebidas,
-poderá pedir esclarecimentos e, diante de risco plausível, avaliar uma restrição
-temporária
-que efetivamente impeça o acesso ao conteúdo identificado. Quando apropriado, a
-interlocução será feita com quem inseriu o conteúdo, se for possível
-identificá-lo, ou com responsáveis pela banda, sem presumir autoria individual.
+localização do conteúdo no serviço for suficiente. O Setlist avaliará as
+informações recebidas, poderá pedir esclarecimentos e, diante de risco plausível,
+avaliar uma restrição temporária que efetivamente impeça o acesso ao conteúdo
+identificado. Quando apropriado, a interlocução será feita com quem inseriu o
+conteúdo, se for possível identificá-lo, ou com responsáveis pela banda, sem
+presumir autoria individual.
 Haverá oportunidade de esclarecimento antes da decisão final quando cabível.
 A decisão e a forma de contestá-la serão comunicadas às pessoas envolvidas,
 respeitados os direitos de terceiros e a legislação aplicável.
@@ -176,8 +194,8 @@ retenções legalmente exigidas.
 Quando uma conta é excluída, o perfil e a identidade de autenticação são
 removidos e referências de aceite e convite são desvinculadas. Conteúdo das
 bandas que continuam ativas permanece disponível aos demais integrantes. O
-procedimento operacional de exclusão e remoção ainda precisa de validação
-jurídica antes da distribuição pública.
+procedimento operacional de exclusão e remoção ainda precisa ser conferido
+com os fluxos e registros efetivos antes da distribuição pública.
 
 ## 7. Privacidade e contato
 
@@ -189,8 +207,7 @@ Para dúvidas, denúncias ou pedidos relacionados à conta ou à privacidade, us
 **contato@setlistbr.app.br**. O mesmo canal recebe pedidos de remoção de
 conteúdo. As denúncias e contestações de conteúdo seguem o fluxo descrito na
 seção 4. Pedidos relativos a dados pessoais são atendidos conforme a política
-de privacidade e a legislação aplicável. Cláusulas adicionais, inclusive sobre
-resolução de conflitos e responsabilidade, serão avaliadas antes da publicação.
+de privacidade e a legislação aplicável.
 
 ### Referência para revisão
 

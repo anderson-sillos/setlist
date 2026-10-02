@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
@@ -18,6 +18,7 @@ import {
   type SocialAuthProvider,
 } from '@/features/auth/authService';
 import { getInvitePath, getSingleRouteParam } from '@/features/auth/authLinks';
+import { legalUrls } from '@/features/legal/legalUrls';
 import { radii, spacing } from '@/theme/tokens';
 
 type AuthState =
@@ -142,12 +143,34 @@ export function AuthScreen() {
           ) : null}
         </View>
 
-        <AppText style={styles.disclaimer} tone="muted" variant="caption">
-          Ao continuar, você concorda com os termos de uso e a política de
-          privacidade do Setlist.
-        </AppText>
-        <View style={styles.versionLabel}>
-          <AppVersionLabel />
+        <View style={styles.legalFooter}>
+          <AppText style={styles.disclaimer} tone="muted" variant="caption">
+            Ao prosseguir com o login, você concorda com os Termos de uso do
+            Setlist.
+          </AppText>
+          <View style={styles.legalLinks}>
+            <Pressable
+              accessibilityRole="link"
+              hitSlop={{ top: 8, bottom: 8 }}
+              onPress={() => void Linking.openURL(legalUrls.terms)}
+              style={styles.legalLink}
+            >
+              <AppText tone="accent" variant="caption">
+                Termos de uso
+              </AppText>
+            </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              hitSlop={{ top: 8, bottom: 8 }}
+              onPress={() => void Linking.openURL(legalUrls.privacy)}
+              style={styles.legalLink}
+            >
+              <AppText tone="accent" variant="caption">
+                Política de privacidade
+              </AppText>
+            </Pressable>
+          </View>
+          <AppVersionLabel align="left" />
         </View>
       </View>
     </Screen>
@@ -200,13 +223,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     width: '100%',
   },
-  disclaimer: {
-    marginTop: spacing.xl,
+  legalFooter: {
+    alignItems: 'flex-start',
+    alignSelf: 'center',
     maxWidth: 460,
-    textAlign: 'center',
+    marginTop: spacing.xs,
+    width: '100%',
   },
-  versionLabel: {
-    alignItems: 'center',
-    marginTop: spacing.sm,
+  disclaimer: {
+    textAlign: 'left',
+  },
+  legalLinks: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: spacing.sm,
+    justifyContent: 'flex-start',
+    rowGap: 0,
+  },
+  legalLink: {
+    justifyContent: 'center',
+    minHeight: 30,
   },
 });

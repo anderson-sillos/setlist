@@ -282,9 +282,16 @@ Regras que envolvem mais de uma linha serão protegidas por funções ou gatilho
 
 ### Plano do Supabase
 
-- O desenvolvimento e o piloto começarão no plano Free.
+- O desenvolvimento, o piloto e a primeira distribuição pública permanecerão
+  no plano Free, conforme decisão atual do responsável.
 - Banco, tráfego e usuários ativos serão monitorados mensalmente.
-- A migração será avaliada ao atingir 80% de qualquer cota, antes de lançamento público que exija disponibilidade e backups, ou quando a pausa por inatividade deixar de ser aceitável.
+- Antes da distribuição pública, implantar e validar uma cópia semanal própria
+  do banco em disco externo criptografado, com rotação das 12 cópias mais
+  recentes e ensaio de restauração em ambiente isolado. O plano Free não
+  oferece backup diário automático nem PITR para este projeto.
+- A migração será avaliada ao atingir 80% de qualquer cota, se a
+  disponibilidade ou a recuperação oferecida pelo plano Free deixar de atender
+  à operação, ou quando a pausa por inatividade deixar de ser aceitável.
 - Se houver migração para o Pro, o limite de gastos permanecerá ativado inicialmente.
 
 ### Privacidade, lojas e uso de terceiros
@@ -327,7 +334,9 @@ Regras que envolvem mais de uma linha serão protegidas por funções ou gatilho
 - [Cronômetros independentes podem divergir entre músicos] -> Manter controles rápidos de correção e estudar reconhecimento automático somente após validar o fluxo manual.
 - [Um integrante removido pode visualizar conteúdo baixado enquanto permanecer totalmente offline] -> Limpar na próxima conexão e comunicar explicitamente que não existe revogação offline instantânea.
 - [A versão web depende de conexão e do armazenamento de sessão do navegador] -> Apresentar claramente o estado da conexão e reservar a execução offline confiável aos aplicativos móveis.
-- [O plano Free pode pausar e não possui garantias adequadas ao uso público] -> Monitorar cotas e migrar antes de depender de disponibilidade e backups de produção.
+- [O plano Free pode pausar e não fornece backup diário automático] -> Monitorar
+  cotas; implantar e validar o backup próprio antes da distribuição pública;
+  reavaliar o plano se disponibilidade ou recuperação se tornarem insuficientes.
 - [Arquivos JSON são inadequados a consultas locais complexas] -> Usá-los somente como pacotes autocontidos de leitura e reconsiderar SQLite quando os requisitos mudarem.
 - [Vídeos podem ficar indisponíveis ou políticas do YouTube podem mudar] -> Usá-los somente na preparação; o modo palco dependerá dos tempos salvos e a integração será validada periodicamente.
 - [Tokens podem desaparecer no Android ou persistir no Keychain após reinstalação no iOS] -> Validar a sessão no servidor e tratar sessão ausente ou inválida normalmente.
