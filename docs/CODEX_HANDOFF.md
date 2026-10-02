@@ -4,30 +4,16 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 ## Estado atual
 
-- Repositório: `anderson-sillos/setlist`.
-- Branch principal: `main`, integrada até o PR #22 no commit `e30d9f5`.
-- Branch de trabalho atual: `feat/pull-to-refresh-data`, acompanhando `origin/feat/pull-to-refresh-data`. A PR ainda não foi aberta; não integrar antes de concluir as tarefas pendentes do change de atualização de dados.
-- Change do MVP: `definir-mvp-setlist`. A implementação de atualização de dados compartilhados é acompanhada separadamente pelo change ativo `atualizacao-direcionada-dados`.
-- Workflow OpenSpec: `spec-driven`, com 4/4 artefatos de planejamento concluídos.
-- Grupos 1–7: concluídos; melhorias recentes validadas manualmente pelo usuário no Android e na Web.
-- PR #18: integrada por squash à `main` no commit `1beb994`; CI aprovado.
-- PR #19: integrada à `main`; inclui o limite da primeira versão publicável e a preparação técnica EAS para iOS. A PR #20 consolidou as validações do grupo 11 no commit `c4c031f`.
-- Escopo atual da versão 1: preparação online em Web, Android e iOS, com distribuição pública prevista pela Web, Google Play e App Store. Os grupos 8 (modo palco completo), 9 (sincronização manual com YouTube) e 10 (pacotes offline, dependentes do modo palco) foram adiados para a versão complementar e continuam pendentes no checklist.
-- Grupo 11: tarefas 11.1 e 11.2 concluídas no escopo anterior Web/Android. O ambiente de testes iOS está disponível; autenticação, papéis, convites e sessão já foram validados manualmente em iPhone físico. A validação da preparação online completa e os requisitos de publicação iOS estão abertos nas tarefas 11.1.1, 11.2.1, 11.6 e 11.8.
-- Atualização de dados compartilhados: o change OpenSpec `atualizacao-direcionada-dados` tem os artefatos de planejamento completos; os controles compartilhados (1.1) e a inspeção de fluxos (3.1) estão concluídos. O usuário confirmou que Minhas bandas voltou a exibir dados na Web e no Android. A validação do gesto e botão nas outras telas e as demais tarefas do change seguem pendentes.
-- Ponto de retomada: os logs confirmaram que a consulta entrega 2 bandas e que a tela prepara 2 linhas. A causa foi a prop `refreshControl`: um componente wrapper era passado no lugar de um `RefreshControl` real; no Web e no Android o `ScrollView` clona o controle para envolver o conteúdo e o wrapper descartava esse conteúdo. A implementação foi corrigida para passar o `RefreshControl` nativo diretamente no mobile e `undefined` no Web. O usuário confirmou que a lista voltou a aparecer no Web e no Android e que o pull-to-refresh Android funciona bem. Os botões Web de atualização agora mostram somente o ícone em todas as telas; nos filtros de repertório e shows, o ícone fica ao lado da busca.
-- Os logs temporários de diagnóstico foram removidos após localizar a causa. O estilo experimental aplicado à `FlatList` também foi removido.
-- Estado de execução desta sessão: Metro ativo na porta `19006`; Web em `http://localhost:19006` e QR Expo apontando para `http://192.168.0.222:19006`. O comando `adb` não está disponível no PATH. O CLI informou falha de `simctl`, mas iniciou normalmente o Metro.
-- Ferramentas verificadas: Node `24.21.0`, npm `11.20.0` conforme `package.json`, e OpenSpec CLI `1.14.0`.
-- Preparação técnica iOS: o build EAS de simulador requer iOS 16.4, indisponível no Mac atual (Xcode 14.2/runtime 16.2). A validação funcional foi feita em iPhone físico pelo build Ad Hoc `preview-ios`; não depende do simulador.
-- CI da PR #19: os 542 testes passaram inicialmente, mas cobertura de branches ficou em 79,92%. Foram adicionados testes para disponibilidade e configuração do Client ID nativo iOS; a suíte local passou com 544 testes e 80,05% de branches. O commit `bc85f44` passou em todos os checks remotos.
-- Autenticação: login Web, Android e iOS validado manualmente. No iPhone físico, o usuário confirmou sucesso e falha no login Apple, sucesso no login Google, navegação pelas telas e testes ponta a ponta de papéis e convites.
-- Supabase `setlist-dev`: `site_url` está configurado para `https://setlistbr.app.br/auth/callback` como fallback global de erros sem estado OAuth válido. O código envia `redirectTo` por plataforma no início do fluxo; em falha de `state`, o fallback do servidor continua sendo global. Produção não foi alterada.
-- APK Android de desenvolvimento instalado no aparelho e conectado ao Metro na porta 19006 para a validação Apple.
-- EAS iOS preview interno: build `4dcab6d9-67c6-4d92-87ef-c24742faf799` concluído e instalado no iPhone XR. O perfil `preview-ios` não ativa Development Client; login Google, login Apple e navegação principal foram validados no aparelho.
-- O perfil `preview-ios` herda a distribuição interna do `preview`, seleciona o ambiente de desenvolvimento e ativa o plugin Google nativo necessário aos pods iOS. O perfil geral `preview`, Android e Web não foram alterados.
-- As versões patch de `expo`, `expo-constants`, `expo-linking` e `expo-router` foram alinhadas ao SDK 57 após a primeira build falhar no Expo Doctor. `npx expo install --check` passou.
-- Progresso OpenSpec: consultar `openspec status --change definir-mvp-setlist`; os fluxos de autenticação, papéis, convites, retorno e renovação de sessão foram validados em Web, Android e iOS. A tarefa 5.1 está concluída.
+- Repositório: `anderson-sillos/setlist`; branch principal `main`.
+- Ponto atual: change OpenSpec `moderacao-conteudo-privado-e-denuncias`, implementada na branch `feat/moderacao-conteudo-privado-e-denuncias`. Antes desta atualização do handoff, o head remoto era `d8225ce`.
+- PR #26 (`feat: moderação de conteúdo privado e denúncias`): https://github.com/anderson-sillos/setlist/pull/26, com destino `main`. Na última consulta desta sessão estava aberta, sem reviews nem threads de revisão; o usuário pediu o merge. Reconsulte o estado remoto e os checks no momento da integração.
+- CI inicial no head `d8225ce`: formatação, lint, tipos e smoke test Web passaram; a suíte Jest falhou com 74 testes (incluindo ausência de mock de NetInfo e fixtures que ainda usavam o termo `2026-09`); pgTAP falhou porque a asserção `throws_ok` era executada sob o papel `authenticator`. Os ajustes foram enviados no commit `34071ec`; nesse commit, a qualidade passou com 87 suítes/584 testes, o smoke test Web passou e o workflow de migrações/pgTAP passou. Confira o head e os checks atuais da PR antes do merge.
+- OpenSpec: tarefas 14/14 concluídas e `openspec validate ... --type change --strict` aprovado. A especificação principal `openspec/specs/content-moderation/spec.md` foi sincronizada e validada; a change foi arquivada em `openspec/changes/archive/2026-10-02-moderacao-conteudo-privado-e-denuncias`.
+- Validações manuais confirmadas pelo usuário: filtro e mensagem de recusa, denúncias de música e integrante com recebimento por e-mail, ocultação via `moderated_songs`, suspensão de conta com operações protegidas bloqueadas e recuperação após reversão; fluxo integrado em Web, Android e iOS.
+- Validação automatizada: os testes direcionados anteriores passaram (8 suítes/56 testes) e `npm run typecheck` passou; o popup final de recusa foi confirmado manualmente. No CI da PR, o commit `34071ec` passou com 87 suítes/584 testes, smoke test Web e migrações/pgTAP.
+- Supabase: migrations e Edge Function `report-content` foram aplicadas somente em `setlist-dev`; produção não foi alterada. Os documentos legais e a rotina operacional continuam como rascunhos e precisam de revisão jurídica antes da distribuição pública.
+- Antes da liberação: revisar termos, política e procedimento; coordenar publicação do cliente com o termo `2026-10` e migrations em produção.
+- Procedimento de integração: o usuário determinou que commits e atualizações de PR devem ser feitos com acesso elevado, após solicitar autorização. Confirme estado, diff e checks antes de pedir essa autorização e executar as operações remotas.
 
 ## Fontes de verdade
 

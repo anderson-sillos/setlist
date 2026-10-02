@@ -29,6 +29,10 @@ jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
 }));
 
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('@/data/supabase/songMutations', () => {
   const actual = jest.requireActual('@/data/supabase/songMutations');
 
@@ -225,6 +229,52 @@ describe('<SongEditorScreen />', () => {
     expect(mockRouter.back).toHaveBeenCalled();
   });
 
+  it('orienta sobre recusa do filtro e permite corrigir e reenviar a edição', async () => {
+    const { bandId, repositories, songId } = createRepositories('editor');
+    mockUpdateSong
+      .mockRejectedValueOnce(
+        new SongMutationError(
+          'content_rejected',
+          'O conteúdo foi recusado pelo filtro preventivo. Revise a música ou solicite uma análise em contato@setlistbr.app.br.',
+        ),
+      )
+      .mockResolvedValueOnce(undefined);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} songId={songId} />
+      </AppProviders>,
+    );
+
+    const title = await view.findByLabelText('Título da música *');
+    await fireEvent.changeText(title, 'Título sinalizado');
+    await fireEvent.press(view.getByText('Salvar música'));
+
+    expect(
+      await view.findByText(
+        'O conteúdo foi recusado pelo filtro preventivo. Revise a música ou solicite uma análise em contato@setlistbr.app.br.',
+      ),
+    ).toBeTruthy();
+    expect(view.getByLabelText('Título da música *').props.value).toBe(
+      'Título sinalizado',
+    );
+
+    await fireEvent.changeText(
+      view.getByLabelText('Título da música *'),
+      'Título ajustado',
+    );
+    await fireEvent.press(view.getByText('Salvar música'));
+
+    await waitFor(() => expect(mockUpdateSong).toHaveBeenCalledTimes(2));
+    expect(mockUpdateSong).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        bandId,
+        songId,
+        song: expect.objectContaining({ title: 'Título ajustado' }),
+      }),
+    );
+    expect(mockRouter.back).toHaveBeenCalled();
+  });
+
   it('usa os detalhes da música como fallback quando a edição foi aberta diretamente', async () => {
     const { bandId, repositories, songId } = createRepositories('editor');
     mockRouter.canGoBack.mockReturnValue(false);
@@ -303,7 +353,7 @@ describe('<SongEditorScreen />', () => {
     await waitFor(() =>
       expect(mockAcceptCurrentBandTerm).toHaveBeenCalledWith({
         bandId,
-        termVersion: '2026-09',
+        termVersion: '2026-10',
       }),
     );
     expect(await view.findByLabelText('Título da música *')).toBeTruthy();

@@ -1,8 +1,9 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
+import { sendContentReport } from '@/data/supabase/contentReports';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { AppProviders } from '@/providers/AppProviders';
 import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
@@ -13,7 +14,22 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('@/data/supabase/contentReports', () => ({
+  sendContentReport: jest.fn(),
+}));
+
+const mockSendContentReport = jest.mocked(sendContentReport);
+
 describe('<SongDetailScreen />', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSendContentReport.mockResolvedValue();
+  });
+
   it.each([
     {
       height: 844,
@@ -99,6 +115,36 @@ describe('<SongDetailScreen />', () => {
     await fireEvent.press(view.getByLabelText('Editar música'));
 
     expect(view.queryByTestId('demo-action-notice')).toBeNull();
+  });
+
+  it('permite denunciar a música exibida e envia o identificador correto', async () => {
+    const view = await render(
+      <AppProviders>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('A rua acende devagar');
+    await fireEvent.press(view.getByLabelText('Denunciar música'));
+    await fireEvent.changeText(
+      await view.findByLabelText('Motivo da denúncia'),
+      'Conteúdo indevido nesta música',
+    );
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Enviar denúncia' }),
+    );
+
+    await waitFor(() =>
+      expect(mockSendContentReport).toHaveBeenCalledWith({
+        bandId: demoIds.primaryBand,
+        description: 'Conteúdo indevido nesta música',
+        kind: 'song',
+        targetId: demoIds.stageSong,
+      }),
+    );
   });
 
   it('abre a referência do YouTube em uma nova janela no web', async () => {

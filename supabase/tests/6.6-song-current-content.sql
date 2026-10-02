@@ -57,7 +57,7 @@ select set_config(
 select ok(
   public.accept_current_band_term(
     '00000000-0000-0000-0000-000000000674',
-    '2026-09'
+    '2026-10'
   ) is not null,
   'Owner accepts the current term before updating the song'
 );
@@ -108,7 +108,7 @@ select set_config(
 select ok(
   public.accept_current_band_term(
     '00000000-0000-0000-0000-000000000674',
-    '2026-09'
+    '2026-10'
   ) is not null,
   'Editor accepts the current term before updating the song'
 );

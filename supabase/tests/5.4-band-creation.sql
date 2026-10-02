@@ -20,7 +20,7 @@ select set_config(
 );
 
 select ok(
-  public.create_band('Banda do Aceite', '2026-09', true) is not null,
+  public.create_band('Banda do Aceite', '2026-10', true) is not null,
   'authenticated user can create a band with the current term'
 );
 select is(
@@ -53,7 +53,7 @@ select is(
    join public.bands on bands.id = legal_acceptances.band_id
    where bands.name = 'Banda do Aceite'
      and legal_acceptances.user_id = '00000000-0000-0000-0000-000000000154'),
-  '2026-09',
+  '2026-10',
   'creation records the accepted term version'
 );
 select ok(
@@ -71,13 +71,13 @@ select throws_ok(
   'an empty term version is rejected'
 );
 select throws_ok(
-  $$select public.create_band('', '2026-09', true)$$,
+  $$select public.create_band('', '2026-10', true)$$,
   'P0001',
   'BAND_NAME_INVALID',
   'an empty band name is rejected'
 );
 select throws_ok(
-  $$select public.create_band('Banda sem aceite', '2026-09', false)$$,
+  $$select public.create_band('Banda sem aceite', '2026-10', false)$$,
   'P0001',
   'ACCEPTANCE_REQUIRED',
   'an explicit term acceptance is required by the database'
