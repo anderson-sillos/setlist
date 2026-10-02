@@ -181,6 +181,30 @@ Digital, com prazos procedimentais definidos antes da ativação.
    Registrar a medida aplicada e o resultado da conferência; encerrar a etiqueta
    somente após comunicar o resultado. Evitar copiar letras para o e-mail.
 
+#### Exemplo de atendimento — simulação, não é um caso real
+
+- **Identificação:** denúncia recebida pelo formulário sobre uma música; usar o
+  UUID do assunto, tipo de alvo e IDs da banda e da música. A mensagem contém a
+  descrição do integrante, sem anexar a letra.
+- **Triagem:** a descrição informa que um aviso de segurança da banda foi
+  recusado pelo filtro. Classificar como contestação de falso positivo, sem
+  urgência ou indício de dano imediato. Não pedir a letra completa.
+- **Conferência:** localizar a tentativa pelo relato do integrante e conferir
+  no editor se a criação não apareceu ou se a edição anterior continua salva.
+  O gatilho aborta a gravação recusada, portanto a versão anterior permanece.
+- **Decisão registrada:** regra acionada por uma formulação do aviso; não há
+  conteúdo publicado para ocultar. Manter a regra, orientar uma redação neutra
+  e permitir nova tentativa. Registrar responsável, data, decisão e estado
+  `respondido`; manter a mensagem na mesma conversa do caso.
+- **Resposta registrada:** “Analisamos a contestação. A gravação foi recusada
+  antes de ser salva e a versão anterior permaneceu intacta. O texto informado
+  é um aviso da banda, mas a formulação acionou o filtro. Reescreva o aviso em
+  termos neutros e tente salvar novamente. Se a recusa persistir, responda a
+  esta mensagem com o campo afetado; não envie a letra completa.”
+- **Encerramento:** após enviar essa resposta, marcar o caso como encerrado. Se
+  houver nova tentativa recusada ou novos elementos, reabrir a conversa e
+  registrar a nova decisão.
+
 ### Ocultação administrativa de música
 
 Executar no SQL Editor do projeto correto, com acesso administrativo, depois
@@ -216,11 +240,16 @@ on conflict (user_id) do nothing;
 ```
 
 Em seguida, aplicar o banimento da pessoa em **Supabase Auth → Users** no projeto
-correto e confirmar que novo login não é aceito. Conferir que a sessão anterior
-não lê nem altera dados pelo Data API. Para reverter, desbanir no Auth após
-decisão documentada e excluir a restrição de banco; confirmar o acesso com
-novo login. Se qualquer etapa falhar, manter o caso aberto e registrar o estado
-parcial. Os comandos de banco exigem acesso administrativo ao projeto.
+correto. Na validação realizada, a conta ainda conseguiu autenticar, mas ficou
+sem acesso às operações protegidas do app; portanto, não use a tela de login
+como confirmação do bloqueio. A restrição em `suspended_accounts`, aplicada
+pelas políticas RLS e pela verificação anterior às requisições do Data API, é o
+controle que impede consultas e alterações, inclusive com sessão já emitida.
+Confirme esse bloqueio tentando ler e alterar dados. Para reverter, desbanir no
+Auth e excluir a restrição de banco após decisão documentada; confirme que as
+operações voltam a funcionar. Se qualquer etapa falhar, manter o caso aberto e
+registrar o estado parcial. Os comandos de banco exigem acesso administrativo
+ao projeto.
 
 ## 4. Incidentes de segurança
 

@@ -264,7 +264,45 @@ describe('mutations de músicas no Supabase', () => {
     from.mockReturnValueOnce(acceptedQuery);
 
     await expect(
-      createSong({ bandId: 'band-real', song: validSong }),
+      createSong({
+        bandId: 'band-real',
+        song: { ...validSong, title: 'Música revisada' },
+      }),
     ).resolves.toBe('song-new');
+    expect(acceptedQuery.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Música revisada' }),
+    );
+  });
+
+  it('explica recusa do filtro na edição e permite reenviar depois da correção', async () => {
+    const rejectedUpdateQuery = createMutationQuery({
+      data: null,
+      error: { code: 'P0001', message: 'CONTENT_REJECTED' },
+    });
+    from.mockReturnValueOnce(rejectedUpdateQuery);
+
+    await expect(
+      updateSong({ bandId: 'band-real', song: validSong, songId: 'song-real' }),
+    ).rejects.toMatchObject({
+      code: 'content_rejected',
+      message: expect.stringContaining('contato@setlistbr.app.br'),
+    });
+
+    const acceptedUpdateQuery = createMutationQuery({
+      data: { id: 'song-real', updated_at: '2026-10-01T12:00:00.000Z' },
+      error: null,
+    });
+    from.mockReturnValueOnce(acceptedUpdateQuery);
+
+    await expect(
+      updateSong({
+        bandId: 'band-real',
+        song: { ...validSong, title: 'Título ajustado' },
+        songId: 'song-real',
+      }),
+    ).resolves.toBeUndefined();
+    expect(acceptedUpdateQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Título ajustado' }),
+    );
   });
 });

@@ -6,7 +6,9 @@ insert into auth.users (id, aud, role, email)
 values ('00000000-0000-0000-0000-000000000801', 'authenticated', 'authenticated', 'filter-test@example.test');
 
 insert into public.profiles (id, display_name)
-values ('00000000-0000-0000-0000-000000000801', 'Filtro');
+values ('00000000-0000-0000-0000-000000000801', 'Filtro')
+on conflict (id) do update
+set display_name = excluded.display_name;
 
 insert into public.bands (id, name)
 values ('00000000-0000-0000-0000-000000000802', 'Banda do filtro');

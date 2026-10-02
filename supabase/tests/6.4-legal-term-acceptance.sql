@@ -32,7 +32,7 @@ $$;
 
 select is(
   public.current_legal_term_version(),
-  '2026-09',
+  '2026-10',
   'the database exposes the current legal-term version'
 );
 
@@ -58,7 +58,7 @@ select throws_ok(
 select ok(
   public.accept_current_band_term(
     '00000000-0000-0000-0000-000000000644',
-    '2026-09'
+    '2026-10'
   ) is not null,
   'Owner registers the current-term acceptance with a server timestamp'
 );
@@ -66,7 +66,7 @@ select is(
   (select count(*)::integer from public.legal_acceptances
    where band_id = '00000000-0000-0000-0000-000000000644'
      and user_id = '00000000-0000-0000-0000-000000000641'
-     and term_version = '2026-09'),
+     and term_version = '2026-10'),
   1,
   'Owner acceptance is persisted for the current version'
 );
@@ -91,7 +91,7 @@ select throws_ok(
     values (
       '00000000-0000-0000-0000-000000000644',
       '00000000-0000-0000-0000-000000000641',
-      '2026-09'
+      '2026-10'
     )$$,
   '42501',
   null,
@@ -119,7 +119,7 @@ select throws_ok(
 select ok(
   public.accept_current_band_term(
     '00000000-0000-0000-0000-000000000644',
-    '2026-09'
+    '2026-10'
   ) is not null,
   'Editor registers the current-term acceptance'
 );
@@ -146,7 +146,7 @@ select is(
 select throws_ok(
   $$select public.accept_current_band_term(
       '00000000-0000-0000-0000-000000000644',
-      '2026-09'
+      '2026-10'
     )$$,
   'P0001',
   'LEGAL_TERM_ROLE_REQUIRED',

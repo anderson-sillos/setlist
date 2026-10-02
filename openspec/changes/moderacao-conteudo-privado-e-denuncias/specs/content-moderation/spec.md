@@ -63,11 +63,11 @@ O sistema SHALL permitir que um responsável autorizado oculte manualmente uma m
 - **THEN** o app deixa de oferecer a música oculta e remove o conteúdo das cópias locais que controla
 
 ### Requirement: Suspensão administrativa de conta
-O sistema SHALL permitir que um responsável autorizado suspenda manualmente uma conta abusiva, registre a medida e impeça novo acesso e novas ações mesmo que exista uma sessão emitida antes da suspensão.
+O sistema SHALL permitir que um responsável autorizado suspenda manualmente uma conta abusiva, registre a medida e impeça o acesso a dados e novas ações mesmo que a autenticação ainda ocorra ou exista uma sessão emitida antes da suspensão.
 
 #### Scenario: Conta suspensa tenta usar o serviço
-- **WHEN** uma conta suspensa tenta entrar ou usar uma sessão anterior para consultar ou alterar dados
-- **THEN** o acesso é negado no serviço e a conta não consegue enviar novo conteúdo
+- **WHEN** uma conta suspensa tenta autenticar ou usa uma sessão existente para consultar ou alterar dados
+- **THEN** as operações protegidas são negadas no serviço e a conta não consegue enviar novo conteúdo, mesmo que o provedor ainda permita autenticar
 
 ### Requirement: Privacidade e isolamento por banda
 O sistema SHALL manter o conteúdo das músicas acessível somente aos integrantes ativos de sua banda, exceto pelo acesso operacional estritamente necessário do responsável autorizado. O app MUST NOT publicar músicas em catálogo público.

@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { demoIds } from '@/data/demo';
+import { sendContentReport } from '@/data/supabase/contentReports';
 import { createBand } from '@/data/supabase/bandMutations';
 import type { AppRepositories, Band, BandMember } from '@/domain';
 import {
@@ -23,6 +24,14 @@ jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+}));
+
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('@/data/supabase/contentReports', () => ({
+  sendContentReport: jest.fn(),
 }));
 
 jest.mock('@/data/supabase/bandAdministrationMutations', () => {
@@ -73,6 +82,7 @@ const mockCreateInvitation = jest.mocked(createInvitation);
 const mockListInvitations = jest.mocked(listInvitations);
 const mockUpdateBandMemberRole = jest.mocked(updateBandMemberRole);
 const mockLeaveBand = jest.mocked(leaveBand);
+const mockSendContentReport = jest.mocked(sendContentReport);
 
 function createMutableBandRepositories() {
   const owner: BandMember = {
@@ -176,6 +186,7 @@ describe('<BandScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockListInvitations.mockResolvedValue([]);
+    mockSendContentReport.mockResolvedValue();
     mockUpdateBandMemberRole.mockResolvedValue(undefined);
     mockLeaveBand.mockResolvedValue(undefined);
   });
@@ -191,6 +202,33 @@ describe('<BandScreen />', () => {
     expect(await view.findByText('Membro Real')).toBeTruthy();
     expect(view.getByText('membro@example.test')).toBeTruthy();
     expect(view.queryByText('Integrante')).toBeNull();
+  });
+
+  it('abre denúncia de integrante e envia o identificador do usuário correto', async () => {
+    const { repositories } = createMutableBandRepositories();
+    const view = await render(
+      <AppProviders currentUserId="user-real" repositories={repositories}>
+        <BandScreen bandId="band-real" />
+      </AppProviders>,
+    );
+
+    await fireEvent.press(view.getByLabelText('Denunciar Membro Real'));
+    await fireEvent.changeText(
+      await view.findByLabelText('Motivo da denúncia'),
+      'Comportamento inadequado dentro da banda',
+    );
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Enviar denúncia' }),
+    );
+
+    await waitFor(() =>
+      expect(mockSendContentReport).toHaveBeenCalledWith({
+        bandId: 'band-real',
+        description: 'Comportamento inadequado dentro da banda',
+        kind: 'user',
+        targetId: 'user-member',
+      }),
+    );
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {

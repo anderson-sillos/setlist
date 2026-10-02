@@ -10,7 +10,7 @@ select is(
        'profiles', 'bands', 'band_members', 'legal_acceptances', 'songs',
        'shows', 'show_blocks', 'show_items', 'invitations'
      )),
-  26,
+  35,
   'all business tables have explicit RLS policies'
 );
 select is(
@@ -64,8 +64,8 @@ begin
   values (song_id, band_id, 'Música de teste 4.7');
   insert into public.legal_acceptances (band_id, user_id, term_version)
   values
-    (band_id, owner_id, '2026-09'),
-    (band_id, editor_id, '2026-09');
+    (band_id, owner_id, '2026-10'),
+    (band_id, editor_id, '2026-10');
   insert into public.shows (id, band_id, name, starts_at, venue)
   values (show_id, band_id, 'Show de teste 4.7', '2026-12-01 21:00:00+00', 'Palco 4.7');
   insert into public.show_blocks (id, show_id, name, position)
@@ -101,7 +101,7 @@ select is((select count(*)::integer from public.songs), 1, 'Owner reads songs');
 select is((select count(*)::integer from public.invitations), 1, 'Owner reads invitations');
 select is((select count(*)::integer from public.profiles), 3, 'Owner reads band profiles');
 select ok(
-  public.create_band('Banda criada por Owner', '2026-09', true) is not null,
+  public.create_band('Banda criada por Owner', '2026-10', true) is not null,
   'authenticated user can create a band through the secure function'
 );
 select is(

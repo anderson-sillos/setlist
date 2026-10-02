@@ -26,11 +26,11 @@ it('envia denúncia da música e mostra confirmação após aceite', async () =>
     />,
   );
 
-  fireEvent.changeText(
+  await fireEvent.changeText(
     view.getByLabelText('Motivo da denúncia'),
     'Conteúdo indevido na letra',
   );
-  fireEvent.press(view.getByRole('button', { name: 'Enviar denúncia' }));
+  await fireEvent.press(view.getByRole('button', { name: 'Enviar denúncia' }));
 
   await waitFor(() => {
     expect(mockSendContentReport).toHaveBeenCalledWith({
@@ -60,11 +60,11 @@ it('mantém a descrição e permite repetir quando a entrega falha', async () =>
     />,
   );
 
-  fireEvent.changeText(
+  await fireEvent.changeText(
     view.getByLabelText('Motivo da denúncia'),
     'Descrição detalhada do caso',
   );
-  fireEvent.press(view.getByRole('button', { name: 'Enviar denúncia' }));
+  await fireEvent.press(view.getByRole('button', { name: 'Enviar denúncia' }));
   expect(
     await view.findByText('Não foi possível confirmar o envio.'),
   ).toBeTruthy();
@@ -72,7 +72,7 @@ it('mantém a descrição e permite repetir quando a entrega falha', async () =>
     'Descrição detalhada do caso',
   );
 
-  fireEvent.press(view.getByRole('button', { name: 'Enviar denúncia' }));
+  await fireEvent.press(view.getByRole('button', { name: 'Enviar denúncia' }));
   await waitFor(() => {
     expect(mockSendContentReport).toHaveBeenCalledTimes(2);
     expect(

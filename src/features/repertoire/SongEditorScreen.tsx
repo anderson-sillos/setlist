@@ -362,12 +362,17 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         <UnavailableFeedback title="Música indisponível" />
       ) : null}
       <DemoActionNotice
-        message={lifecycleNotice}
+        message={submitError ?? lifecycleNotice}
         onClose={() => {
+          setSubmitError(null);
           setLifecycleNotice(null);
           setLifecycleNoticeTitle(null);
         }}
-        title={lifecycleNoticeTitle ?? undefined}
+        title={
+          submitError
+            ? 'Aviso ao salvar música'
+            : (lifecycleNoticeTitle ?? undefined)
+        }
       />
       <SongLifecycleDialog
         errorMessage={lifecycleError}
@@ -464,12 +469,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
                 setSubmitError(null);
               }}
             />
-
-            {submitError ? (
-              <AppText accessibilityRole="alert" style={styles.errorText}>
-                {submitError}
-              </AppText>
-            ) : null}
           </ScrollView>
 
           <View style={styles.footer}>
@@ -673,9 +672,6 @@ const styles = StyleSheet.create({
     minWidth: 160,
   },
   fieldError: {
-    color: '#b91c1c',
-  },
-  errorText: {
     color: '#b91c1c',
   },
   input: {
