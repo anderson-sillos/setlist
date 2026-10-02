@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/reviewable-app
   workflow_dispatch:
 
 permissions:
@@ -40,7 +39,7 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          test -n "$EXPO_PUBLIC_SUPABASE_URL" || (echo "EXPO_PUBLIC_SUPABASE_URL não configurada nas variáveis do repositório" && exit 1)
+          test "$EXPO_PUBLIC_SUPABASE_URL" = "https://tqijocmmiwistinrjpwl.supabase.co" || (echo "EXPO_PUBLIC_SUPABASE_URL deve apontar para setlist-prod" && exit 1)
           test -n "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" || (echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY não configurada nas variáveis do repositório" && exit 1)
 
       - name: Preparar associações de links nativos
@@ -51,10 +50,9 @@ jobs:
 
       - name: Exportar aplicação web
         env:
-          EXPO_PUBLIC_APP_ENV: ${{ vars.EXPO_PUBLIC_APP_ENV || 'development' }}
+          EXPO_PUBLIC_APP_ENV: production
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
           EXPO_PUBLIC_WEB_BASE_URL: https://setlistbr.app.br
           EXPO_WEB_BASE_URL: .
         run: npm run export:web -- --output-dir dist

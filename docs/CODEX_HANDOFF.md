@@ -4,16 +4,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 ## Estado atual
 
-- Repositório: `anderson-sillos/setlist`; branch principal `main`.
-- Ponto atual: change OpenSpec `moderacao-conteudo-privado-e-denuncias`, implementada na branch `feat/moderacao-conteudo-privado-e-denuncias`. Antes desta atualização do handoff, o head remoto era `d8225ce`.
-- PR #26 (`feat: moderação de conteúdo privado e denúncias`): https://github.com/anderson-sillos/setlist/pull/26, com destino `main`. Na última consulta desta sessão estava aberta, sem reviews nem threads de revisão; o usuário pediu o merge. Reconsulte o estado remoto e os checks no momento da integração.
-- CI inicial no head `d8225ce`: formatação, lint, tipos e smoke test Web passaram; a suíte Jest falhou com 74 testes (incluindo ausência de mock de NetInfo e fixtures que ainda usavam o termo `2026-09`); pgTAP falhou porque a asserção `throws_ok` era executada sob o papel `authenticator`. Os ajustes foram enviados no commit `34071ec`; nesse commit, a qualidade passou com 87 suítes/584 testes, o smoke test Web passou e o workflow de migrações/pgTAP passou. Confira o head e os checks atuais da PR antes do merge.
-- OpenSpec: tarefas 14/14 concluídas e `openspec validate ... --type change --strict` aprovado. A especificação principal `openspec/specs/content-moderation/spec.md` foi sincronizada e validada; a change foi arquivada em `openspec/changes/archive/2026-10-02-moderacao-conteudo-privado-e-denuncias`.
-- Validações manuais confirmadas pelo usuário: filtro e mensagem de recusa, denúncias de música e integrante com recebimento por e-mail, ocultação via `moderated_songs`, suspensão de conta com operações protegidas bloqueadas e recuperação após reversão; fluxo integrado em Web, Android e iOS.
-- Validação automatizada: os testes direcionados anteriores passaram (8 suítes/56 testes) e `npm run typecheck` passou; o popup final de recusa foi confirmado manualmente. No CI da PR, o commit `34071ec` passou com 87 suítes/584 testes, smoke test Web e migrações/pgTAP.
-- Supabase: migrations e Edge Function `report-content` foram aplicadas somente em `setlist-dev`; produção não foi alterada. Os documentos legais e a rotina operacional continuam como rascunhos e precisam de revisão jurídica antes da distribuição pública.
-- Antes da liberação: revisar termos, política e procedimento; coordenar publicação do cliente com o termo `2026-10` e migrations em produção.
-- Procedimento de integração: o usuário determinou que commits e atualizações de PR devem ser feitos com acesso elevado, após solicitar autorização. Confirme estado, diff e checks antes de pedir essa autorização e executar as operações remotas.
+- Repositório: `anderson-sillos/setlist`; branch principal `main`, atualmente em `d37278e`.
+- Branch ativa: `feat/documentos-legais-retencao`, remota alinhada ao commit `bba6008` antes desta rodada. PR #27 está aberto como rascunho: https://github.com/anderson-sillos/setlist/pull/27. Não foi feito merge.
+- A PR #27 reúne as minutas legais, páginas públicas, retenção, autenticação e migrações. A aprovação final das páginas legais e a data de vigência seguem pendentes; não publicar as minutas antes disso.
+- GitHub Pages: o deploy manual mais recente concluiu com sucesso, mas foi feito a partir de `main` em `d37278e` (run https://github.com/anderson-sillos/setlist/actions/runs/37045501790). Portanto, a página publicada não contém o código mais recente da PR #27. As alterações locais em `.github/workflows/pages.yml` ainda precisam ser commitadas e enviadas.
+- Supabase de produção (`tqijocmmiwistinrjpwl`): Google e Apple aparecem ativos. O login Apple Web foi validado pelo usuário. O Client ID enviado à Apple foi corrigido de `om.andersonsillos.setlist.web` para `com.andersonsillos.setlist.web`; o callback observado é `https://tqijocmmiwistinrjpwl.supabase.co/auth/v1/callback`.
+- EAS: `eas.json` agora define `production-ios-simulator` e `production-android-validation`. O primeiro herda o ambiente de produção e gera build de simulador; o segundo herda produção e gera APK interno. O esquema OAuth iOS Google está explícito no perfil base; o Android ativa o módulo nativo Google e desativa a flag específica de iOS.
+- Build Android de validação: enviado ao EAS com ID `c728fd9d-21e1-4be4-ac85-2eb2607f2188`. Último estado observado: aguardando executor na fila. O acompanhamento local foi interrompido sem cancelar o job remoto. Acompanhar em https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/c728fd9d-21e1-4be4-ac85-2eb2607f2188.
+- Alterações locais desta rodada: `.env.production.example`, `.github/workflows/pages.yml`, `app.config.ts`, `eas.json` e este handoff. Testes de produto não foram executados; `git diff --check` e a sintaxe JSON foram conferidos antes do commit.
+- Procedimento solicitado: commits e atualizações remotas devem usar acesso elevado após solicitar autorização. O usuário pediu nesta rodada atualizar o handoff, commitar e enviar a branch; não fazer merge da PR.
 
 ## Fontes de verdade
 
@@ -369,12 +368,10 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 6.6 em `feat/task-6-1-repertoire`: garantir atualização
-da música com horário do servidor e visibilidade somente do conteúdo vigente.
-Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
-validação iOS dos links nativos prevista em 11.5. O change OpenSpec
-`definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
-contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
+1. Acompanhar o build Android `c728fd9d-21e1-4be4-ac85-2eb2607f2188`; quando concluir, instalar o APK e validar o login nativo Google contra produção.
+2. Gerar o build iOS de simulador com `eas build --platform ios --profile production-ios-simulator` e validar Apple/Google nativos contra produção.
+3. Revisar a diferença entre a Web publicada (`d37278e`) e a branch da PR #27. Integrar a PR somente depois da aprovação final das minutas legais; o Pages publica automaticamente na `main`.
+4. Continuar o checklist de publicação nas lojas depois das validações de plataforma e da conclusão jurídica.
 
 106. Após a validação manual informada pelo usuário, a tarefa 5.10 foi dividida:
      5.10.1 (papéis e convites na web e Android, com publicação interna) foi
