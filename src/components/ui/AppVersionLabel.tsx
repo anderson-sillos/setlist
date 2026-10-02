@@ -6,11 +6,13 @@ import { AppText } from '@/components/ui/AppText';
 
 interface AppVersionLabelProps {
   readonly align?: 'center' | 'left';
+  readonly compact?: boolean;
   readonly inverse?: boolean;
 }
 
 export function AppVersionLabel({
   align = 'center',
+  compact = false,
   inverse = false,
 }: AppVersionLabelProps) {
   const version = Constants.expoConfig?.version ?? appConfig.expo.version;
@@ -25,7 +27,7 @@ export function AppVersionLabel({
       tone="muted"
       variant="caption"
     >
-      Versão {version}
+      {compact ? `v${version}` : `Versão ${version}`}
     </AppText>
   );
 }

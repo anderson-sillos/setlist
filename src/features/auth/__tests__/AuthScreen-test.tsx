@@ -76,7 +76,7 @@ describe('tela de autenticação', () => {
     ).toBeTruthy();
     expect(
       view.getByText(
-        'Ao prosseguir com o login, você concorda com os Termos de uso do Setlist.',
+        'Ao entrar, você concorda com os Termos de uso.',
       ),
     ).toBeTruthy();
 

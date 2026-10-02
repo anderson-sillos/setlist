@@ -145,17 +145,16 @@ export function AuthScreen() {
 
         <View style={styles.legalFooter}>
           <AppText style={styles.disclaimer} tone="muted" variant="caption">
-            Ao prosseguir com o login, você concorda com os Termos de uso do
-            Setlist.
+            Ao entrar, você concorda com os Termos de uso.
           </AppText>
-          <View style={styles.legalLinks}>
+          <View style={styles.legalMetaRow}>
             <Pressable
               accessibilityRole="link"
               hitSlop={{ top: 8, bottom: 8 }}
               onPress={() => void Linking.openURL(legalUrls.terms)}
               style={styles.legalLink}
             >
-              <AppText tone="accent" variant="caption">
+              <AppText numberOfLines={1} tone="accent" variant="caption">
                 Termos de uso
               </AppText>
             </Pressable>
@@ -165,12 +164,14 @@ export function AuthScreen() {
               onPress={() => void Linking.openURL(legalUrls.privacy)}
               style={styles.legalLink}
             >
-              <AppText tone="accent" variant="caption">
+              <AppText numberOfLines={1} tone="accent" variant="caption">
                 Política de privacidade
               </AppText>
             </Pressable>
+            <View style={styles.versionPosition}>
+              <AppVersionLabel align="left" compact />
+            </View>
           </View>
-          <AppVersionLabel align="left" />
         </View>
       </View>
     </Screen>
@@ -233,16 +234,20 @@ const styles = StyleSheet.create({
   disclaimer: {
     textAlign: 'left',
   },
-  legalLinks: {
-    alignItems: 'flex-start',
+  legalMetaRow: {
+    alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     columnGap: spacing.sm,
     justifyContent: 'flex-start',
     rowGap: 0,
+    width: '100%',
+  },
+  versionPosition: {
+    marginLeft: 'auto',
   },
   legalLink: {
     justifyContent: 'center',
-    minHeight: 30,
+    minHeight: 20,
   },
 });
