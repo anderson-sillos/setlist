@@ -44,7 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   if (enableIosNativeGoogle && !googleIosUrlScheme) {
     throw new Error(
-      'O login nativo Google no iOS exige EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ou SETLIST_GOOGLE_IOS_URL_SCHEME no ambiente EAS development.',
+      'O login nativo Google no iOS exige EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ou SETLIST_GOOGLE_IOS_URL_SCHEME no ambiente EAS selecionado.',
     );
   }
 

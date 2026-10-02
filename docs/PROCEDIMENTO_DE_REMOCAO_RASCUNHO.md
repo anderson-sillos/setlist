@@ -1,17 +1,22 @@
 # Procedimento de remoção e solicitações — rascunho
 
 > **RASCUNHO OPERACIONAL INTERNO. Não publicar este documento como termo do
-> serviço.** Confirmar acesso ao canal de contato, responsáveis, prazos e
-> revisão jurídica antes de ativá-lo.
+> serviço.** A revisão por profissional jurídico foi informada como concluída;
+> confirmar acesso ao canal, prazos e configurações antes de ativá-lo.
 
 - Versão de trabalho: 0.1
-- Data de preparação: 29/09/2026
+- Data de preparação: 29/09/2026; revisão de moderação: 02/10/2026
 - Responsável por receber solicitações: controlador do Setlist, pelo canal
-  geral **contato@setlistbr.app.br**; a intenção é não nomear encarregado formal
-  se a dispensa legal for aplicável.
+  geral **contato@setlistbr.app.br**. Segundo a conclusão jurídica informada,
+  o controlador está dispensado de nomear encarregado formal como agente de
+  tratamento de pequeno porte.
+- **Setlist** é o nome definitivo de apresentação do serviço e, segundo o
+  responsável, a identificação pública da pessoa física controladora aprovada
+  na revisão jurídica.
 - Canal: e-mail geral, também destinado a solicitações de privacidade e remoção
   de conteúdo — **contato@setlistbr.app.br**
-- O responsável informa que a caixa será devidamente monitorada.
+- O responsável acompanhará a caixa em todos os dias úteis e informou ser a
+  única pessoa com acesso à caixa Gmail de destino.
 - Confirmação de recebimento: em até **5 dias úteis**. Esse prazo é para acusar
   o recebimento e não substitui o prazo legal ou o tempo necessário para analisar
   e responder ao mérito do pedido.
@@ -30,14 +35,37 @@
 
 O backend desvincula do perfil excluído os registros de aceite e as referências
 de criação/uso de convites. O conteúdo de bandas ainda ativas permanece para os
-demais integrantes e pode continuar associado à banda. A remoção de dados em
-logs, backups e sistemas dos fornecedores segue prazos ainda não confirmados:
-**[COMPLETAR COM O INVENTÁRIO DE RETENÇÃO]**.
+demais integrantes e pode continuar associado à banda. O backup próprio
+planejado para produção manterá até 12 cópias semanais criptografadas, após
+implantação e validação da rotina. A remoção de dados em logs e sistemas dos
+fornecedores segue prazos próprios. O inventário preliminar está na revisão
+jurídica; ainda precisam ser confirmados os prazos efetivos de eliminação de
+registros de Supabase, GitHub Pages, Cloudflare, Gmail e provedores de login.
+No Brevo, foram escolhidos 1 mês para logs transacionais e nenhuma nova
+prévia, mas a configuração ainda precisa ser aplicada e conferida.
 Na apuração de cada pedido, considerar separadamente os registros de auditoria
-de autenticação do Supabase: há armazenamento externo de logs e pode haver
-cópia opcional na tabela `auth.audit_log_entries`. A exclusão da identidade de
-autenticação não comprova a eliminação desses registros; conferir a configuração
-e o tratamento aplicável antes de responder sobre eliminação completa.
+de autenticação do Supabase: há armazenamento externo de logs e o responsável
+confirmou que a gravação adicional em `auth.audit_log_entries` está **ligada**
+em `setlist-prod`. A exclusão da identidade de autenticação não comprova a
+eliminação desses registros. O responsável escolheu conservá-los por 30 dias
+e limpar diariamente os mais antigos, mas essa rotina ainda não foi
+implementada. Antes de responder sobre eliminação completa, conferir a tabela,
+as exceções de conservação e as cópias de backup.
+
+### Retenção de convites e aceites — limpeza pendente
+
+O responsável decidiu descartar convites 30 dias após o primeiro evento que
+encerrar sua utilidade: uso, revogação ou vencimento. Aceites do termo da banda
+serão conservados enquanto a banda existir para documentar a versão aceita;
+a exclusão da banda já os remove do banco ativo. Ao excluir uma conta, as
+referências diretas dessa pessoa em convites e aceites são anuladas, mas os
+demais campos podem continuar associados indiretamente a ela.
+
+A limpeza automática foi implantada em `setlist-prod` em 02/10/2026, com job
+diário ativo e tabela de exceções para casos em apuração. Ainda falta conferir
+a primeira execução e documentar eventuais suspensões de descarte. Até essa
+conferência, não afirmar em respostas a titulares que o prazo de 30 dias já foi
+observado na prática. Cópias em backups seguem ciclo próprio de substituição.
 
 ## 2. Remoção de conteúdo de banda
 
@@ -48,9 +76,10 @@ por seus próprios atos, conforme a lei; o operador mantém os deveres legais de
 tratar denúncias. Um Proprietário ou Editor pode editar conteúdo
 conforme as permissões disponíveis. A exclusão de uma banda elimina seu
 conteúdo, mas só está habilitada quando o solicitante é Proprietário e o único
-integrante. Denúncias de conteúdo proibido e pedidos de remoção por direito
-autoral, privacidade ou erro devem ser enviados por e-mail a
-**contato@setlistbr.app.br** com:
+integrante. Integrantes podem denunciar música ou outro integrante da própria
+banda pelo formulário do app. Pessoas externas, contestações do filtro e
+pedidos de remoção por direito autoral, privacidade ou erro devem ser enviados
+por e-mail a **contato@setlistbr.app.br** com:
 
 - nome da banda e localização/identificador do conteúdo;
 - descrição objetiva do problema e a providência solicitada;
@@ -74,24 +103,39 @@ caso apenas a justificativa para a coleta, a data e o resultado da verificação
 sem copiar dados do documento.
 
 **Limite técnico e primeiro corte:** arquivar música vinculada a show não a
-torna inacessível. A implementação desta change cria registro administrativo
-separado para ocultação, aplicado nas consultas de músicas e itens de show, e
-filtro simples que recusa gravações sinalizadas. O filtro não identifica todas
-as infrações. A tabela de músicas ainda não guarda quem criou ou alterou cada
-registro; não se deve presumir a autoria do Proprietário ou Editor. A medida
-administrativa e o fluxo abaixo precisam ser validados no ambiente de destino
-antes de sua ativação operacional.
+torna inacessível. O primeiro corte implementado usa um registro administrativo
+separado para ocultação, aplicado às consultas de músicas e itens de show, e um
+filtro preventivo simples no banco para recusar gravações sinalizadas. As regras
+iniciais identificam apenas alguns padrões explícitos; não reavaliam
+automaticamente o acervo anterior nem identificam todas as infrações. O texto
+recusado não entra em fila de análise e uma edição recusada preserva o registro
+anterior. A tabela de músicas ainda não guarda quem criou ou alterou cada
+registro; não se deve presumir a autoria do Proprietário ou Editor. A ocultação
+e a reversão foram validadas no ambiente de desenvolvimento; antes de usar este
+procedimento em produção, conferir a implantação coordenada das migrations, da
+função de denúncia e do cliente no projeto correto.
 
 ## 3. Revisão posterior por denúncia ou inspeção
 
 O primeiro corte aplica filtro preventivo simples às gravações de músicas e
-mantém revisão **posterior** por denúncia ou inspeção. Não há fila de aprovação
-prévia de cada envio. Integrantes denunciam música ou usuário pelo formulário
-do app; o serviço encaminha identificadores e a descrição à caixa
-**contato@setlistbr.app.br** sem anexar automaticamente a letra. Pessoas externas
-e quem contesta uma recusa do filtro podem escrever diretamente ao endereço.
-O responsável ainda precisa definir critérios, frequência, pessoa autorizada e
-registro mínimo das inspeções.
+mantém revisão **posterior** quando houver denúncia ou indício concreto
+documentado. Não há inspeção periódica por amostragem nem fila de aprovação
+prévia de cada envio. Integrantes denunciam música ou outro integrante da banda
+pelo formulário do app; a função verifica o vínculo de ambos com a banda,
+limita a frequência de envios e usa a API do Brevo para encaminhar o tipo de
+alvo, identificadores da banda, do alvo, do denunciante e do caso, e a descrição
+à caixa **contato@setlistbr.app.br**, sem anexar automaticamente a letra. O banco
+guarda a linha de frequência por denunciante e o identificador do último caso;
+essa linha não é apagada automaticamente após o intervalo de bloqueio. A
+descrição é tratada no e-mail. A confirmação no app significa que o provedor aceitou o
+envio, não que a mensagem chegou ou foi lida. Se o aceite não for confirmado,
+o app informa a falha e permite nova tentativa; conferir eventual duplicidade
+pelo identificador do caso. Pessoas externas e quem contesta uma recusa do
+filtro podem escrever diretamente ao endereço. O responsável pelo Setlist é a
+pessoa autorizada a consultar o conteúdo privado apenas na extensão necessária
+para apurar a denúncia ou o indício concreto. A origem do indício, a data, o
+conteúdo consultado, a medida e o resultado seguem o registro mínimo do caso
+descrito abaixo; não copiar a letra ou dados sensíveis para uma planilha.
 
 1. Registrar e acompanhar denúncias recebidas por e-mail na caixa Gmail do
    canal, usando uma etiqueta dedicada a privacidade/remoção para organização.
@@ -105,8 +149,7 @@ registro mínimo das inspeções.
    em até **5 dias úteis**, sem adiar a resposta simplificada de confirmação ou
    acesso aos dados quando a LGPD exigir atendimento imediato. Para declaração
    completa, observar o prazo legal de até 15 dias do requerimento. Aplicar
-   prazo diferenciado somente após confirmar o enquadramento como agente de
-   pequeno porte.
+   prazo diferenciado somente quando previsto para agente de pequeno porte.
 2. Avaliar se há informação suficiente para localizar o registro e classificar
    o pedido: dado pessoal ou conta, direito autoral, conteúdo pornográfico
    proibido pelos termos, exposição de intimidade, possível exploração ou abuso
@@ -115,7 +158,8 @@ registro mínimo das inspeções.
    adicional mínima somente se necessário; para denúncias de conteúdo,
    verificar proporcionalmente a relação da pessoa com o conteúdo ou sua
    autoridade para agir. Não exigir documento oficial por padrão. Pedidos com
-   risco atual de dano grave devem receber avaliação imediata, sem aguardar a
+   risco atual de dano grave devem receber avaliação prioritária assim que o
+   responsável tomar conhecimento, sem aguardar a
    meta geral de confirmação em cinco dias úteis. Indício de exploração ou abuso
    sexual de criança ou adolescente exige avaliação e encaminhamento urgentes,
    incluindo a comunicação às autoridades competentes quando exigida pelo art.
@@ -149,13 +193,17 @@ registro mínimo das inspeções.
    necessários enquanto forem úteis para tratar e documentar o caso, cumprir
    obrigação legal ou regulatória, ou exercer direitos. Encerrada essa
    necessidade, excluir ou anonimizar os registros, salvo hipótese legal que
-   justifique retenção adicional. Não manter mensagens indefinidamente. O prazo
-   e as exceções aplicáveis devem ser confirmados no inventário de retenção e
-   com assessoria jurídica antes da publicação.
+   justifique retenção adicional. Revisar os casos encerrados na caixa Gmail a
+   cada três meses e apagar mensagens e anexos que não precisem mais ser
+   mantidos; registrar na própria conversa a justificativa de retenções
+   excepcionais, quando couber. Não manter mensagens indefinidamente. O prazo
+   e as exceções aplicáveis devem ser confirmados no inventário de retenção
+   antes da publicação.
 
-O responsável deve aprovar os critérios de prova, contranotificação, bloqueio,
-recurso, comunicações a titulares e eventual comunicação à ANPD com assessoria
-jurídica antes de lançar o serviço. A classificação jurídica de cada denúncia
+O responsável aprovou o fluxo operacional acima: identificação do conteúdo e
+motivo, verificação proporcional do direito quando aplicável, ocultação urgente
+diante de risco, manifestação de quem enviou o conteúdo quando possível e
+contestação da decisão. A classificação jurídica de cada denúncia
 deve considerar a legislação específica e os [Temas 533 e 987 do STF](https://noticias.stf.jus.br/postsnoticias/nota-a-imprensa-43/);
 não presumir que toda reclamação exige ordem judicial ou que toda notificação
 extrajudicial obriga retirada automática. Se o Setlist for classificado como
@@ -251,6 +299,46 @@ operações voltam a funcionar. Se qualquer etapa falhar, manter o caso aberto e
 registrar o estado parcial. Os comandos de banco exigem acesso administrativo
 ao projeto.
 
+### Descarte do controle de frequência — primeira execução pendente
+
+`report_rate_limits` serve para impedir envios repetidos durante a janela de
+1 minuto. O responsável decidiu limpar diariamente as linhas cujo
+`next_allowed_at` terminou há pelo menos 24 horas. A rotina foi implantada em
+`setlist-prod` em 02/10/2026, com job diário ativo; a primeira execução ainda
+precisa ser conferida. A linha também é substituída no próximo envio, removida
+quando o envio falha ou eliminada com a conta. Conferir que o job não interfere
+em um envio em andamento e que registra falhas sem
+copiar identificadores de casos para logs. A caixa de e-mail continua sendo
+o histórico operacional da denúncia e segue critérios próprios de descarte.
+
+### Backup próprio de `setlist-prod` — implantação pendente
+
+O responsável decidiu manter o projeto no plano Supabase Free, sem PITR, e
+produzir uma cópia do banco **uma vez por semana** em **disco externo
+criptografado**, conservando as **12 cópias semanais** mais recentes. A rotina
+ainda não foi implementada nem validada por restauração.
+
+1. Usar o procedimento oficial de exportação lógica do Supabase para obter os
+   dados necessários à recuperação, incluindo dados do aplicativo e identidades
+   de autenticação. Conferir também histórico de migrations, funções e ajustes
+   do projeto que o dump não preserve; manter segredos fora do repositório e do
+   arquivo de instruções. Se o aplicativo passar a usar objetos do Supabase
+   Storage, incluí-los em procedimento separado, pois o dump do banco não
+   contém os arquivos.
+2. Gravar a exportação somente no disco criptografado, com acesso restrito ao
+   responsável. Conferir conclusão, integridade e legibilidade da cópia antes
+   de substituir a mais antiga. Registrar data, resultado e falhas sem copiar
+   conteúdo privado para logs ou para o repositório.
+3. Conservar apenas as 12 cópias semanais mais recentes; remover com segurança
+   as anteriores após confirmar uma nova cópia íntegra. Ao atender pedidos de
+   exclusão, informar que dados removidos do banco ativo podem persistir nessas
+   cópias até sua substituição, observadas exceções legais aplicáveis.
+4. Antes do lançamento, restaurar uma cópia em ambiente isolado e conferir
+   contas, bandas, músicas, shows e controles de acesso. Definir a recorrência
+   dos ensaios de restauração e a forma de guardar o disco quando desconectado.
+
+Referência técnica: [Backup e restauração com Supabase CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+
 ## 4. Incidentes de segurança
 
 O controlador é responsável por receber e tratar suspeitas de acesso indevido,
@@ -262,66 +350,129 @@ documentar as decisões.
 Confirmado incidente que envolva dados pessoais e possa acarretar risco ou dano
 relevante aos titulares, o controlador deve comunicar a ANPD e as pessoas
 afetadas em até **3 dias úteis**, ressalvado prazo diferente previsto em lei
-específica e eventual prazo diferenciado se confirmado o enquadramento como
-agente de pequeno porte. A comunicação aos titulares não é substituída pela
+específica e eventual prazo diferenciado aplicável a agente de pequeno porte.
+A comunicação aos titulares não é substituída pela
 comunicação à ANPD e deve ocorrer diretamente, sempre que possível. Se ainda
 faltarem informações, a comunicação à ANPD pode ser feita em etapas, com
 justificativa, e complementada em até **20 dias úteis** após a comunicação
 preliminar, conforme a regulamentação. Isso não autoriza adiar a comunicação
 aos titulares por 20 dias. Registrar quando o controlador tomou conhecimento,
 a avaliação de risco, as decisões, as medidas de mitigação e as comunicações
-realizadas. O responsável deve confirmar com assessoria jurídica o
-procedimento aplicável e os critérios do incidente antes de ativar este
-rascunho como plano operacional.
+realizadas. O responsável deve conferir os contatos, a contagem dos prazos e
+o registro das decisões em um ensaio antes de ativar este rascunho como plano
+operacional.
 
 ## 5. Pendências para ativar este procedimento
 
-- Identificar o controlador e a pessoa responsável por solicitações.
+- Usar **Setlist** como identificação pública do controlador, conforme a
+  conclusão jurídica informada pelo responsável. O próprio responsável atenderá as solicitações
+  recebidas no canal de contato.
+- Publicar as páginas aprovadas em `https://setlistbr.app.br/termos/` e
+  `https://setlistbr.app.br/privacidade/` e tornar seus links acessíveis antes
+  do login e no menu do aplicativo. Hoje a tela de login só menciona os
+  documentos, e o item "Termos e privacidade" no menu está desabilitado.
 - Disponibilizar **contato@setlistbr.app.br** na Web e nos aplicativos para
   solicitações de privacidade, remoção e comunicação de incidentes; manter a
   caixa monitorada e restringir o acesso conforme a natureza do caso.
-- O responsável já dispõe de acesso à caixa postal. Antes da ativação, criar e
-  conferir as etiquetas separadas para privacidade/remoção e incidentes e
-  verificar quem tem acesso à conta e às mensagens; a etiqueta não restringe
-  acesso.
-- Confirmar se o controlador se enquadra na dispensa de nomeação de encarregado
-  para agente de tratamento de pequeno porte, inclusive quanto aos critérios de
-  exclusão previstos na regulamentação.
+- O responsável já dispõe de acesso à caixa postal, informou ser a única
+  pessoa com acesso à caixa Gmail de destino e confirmou que existem etiquetas
+  separadas para privacidade/remoção e incidentes. Revisar periodicamente quem
+  tem acesso à conta e às mensagens, pois a etiqueta não restringe acesso. A
+  caixa será acompanhada pelo responsável em todos os dias úteis. Não há
+  conferência prevista nos fins de semana ou feriados; mensagens recebidas
+  nesse período serão vistas no próximo dia útil. Ao tomar conhecimento de
+  possível dano grave, priorizar a avaliação. Antes da distribuição pública,
+  conferir à luz das regras das lojas se essa rotina
+  permite resposta suficientemente rápida ou se exigirá ampliação.
+- Preservar o registro da conclusão jurídica informada sobre o enquadramento
+  como agente de tratamento de pequeno porte e a dispensa de encarregado;
+  manter o canal de comunicação disponível aos titulares e reavaliar o
+  enquadramento se a escala ou o risco do tratamento mudar.
 - Confirmar que o procedimento de resposta a incidente permite avaliar e
   cumprir o prazo de 3 dias úteis quando a comunicação à ANPD e às pessoas
   afetadas for exigida; registrar eventual justificativa e complementação em
   etapas conforme o regulamento.
-- Definir com assessoria jurídica o mecanismo de aferição de idade aplicável,
-  considerando o público efetivo, os riscos e o ECA Digital, e implementá-lo
-  antes da distribuição pública; registrar internamente a resposta geral para
-  uso que não atenda ao critério de 18 anos.
-- Confirmar no inventário de retenção e com assessoria jurídica os prazos e
-  exceções aplicáveis aos registros dos pedidos; excluir ou anonimizar os
-  registros após o encerramento das finalidades que justificam sua guarda.
+- Registrar a classificação de serviço adulto sem acesso provável por menores,
+  conforme conclusão jurídica informada pelo responsável. A decisão para a
+  primeira versão é manter a regra de 18 anos nos termos e configurar os
+  controles disponíveis no Google Play e na App Store, sem confirmação de idade
+  no cadastro do Setlist. Registrar que a Web permanece sem bloqueio etário,
+  definir a resposta a indícios de uso por menores e reavaliar a classificação
+  se o público ou as funcionalidades mudarem.
+- Confirmar no inventário de retenção os prazos e
+  exceções aplicáveis aos registros dos pedidos. Revisar trimestralmente os
+  casos encerrados na caixa Gmail e excluir ou anonimizar os registros após o
+  encerramento das finalidades que justificam sua guarda.
 - Disponibilizar e documentar um canal seguro antes de solicitar documento de
   identidade em qualquer caso excepcional; se não houver canal, usar método
   alternativo proporcional. Apagar a cópia após a verificação, salvo obrigação
   legal de retenção.
 - Confirmar como tratar cópias de backup e registros operacionais com os
-  fornecedores. No Supabase, verificar o plano da organização, backups/PITR do
-  projeto e a opção de gravar auditoria de autenticação em
-  `auth.audit_log_entries`; apurar se e quando os registros identificáveis são
-  eliminados após a exclusão da conta. Para pedidos recebidos por e-mail,
+  fornecedores. O responsável confirmou que `setlist-prod` está no plano
+  Supabase **Free**, sem PITR, e decidiu manter o plano com backup próprio.
+  O plano escolhido é gerar uma cópia **semanal** em disco externo
+  **criptografado**, mantendo as **12 cópias semanais** mais recentes. Antes de
+  distribuir publicamente, implementar e conferir a rotina, restringir o
+  acesso ao disco e testar a
+  restauração em ambiente separado. Conferir se a cópia cobre tanto os dados
+  da aplicação quanto as identidades de autenticação e se as configurações
+  necessárias à recuperação estão documentadas sem expor segredos no backup.
+  O plano não oferece
+  backup diário automático. Conferir
+  também a retenção da auditoria de autenticação em
+  `auth.audit_log_entries`, cuja gravação está ligada em produção; implantar
+  e conferir a limpeza diária dos registros com mais de 30 dias, observadas
+  exceções documentadas e cópias de backup.
+  Para pedidos recebidos por e-mail,
   distinguir mensagens e anexos no Gmail dos registros de encaminhamento do
-  Cloudflare Email Routing; definir o descarte de ambos.
-- Aprovar critérios de denúncias de direitos autorais, conteúdo de terceiros e
-  solicitações de remoção de dados; definir prazos internos de manifestação e
-  recurso conforme o enquadramento jurídico aplicável.
-- Definir o processo paralelo de inspeção posterior: critérios, frequência,
-  pessoa autorizada, base legal, acesso ao conteúdo, registro mínimo e descarte.
-  Validar em Web, Android e iOS o formulário interno de denúncia e o recebimento
-  do e-mail transacional na caixa. Configurar chave API do Brevo e remetente
-  verificado como segredos da Edge Function, sem colocá-los no aplicativo.
-- Confirmar o novo aceite do termo da banda após a atualização material e a
-  sincronização entre a versão do aplicativo e a versão vigente no banco.
-- Executar em ambiente controlado a ocultação de música associada a show e a
-  suspensão com sessão anterior; conferir que integrantes não revertem a medida.
-- Revisar política, termos e procedimento com profissional jurídico.
+  Cloudflare Email Routing; para denúncias feitas no app, incluir os registros
+  de envio do Brevo e a janela de frequência em `report_rate_limits`. Aplicar
+  a limpeza diária decidida para as linhas cuja janela terminou há pelo menos
+  24 horas e definir os demais critérios de descarte, sem presumir que excluir
+  a mensagem no Gmail elimine cópias mantidas pelos fornecedores. O responsável informou
+  que a conta Brevo é exclusiva do Setlist e escolheu **1 mês** de retenção dos
+  logs transacionais, sem guardar novas prévias do e-mail. Aplicar e conferir
+  essas opções em **Settings → Transactional emails → Retention rules** antes
+  da publicação. Como a alteração das prévias não elimina cópias anteriores,
+  conferir se há prévias antigas e apagá-las quando não houver motivo para
+  conservá-las. Sem regra configurada, o fornecedor informa que não há exclusão
+  automática dos logs transacionais e de eventuais prévias.
+- Ensaiar o fluxo de denúncias de direitos autorais, conteúdo de terceiros e
+  solicitações de remoção de dados; registrar os prazos legais aplicáveis em
+  cada caso, as manifestações e o resultado das contestações.
+- Avaliar se a cobertura limitada do filtro preventivo e a rotina de resposta
+  atendem às regras de conteúdo gerado por usuários da App Store e do Google
+  Play antes da submissão; as validações técnicas em desenvolvimento não
+  significam aprovação pelas lojas.
+- Aplicar a revisão posterior apenas diante de denúncia ou indício concreto
+  documentado, com acesso restrito ao responsável e registro mínimo do caso;
+  conferir o descarte conforme o inventário. Manter o acompanhamento da caixa
+  em dias úteis e monitorar falhas de entrega.
+  Confirmar em produção a chave API do Brevo e o remetente verificado como
+  segredos da Edge Function, sem colocá-los no aplicativo.
+- Conferir, na implantação em produção, que o cliente e o banco exigem a mesma
+  versão `2026-10` do termo da banda e que o novo aceite é solicitado.
+- Repetir a conferência de ocultação e suspensão no projeto de produção após a
+  implantação, incluindo música associada a show e sessão já emitida.
+- Incorporar às versões finais as decisões da revisão profissional informada
+  como concluída pelo responsável.
+
+### Validações já realizadas em desenvolvimento
+
+- Formulários de denúncia de música e integrante verificados em Web, Android e
+  iOS; o responsável confirmou o recebimento dos dois e-mails no canal de
+  contato.
+- Filtro preventivo verificado em criação, edição e gravação direta autenticada;
+  gravações recusadas preservaram a versão anterior e os vínculos com shows.
+- Registro em `moderated_songs` ocultou uma música; sua remoção restaurou a
+  exibição. Consultas de repertório e show foram conferidas para músicas
+  ocultadas.
+- Suspensão no Supabase Auth e em `suspended_accounts` impediu operações
+  protegidas mesmo quando a conta ainda pôde autenticar. A reversão restaurou
+  o acesso.
+
+Essas verificações ocorreram em `setlist-dev`. Não comprovam implantação nem
+funcionamento das medidas em `setlist-prod`.
 
 ### Referência para resposta a incidentes
 
