@@ -67,10 +67,10 @@ As validações de implementação e de fluxo foram concluídas:
 
 Continuam pendentes antes da liberação pública:
 
-- Confirmar no CI a nova execução da suíte Jest e do pgTAP `8.3` após os ajustes
-  que corrigem as falhas iniciais. No CI inicial, os testes pgTAP `8.1` e `8.2`
-  passaram; `8.3` falhou porque a asserção `throws_ok` estava sendo executada
-  sob o papel `authenticator`.
+- No CI inicial, a suíte Jest e o teste pgTAP `8.3` falharam. Após corrigir o
+  mock de NetInfo, atualizar as fixtures do termo vigente e executar a asserção
+  pgTAP sob o papel privilegiado de teste, o commit `34071ec` passou com 87
+  suítes/584 testes, smoke test Web e workflow completo de migrações/pgTAP.
 - Revisar juridicamente os termos, a política e o procedimento, que permanecem
   rascunhos, e preencher os dados operacionais indicados neles.
 - Distribuir o cliente com a versão `2026-10` do termo e aplicar a migration
