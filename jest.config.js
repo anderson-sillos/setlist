@@ -6,6 +6,7 @@ module.exports = {
     '!src/app/_layout.tsx',
     '!src/**/*.d.ts',
   ],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/playwright/'],
   coverageThreshold: {
     global: {

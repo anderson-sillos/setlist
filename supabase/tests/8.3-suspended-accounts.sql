@@ -49,7 +49,8 @@ select ok(
   'the account suspension record is recognized for the current identity'
 );
 
-set local role authenticator;
+-- Mantém o papel de execução privilegiado para o pgTAP poder registrar a
+-- asserção; as claims abaixo simulam a requisição autenticada do usuário.
 select throws_ok(
   $$select public.reject_suspended_request()$$,
   '42501',

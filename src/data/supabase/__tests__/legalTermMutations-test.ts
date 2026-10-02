@@ -47,7 +47,7 @@ describe('aceite do termo vigente no Supabase', () => {
     await expect(
       getCurrentBandTermAcceptance({
         bandId: 'band-1',
-        termVersion: '2026-09',
+        termVersion: '2026-10',
         userId: 'user-1',
       }),
     ).resolves.toBe(true);
@@ -65,7 +65,7 @@ describe('aceite do termo vigente no Supabase', () => {
     await expect(
       getCurrentBandTermAcceptance({
         bandId: 'band-1',
-        termVersion: '2026-09',
+        termVersion: '2026-10',
         userId: 'user-1',
       }),
     ).resolves.toBe(false);
@@ -75,7 +75,7 @@ describe('aceite do termo vigente no Supabase', () => {
     rpc.mockResolvedValue({ data: '2026-09-24T12:00:00.000Z', error: null });
 
     await expect(
-      acceptCurrentBandTerm({ bandId: 'band-1', termVersion: '2026-09' }),
+      acceptCurrentBandTerm({ bandId: 'band-1', termVersion: '2026-10' }),
     ).resolves.toBeUndefined();
 
     expect(rpc).toHaveBeenCalledWith('accept_current_band_term', {
@@ -93,7 +93,7 @@ describe('aceite do termo vigente no Supabase', () => {
     rpc.mockResolvedValue({ data: null, error: { message: serverError } });
 
     await expect(
-      acceptCurrentBandTerm({ bandId: 'band-1', termVersion: '2026-09' }),
+      acceptCurrentBandTerm({ bandId: 'band-1', termVersion: '2026-10' }),
     ).rejects.toMatchObject<Partial<LegalTermMutationError>>({ code });
   });
 });

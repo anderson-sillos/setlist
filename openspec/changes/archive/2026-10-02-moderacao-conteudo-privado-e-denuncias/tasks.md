@@ -67,9 +67,10 @@ As validações de implementação e de fluxo foram concluídas:
 
 Continuam pendentes antes da liberação pública:
 
-- Executar os testes pgTAP `8.2` e `8.3` em ambiente com Docker e pgTAP. Docker
-  não está disponível nesta máquina e o projeto remoto não tem a extensão; as
-  verificações SQL transacionais equivalentes passaram em `setlist-dev`.
+- Confirmar no CI a nova execução da suíte Jest e do pgTAP `8.3` após os ajustes
+  que corrigem as falhas iniciais. No CI inicial, os testes pgTAP `8.1` e `8.2`
+  passaram; `8.3` falhou porque a asserção `throws_ok` estava sendo executada
+  sob o papel `authenticator`.
 - Revisar juridicamente os termos, a política e o procedimento, que permanecem
   rascunhos, e preencher os dados operacionais indicados neles.
 - Distribuir o cliente com a versão `2026-10` do termo e aplicar a migration

@@ -35,7 +35,7 @@ describe('criação de banda no Supabase', () => {
       createBand({
         acceptedTerm: true,
         name: '  Banda Horizonte  ',
-        termVersion: ' 2026-09 ',
+        termVersion: ' 2026-10 ',
       }),
     ).resolves.toBe('band-1');
     expect(rpc).toHaveBeenCalledWith('create_band', {
@@ -50,7 +50,7 @@ describe('criação de banda no Supabase', () => {
       createBand({
         acceptedTerm: true,
         name: '   ',
-        termVersion: '2026-09',
+        termVersion: '2026-10',
       }),
     ).rejects.toMatchObject<Partial<BandCreationError>>({
       code: 'band_name_invalid',
@@ -77,7 +77,7 @@ describe('criação de banda no Supabase', () => {
       createBand({
         acceptedTerm: true,
         name: 'Banda',
-        termVersion: '2026-09',
+        termVersion: '2026-10',
       }),
     ).rejects.toMatchObject<Partial<BandCreationError>>({
       code: 'band_name_invalid',
@@ -97,7 +97,7 @@ describe('criação de banda no Supabase', () => {
         createBand({
           acceptedTerm: true,
           name: 'Banda',
-          termVersion: '2026-09',
+          termVersion: '2026-10',
         }),
       ).rejects.toMatchObject<Partial<BandCreationError>>({ code });
     },
@@ -110,7 +110,7 @@ describe('criação de banda no Supabase', () => {
       createBand({
         acceptedTerm: true,
         name: 'Banda',
-        termVersion: '2026-09',
+        termVersion: '2026-10',
       }),
     ).rejects.toMatchObject<Partial<BandCreationError>>({
       code: 'request_failed',
