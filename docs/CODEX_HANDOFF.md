@@ -4,15 +4,22 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 ## Estado atual
 
-- Repositório: `anderson-sillos/setlist`; branch principal `main`, atualmente em `d37278e`.
-- Branch ativa: `feat/documentos-legais-retencao`, remota alinhada ao commit `bba6008` antes desta rodada. PR #27 está aberto como rascunho: https://github.com/anderson-sillos/setlist/pull/27. Não foi feito merge.
+- Repositório: `anderson-sillos/setlist`; `origin/main` está em `d37278e`.
+- Branch ativa local: `feat/documentos-legais-retencao`, com o commit base `04548e2` alinhado ao remoto; corresponde à PR #27, aberta como rascunho: https://github.com/anderson-sillos/setlist/pull/27. Não foi feito merge. Neste momento, somente este handoff e `AGENTS.md` estão modificados localmente e ainda não foram commitados.
+- PR #28, `feat: implementar UI/UX Content-First Darkness`, continua aberta em https://github.com/anderson-sillos/setlist/pull/28. O commit `5143776` foi enviado em acesso elevado. A change OpenSpec está incompleta: 21/35 tarefas concluídas. Achados manuais pendentes: corrigir o símbolo Apple, restaurar os links legais no rodapé do login e resolver a incompatibilidade de nonce do login Google no iOS. Há sobreposição com a PR #27 em autenticação e links legais; ao retomar a #28, integrar primeiro as mudanças relevantes da #27 e preservar ambos os conjuntos de requisitos.
 - A PR #27 reúne as minutas legais, páginas públicas, retenção, autenticação e migrações. A aprovação final das páginas legais e a data de vigência seguem pendentes; não publicar as minutas antes disso.
-- GitHub Pages: o deploy manual mais recente concluiu com sucesso, mas foi feito a partir de `main` em `d37278e` (run https://github.com/anderson-sillos/setlist/actions/runs/37045501790). Portanto, a página publicada não contém o código mais recente da PR #27. As alterações locais em `.github/workflows/pages.yml` ainda precisam ser commitadas e enviadas.
+- GitHub Pages: o deploy manual mais recente registrado concluiu com sucesso, mas foi feito a partir de `main` em `d37278e` (run https://github.com/anderson-sillos/setlist/actions/runs/37045501790). Portanto, a página publicada não contém o código mais recente da PR #27; as alterações de `.github/workflows/pages.yml` estão na PR e aguardam integração.
 - Supabase de produção (`tqijocmmiwistinrjpwl`): Google e Apple aparecem ativos. O login Apple Web foi validado pelo usuário. O Client ID enviado à Apple foi corrigido de `om.andersonsillos.setlist.web` para `com.andersonsillos.setlist.web`; o callback observado é `https://tqijocmmiwistinrjpwl.supabase.co/auth/v1/callback`.
 - EAS: `eas.json` agora define `production-ios-simulator` e `production-android-validation`. O primeiro herda o ambiente de produção e gera build de simulador; o segundo herda produção e gera APK interno. O esquema OAuth iOS Google está explícito no perfil base; o Android ativa o módulo nativo Google e desativa a flag específica de iOS.
 - Build Android de validação: enviado ao EAS com ID `c728fd9d-21e1-4be4-ac85-2eb2607f2188`. Último estado observado: aguardando executor na fila. O acompanhamento local foi interrompido sem cancelar o job remoto. Acompanhar em https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/c728fd9d-21e1-4be4-ac85-2eb2607f2188.
-- Alterações locais desta rodada: `.env.production.example`, `.github/workflows/pages.yml`, `app.config.ts`, `eas.json` e este handoff. Testes de produto não foram executados; `git diff --check` e a sintaxe JSON foram conferidos antes do commit.
-- Procedimento solicitado: commits e atualizações remotas devem usar acesso elevado após solicitar autorização. O usuário pediu nesta rodada atualizar o handoff, commitar e enviar a branch; não fazer merge da PR.
+- Esta atualização adiciona a regra operacional neste handoff e em `AGENTS.md`; ainda não foi commitada.
+
+## Regra permanente para GitHub
+
+- Para criar commits que serão enviados, fazer `git push`, atualizar branch remota ou criar/editar/mesclar PR, usar o comando correspondente em acesso elevado (`sandbox_permissions: "require_escalated"`). Não tentar concluir gravações remotas pelo sandbox nem depender da integração GitHub conectada para gravar arquivos ou metadados: ela pode não ter permissão de escrita.
+- Uma solicitação explícita do usuário para commit, push ou atualização de PR autoriza a ação; não pedir a mesma autorização novamente. Executar pelo caminho elevado e atender qualquer aprovação adicional apresentada pela ferramenta.
+- Depois de cada operação, confirmar o resultado no remoto (SHA da branch, estado/cabeçalho/descrição da PR) antes de dizer que terminou. Se o helper ou a credencial falhar, não afirmar que o remoto foi atualizado; identificar o erro e pedir somente a autenticação que estiver faltando.
+- Aplicar esta regra em todas as sessões futuras deste repositório. Ela também está em `AGENTS.md`, que instrui as próximas sessões do Codex.
 
 ## Fontes de verdade
 
