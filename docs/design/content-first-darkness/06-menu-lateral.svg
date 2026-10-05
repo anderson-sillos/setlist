@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="1270" viewBox="0 0 1200 1270" role="img" aria-labelledby="title desc"><title id="title">Setlist: menu lateral Web e drawer móvel</title><desc id="desc">Menu completo com marca, banda, seções, destinos gerais, conta, documentos e versão; densidades distintas para mouse e toque.</desc><metadata>Ícones Lucide, pacote instalado v1.46.0. ISC License
+
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+---
+
+The following Lucide icons are derived from the Feather project:
+
+airplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out
+
+The MIT License (MIT) (for the icons listed above)
+
+Copyright (c) 2013-present Cole Bemis
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</metadata>
+<defs><symbol id="logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" ry="6" fill="#7C3AED"/><g transform="translate(4.08 4.08) scale(0.66)" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></g></symbol><symbol id="list-music" viewBox="0 0 24 24"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M11 19H3"/><path d="M21 16V5"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="grip-vertical" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></symbol><symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="mic-vocal" viewBox="0 0 24 24"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12"/><path d="M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"/><circle cx="16" cy="7" r="5"/></symbol><symbol id="clipboard-list" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol><symbol id="user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></symbol><symbol id="user-minus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" x2="16" y1="11" y2="11"/></symbol><symbol id="file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="undo-2" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol><symbol id="calendar-x" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="m14 13-4 4"/><path d="m10 13 4 4"/></symbol><symbol id="list-plus" viewBox="0 0 24 24"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M16 19H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></symbol><symbol id="plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="menu" viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></symbol><symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="music-2" viewBox="0 0 24 24"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></symbol><symbol id="play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol><symbol id="hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="hourglass-cog" viewBox="0 0 24 24"><path d="m14.305 19.53.923-.382"/><path d="m15.228 16.852-.923-.383"/><path d="m16.852 15.228-.383-.923"/><path d="m16.852 20.772-.383.924"/><path d="M17 2v4.172a2 2 0 0 1-.586 1.414l-8.828 8.828A2 2 0 0 0 7 17.828V22"/><path d="m19.148 15.228.383-.923"/><path d="m19.53 21.696-.382-.924"/><path d="m20.772 16.852.924-.383"/><path d="m20.772 19.148.924.383"/><path d="M5 22h6.159"/><path d="M5 2h14"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414l5.188 5.188"/><circle cx="18" cy="18" r="3"/></symbol><symbol id="x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="trash-2" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol><symbol id="calendar-days" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></symbol><symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol><symbol id="user-round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol><symbol id="layout-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol><symbol id="flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></symbol><symbol id="refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol><symbol id="search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol><symbol id="check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="log-out" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></symbol><symbol id="external-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol></defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<rect x="0" y="0" width="1200" height="1270" rx="0" fill="#0B0B0D"/>
+<text x="32" y="40" fill="#B692FF" font-size="12" font-weight="700" text-anchor="start">SETLIST / ESTUDO VISUAL 06</text>
+<text x="32" y="84" fill="#F4F4F5" font-size="30" font-weight="700" text-anchor="start">Menu lateral: uma coluna, duas densidades</text>
+<text x="32" y="115" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="start">Mesmo alinhamento e identidade. Web compacta; drawer com alvos de toque maiores.</text>
+<text x="32" y="156" fill="#B692FF" font-size="12" font-weight="700" text-anchor="start">WEB / MENU COMPACTO</text>
+<text x="744" y="156" fill="#B692FF" font-size="12" font-weight="700" text-anchor="start">MOBILE / DRAWER</text>
+<rect x="32" y="174" width="680" height="748" rx="16" fill="#121214" stroke="#303035" stroke-width="1"/>
+<rect x="32" y="174" width="224" height="748" rx="16" fill="#0B0B0D"/>
+<use href="#logo" xlink:href="#logo" x="48" y="198" width="32" height="32"/>
+<text x="92" y="222" fill="#F4F4F5" font-size="24" font-weight="700" text-anchor="start">Setlist</text>
+<rect x="48" y="256" width="192" height="60" rx="12" fill="#1C1C1F"/>
+<text x="64" y="281" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Horizonte</text>
+<text x="64" y="303" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Proprietário</text>
+<use href="#calendar-days" xlink:href="#calendar-days" x="60" y="346" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="362" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Shows</text>
+<rect x="48" y="372" width="192" height="32" rx="8" fill="#2B203D"/>
+<rect x="48" y="378" width="3" height="20" rx="1" fill="#B692FF"/>
+<use href="#list-music" xlink:href="#list-music" x="60" y="378" width="20" height="20" fill="none" stroke="#B692FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="394" fill="#F4F4F5" font-size="14" font-weight="600" text-anchor="start">Repertório</text>
+<use href="#mic-vocal" xlink:href="#mic-vocal" x="60" y="410" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="426" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Palco</text>
+<use href="#users" xlink:href="#users" x="60" y="442" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="458" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Banda</text>
+<path d="M48 491L240 491" stroke="#303035" fill="none"/>
+<use href="#layout-grid" xlink:href="#layout-grid" x="60" y="513" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="529" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Minhas bandas</text>
+<use href="#user-round" xlink:href="#user-round" x="60" y="545" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="561" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Perfil e conta</text>
+<path d="M48 728L240 728" stroke="#303035" fill="none"/>
+<use href="#user-round" xlink:href="#user-round" x="60" y="750" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="766" fill="#F4F4F5" font-size="13" font-weight="500" text-anchor="start">Participante</text>
+<text x="60" y="794" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Conta conectada</text>
+<text x="60" y="824" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Termos de uso</text>
+<use href="#external-link" xlink:href="#external-link" x="220" y="812" width="12" height="12" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="60" y="850" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Política de privacidade</text>
+<use href="#external-link" xlink:href="#external-link" x="220" y="838" width="12" height="12" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#log-out" xlink:href="#log-out" x="60" y="870" width="16" height="16" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="884" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Sair da conta</text>
+<text x="60" y="909" fill="#92929F" font-size="10" font-weight="400" text-anchor="start">v1.0.0 · exemplo</text>
+<text x="284" y="219" fill="#B8B8C2" font-size="11" font-weight="600" text-anchor="start">HORIZONTE</text>
+<text x="284" y="260" fill="#F4F4F5" font-size="28" font-weight="700" text-anchor="start">Repertório</text>
+<rect x="284" y="288" width="400" height="48" rx="12" fill="#1C1C1F" stroke="#74747F" stroke-width="1"/>
+<use href="#search" xlink:href="#search" x="300" y="302" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="338" y="318" fill="#92929F" font-size="15" font-weight="400" text-anchor="start">Buscar música</text>
+<text x="284" y="368" fill="#F4F4F5" font-size="17" font-weight="600" text-anchor="start">Luzes da Rua</text>
+<text x="284" y="392" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Horizonte · 3:42</text>
+<use href="#chevron-right" xlink:href="#chevron-right" x="660" y="360" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M284 412L684 412" stroke="#303035" fill="none"/>
+<text x="284" y="440" fill="#F4F4F5" font-size="17" font-weight="600" text-anchor="start">Vento Norte</text>
+<text x="284" y="464" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Horizonte · 4:08</text>
+<use href="#chevron-right" xlink:href="#chevron-right" x="660" y="432" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M284 484L684 484" stroke="#303035" fill="none"/>
+<text x="284" y="512" fill="#F4F4F5" font-size="17" font-weight="600" text-anchor="start">Depois do Ensaio</text>
+<text x="284" y="536" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Horizonte · 3:16</text>
+<use href="#chevron-right" xlink:href="#chevron-right" x="660" y="504" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M284 556L684 556" stroke="#303035" fill="none"/>
+<text x="284" y="862" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Conteúdo com maior hierarquia.</text>
+<text x="284" y="886" fill="#92929F" font-size="13" font-weight="400" text-anchor="start">Menu compacto e estável.</text>
+<rect x="744" y="174" width="424" height="748" rx="24" fill="#121214" stroke="#303035" stroke-width="1"/>
+<text x="1098" y="260" fill="#92929F" font-size="17" font-weight="400" text-anchor="start">Shows</text>
+<rect x="744" y="174" width="424" height="748" rx="24" fill="#000000" opacity="0.72"/>
+<rect x="744" y="174" width="304" height="748" rx="24" fill="#0B0B0D"/>
+<use href="#logo" xlink:href="#logo" x="760" y="206" width="32" height="32"/>
+<text x="804" y="230" fill="#F4F4F5" font-size="24" font-weight="700" text-anchor="start">Setlist</text>
+<use href="#x" xlink:href="#x" x="1010" y="206" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="760" y="260" width="272" height="60" rx="12" fill="#1C1C1F"/>
+<text x="776" y="285" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Horizonte</text>
+<text x="776" y="308" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Proprietário</text>
+<rect x="760" y="344" width="272" height="48" rx="8" fill="#2B203D"/>
+<rect x="760" y="356" width="3" height="24" rx="1" fill="#B692FF"/>
+<use href="#calendar-days" xlink:href="#calendar-days" x="772" y="357" width="22" height="22" fill="none" stroke="#B692FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="374" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Shows</text>
+<use href="#list-music" xlink:href="#list-music" x="772" y="405" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="422" fill="#B8B8C2" font-size="16" font-weight="400" text-anchor="start">Repertório</text>
+<use href="#mic-vocal" xlink:href="#mic-vocal" x="772" y="453" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="470" fill="#B8B8C2" font-size="16" font-weight="400" text-anchor="start">Palco</text>
+<use href="#users" xlink:href="#users" x="772" y="501" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="518" fill="#B8B8C2" font-size="16" font-weight="400" text-anchor="start">Banda</text>
+<path d="M760 557L1032 557" stroke="#303035" fill="none"/>
+<use href="#layout-grid" xlink:href="#layout-grid" x="772" y="586" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="603" fill="#B8B8C2" font-size="16" font-weight="400" text-anchor="start">Minhas bandas</text>
+<use href="#user-round" xlink:href="#user-round" x="772" y="634" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="651" fill="#B8B8C2" font-size="16" font-weight="400" text-anchor="start">Perfil e conta</text>
+<text x="776" y="723" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Participante · conta conectada</text>
+<text x="776" y="768" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Termos de uso</text>
+<use href="#external-link" xlink:href="#external-link" x="1008" y="755" width="14" height="14" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="776" y="816" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Política de privacidade</text>
+<use href="#external-link" xlink:href="#external-link" x="1008" y="803" width="14" height="14" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#log-out" xlink:href="#log-out" x="776" y="844" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="808" y="860" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Sair da conta</text>
+<text x="776" y="905" fill="#92929F" font-size="10" font-weight="400" text-anchor="start">v1.0.0 · exemplo</text>
+<rect x="32" y="944" width="1136" height="260" rx="16" fill="#121214"/>
+<text x="52" y="982" fill="#F4F4F5" font-size="20" font-weight="700" text-anchor="start">Alinhamento: slots iguais para todas as figuras</text>
+<rect x="52" y="1008" width="24" height="24" rx="4" fill="none" stroke="#74747F" stroke-width="1"/>
+<use href="#list-music" xlink:href="#list-music" x="54" y="1010" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1027" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="start">Repertório</text>
+<rect x="52" y="1056" width="24" height="24" rx="4" fill="none" stroke="#74747F" stroke-width="1"/>
+<use href="#mic-vocal" xlink:href="#mic-vocal" x="54" y="1058" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1075" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="start">Palco</text>
+<rect x="52" y="1104" width="24" height="24" rx="4" fill="none" stroke="#74747F" stroke-width="1"/>
+<use href="#user-round" xlink:href="#user-round" x="54" y="1106" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1123" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="start">Perfil e conta</text>
+<text x="382" y="1027" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">24</text>
+<text x="444" y="1027" fill="#F4F4F5" font-size="15" font-weight="600" text-anchor="start">Slot fixo da figura</text>
+<text x="382" y="1075" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">12</text>
+<text x="444" y="1075" fill="#F4F4F5" font-size="15" font-weight="600" text-anchor="start">Gap para o rótulo</text>
+<text x="382" y="1123" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">0</text>
+<text x="444" y="1123" fill="#F4F4F5" font-size="15" font-weight="600" text-anchor="start">Gap entre linhas compactas</text>
+<text x="802" y="1027" fill="#F4F4F5" font-size="15" font-weight="600" text-anchor="start">Web: linha de 28–32</text>
+<text x="802" y="1075" fill="#F4F4F5" font-size="15" font-weight="600" text-anchor="start">Drawer: linha de 48 ou maior</text>
+<text x="802" y="1123" fill="#F4F4F5" font-size="15" font-weight="600" text-anchor="start">Sem deslocar o item ativo</text>
+<text x="52" y="1178" fill="#92929F" font-size="13" font-weight="400" text-anchor="start">As colunas pertencem ao layout; nenhuma figura recebe um ajuste isolado de margem para alinhar.</text>
+<text x="32" y="1248" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Palco mantém geometria e abre o aviso. Rodapé pode rolar quando a altura disponível for menor.</text>
+</g>
+</svg>

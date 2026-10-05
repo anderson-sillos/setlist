@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1040" height="1390" viewBox="0 0 1040 1390" role="img" aria-labelledby="title desc"><title id="title">Setlist: revisão da iconografia</title><desc id="desc">Comparação de figuras atuais e propostas, uso de texto e medidas de símbolos e áreas de toque.</desc><metadata>Ícones Lucide, pacote instalado v1.46.0. ISC License
+
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+---
+
+The following Lucide icons are derived from the Feather project:
+
+airplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out
+
+The MIT License (MIT) (for the icons listed above)
+
+Copyright (c) 2013-present Cole Bemis
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</metadata>
+<defs><symbol id="logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" ry="6" fill="#7C3AED"/><g transform="translate(4.08 4.08) scale(0.66)" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></g></symbol><symbol id="list-music" viewBox="0 0 24 24"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M11 19H3"/><path d="M21 16V5"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="grip-vertical" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></symbol><symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="mic-vocal" viewBox="0 0 24 24"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12"/><path d="M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"/><circle cx="16" cy="7" r="5"/></symbol><symbol id="clipboard-list" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol><symbol id="user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></symbol><symbol id="user-minus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" x2="16" y1="11" y2="11"/></symbol><symbol id="file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="undo-2" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol><symbol id="calendar-x" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="m14 13-4 4"/><path d="m10 13 4 4"/></symbol><symbol id="list-plus" viewBox="0 0 24 24"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M16 19H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></symbol><symbol id="plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="menu" viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></symbol><symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="music-2" viewBox="0 0 24 24"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></symbol><symbol id="play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol><symbol id="hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="hourglass-cog" viewBox="0 0 24 24"><path d="m14.305 19.53.923-.382"/><path d="m15.228 16.852-.923-.383"/><path d="m16.852 15.228-.383-.923"/><path d="m16.852 20.772-.383.924"/><path d="M17 2v4.172a2 2 0 0 1-.586 1.414l-8.828 8.828A2 2 0 0 0 7 17.828V22"/><path d="m19.148 15.228.383-.923"/><path d="m19.53 21.696-.382-.924"/><path d="m20.772 16.852.924-.383"/><path d="m20.772 19.148.924.383"/><path d="M5 22h6.159"/><path d="M5 2h14"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414l5.188 5.188"/><circle cx="18" cy="18" r="3"/></symbol><symbol id="x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="trash-2" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol><symbol id="calendar-days" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></symbol><symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol><symbol id="user-round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol><symbol id="layout-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol><symbol id="flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></symbol><symbol id="refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol><symbol id="search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol><symbol id="check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="log-out" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></symbol><symbol id="external-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol></defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<rect x="0" y="0" width="1040" height="1390" rx="0" fill="#0B0B0D"/>
+<text x="32" y="40" fill="#B692FF" font-size="12" font-weight="700" text-anchor="start">SETLIST / ESTUDO VISUAL 04</text>
+<text x="32" y="84" fill="#F4F4F5" font-size="30" font-weight="700" text-anchor="start">Símbolos que explicam a ação</text>
+<text x="32" y="115" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="start">Mesma família de vetores. A figura acompanha o texto e o contexto.</text>
+<rect x="32" y="148" width="976" height="612" rx="16" fill="#121214"/>
+<text x="52" y="181" fill="#92929F" font-size="11" font-weight="600" text-anchor="start">CONTEXTO</text>
+<text x="352" y="181" fill="#92929F" font-size="11" font-weight="600" text-anchor="start">ATUAL</text>
+<text x="476" y="181" fill="#92929F" font-size="11" font-weight="600" text-anchor="start">PROPOSTA</text>
+<text x="556" y="181" fill="#92929F" font-size="11" font-weight="600" text-anchor="start">RÓTULO / USO</text>
+<text x="52" y="234" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Arrastar item</text>
+<use href="#menu" xlink:href="#menu" x="354" y="212" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="216" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#grip-vertical" xlink:href="#grip-vertical" x="478" y="212" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="231" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Alça de arraste</text>
+<text x="556" y="255" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Separar do menu de navegação</text>
+<path d="M52 270L988 270" stroke="#303035" fill="none"/>
+<text x="52" y="310" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Duração estimada</text>
+<use href="#hourglass" xlink:href="#hourglass" x="354" y="288" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="292" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#clock" xlink:href="#clock" x="478" y="288" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="307" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Duração · 3:42</text>
+<text x="556" y="331" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Usar só o valor em listas densas</text>
+<path d="M52 346L988 346" stroke="#303035" fill="none"/>
+<text x="52" y="386" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Navegar pelo repertório</text>
+<use href="#music" xlink:href="#music" x="354" y="364" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="368" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#list-music" xlink:href="#list-music" x="478" y="364" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="383" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Repertório</text>
+<text x="556" y="407" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Distinguir coleção de uma música</text>
+<path d="M52 422L988 422" stroke="#303035" fill="none"/>
+<text x="52" y="462" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Abrir aviso do Palco</text>
+<use href="#play" xlink:href="#play" x="354" y="440" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="444" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#mic-vocal" xlink:href="#mic-vocal" x="478" y="440" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="459" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Palco</text>
+<text x="556" y="483" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Rótulo visível; sem sugerir player</text>
+<path d="M52 498L988 498" stroke="#303035" fill="none"/>
+<text x="52" y="538" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Nota de planejamento</text>
+<use href="#hourglass-cog" xlink:href="#hourglass-cog" x="354" y="516" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="520" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#clipboard-list" xlink:href="#clipboard-list" x="478" y="516" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="535" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Nota de planejamento</text>
+<text x="556" y="559" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Timer apenas para item de tempo</text>
+<path d="M52 574L988 574" stroke="#303035" fill="none"/>
+<text x="52" y="614" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Excluir conta</text>
+<use href="#x" xlink:href="#x" x="354" y="592" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="596" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#trash-2" xlink:href="#trash-2" x="478" y="592" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="611" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Excluir minha conta</text>
+<text x="556" y="635" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">X fica reservado a fechar/limpar</text>
+<path d="M52 650L988 650" stroke="#303035" fill="none"/>
+<text x="52" y="690" fill="#F4F4F5" font-size="16" font-weight="500" text-anchor="start">Convidar integrante</text>
+<use href="#users" xlink:href="#users" x="354" y="668" width="24" height="24" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#chevron-right" xlink:href="#chevron-right" x="414" y="672" width="18" height="18" fill="none" stroke="#92929F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#user-plus" xlink:href="#user-plus" x="478" y="668" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="556" y="687" fill="#F4F4F5" font-size="16" font-weight="600" text-anchor="start">Convidar integrante</text>
+<text x="556" y="711" fill="#B8B8C2" font-size="12" font-weight="400" text-anchor="start">Pessoa entrando na banda</text>
+<path d="M52 726L988 726" stroke="#303035" fill="none"/>
+<rect x="32" y="778" width="976" height="190" rx="16" fill="#121214"/>
+<text x="52" y="813" fill="#F4F4F5" font-size="20" font-weight="700" text-anchor="start">Texto quando ele comunica melhor</text>
+<rect x="52" y="840" width="150" height="48" rx="24.0" fill="#B692FF"/>
+<text x="127.0" y="869.0" fill="#160D24" font-size="14" font-weight="600" text-anchor="middle">Salvar</text>
+<rect x="218" y="840" width="150" height="48" rx="24.0" fill="#1C1C1F" stroke="#74747F" stroke-width="1"/>
+<text x="293.0" y="869.0" fill="#F4F4F5" font-size="14" font-weight="600" text-anchor="middle">Cancelar</text>
+<rect x="386" y="840" width="212" height="48" rx="24.0" fill="#B692FF"/>
+<use href="#plus" xlink:href="#plus" x="402" y="854.0" width="20" height="20" fill="none" stroke="#160D24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="430" y="869.0" fill="#160D24" font-size="14" font-weight="600" text-anchor="start">Adicionar música</text>
+<rect x="616" y="840" width="364" height="48" rx="24.0" fill="#1C1C1F" stroke="#74747F" stroke-width="1"/>
+<text x="798.0" y="869.0" fill="#F4F4F5" font-size="14" font-weight="600" text-anchor="middle">Alterar permissão</text>
+<text x="52" y="932" fill="#B8B8C2" font-size="16" font-weight="400" text-anchor="start">Tom G · BPM 120 · 3:42</text>
+<text x="386" y="932" fill="#92929F" font-size="13" font-weight="400" text-anchor="start">Metadados em texto; sem uma figura para cada valor.</text>
+<rect x="32" y="984" width="976" height="208" rx="16" fill="#121214"/>
+<text x="52" y="1019" fill="#F4F4F5" font-size="20" font-weight="700" text-anchor="start">Tamanho do desenho e área de interação</text>
+<use href="#list-music" xlink:href="#list-music" x="76.0" y="1060.0" width="16" height="16" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="1110" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="middle">16</text>
+<use href="#list-music" xlink:href="#list-music" x="157.0" y="1059.0" width="18" height="18" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="166" y="1110" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="middle">18</text>
+<use href="#list-music" xlink:href="#list-music" x="238.0" y="1058.0" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="248" y="1110" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="middle">20</text>
+<use href="#list-music" xlink:href="#list-music" x="319.0" y="1057.0" width="22" height="22" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="330" y="1110" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="middle">22</text>
+<use href="#list-music" xlink:href="#list-music" x="400.0" y="1056.0" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="412" y="1110" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="middle">24</text>
+<text x="52" y="1158" fill="#92929F" font-size="13" font-weight="400" text-anchor="start">Mesmo traço e geometria. Sem esticar o vetor.</text>
+<rect x="600" y="1048" width="48" height="48" rx="8" fill="none" stroke="#74747F" stroke-width="1"/>
+<use href="#flag" xlink:href="#flag" x="615" y="1063" width="18" height="18" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="676" y="1069" fill="#F4F4F5" font-size="14" font-weight="600" text-anchor="start">Desenho de 18</text>
+<text x="676" y="1094" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Alvo de toque de 48 × 48</text>
+<text x="600" y="1158" fill="#92929F" font-size="13" font-weight="400" text-anchor="start">Discreto visualmente, acessível ao toque.</text>
+<rect x="32" y="1208" width="976" height="128" rx="16" fill="#2B203D"/>
+<use href="#grip-vertical" xlink:href="#grip-vertical" x="52" y="1230" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="90" y="1246" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">1</text>
+<text x="122" y="1246" fill="#F4F4F5" font-size="17" font-weight="600" text-anchor="start">Luzes da Rua</text>
+<text x="122" y="1271" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">3:42</text>
+<use href="#ellipsis" xlink:href="#ellipsis" x="952" y="1230" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="1311" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Ordem: alça | número | conteúdo | ação contextual. Duração permanece secundária.</text>
+<text x="32" y="1372" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Proposta de 05/10/2026. Lucide sob licença ISC; geometria original dos vetores.</text>
+</g>
+</svg>
