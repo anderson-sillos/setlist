@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'flex-start',
     alignSelf: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.lg,
     borderWidth: 1,
     gap: spacing.sm,

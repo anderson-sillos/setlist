@@ -87,10 +87,23 @@ function parseHexColor(color) {
   ];
 }
 
-function createIconPng(size, { glyphScale, transparentBackground = false }) {
+function roundedRectangleCoverage(x, y, size, radius) {
+  const half = size / 2;
+  const cornerCenter = half - radius;
+  const dx = Math.abs(x - half) - cornerCenter;
+  const dy = Math.abs(y - half) - cornerCenter;
+  const outsideDistance = Math.hypot(Math.max(dx, 0), Math.max(dy, 0));
+  const insideDistance = Math.min(Math.max(dx, dy), 0);
+  return clamp(0.5 - (outsideDistance + insideDistance - radius), 0, 1);
+}
+
+function createIconPng(
+  size,
+  { glyphScale, roundedBackground = false, transparentBackground = false },
+) {
   const [backgroundRed, backgroundGreen, backgroundBlue] =
     parseHexColor(BRAND_VIOLET);
-  const channels = transparentBackground ? 4 : 3;
+  const channels = transparentBackground || roundedBackground ? 4 : 3;
   const rowLength = size * channels + 1;
   const pixels = Buffer.alloc(rowLength * size);
 
@@ -117,6 +130,11 @@ function createIconPng(size, { glyphScale, transparentBackground = false }) {
         pixels[pixelOffset + 2] = Math.round(
           backgroundBlue + (255 - backgroundBlue) * coverage,
         );
+        if (roundedBackground) {
+          pixels[pixelOffset + 3] = Math.round(
+            roundedRectangleCoverage(x + 0.5, y + 0.5, size, size * 0.25) * 255,
+          );
+        }
       }
     }
   }
@@ -125,7 +143,7 @@ function createIconPng(size, { glyphScale, transparentBackground = false }) {
   header.writeUInt32BE(size, 0);
   header.writeUInt32BE(size, 4);
   header[8] = 8;
-  header[9] = transparentBackground ? 6 : 2;
+  header[9] = transparentBackground || roundedBackground ? 6 : 2;
 
   return Buffer.concat([
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
@@ -227,7 +245,10 @@ for (const size of [180, 192, 512]) {
 }
 
 const faviconImages = [16, 32, 48, 64, 128, 256].map((size) => ({
-  buffer: createIconPng(size, { glyphScale: FAVICON_SCALE }),
+  buffer: createIconPng(size, {
+    glyphScale: FAVICON_SCALE,
+    roundedBackground: true,
+  }),
   size,
 }));
 

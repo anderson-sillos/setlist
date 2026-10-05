@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -33,6 +34,7 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { ShowListRow } from '@/features/shows/ShowListRow';
 import {
   ShowCreationDialog,
@@ -87,7 +89,13 @@ export function ShowsScreen({
   const [creationVisible, setCreationVisible] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
   const [creationSubmitting, setCreationSubmitting] = useState(false);
+  const creationSubmissionLock = useRef(false);
+  const [creationDirty, setCreationDirty] = useState(false);
   const [creationInstance, setCreationInstance] = useState(0);
+  const unsavedChanges = useUnsavedChangesGuard({
+    dirty: creationDirty,
+    saving: creationSubmitting,
+  });
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'shows', {
       date: '',
@@ -174,6 +182,8 @@ export function ShowsScreen({
     );
   }, [state.date]);
   const handleCreateShow = async (form: ShowCreationForm) => {
+    if (creationSubmissionLock.current) return;
+    creationSubmissionLock.current = true;
     setCreationError(null);
     setCreationSubmitting(true);
 
@@ -190,6 +200,8 @@ export function ShowsScreen({
         refetchType: 'all',
       });
       setCreationVisible(false);
+      setCreationDirty(false);
+      unsavedChanges.allowNextRemoval();
       router.push(getShowHref(bandId, showId));
     } catch (error) {
       setCreationError(
@@ -198,6 +210,7 @@ export function ShowsScreen({
           : 'Não foi possível criar o show agora. Tente novamente.',
       );
     } finally {
+      creationSubmissionLock.current = false;
       setCreationSubmitting(false);
     }
   };
@@ -247,7 +260,7 @@ export function ShowsScreen({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="shows" size={18} />
+          <AppIcon color={colors.text.secondary} name="shows" size={18} />
           <AppText tone="accent" variant="caption">
             Calendário
           </AppText>
@@ -304,10 +317,10 @@ export function ShowsScreen({
               pressed && styles.pressed,
             ]}
           >
-            <AppText tone="inverse" variant="caption">
+            <AppText tone="onAccent" variant="caption">
               {selectedDateLabel}
             </AppText>
-            <AppIcon color={colors.surface} name="close" size={14} />
+            <AppIcon color={colors.text.onAccent} name="close" size={14} />
           </Pressable>
         ) : null}
         {selectedHoliday ? (
@@ -372,6 +385,7 @@ export function ShowsScreen({
         errorMessage={creationError}
         initialDate={state.date || undefined}
         isSubmitting={creationSubmitting}
+        onDirtyChange={setCreationDirty}
         onClose={() => {
           if (!creationSubmitting) {
             setCreationVisible(false);
@@ -380,6 +394,15 @@ export function ShowsScreen({
         }}
         onSubmit={(form) => void handleCreateShow(form)}
         visible={creationVisible}
+      />
+      <UnsavedChangesPrompt
+        onContinue={unsavedChanges.continueEditing}
+        onDiscard={() => {
+          setCreationVisible(false);
+          setCreationDirty(false);
+          unsavedChanges.discardAndLeave();
+        }}
+        visible={unsavedChanges.confirmationVisible}
       />
       {showsQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
@@ -462,8 +485,8 @@ const styles = StyleSheet.create({
   },
   calendarButton: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -474,7 +497,7 @@ const styles = StyleSheet.create({
   },
   dateChip: {
     alignItems: 'center',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     borderRadius: radii.pill,
     flexDirection: 'row',
     gap: spacing.xs,

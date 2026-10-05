@@ -34,15 +34,15 @@ const styles = StyleSheet.create({
 
 const tones = StyleSheet.create({
   default: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
   },
   accent: {
-    backgroundColor: colors.violetSoft,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.selected,
+    borderColor: colors.border.selected,
   },
   dark: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navyRaised,
+    backgroundColor: colors.background.canvas,
+    borderColor: colors.border.subtle,
   },
 });

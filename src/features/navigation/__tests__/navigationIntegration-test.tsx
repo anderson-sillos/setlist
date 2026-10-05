@@ -18,6 +18,7 @@ jest.mock('expo-router', () => ({
     songId: 'song-demo-luzes',
   }),
   useRouter: () => ({ replace: jest.fn() }),
+  useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
 
 describe('integração das rotas', () => {

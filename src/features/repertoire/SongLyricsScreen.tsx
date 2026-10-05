@@ -43,7 +43,7 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.surface} name="back" />
+            <AppIcon color={colors.text.primary} name="back" />
           </Pressable>
         </Link>
         <View style={styles.headerCopy}>
@@ -97,13 +97,13 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.background.canvas,
     flex: 1,
   },
   header: {
     alignItems: 'center',
-    backgroundColor: colors.navyRaised,
-    borderBottomColor: colors.navyRaised,
+    backgroundColor: colors.background.raised,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   title: {
-    color: colors.surface,
+    color: colors.text.primary,
   },
   content: {
     alignSelf: 'center',

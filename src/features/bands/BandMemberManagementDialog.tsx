@@ -6,6 +6,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { BandMember, BandRole } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 export type BandMemberManagementAction =
   | { readonly type: 'set-role'; readonly role: BandRole }
@@ -26,6 +27,7 @@ export function BandMemberManagementDialog({
   onClose,
   onConfirm,
 }: BandMemberManagementDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [pendingAction, setPendingAction] = useState<{
     action: BandMemberManagementAction;
     memberId: string;
@@ -51,7 +53,7 @@ export function BandMemberManagementDialog({
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={handleClose}
       transparent
       visible
@@ -77,7 +79,7 @@ export function BandMemberManagementDialog({
                 pressed && styles.pressed,
               ]}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
 
@@ -136,7 +138,7 @@ export function BandMemberManagementDialog({
               ))}
               <AppButton
                 accessibilityLabel={`Remover ${member.displayName}`}
-                icon="close"
+                icon="removeMember"
                 label="Remover integrante"
                 onPress={() =>
                   setPendingAction({
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     width: layout.minimumTouchTarget,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     gap: spacing.lg,
     maxWidth: 520,
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   header: {
     alignItems: 'center',
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -20,6 +20,7 @@ import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
 import { formatDateFilter } from '@/utils/dateTime';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 export interface ShowCreationForm {
   readonly date: string;
@@ -40,6 +41,7 @@ interface ShowCreationDialogProps {
   readonly initialDate?: string;
   readonly isSubmitting: boolean;
   readonly onClose: () => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
   readonly onSubmit: (form: ShowCreationForm) => void;
   readonly visible: boolean;
 }
@@ -70,10 +72,12 @@ export function ShowCreationDialog({
   title = 'Novo show',
   isSubmitting,
   onClose,
+  onDirtyChange,
   onSubmit,
   venueOptions = [],
   visible,
 }: ShowCreationDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [calendarVisible, setCalendarVisible] = useState(false);
   const initialForm: ShowCreationForm = {
     date: initialValues?.date ?? initialDate ?? localDateKey(new Date()),
@@ -90,6 +94,9 @@ export function ShowCreationDialog({
     form.notes !== initialForm.notes ||
     form.time !== initialForm.time ||
     form.venue !== initialForm.venue;
+  useEffect(() => {
+    onDirtyChange?.(visible && hasChanges);
+  }, [hasChanges, onDirtyChange, visible]);
   const requestClose = () => {
     if (isSubmitting) return;
     if (hasChanges) {
@@ -125,7 +132,7 @@ export function ShowCreationDialog({
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={requestClose}
       transparent
       visible={visible}
@@ -159,7 +166,7 @@ export function ShowCreationDialog({
               onPress={requestClose}
               style={styles.closeButton}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
           <ScrollView
@@ -188,7 +195,11 @@ export function ShowCreationDialog({
                     pressed && styles.pressed,
                   ]}
                 >
-                  <AppIcon color={colors.violet} name="shows" size={18} />
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="shows"
+                    size={18}
+                  />
                   <AppText numberOfLines={1} style={styles.dateButtonText}>
                     {formatDateFilter(form.date)}
                   </AppText>
@@ -277,10 +288,10 @@ export function ShowCreationDialog({
             />
             <AppButton
               accessibilityLabel="Descartar alterações"
-              icon="remove"
               label="Descartar alterações"
               onPress={() => {
                 setDiscardVisible(false);
+                onDirtyChange?.(false);
                 onClose();
               }}
             />
@@ -334,7 +345,7 @@ function Field({
         multiline={multiline}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.text.muted}
         style={[styles.input, multiline && styles.multilineInput]}
         value={value}
       />
@@ -344,7 +355,7 @@ function Field({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -360,12 +371,12 @@ const styles = StyleSheet.create({
     width: layout.minimumTouchTarget,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     ...Platform.select({
       android: { elevation: 8 },
       ios: {
-        shadowColor: '#172033',
+        shadowColor: '#08080a',
         shadowOffset: { height: 4, width: 0 },
         shadowOpacity: 0.18,
         shadowRadius: 16,
@@ -377,14 +388,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '92%',
   },
-  errorText: { color: colors.amber },
+  errorText: { color: colors.semantic.danger },
   fieldGroup: { gap: spacing.xs },
   formContent: { gap: spacing.lg, padding: spacing.xl },
   formScroll: { flexGrow: 0 },
   halfField: { flex: 1, minWidth: 180 },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -393,8 +404,8 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -404,18 +415,18 @@ const styles = StyleSheet.create({
   },
   dateButtonText: { flex: 1 },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   modalLayer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(25, 20, 45, 0.48)',
+    backgroundColor: colors.background.overlay,
     flex: 1,
     justifyContent: 'center',
     padding: spacing.lg,

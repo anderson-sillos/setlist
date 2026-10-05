@@ -5,7 +5,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds } from '@/data/demo';
@@ -28,6 +28,7 @@ jest.mock('expo-router', () => ({
     songId: 'song-demo-luzes',
   }),
   useRouter: () => ({ replace: jest.fn() }),
+  useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
 
 jest.mock('expo-splash-screen', () => ({
@@ -41,9 +42,9 @@ jest.mock('@/data/supabase/profileMutations', () => ({
 const mockGetUserProfile = jest.mocked(getUserProfile);
 
 describe('shell de navegação', () => {
-  it('troca de tela sem animação e mantém os gestos de navegação', () => {
+  it('usa transições breves e mantém os gestos de navegação', () => {
     expect(rootStackScreenOptions).toMatchObject({
-      animation: 'none',
+      animation: Platform.OS === 'web' ? 'fade' : 'default',
       fullScreenGestureEnabled: true,
       gestureEnabled: true,
     });
@@ -110,7 +111,7 @@ describe('shell de navegação', () => {
         expect(bottomNavigationStyle).toMatchObject({
           alignItems: 'center',
           justifyContent: 'space-evenly',
-          minHeight: 52,
+          minHeight: 60,
         });
         expect(bottomNavigationStyle.gap).toBeUndefined();
         expect(bottomNavigationStyle.marginHorizontal).toBeUndefined();
@@ -120,7 +121,7 @@ describe('shell de navegação', () => {
         navigationTabs.forEach((tab) => {
           const tabStyle = StyleSheet.flatten(tab.props.style);
           expect(tabStyle).toMatchObject({
-            height: 48,
+            height: 56,
             width: 72,
           });
           expect(tabStyle.flexGrow).toBeUndefined();

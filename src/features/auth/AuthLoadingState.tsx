@@ -22,7 +22,7 @@ export function AuthLoadingState({
       style={styles.container}
       testID={testID}
     >
-      <ActivityIndicator color={colors.violet} size="small" />
+      <ActivityIndicator color={colors.action.primary} size="small" />
       <AppText tone="muted">{label}</AppText>
     </View>
   );

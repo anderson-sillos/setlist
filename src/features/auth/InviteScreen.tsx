@@ -16,7 +16,7 @@ import {
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { useAppData } from '@/providers/AppProviders';
-import { spacing } from '@/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 
 interface InviteScreenProps {
   readonly authenticated?: string;
@@ -220,6 +220,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
 });

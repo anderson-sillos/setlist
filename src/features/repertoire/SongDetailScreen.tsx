@@ -168,7 +168,11 @@ export function SongDetailScreen({
                 accessible
                 style={styles.durationMeta}
               >
-                <AppIcon color={colors.violet} name="duration" size={14} />
+                <AppIcon
+                  color={colors.text.secondary}
+                  name="duration"
+                  size={14}
+                />
                 <AppText variant="caption">
                   Duração · {formatSongDuration(song.estimatedDurationMs)}
                 </AppText>
@@ -243,7 +247,7 @@ export function SongDetailScreen({
               pressed && styles.reportActionPressed,
             ]}
           >
-            <AppIcon color={colors.muted} name="flag" size={17} />
+            <AppIcon color={colors.text.secondary} name="flag" size={17} />
           </Pressable>
         </View>
       ) : null}
@@ -312,7 +316,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   notes: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     gap: spacing.sm,
     paddingTop: spacing.lg,

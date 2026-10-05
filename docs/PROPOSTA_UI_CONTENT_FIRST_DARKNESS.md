@@ -36,14 +36,14 @@ Os exemplos têm conteúdo fictício e representam a aparência pretendida. Não
 
 A referência visual usa os exemplos de interfaces e entidades apresentados no [guia oficial de design do Spotify](https://developer.spotify.com/documentation/design). A leitura para o Setlist é uma interpretação de design: áreas escuras, títulos claros, agrupamentos com espaço e controles com destaque seletivo. A paleta abaixo é uma proposta própria; não reproduz tokens internos do Spotify.
 
-| Aspecto da referência | Aplicação proposta no Setlist |
-| --- | --- |
-| Conteúdo musical como ponto de atenção | Nome da música, artista, letra e ordem da setlist ocupam a hierarquia principal |
-| Estrutura escura com superfícies distintas | Navegação, conteúdo e popups separados por níveis neutros de fundo |
-| Uma cor reconhecível para ações importantes | Violeta claro para criar, salvar, selecionar e focar |
-| Listas fáceis de percorrer | Linhas com título, informação secundária e ações alinhadas |
-| Controles arredondados | Botões e filtros com cantos suaves, em escala coerente |
-| Imagens como conteúdo | Usar imagem apenas quando existir no produto; músicas podem usar texto e ícone neutro |
+| Aspecto da referência                       | Aplicação proposta no Setlist                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Conteúdo musical como ponto de atenção      | Nome da música, artista, letra e ordem da setlist ocupam a hierarquia principal       |
+| Estrutura escura com superfícies distintas  | Navegação, conteúdo e popups separados por níveis neutros de fundo                    |
+| Uma cor reconhecível para ações importantes | Violeta claro para criar, salvar, selecionar e focar                                  |
+| Listas fáceis de percorrer                  | Linhas com título, informação secundária e ações alinhadas                            |
+| Controles arredondados                      | Botões e filtros com cantos suaves, em escala coerente                                |
+| Imagens como conteúdo                       | Usar imagem apenas quando existir no produto; músicas podem usar texto e ícone neutro |
 
 A interface deve continuar comunicando organização de repertórios e shows. Símbolos de reprodução ficam restritos às funções que efetivamente reproduzam algo; abrir uma letra usa uma ação de leitura. Capas inventadas, controles de streaming, mini player e carrosséis de recomendação não compõem esta proposta. As funcionalidades de Palco e player integrado continuam com a disponibilidade definida para a primeira versão.
 
@@ -51,19 +51,19 @@ A interface deve continuar comunicando organização de repertórios e shows. S�
 
 A avaliação foi feita sobre os arquivos do projeto, incluindo os tokens, componentes compartilhados, navegação, login, repertório e leitura de letras. Não houve auditoria visual de cada tela em execução.
 
-| Elemento atual | Evidência no projeto | Evolução proposta |
-| --- | --- | --- |
-| Fundo geral claro | `paper: #F8F7FC`, `surface: #FFFFFF` em `src/theme/tokens.ts` | Conteúdo sobre `#121214`; estrutura externa sobre `#0B0B0D` |
-| Menu e leitura em azul escuro | `navy: #0B1020`, `navyRaised: #18213F` | Unificar com a escala neutra de superfícies |
-| Texto principal escuro | `ink: #172033` | Texto principal quase branco `#F4F4F5` |
-| Violeta escuro em texto | `violetDark: #5B21B6` em `AppText` | Texto de ação em `#B692FF` |
-| Botões secundários claros e contorno violeta | `AppButton` | Controles neutros; violeta reservado à ação principal |
-| Cards com borda e padding amplo | `Card` usa borda de 1 e padding de 24 | Reservar cards a agrupamentos; usar linhas para listas extensas |
-| Metadados e setas coloridos | Duração e chevron no repertório usam violeta | Usar cinza secundário; título fica mais evidente |
-| Estados por opacidade | Botões e linhas usam redução geral de opacidade | Definir cores de estado e preservar contraste do conteúdo |
-| Estilos específicos fora dos tokens | Ex.: `#AAB3CE` no menu lateral | Centralizar papéis semânticos de cor |
-| Ícones consistentes disponíveis | `AppIcon` usa `lucide-react-native` | Manter família, ajustar hierarquia e slots |
-| Logo simples e reconhecível | `assets/icons/app-icon.svg` e PNGs derivados | Manter desenho e cor original |
+| Elemento atual                               | Evidência no projeto                                          | Evolução proposta                                               |
+| -------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| Fundo geral claro                            | `paper: #F8F7FC`, `surface: #FFFFFF` em `src/theme/tokens.ts` | Conteúdo sobre `#121214`; estrutura externa sobre `#0B0B0D`     |
+| Menu e leitura em azul escuro                | `navy: #0B1020`, `navyRaised: #18213F`                        | Unificar com a escala neutra de superfícies                     |
+| Texto principal escuro                       | `ink: #172033`                                                | Texto principal quase branco `#F4F4F5`                          |
+| Violeta escuro em texto                      | `violetDark: #5B21B6` em `AppText`                            | Texto de ação em `#B692FF`                                      |
+| Botões secundários claros e contorno violeta | `AppButton`                                                   | Controles neutros; violeta reservado à ação principal           |
+| Cards com borda e padding amplo              | `Card` usa borda de 1 e padding de 24                         | Reservar cards a agrupamentos; usar linhas para listas extensas |
+| Metadados e setas coloridos                  | Duração e chevron no repertório usam violeta                  | Usar cinza secundário; título fica mais evidente                |
+| Estados por opacidade                        | Botões e linhas usam redução geral de opacidade               | Definir cores de estado e preservar contraste do conteúdo       |
+| Estilos específicos fora dos tokens          | Ex.: `#AAB3CE` no menu lateral                                | Centralizar papéis semânticos de cor                            |
+| Ícones consistentes disponíveis              | `AppIcon` usa `lucide-react-native`                           | Manter família, ajustar hierarquia e slots                      |
+| Logo simples e reconhecível                  | `assets/icons/app-icon.svg` e PNGs derivados                  | Manter desenho e cor original                                   |
 
 Esses pontos pedem revisão por componente. Uma troca literal de todas as ocorrências de `surface` ou `violet` produziria conflitos: hoje `surface` representa tanto fundo quanto texto branco, e `violet` identifica marca, ações e informações secundárias.
 
@@ -85,28 +85,28 @@ Todos os valores abaixo são cores sólidas em sRGB. Os nomes representam a fun�
 
 ### 5.1 Fundos e superfícies
 
-| Token proposto | Cor | Uso |
-| --- | --- | --- |
-| `background.canvas` | `#0B0B0D` | Fundo externo, menu lateral, drawer e barra inferior |
-| `background.base` | `#121214` | Tela e região principal de leitura/listagem |
-| `background.raised` | `#1C1C1F` | Cards, inputs, menus, popups e sheets |
-| `background.hover` | `#28282D` | Hover de linha/controle neutro na Web |
-| `background.pressed` | `#34343B` | Pressão em controle neutro |
-| `background.selected` | `#2B203D` | Seleção de item ou filtro, acompanhada de marcador |
-| `background.overlay` | `#000000` a 72% | Escurecimento atrás de popup; validar contraste após composição |
+| Token proposto        | Cor             | Uso                                                             |
+| --------------------- | --------------- | --------------------------------------------------------------- |
+| `background.canvas`   | `#0B0B0D`       | Fundo externo, menu lateral, drawer e barra inferior            |
+| `background.base`     | `#121214`       | Tela e região principal de leitura/listagem                     |
+| `background.raised`   | `#1C1C1F`       | Cards, inputs, menus, popups e sheets                           |
+| `background.hover`    | `#28282D`       | Hover de linha/controle neutro na Web                           |
+| `background.pressed`  | `#34343B`       | Pressão em controle neutro                                      |
+| `background.selected` | `#2B203D`       | Seleção de item ou filtro, acompanhada de marcador              |
+| `background.overlay`  | `#000000` a 72% | Escurecimento atrás de popup; validar contraste após composição |
 
 **Combinação de referência:** fundo externo `#0B0B0D` + painel principal `#121214` + popup `#1C1C1F`. A elevação aparece pela superfície, localização e espaçamento. Sombra discreta pode reforçar popups na Web; não é a única pista de profundidade.
 
 ### 5.2 Texto e ícones
 
-| Token proposto | Cor | Uso |
-| --- | --- | --- |
-| `text.primary` | `#F4F4F5` | Títulos, texto digitado, nomes de músicas, letra |
-| `text.secondary` | `#B8B8C2` | Artista, data, tom, BPM, descrições e ícones auxiliares |
-| `text.muted` | `#92929F` | Versão, ajuda breve, placeholder; usar sobre base/raised/hover |
-| `text.onAccent` | `#160D24` | Texto e ícones dentro do botão violeta claro |
-| `text.onBrand` | `#FFFFFF` | Nota musical no ícone original |
-| `text.disabled` | `#92929F` | Controle indisponível sobre `#1C1C1F`; explicar motivo quando necessário |
+| Token proposto   | Cor       | Uso                                                                      |
+| ---------------- | --------- | ------------------------------------------------------------------------ |
+| `text.primary`   | `#F4F4F5` | Títulos, texto digitado, nomes de músicas, letra                         |
+| `text.secondary` | `#B8B8C2` | Artista, data, tom, BPM, descrições e ícones auxiliares                  |
+| `text.muted`     | `#92929F` | Versão, ajuda breve, placeholder; usar sobre base/raised/hover           |
+| `text.onAccent`  | `#160D24` | Texto e ícones dentro do botão violeta claro                             |
+| `text.onBrand`   | `#FFFFFF` | Nota musical no ícone original                                           |
+| `text.disabled`  | `#92929F` | Controle indisponível sobre `#1C1C1F`; explicar motivo quando necessário |
 
 `text.muted` não deve ser usado automaticamente sobre qualquer fundo: sobre `background.pressed`, usar `text.secondary`. Informação necessária para executar uma tarefa nunca deve ser escondida em contraste baixo.
 
@@ -114,37 +114,37 @@ Todos os valores abaixo são cores sólidas em sRGB. Os nomes representam a fun�
 
 ### 5.3 Marca, ação e foco
 
-| Token proposto | Cor | Uso |
-| --- | --- | --- |
-| `brand.original` | `#7C3AED` | Ícone oficial e assinatura da marca |
+| Token proposto   | Cor       | Uso                                                               |
+| ---------------- | --------- | ----------------------------------------------------------------- |
+| `brand.original` | `#7C3AED` | Ícone oficial e assinatura da marca                               |
 | `action.primary` | `#B692FF` | Botão principal, link, checkbox selecionado, indicador de seleção |
-| `action.hover` | `#C5AAFF` | Hover do botão principal |
-| `action.pressed` | `#A37CF0` | Pressão do botão principal |
-| `focus.ring` | `#D0B8FF` | Contorno de foco perceptível por teclado |
+| `action.hover`   | `#C5AAFF` | Hover do botão principal                                          |
+| `action.pressed` | `#A37CF0` | Pressão do botão principal                                        |
+| `focus.ring`     | `#D0B8FF` | Contorno de foco perceptível por teclado                          |
 
 O violeta original não precisa clarear no ícone. O violeta claro resolve o contraste de controles e links sobre superfícies escuras. Os dois pertencem à mesma família visual, com papéis separados.
 
 ### 5.4 Bordas
 
-| Token proposto | Cor | Uso |
-| --- | --- | --- |
-| `border.subtle` | `#303035` | Divisórias e limites decorativos de agrupamentos |
-| `border.control` | `#74747F` | Inputs, botões secundários e limites essenciais de controles |
-| `border.selected` | `#B692FF` | Seleção que necessita de contorno |
-| `border.focus` | `#D0B8FF` | Foco, idealmente 2 unidades de espessura e afastamento de 2 |
-| `border.error` | `#FF949D` | Campo inválido, acompanhado de mensagem |
+| Token proposto    | Cor       | Uso                                                          |
+| ----------------- | --------- | ------------------------------------------------------------ |
+| `border.subtle`   | `#303035` | Divisórias e limites decorativos de agrupamentos             |
+| `border.control`  | `#74747F` | Inputs, botões secundários e limites essenciais de controles |
+| `border.selected` | `#B692FF` | Seleção que necessita de contorno                            |
+| `border.focus`    | `#D0B8FF` | Foco, idealmente 2 unidades de espessura e afastamento de 2  |
+| `border.error`    | `#FF949D` | Campo inválido, acompanhado de mensagem                      |
 
 `border.subtle` não fornece contraste suficiente para identificar sozinho um input ou checkbox. A borda `control` deve ficar restrita aos elementos em que o contorno ajuda a entender a interação; aplicá-la a todos os cards criaria ruído visual.
 
 ### 5.5 Cores semânticas
 
-| Significado | Texto/ícone | Fundo de apoio | Exemplo |
-| --- | --- | --- | --- |
-| Sucesso / show pronto | `#73D99F` | `#182B20` | Check + “Pronto” |
-| Atenção / informação faltante | `#F0C36B` | `#302719` | Aviso + “Sem letra” |
-| Erro / ação destrutiva | `#FF949D` | `#341F24` | Alerta + “Não foi possível salvar” |
-| Informação | `#91C9F7` | `#192938` | Informação de permissão ou conexão |
-| Neutro / rascunho | `#B8B8C2` | `#28282D` | “Rascunho” |
+| Significado                   | Texto/ícone | Fundo de apoio | Exemplo                            |
+| ----------------------------- | ----------- | -------------- | ---------------------------------- |
+| Sucesso / show pronto         | `#73D99F`   | `#182B20`      | Check + “Pronto”                   |
+| Atenção / informação faltante | `#F0C36B`   | `#302719`      | Aviso + “Sem letra”                |
+| Erro / ação destrutiva        | `#FF949D`   | `#341F24`      | Alerta + “Não foi possível salvar” |
+| Informação                    | `#91C9F7`   | `#192938`      | Informação de permissão ou conexão |
+| Neutro / rascunho             | `#B8B8C2`   | `#28282D`      | “Rascunho”                         |
 
 Não usar verde para a navegação selecionada. Não usar vermelho em “Denunciar” no estado normal: a bandeira é uma ação discreta, não um alerta permanente.
 
@@ -152,24 +152,24 @@ Não usar verde para a navegação selecionada. Não usar vermelho em “Denunci
 
 Os valores abaixo foram calculados pela razão de luminância relativa de cores sRGB sólidas. São verificações da paleta, não uma certificação de acessibilidade do aplicativo. O W3C estabelece contraste mínimo de 4,5:1 para texto comum e 3:1 para texto grande, nas condições definidas pelo critério. A proposta usa 4,5:1 como piso também para seus rótulos pequenos. [WCAG — contraste de texto](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html).
 
-| Primeiro plano / fundo | Razão | Aplicação |
-| --- | --- | --- |
-| `#F4F4F5` / `#121214` | 17,02:1 | Conteúdo principal |
-| `#B8B8C2` / `#121214` | 9,51:1 | Conteúdo secundário |
-| `#92929F` / `#1C1C1F` | 5,53:1 | Ajuda e versão |
-| `#92929F` / `#28282D` | 4,77:1 | Texto discreto em hover |
-| `#B692FF` / `#121214` | 7,61:1 | Links e ícones selecionados |
-| `#B692FF` / `#2B203D` | 6,21:1 | Seleção |
-| `#160D24` / `#B692FF` | 7,65:1 | Botão principal |
-| `#160D24` / `#A37CF0` | 6,00:1 | Botão principal pressionado |
-| `#74747F` / `#121214` | 4,05:1 | Limite do input contra a tela |
-| `#74747F` / `#1C1C1F` | 3,68:1 | Limite do input contra seu interior |
-| `#74747F` / `#28282D` | 3,18:1 | Limite de controle em hover |
-| `#D0B8FF` / `#1C1C1F` | 9,70:1 | Foco sobre superfície elevada |
-| `#73D99F` / `#182B20` | 8,65:1 | Sucesso |
-| `#F0C36B` / `#302719` | 8,90:1 | Atenção |
-| `#FF949D` / `#341F24` | 7,29:1 | Erro |
-| `#91C9F7` / `#192938` | 8,41:1 | Informação |
+| Primeiro plano / fundo | Razão   | Aplicação                           |
+| ---------------------- | ------- | ----------------------------------- |
+| `#F4F4F5` / `#121214`  | 17,02:1 | Conteúdo principal                  |
+| `#B8B8C2` / `#121214`  | 9,51:1  | Conteúdo secundário                 |
+| `#92929F` / `#1C1C1F`  | 5,53:1  | Ajuda e versão                      |
+| `#92929F` / `#28282D`  | 4,77:1  | Texto discreto em hover             |
+| `#B692FF` / `#121214`  | 7,61:1  | Links e ícones selecionados         |
+| `#B692FF` / `#2B203D`  | 6,21:1  | Seleção                             |
+| `#160D24` / `#B692FF`  | 7,65:1  | Botão principal                     |
+| `#160D24` / `#A37CF0`  | 6,00:1  | Botão principal pressionado         |
+| `#74747F` / `#121214`  | 4,05:1  | Limite do input contra a tela       |
+| `#74747F` / `#1C1C1F`  | 3,68:1  | Limite do input contra seu interior |
+| `#74747F` / `#28282D`  | 3,18:1  | Limite de controle em hover         |
+| `#D0B8FF` / `#1C1C1F`  | 9,70:1  | Foco sobre superfície elevada       |
+| `#73D99F` / `#182B20`  | 8,65:1  | Sucesso                             |
+| `#F0C36B` / `#302719`  | 8,90:1  | Atenção                             |
+| `#FF949D` / `#341F24`  | 7,29:1  | Erro                                |
+| `#91C9F7` / `#192938`  | 8,41:1  | Informação                          |
 
 **Combinação a evitar:** `#F4F4F5` sobre `#B692FF` tem apenas **2,24:1**. Por isso o botão principal recebe texto escuro. Já o mesmo quase branco sobre o violeta original `#7C3AED` tem 5,18:1; o logo usa branco puro.
 
@@ -194,18 +194,18 @@ Limites e ícones essenciais precisam de contraste suficiente; bordas decorativa
 
 Manter a família sem serifa do sistema: iOS usa a fonte padrão da plataforma, Android usa a padrão nativa, e Web usa uma pilha de fontes do sistema. Isso evita adicionar uma fonte para imitar a identidade tipográfica do Spotify. A consistência vem de tamanhos, pesos e alinhamentos.
 
-| Papel | Tamanho / entrelinha | Peso | Uso |
-| --- | --- | --- | --- |
-| Título de seção | 28–32 / 34–38 | 700 | Repertório, Shows, Minhas bandas |
-| Título de detalhe | 24–28 / 30–36 | 700 | Música, show, banda |
-| Cabeçalho de grupo | 18–20 / 24–28 | 600–700 | Integrantes, bloco da setlist |
-| Título de linha | 16 / 22 | 600 | Música, convite, show |
-| Corpo / formulário | 16 / 24 | 400 | Texto digitado, descrições |
-| Metadado | 13–14 / 18–20 | 400–500 | Artista, duração, data, permissão |
-| Letra em tela cheia | 24 / 36–38 | 400–500 | Texto integral e blocos |
-| Rótulo de controle | 14–16 / 20–24 | 600 | Salvar, Criar show, filtro |
-| Rodapé legal | 12 / 18 | 400 | Disclaimer e links |
-| Versão | 10–11 / 14–16 | 400 | Informação secundária sem interação |
+| Papel               | Tamanho / entrelinha | Peso    | Uso                                 |
+| ------------------- | -------------------- | ------- | ----------------------------------- |
+| Título de seção     | 28–32 / 34–38        | 700     | Repertório, Shows, Minhas bandas    |
+| Título de detalhe   | 24–28 / 30–36        | 700     | Música, show, banda                 |
+| Cabeçalho de grupo  | 18–20 / 24–28        | 600–700 | Integrantes, bloco da setlist       |
+| Título de linha     | 16 / 22              | 600     | Música, convite, show               |
+| Corpo / formulário  | 16 / 24              | 400     | Texto digitado, descrições          |
+| Metadado            | 13–14 / 18–20        | 400–500 | Artista, duração, data, permissão   |
+| Letra em tela cheia | 24 / 36–38           | 400–500 | Texto integral e blocos             |
+| Rótulo de controle  | 14–16 / 20–24        | 600     | Salvar, Criar show, filtro          |
+| Rodapé legal        | 12 / 18              | 400     | Disclaimer e links                  |
+| Versão              | 10–11 / 14–16        | 400     | Informação secundária sem interação |
 
 Os números são CSS px na Web e unidades de layout no React Native; fontes seguem a escala de acessibilidade da plataforma. A versão continua discreta, mas com contraste adequado. Não estender a fonte pequena da versão às instruções e aos controles.
 
@@ -248,13 +248,13 @@ Não há conflito visual que justifique mudar o símbolo nesta proposta. A mudan
 
 ### 9.1 Botões
 
-| Variante | Fundo | Texto / ícone | Borda | Uso |
-| --- | --- | --- | --- | --- |
-| Principal | `action.primary` | `text.onAccent` | Sem contorno adicional | Criar banda, Adicionar música, Salvar |
-| Secundário | `background.raised` | `text.primary` | `border.control` | Cancelar, Convidar, ação alternativa |
-| Terciário | Transparente | `text.secondary` | Nenhuma | Editar, Voltar, ação contextual |
-| Ícone discreto | Transparente | `text.secondary` | Nenhuma | Atualizar, Denunciar, Mais opções |
-| Destrutivo confirmado | `semantic.danger` (`#FF949D`) | `text.onAccent` | Nenhuma | Excluir após confirmação |
+| Variante              | Fundo                         | Texto / ícone    | Borda                  | Uso                                   |
+| --------------------- | ----------------------------- | ---------------- | ---------------------- | ------------------------------------- |
+| Principal             | `action.primary`              | `text.onAccent`  | Sem contorno adicional | Criar banda, Adicionar música, Salvar |
+| Secundário            | `background.raised`           | `text.primary`   | `border.control`       | Cancelar, Convidar, ação alternativa  |
+| Terciário             | Transparente                  | `text.secondary` | Nenhuma                | Editar, Voltar, ação contextual       |
+| Ícone discreto        | Transparente                  | `text.secondary` | Nenhuma                | Atualizar, Denunciar, Mais opções     |
+| Destrutivo confirmado | `semantic.danger` (`#FF949D`) | `text.onAccent`  | Nenhuma                | Excluir após confirmação              |
 
 Altura principal: 48. Padding horizontal: 20–24. Ícone: 18–20. Na Web, uma variante compacta pode ter 36–40 de altura para ações de toolbar; no celular, reservar 48 para o alvo.
 
@@ -350,79 +350,79 @@ As novas figuras propostas foram localizadas no pacote instalado. Sua disponibil
 
 A tabela cobre os **43 identificadores** declarados em `AppIcon.tsx`, incluindo os dois símbolos compostos. As miniaturas mostram a geometria atual e a proposta, usando a mesma cor neutra para facilitar a comparação. O fundo escuro da miniatura é apenas um suporte de apresentação. Quando há várias figuras propostas na mesma linha, elas correspondem a contextos ou alternativas descritos nas colunas seguintes; não devem aparecer juntas em um único botão. A decisão considera a ação, não apenas o nome técnico. Um identificador que hoje serve a operações diferentes poderá ser separado em papéis semânticos na implementação.
 
-| Visual atual | Identificador atual / figura | Figuras propostas | Decisão proposta | Texto e contexto |
-| --- | --- | --- | --- | --- |
-| ![add: figura atual](design/content-first-darkness/icons/Plus.svg) | `add` / `Plus` | ![Plus](design/content-first-darkness/icons/Plus.svg) | Manter | “Adicionar” ou “Criar” com o objeto: “Adicionar música”, “Criar convite” |
-| ![addCircle: figura atual](design/content-first-darkness/icons/CirclePlus.svg) | `addCircle` / `CirclePlus` | ![Plus](design/content-first-darkness/icons/Plus.svg) ![CirclePlus](design/content-first-darkness/icons/CirclePlus.svg) | Preferir `Plus` dentro de botão já delimitado | O círculo do símbolo é redundante em um botão circular; manter `CirclePlus` só quando a composição exigir |
-| ![account: figura atual](design/content-first-darkness/icons/UserRound.svg) | `account` / `UserRound` | ![UserRound](design/content-first-darkness/icons/UserRound.svg) | Manter | “Perfil e conta”; também pode representar avatar ausente |
-| ![archive: figura atual](design/content-first-darkness/icons/Archive.svg) | `archive` / `Archive` | ![Archive](design/content-first-darkness/icons/Archive.svg) | Manter | “Arquivar música”; ação diferente de excluir definitivamente |
-| ![moveDown: figura atual](design/content-first-darkness/icons/ArrowDown.svg) | `moveDown` / `ArrowDown` | ![ArrowDown](design/content-first-darkness/icons/ArrowDown.svg) | Manter | “Mover para baixo” no menu acessível de reordenação |
-| ![moveUp: figura atual](design/content-first-darkness/icons/ArrowUp.svg) | `moveUp` / `ArrowUp` | ![ArrowUp](design/content-first-darkness/icons/ArrowUp.svg) | Manter | “Mover para cima”; não usar o mesmo símbolo para ordenação de toda a lista |
-| ![back: figura atual](design/content-first-darkness/icons/ChevronLeft.svg) | `back` / `ChevronLeft` | ![ChevronLeft](design/content-first-darkness/icons/ChevronLeft.svg) | Manter | Voltar; incluir destino no nome acessível |
-| ![band: figura atual](design/content-first-darkness/icons/Users.svg) | `band` / `Users` | ![Users](design/content-first-darkness/icons/Users.svg) ![UserPlus](design/content-first-darkness/icons/UserPlus.svg) | Manter para navegação; trocar por `UserPlus` na ação Convidar | “Banda” representa o grupo; “Convidar integrante” representa entrada de pessoa |
-| ![bands: figura atual](design/content-first-darkness/icons/LayoutGrid.svg) | `bands` / `LayoutGrid` | ![LayoutGrid](design/content-first-darkness/icons/LayoutGrid.svg) | Manter com rótulo | “Minhas bandas”; representa a coleção, evitando dois menus com o mesmo `Users` |
-| ![block: figura atual](design/content-first-darkness/icons/Layers.svg) | `block` / `Layers` | ![Layers](design/content-first-darkness/icons/Layers.svg) | Manter como apoio opcional | “Bloco”; nome do bloco continua mais importante que o ícone |
-| ![check: figura atual](design/content-first-darkness/icons/Check.svg) | `check` / `Check` | ![Check](design/content-first-darkness/icons/Check.svg) Salvar: somente texto. | Restringir a seleção, confirmação e conclusão | Para “Salvar”, preferir o texto sozinho; para “Marcar como Pronto”, check + texto |
-| ![chevronDown: figura atual](design/content-first-darkness/icons/ChevronDown.svg) | `chevronDown` / `ChevronDown` | ![ChevronDown](design/content-first-darkness/icons/ChevronDown.svg) | Manter | Abrir seleção/expandir grupo; posição à direita do valor ou título |
-| ![close: figura atual](design/content-first-darkness/icons/X.svg) | `close` / `X` | ![X](design/content-first-darkness/icons/X.svg) ![Trash2](design/content-first-darkness/icons/Trash2.svg) ![UserMinus](design/content-first-darkness/icons/UserMinus.svg) | Restringir a fechar ou limpar | Fechar popup, limpar busca; substituir onde significa excluir conta/banda ou remover integrante |
-| ![copy: figura atual](design/content-first-darkness/icons/Copy.svg) | `copy` / `Copy` | ![Copy](design/content-first-darkness/icons/Copy.svg) | Manter com verbo específico | “Copiar link” e “Duplicar show” têm rótulos diferentes, mesmo compartilhando figura |
-| ![duration: figura atual](design/content-first-darkness/icons/Hourglass.svg) | `duration` / `Hourglass` | ![Clock](design/content-first-darkness/icons/Clock.svg) | Trocar por `Clock` | Duração estimada é uma medida de tempo; mostrar “3:42” ou “Duração: 3min 42s” |
-| ![dragHandle: figura atual](design/content-first-darkness/icons/MenuCompressed.svg) | `dragHandle` / `Menu` comprimido | ![GripVertical](design/content-first-darkness/icons/GripVertical.svg) | Trocar por `GripVertical` | Seis pontos para arrastar; menu de navegação continua com três traços |
-| ![edit: figura atual](design/content-first-darkness/icons/Pencil.svg) | `edit` / `Pencil` | ![Pencil](design/content-first-darkness/icons/Pencil.svg) ![Undo2](design/content-first-darkness/icons/Undo2.svg) | Manter para editar | “Editar música”, “Editar setlist”; reabrir show deve usar `Undo2` + texto específico |
-| ![event: figura atual](design/content-first-darkness/icons/CalendarCheck.svg) | `event` / `CalendarCheck` | ![CalendarCheck](design/content-first-darkness/icons/CalendarCheck.svg) ![CalendarDays](design/content-first-darkness/icons/CalendarDays.svg) | Manter quando há significado de confirmação | Para data comum, usar `CalendarDays`; não comunicar “pronto” por uma data isolada |
-| ![externalLink: figura atual](design/content-first-darkness/icons/ExternalLink.svg) | `externalLink` / `ExternalLink` | ![ExternalLink](design/content-first-darkness/icons/ExternalLink.svg) | Manter para abrir endereço externo | À direita do nome do destino; “Abrir referência no YouTube”, “Termos de uso” |
-| ![expand: figura atual](design/content-first-darkness/icons/Maximize2.svg) | `expand` / `Maximize2` | ![Maximize2](design/content-first-darkness/icons/Maximize2.svg) ![FileText](design/content-first-darkness/icons/FileText.svg) | Manter para expandir uma visualização já aberta | Para entrar na leitura, preferir `FileText` + “Abrir letra”; tela cheia pode usar `Maximize2` |
-| ![filter: figura atual](design/content-first-darkness/icons/ListFilter.svg) | `filter` / `ListFilter` | ![ListFilter](design/content-first-darkness/icons/ListFilter.svg) | Manter com rótulo | “Filtros”, acompanhado da quantidade quando houver filtros ativos |
-| ![flag: figura atual](design/content-first-darkness/icons/Flag.svg) | `flag` / `Flag` | ![Flag](design/content-first-darkness/icons/Flag.svg) | Manter discreto | “Denunciar conteúdo” ou “Denunciar integrante” no nome acessível; texto explícito no formulário/menu |
-| ![forward: figura atual](design/content-first-darkness/icons/ChevronRight.svg) | `forward` / `ChevronRight` | ![ChevronRight](design/content-first-darkness/icons/ChevronRight.svg) | Manter em abertura de detalhe | Final da linha; não repetir seta em todos os metadados |
-| ![login: figura atual](design/content-first-darkness/icons/LogIn.svg) | `login` / `LogIn` | ![LogIn](design/content-first-darkness/icons/LogIn.svg) | Opcional com texto | “Entrar para continuar”; botões sociais usam apenas a marca do provedor e o rótulo |
-| ![logout: figura atual](design/content-first-darkness/icons/LogOut.svg) | `logout` / `LogOut` | ![LogOut](design/content-first-darkness/icons/LogOut.svg) | Manter com texto contextual | “Sair da conta” e “Sair da banda” precisam de rótulos diferentes |
-| ![menu: figura atual](design/content-first-darkness/icons/Menu.svg) | `menu` / `Menu` | ![Menu](design/content-first-darkness/icons/Menu.svg) | Manter | Abrir menu lateral; nunca usado como alça de arraste |
-| ![minus: figura atual](design/content-first-darkness/icons/Minus.svg) | `minus` / `Minus` | ![Minus](design/content-first-darkness/icons/Minus.svg) | Manter para diminuir ou representar separador | Valor numérico ou “Separador”; remover música da setlist exige rótulo explícito |
-| ![more: figura atual](design/content-first-darkness/icons/Ellipsis.svg) | `more` / `Ellipsis` | ![Ellipsis](design/content-first-darkness/icons/Ellipsis.svg) | Manter | Ações contextuais; nome acessível identifica a música, show ou integrante |
-| ![music: figura atual](design/content-first-darkness/icons/Music2.svg) | `music` / `Music2` | ![Music2](design/content-first-darkness/icons/Music2.svg) | Manter como figura de música individual | Placeholder opcional; remover da linha se só repete a natureza de todos os itens |
-| ![planning: figura atual](design/content-first-darkness/icons/HourglassCog.svg) | `planning` / `HourglassCog` | ![ClipboardList](design/content-first-darkness/icons/ClipboardList.svg) ![Timer](design/content-first-darkness/icons/Timer.svg) | Preferir `ClipboardList` | “Nota de planejamento”; usar `Timer` somente quando o item expressar uma pausa/duração |
-| ![repertoire: figura atual](design/content-first-darkness/icons/Music.svg) | `repertoire` / `Music` | ![ListMusic](design/content-first-darkness/icons/ListMusic.svg) | Trocar por `ListMusic` | Lista + nota distingue coleção de uma música individual; manter “Repertório” visível |
-| ![search: figura atual](design/content-first-darkness/icons/Search.svg) | `search` / `Search` | ![Search](design/content-first-darkness/icons/Search.svg) | Manter | Dentro do campo à esquerda; não repetir o texto “Buscar” em botão se a busca for imediata |
-| ![shows: figura atual](design/content-first-darkness/icons/CalendarDays.svg) | `shows` / `CalendarDays` | ![CalendarDays](design/content-first-darkness/icons/CalendarDays.svg) | Manter | “Shows”; calendário é reconhecível no contexto de agenda |
-| ![showAdd: figura atual](design/content-first-darkness/icons/CalendarPlus.svg) | `showAdd` / `CalendarPlus` | ![CalendarPlus](design/content-first-darkness/icons/CalendarPlus.svg) ![Plus](design/content-first-darkness/icons/Plus.svg) | Manter como opção | “Criar show”; `Plus` também pode servir no CTA geral sem necessidade de duas figuras juntas |
-| ![calendarMinus: figura atual](design/content-first-darkness/icons/CalendarMinus.svg) | `calendarMinus` / `CalendarMinus` | ![CalendarX](design/content-first-darkness/icons/CalendarX.svg) | Trocar por `CalendarX` | “Cancelar show”; diferencia cancelamento de diminuir/remover uma data |
-| ![stage: figura atual](design/content-first-darkness/icons/Play.svg) | `stage` / `Play` | ![MicVocal](design/content-first-darkness/icons/MicVocal.svg) | Trocar por `MicVocal` com rótulo | “Palco”; evita sugerir reprodução de áudio. O microfone é referência ao contexto de palco, sem representar gravação |
-| ![sort: figura atual](design/content-first-darkness/icons/ArrowUpDown.svg) | `sort` / `ArrowUpDown` | ![ArrowUpDown](design/content-first-darkness/icons/ArrowUpDown.svg) | Manter com texto | “Ordenar: título” ou “Ordenar: data”; não apresentar só duas setas para quem desconhece o controle |
-| ![remove: figura atual](design/content-first-darkness/icons/Trash2.svg) | `remove` / `Trash2` | ![Trash2](design/content-first-darkness/icons/Trash2.svg) ![Minus](design/content-first-darkness/icons/Minus.svg) ![UserMinus](design/content-first-darkness/icons/UserMinus.svg) | Restringir a exclusão | “Excluir música/show”. Para retirar item da setlist, usar `Minus` + “Remover da setlist”; para remover integrante, `UserMinus` + texto |
-| ![renew: figura atual](design/content-first-darkness/icons/RefreshCw.svg) | `renew` / `RefreshCw` | ![RefreshCw](design/content-first-darkness/icons/RefreshCw.svg) ![RotateCcw](design/content-first-darkness/icons/RotateCcw.svg) ![Undo2](design/content-first-darkness/icons/Undo2.svg) | Separar os usos | `RefreshCw`: atualizar dados; `RotateCcw`: renovar convite/restaurar; `Undo2`: reabrir show, sempre com texto contextual |
-| ![revoke: figura atual](design/content-first-darkness/icons/Ban.svg) | `revoke` / `Ban` | ![Ban](design/content-first-darkness/icons/Ban.svg) | Manter com rótulo no menu/confirmador | “Revogar convite”; não confundir com suspensão de conta ou fechar popup |
-| ![share: figura atual](design/content-first-darkness/icons/Share2.svg) | `share` / `Share2` | ![Share2](design/content-first-darkness/icons/Share2.svg) | Manter | “Compartilhar convite”; continuar sobre o convite existente |
-| ![bandAdd: figura atual](design/content-first-darkness/icons/BandAddCurrent.svg) | `bandAdd` / `UserGroup` + badge de “+” | ![Plus](design/content-first-darkness/icons/Plus.svg) ![UserPlus](design/content-first-darkness/icons/UserPlus.svg) | Trocar por `Plus` + texto | “Criar banda”; para “Convidar integrante”, usar `UserPlus` |
-| ![musicAdd: figura atual](design/content-first-darkness/icons/MusicAddCurrent.svg) | `musicAdd` / `Music2` + badge de “+” | ![Plus](design/content-first-darkness/icons/Plus.svg) ![ListPlus](design/content-first-darkness/icons/ListPlus.svg) | Trocar por `Plus` + texto | “Adicionar música”; `ListPlus` é alternativa para inserir na setlist, com rótulo específico |
+| Visual atual                                                                          | Identificador atual / figura           | Figuras propostas                                                                                                                                                                       | Decisão proposta                                              | Texto e contexto                                                                                                                       |
+| ------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| ![add: figura atual](design/content-first-darkness/icons/Plus.svg)                    | `add` / `Plus`                         | ![Plus](design/content-first-darkness/icons/Plus.svg)                                                                                                                                   | Manter                                                        | “Adicionar” ou “Criar” com o objeto: “Adicionar música”, “Criar convite”                                                               |
+| ![addCircle: figura atual](design/content-first-darkness/icons/CirclePlus.svg)        | `addCircle` / `CirclePlus`             | ![Plus](design/content-first-darkness/icons/Plus.svg) ![CirclePlus](design/content-first-darkness/icons/CirclePlus.svg)                                                                 | Preferir `Plus` dentro de botão já delimitado                 | O círculo do símbolo é redundante em um botão circular; manter `CirclePlus` só quando a composição exigir                              |
+| ![account: figura atual](design/content-first-darkness/icons/UserRound.svg)           | `account` / `UserRound`                | ![UserRound](design/content-first-darkness/icons/UserRound.svg)                                                                                                                         | Manter                                                        | “Perfil e conta”; também pode representar avatar ausente                                                                               |
+| ![archive: figura atual](design/content-first-darkness/icons/Archive.svg)             | `archive` / `Archive`                  | ![Archive](design/content-first-darkness/icons/Archive.svg)                                                                                                                             | Manter                                                        | “Arquivar música”; ação diferente de excluir definitivamente                                                                           |
+| ![moveDown: figura atual](design/content-first-darkness/icons/ArrowDown.svg)          | `moveDown` / `ArrowDown`               | ![ArrowDown](design/content-first-darkness/icons/ArrowDown.svg)                                                                                                                         | Manter                                                        | “Mover para baixo” no menu acessível de reordenação                                                                                    |
+| ![moveUp: figura atual](design/content-first-darkness/icons/ArrowUp.svg)              | `moveUp` / `ArrowUp`                   | ![ArrowUp](design/content-first-darkness/icons/ArrowUp.svg)                                                                                                                             | Manter                                                        | “Mover para cima”; não usar o mesmo símbolo para ordenação de toda a lista                                                             |
+| ![back: figura atual](design/content-first-darkness/icons/ChevronLeft.svg)            | `back` / `ChevronLeft`                 | ![ChevronLeft](design/content-first-darkness/icons/ChevronLeft.svg)                                                                                                                     | Manter                                                        | Voltar; incluir destino no nome acessível                                                                                              |
+| ![band: figura atual](design/content-first-darkness/icons/Users.svg)                  | `band` / `Users`                       | ![Users](design/content-first-darkness/icons/Users.svg) ![UserPlus](design/content-first-darkness/icons/UserPlus.svg)                                                                   | Manter para navegação; trocar por `UserPlus` na ação Convidar | “Banda” representa o grupo; “Convidar integrante” representa entrada de pessoa                                                         |
+| ![bands: figura atual](design/content-first-darkness/icons/LayoutGrid.svg)            | `bands` / `LayoutGrid`                 | ![LayoutGrid](design/content-first-darkness/icons/LayoutGrid.svg)                                                                                                                       | Manter com rótulo                                             | “Minhas bandas”; representa a coleção, evitando dois menus com o mesmo `Users`                                                         |
+| ![block: figura atual](design/content-first-darkness/icons/Layers.svg)                | `block` / `Layers`                     | ![Layers](design/content-first-darkness/icons/Layers.svg)                                                                                                                               | Manter como apoio opcional                                    | “Bloco”; nome do bloco continua mais importante que o ícone                                                                            |
+| ![check: figura atual](design/content-first-darkness/icons/Check.svg)                 | `check` / `Check`                      | ![Check](design/content-first-darkness/icons/Check.svg) Salvar: somente texto.                                                                                                          | Restringir a seleção, confirmação e conclusão                 | Para “Salvar”, preferir o texto sozinho; para “Marcar como Pronto”, check + texto                                                      |
+| ![chevronDown: figura atual](design/content-first-darkness/icons/ChevronDown.svg)     | `chevronDown` / `ChevronDown`          | ![ChevronDown](design/content-first-darkness/icons/ChevronDown.svg)                                                                                                                     | Manter                                                        | Abrir seleção/expandir grupo; posição à direita do valor ou título                                                                     |
+| ![close: figura atual](design/content-first-darkness/icons/X.svg)                     | `close` / `X`                          | ![X](design/content-first-darkness/icons/X.svg) ![Trash2](design/content-first-darkness/icons/Trash2.svg) ![UserMinus](design/content-first-darkness/icons/UserMinus.svg)               | Restringir a fechar ou limpar                                 | Fechar popup, limpar busca; substituir onde significa excluir conta/banda ou remover integrante                                        |
+| ![copy: figura atual](design/content-first-darkness/icons/Copy.svg)                   | `copy` / `Copy`                        | ![Copy](design/content-first-darkness/icons/Copy.svg)                                                                                                                                   | Manter com verbo específico                                   | “Copiar link” e “Duplicar show” têm rótulos diferentes, mesmo compartilhando figura                                                    |
+| ![duration: figura atual](design/content-first-darkness/icons/Hourglass.svg)          | `duration` / `Hourglass`               | ![Clock](design/content-first-darkness/icons/Clock.svg)                                                                                                                                 | Trocar por `Clock`                                            | Duração estimada é uma medida de tempo; mostrar “3:42” ou “Duração: 3min 42s”                                                          |
+| ![dragHandle: figura atual](design/content-first-darkness/icons/MenuCompressed.svg)   | `dragHandle` / `Menu` comprimido       | ![GripVertical](design/content-first-darkness/icons/GripVertical.svg)                                                                                                                   | Trocar por `GripVertical`                                     | Seis pontos para arrastar; menu de navegação continua com três traços                                                                  |
+| ![edit: figura atual](design/content-first-darkness/icons/Pencil.svg)                 | `edit` / `Pencil`                      | ![Pencil](design/content-first-darkness/icons/Pencil.svg) ![Undo2](design/content-first-darkness/icons/Undo2.svg)                                                                       | Manter para editar                                            | “Editar música”, “Editar setlist”; reabrir show deve usar `Undo2` + texto específico                                                   |
+| ![event: figura atual](design/content-first-darkness/icons/CalendarCheck.svg)         | `event` / `CalendarCheck`              | ![CalendarCheck](design/content-first-darkness/icons/CalendarCheck.svg) ![CalendarDays](design/content-first-darkness/icons/CalendarDays.svg)                                           | Manter quando há significado de confirmação                   | Para data comum, usar `CalendarDays`; não comunicar “pronto” por uma data isolada                                                      |
+| ![externalLink: figura atual](design/content-first-darkness/icons/ExternalLink.svg)   | `externalLink` / `ExternalLink`        | ![ExternalLink](design/content-first-darkness/icons/ExternalLink.svg)                                                                                                                   | Manter para abrir endereço externo                            | À direita do nome do destino; “Abrir referência no YouTube”, “Termos de uso”                                                           |
+| ![expand: figura atual](design/content-first-darkness/icons/Maximize2.svg)            | `expand` / `Maximize2`                 | ![Maximize2](design/content-first-darkness/icons/Maximize2.svg) ![FileText](design/content-first-darkness/icons/FileText.svg)                                                           | Manter para expandir uma visualização já aberta               | Para entrar na leitura, preferir `FileText` + “Abrir letra”; tela cheia pode usar `Maximize2`                                          |
+| ![filter: figura atual](design/content-first-darkness/icons/ListFilter.svg)           | `filter` / `ListFilter`                | ![ListFilter](design/content-first-darkness/icons/ListFilter.svg)                                                                                                                       | Manter com rótulo                                             | “Filtros”, acompanhado da quantidade quando houver filtros ativos                                                                      |
+| ![flag: figura atual](design/content-first-darkness/icons/Flag.svg)                   | `flag` / `Flag`                        | ![Flag](design/content-first-darkness/icons/Flag.svg)                                                                                                                                   | Manter discreto                                               | “Denunciar conteúdo” ou “Denunciar integrante” no nome acessível; texto explícito no formulário/menu                                   |
+| ![forward: figura atual](design/content-first-darkness/icons/ChevronRight.svg)        | `forward` / `ChevronRight`             | ![ChevronRight](design/content-first-darkness/icons/ChevronRight.svg)                                                                                                                   | Manter em abertura de detalhe                                 | Final da linha; não repetir seta em todos os metadados                                                                                 |
+| ![login: figura atual](design/content-first-darkness/icons/LogIn.svg)                 | `login` / `LogIn`                      | ![LogIn](design/content-first-darkness/icons/LogIn.svg)                                                                                                                                 | Opcional com texto                                            | “Entrar para continuar”; botões sociais usam apenas a marca do provedor e o rótulo                                                     |
+| ![logout: figura atual](design/content-first-darkness/icons/LogOut.svg)               | `logout` / `LogOut`                    | ![LogOut](design/content-first-darkness/icons/LogOut.svg)                                                                                                                               | Manter com texto contextual                                   | “Sair da conta” e “Sair da banda” precisam de rótulos diferentes                                                                       |
+| ![menu: figura atual](design/content-first-darkness/icons/Menu.svg)                   | `menu` / `Menu`                        | ![Menu](design/content-first-darkness/icons/Menu.svg)                                                                                                                                   | Manter                                                        | Abrir menu lateral; nunca usado como alça de arraste                                                                                   |
+| ![minus: figura atual](design/content-first-darkness/icons/Minus.svg)                 | `minus` / `Minus`                      | ![Minus](design/content-first-darkness/icons/Minus.svg)                                                                                                                                 | Manter para diminuir ou representar separador                 | Valor numérico ou “Separador”; remover música da setlist exige rótulo explícito                                                        |
+| ![more: figura atual](design/content-first-darkness/icons/Ellipsis.svg)               | `more` / `Ellipsis`                    | ![Ellipsis](design/content-first-darkness/icons/Ellipsis.svg)                                                                                                                           | Manter                                                        | Ações contextuais; nome acessível identifica a música, show ou integrante                                                              |
+| ![music: figura atual](design/content-first-darkness/icons/Music2.svg)                | `music` / `Music2`                     | ![Music2](design/content-first-darkness/icons/Music2.svg)                                                                                                                               | Manter como figura de música individual                       | Placeholder opcional; remover da linha se só repete a natureza de todos os itens                                                       |
+| ![planning: figura atual](design/content-first-darkness/icons/HourglassCog.svg)       | `planning` / `HourglassCog`            | ![ClipboardList](design/content-first-darkness/icons/ClipboardList.svg) ![Timer](design/content-first-darkness/icons/Timer.svg)                                                         | Preferir `ClipboardList`                                      | “Nota de planejamento”; usar `Timer` somente quando o item expressar uma pausa/duração                                                 |
+| ![repertoire: figura atual](design/content-first-darkness/icons/Music.svg)            | `repertoire` / `Music`                 | ![ListMusic](design/content-first-darkness/icons/ListMusic.svg)                                                                                                                         | Trocar por `ListMusic`                                        | Lista + nota distingue coleção de uma música individual; manter “Repertório” visível                                                   |
+| ![search: figura atual](design/content-first-darkness/icons/Search.svg)               | `search` / `Search`                    | ![Search](design/content-first-darkness/icons/Search.svg)                                                                                                                               | Manter                                                        | Dentro do campo à esquerda; não repetir o texto “Buscar” em botão se a busca for imediata                                              |
+| ![shows: figura atual](design/content-first-darkness/icons/CalendarDays.svg)          | `shows` / `CalendarDays`               | ![CalendarDays](design/content-first-darkness/icons/CalendarDays.svg)                                                                                                                   | Manter                                                        | “Shows”; calendário é reconhecível no contexto de agenda                                                                               |
+| ![showAdd: figura atual](design/content-first-darkness/icons/CalendarPlus.svg)        | `showAdd` / `CalendarPlus`             | ![CalendarPlus](design/content-first-darkness/icons/CalendarPlus.svg) ![Plus](design/content-first-darkness/icons/Plus.svg)                                                             | Manter como opção                                             | “Criar show”; `Plus` também pode servir no CTA geral sem necessidade de duas figuras juntas                                            |
+| ![calendarMinus: figura atual](design/content-first-darkness/icons/CalendarMinus.svg) | `calendarMinus` / `CalendarMinus`      | ![CalendarX](design/content-first-darkness/icons/CalendarX.svg)                                                                                                                         | Trocar por `CalendarX`                                        | “Cancelar show”; diferencia cancelamento de diminuir/remover uma data                                                                  |
+| ![stage: figura atual](design/content-first-darkness/icons/Play.svg)                  | `stage` / `Play`                       | ![MicVocal](design/content-first-darkness/icons/MicVocal.svg)                                                                                                                           | Trocar por `MicVocal` com rótulo                              | “Palco”; evita sugerir reprodução de áudio. O microfone é referência ao contexto de palco, sem representar gravação                    |
+| ![sort: figura atual](design/content-first-darkness/icons/ArrowUpDown.svg)            | `sort` / `ArrowUpDown`                 | ![ArrowUpDown](design/content-first-darkness/icons/ArrowUpDown.svg)                                                                                                                     | Manter com texto                                              | “Ordenar: título” ou “Ordenar: data”; não apresentar só duas setas para quem desconhece o controle                                     |
+| ![remove: figura atual](design/content-first-darkness/icons/Trash2.svg)               | `remove` / `Trash2`                    | ![Trash2](design/content-first-darkness/icons/Trash2.svg) ![Minus](design/content-first-darkness/icons/Minus.svg) ![UserMinus](design/content-first-darkness/icons/UserMinus.svg)       | Restringir a exclusão                                         | “Excluir música/show”. Para retirar item da setlist, usar `Minus` + “Remover da setlist”; para remover integrante, `UserMinus` + texto |
+| ![renew: figura atual](design/content-first-darkness/icons/RefreshCw.svg)             | `renew` / `RefreshCw`                  | ![RefreshCw](design/content-first-darkness/icons/RefreshCw.svg) ![RotateCcw](design/content-first-darkness/icons/RotateCcw.svg) ![Undo2](design/content-first-darkness/icons/Undo2.svg) | Separar os usos                                               | `RefreshCw`: atualizar dados; `RotateCcw`: renovar convite/restaurar; `Undo2`: reabrir show, sempre com texto contextual               |
+| ![revoke: figura atual](design/content-first-darkness/icons/Ban.svg)                  | `revoke` / `Ban`                       | ![Ban](design/content-first-darkness/icons/Ban.svg)                                                                                                                                     | Manter com rótulo no menu/confirmador                         | “Revogar convite”; não confundir com suspensão de conta ou fechar popup                                                                |
+| ![share: figura atual](design/content-first-darkness/icons/Share2.svg)                | `share` / `Share2`                     | ![Share2](design/content-first-darkness/icons/Share2.svg)                                                                                                                               | Manter                                                        | “Compartilhar convite”; continuar sobre o convite existente                                                                            |
+| ![bandAdd: figura atual](design/content-first-darkness/icons/BandAddCurrent.svg)      | `bandAdd` / `UserGroup` + badge de “+” | ![Plus](design/content-first-darkness/icons/Plus.svg) ![UserPlus](design/content-first-darkness/icons/UserPlus.svg)                                                                     | Trocar por `Plus` + texto                                     | “Criar banda”; para “Convidar integrante”, usar `UserPlus`                                                                             |
+| ![musicAdd: figura atual](design/content-first-darkness/icons/MusicAddCurrent.svg)    | `musicAdd` / `Music2` + badge de “+”   | ![Plus](design/content-first-darkness/icons/Plus.svg) ![ListPlus](design/content-first-darkness/icons/ListPlus.svg)                                                                     | Trocar por `Plus` + texto                                     | “Adicionar música”; `ListPlus` é alternativa para inserir na setlist, com rótulo específico                                            |
 
 As mudanças de maior prioridade são `GripVertical`, `Clock`, `ListMusic` e a correção de `X` em ações destrutivas. `MicVocal` e `ClipboardList` devem ser avaliados com participantes junto aos rótulos. São hipóteses de melhor representação, não comprovação de compreensão.
 
 #### Novos papéis e figuras auxiliares
 
-| Situação | Figura proposta | Uso do texto |
-| --- | --- | --- |
-| Abrir letra | `FileText` | “Abrir letra”; usar no detalhe quando a ação precisar de identificação explícita |
-| Salvar edição | Nenhuma, por padrão | “Salvar” é o conteúdo do botão; durante envio, indicador de progresso + “Salvando…” |
-| Convidar integrante | `UserPlus` | “Convidar integrante”; representa pessoa entrando no grupo |
-| Remover integrante | `UserMinus` | “Remover integrante”; confirmação explica as consequências |
-| Restaurar música arquivada | `RotateCcw` | “Restaurar música”; evitar que pareça atualizar a lista |
-| Reabrir show | `Undo2` | “Reabrir para edição” ou “Reabrir como Rascunho” |
-| Alterar permissão | Nenhuma, por padrão | “Alterar permissão”, “Tornar Editor”, “Tornar Proprietário”; evitar ícone de escudo que pareça selo de conta verificada |
-| Nome do bloco, Tom e BPM | Nenhuma, por padrão | Rótulos curtos “Tom”, “BPM” e título do bloco comunicam melhor que figuras novas |
-| Status concluído | `Check` quando necessário | “Pronto” ou “Alterações salvas”; símbolo pode ser retirado se a mensagem já for inequívoca |
-| Estado de carregamento | `LoaderCircle` / indicador nativo | Texto breve quando a operação leva tempo; respeitar redução de movimento |
+| Situação                   | Figura proposta                   | Uso do texto                                                                                                            |
+| -------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Abrir letra                | `FileText`                        | “Abrir letra”; usar no detalhe quando a ação precisar de identificação explícita                                        |
+| Salvar edição              | Nenhuma, por padrão               | “Salvar” é o conteúdo do botão; durante envio, indicador de progresso + “Salvando…”                                     |
+| Convidar integrante        | `UserPlus`                        | “Convidar integrante”; representa pessoa entrando no grupo                                                              |
+| Remover integrante         | `UserMinus`                       | “Remover integrante”; confirmação explica as consequências                                                              |
+| Restaurar música arquivada | `RotateCcw`                       | “Restaurar música”; evitar que pareça atualizar a lista                                                                 |
+| Reabrir show               | `Undo2`                           | “Reabrir para edição” ou “Reabrir como Rascunho”                                                                        |
+| Alterar permissão          | Nenhuma, por padrão               | “Alterar permissão”, “Tornar Editor”, “Tornar Proprietário”; evitar ícone de escudo que pareça selo de conta verificada |
+| Nome do bloco, Tom e BPM   | Nenhuma, por padrão               | Rótulos curtos “Tom”, “BPM” e título do bloco comunicam melhor que figuras novas                                        |
+| Status concluído           | `Check` quando necessário         | “Pronto” ou “Alterações salvas”; símbolo pode ser retirado se a mensagem já for inequívoca                              |
+| Estado de carregamento     | `LoaderCircle` / indicador nativo | Texto breve quando a operação leva tempo; respeitar redução de movimento                                                |
 
 A revisão recomenda **Salvar sem ícone** e adota esse padrão nas pranchas. A distinção é útil: salvar persiste uma edição; marcar pronto conclui uma etapa.
 
 #### Quando usar ícone, texto ou os dois
 
-| Forma | Critério | Exemplos no Setlist |
-| --- | --- | --- |
-| Só ícone visual | Ação auxiliar conhecida, posição previsível e nome acessível disponível | Fechar, voltar, atualizar, mais opções, limpar busca; denunciar permanece discreto por decisão do produto |
-| Ícone + texto | Navegação, criação, descoberta ou função com ambiguidade | Shows, Repertório, Palco, Banda; Adicionar música; Convidar; Filtros; Ordenar |
-| Só texto | O verbo/valor é mais claro e a figura acrescentaria ruído | Salvar, Cancelar, Entendi, Tom, BPM, Alterar permissão |
-| Texto no menu contextual | Operação rara, destrutiva ou com consequência relevante | Arquivar, Excluir, Revogar convite, Remover integrante, Reabrir show |
+| Forma                    | Critério                                                                | Exemplos no Setlist                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Só ícone visual          | Ação auxiliar conhecida, posição previsível e nome acessível disponível | Fechar, voltar, atualizar, mais opções, limpar busca; denunciar permanece discreto por decisão do produto |
+| Ícone + texto            | Navegação, criação, descoberta ou função com ambiguidade                | Shows, Repertório, Palco, Banda; Adicionar música; Convidar; Filtros; Ordenar                             |
+| Só texto                 | O verbo/valor é mais claro e a figura acrescentaria ruído               | Salvar, Cancelar, Entendi, Tom, BPM, Alterar permissão                                                    |
+| Texto no menu contextual | Operação rara, destrutiva ou com consequência relevante                 | Arquivar, Excluir, Revogar convite, Remover integrante, Reabrir show                                      |
 
 O ícone de denúncia pode continuar sem rótulo grande na tela, mas deve existir uma opção explícita “Denunciar conteúdo”/“Denunciar integrante” quando houver um menu contextual de ações correspondente. Tooltip ajuda na Web; não é uma explicação suficiente no celular. A criação dessa opção de menu, se ainda ausente, é uma melhoria visual de descoberta a especificar na implementação.
 
@@ -430,19 +430,19 @@ Operações sensíveis nunca devem depender de distinguir apenas `X`, lixeira ou
 
 #### Tamanhos e peso
 
-| Contexto | Tamanho do desenho | Slot / área interativa | Observação |
-| --- | --- | --- | --- |
-| Menu lateral Web | 20 | Slot de 24, dentro de linha de 28–32 | Preservar densidade e início comum dos rótulos |
-| Drawer móvel | 20–22 | Slot de 24, linha de pelo menos 48 | Mesmo desenho, alvo maior |
-| Barra inferior | 22 | Slot de 24; célula com pelo menos 48 × 48 | Rótulo abaixo, sempre visível |
-| Cabeçalho: voltar/menu/fechar | 22–24 | Botão de 48 × 48 no celular | Centralizar sem invadir título |
-| Botão com texto | 18–20 | Slot de 20; altura 48 no celular | Intervalo de 8 para o rótulo |
-| Atualizar / denunciar / mais opções | 18–20 | Slot de 20; alvo 48 no celular, 32–40 na Web | Não aumentar o desenho para aumentar o alvo |
-| Indicador de metadado | 16, se necessário | Sem alvo quando decorativo | Evitar 10–12 para figura com detalhes; preferir texto para “3:42” em listas densas |
-| Alça de arraste | 18–20 | Região reservada de 48 no celular | No início da linha, com alternativa acessível para mover |
-| Status/check em chip | 14–16 | Slot de 16; chip não interativo | Tamanho pequeno aceito só para forma simples redundante ao texto |
-| Estado vazio | 32–40 | Ilustração não interativa | Neutro, sem competir com título/CTA |
-| Logo e provedores de login | Conforme seções 8 e 11.1 | Slot visual próprio | Ajustar pelo desenho visível, preservando proporção e requisitos da marca |
+| Contexto                            | Tamanho do desenho       | Slot / área interativa                       | Observação                                                                         |
+| ----------------------------------- | ------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Menu lateral Web                    | 20                       | Slot de 24, dentro de linha de 28–32         | Preservar densidade e início comum dos rótulos                                     |
+| Drawer móvel                        | 20–22                    | Slot de 24, linha de pelo menos 48           | Mesmo desenho, alvo maior                                                          |
+| Barra inferior                      | 22                       | Slot de 24; célula com pelo menos 48 × 48    | Rótulo abaixo, sempre visível                                                      |
+| Cabeçalho: voltar/menu/fechar       | 22–24                    | Botão de 48 × 48 no celular                  | Centralizar sem invadir título                                                     |
+| Botão com texto                     | 18–20                    | Slot de 20; altura 48 no celular             | Intervalo de 8 para o rótulo                                                       |
+| Atualizar / denunciar / mais opções | 18–20                    | Slot de 20; alvo 48 no celular, 32–40 na Web | Não aumentar o desenho para aumentar o alvo                                        |
+| Indicador de metadado               | 16, se necessário        | Sem alvo quando decorativo                   | Evitar 10–12 para figura com detalhes; preferir texto para “3:42” em listas densas |
+| Alça de arraste                     | 18–20                    | Região reservada de 48 no celular            | No início da linha, com alternativa acessível para mover                           |
+| Status/check em chip                | 14–16                    | Slot de 16; chip não interativo              | Tamanho pequeno aceito só para forma simples redundante ao texto                   |
+| Estado vazio                        | 32–40                    | Ilustração não interativa                    | Neutro, sem competir com título/CTA                                                |
+| Logo e provedores de login          | Conforme seções 8 e 11.1 | Slot visual próprio                          | Ajustar pelo desenho visível, preservando proporção e requisitos da marca          |
 
 Partir do traço original de 2 na grade de 24 e usar a mesma estratégia de escala em toda a interface. Avaliar visualmente 18, 20, 22 e 24 nas três plataformas. Não usar o traço de 4,8 do badge atual como padrão, nem ajustar a espessura por estado de seleção.
 
@@ -469,12 +469,12 @@ Validar os símbolos **no contexto da tarefa**, especialmente Palco, arraste, du
 
 A quinta prancha apresenta exemplos completos com ícone, rótulo, seleção e contexto. A barra mantém os quatro destinos atuais: **Shows, Repertório, Palco e Banda**. Não recebe um botão de reprodução central maior nem um CTA violeta que concorra com o conteúdo da tela.
 
-| Item | Figura proposta | Rótulo visível | Comportamento |
-| --- | --- | --- | --- |
-| Shows | `CalendarDays` | Shows | Abrir agenda/lista de shows |
-| Repertório | `ListMusic` | Repertório | Abrir repertório da banda |
-| Palco | `MicVocal` | Palco | Nesta versão, abrir popup de disponibilidade futura |
-| Banda | `Users` | Banda | Abrir integrantes e dados da banda |
+| Item       | Figura proposta | Rótulo visível | Comportamento                                       |
+| ---------- | --------------- | -------------- | --------------------------------------------------- |
+| Shows      | `CalendarDays`  | Shows          | Abrir agenda/lista de shows                         |
+| Repertório | `ListMusic`     | Repertório     | Abrir repertório da banda                           |
+| Palco      | `MicVocal`      | Palco          | Nesta versão, abrir popup de disponibilidade futura |
+| Banda      | `Users`         | Banda          | Abrir integrantes e dados da banda                  |
 
 #### Geometria da barra
 
@@ -489,13 +489,13 @@ A quinta prancha apresenta exemplos completos com ícone, rótulo, seleção e c
 
 #### Estados dos botões
 
-| Estado | Exemplo visual | Regra |
-| --- | --- | --- |
-| Inativo | Ícone de contorno + nome em cinza, sem cápsula | Mesma posição e tamanho do ativo |
-| Ativo | Cápsula escura violeta + símbolo violeta + nome claro | Reflete a seção realmente aberta |
-| Pressionado | Fundo neutro `#34343B` na região do símbolo, sem aumento de escala | Feedback breve; ao soltar, restaura o estado correto |
-| Foco na Web estreita | Anel `#D0B8FF` ao redor da célula | Não depende do hover; nome continua legível |
-| Palco nesta versão | Figura e alinhamento normais; ao tocar, popup | A seção anterior permanece selecionada depois de fechar o aviso |
+| Estado               | Exemplo visual                                                     | Regra                                                           |
+| -------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Inativo              | Ícone de contorno + nome em cinza, sem cápsula                     | Mesma posição e tamanho do ativo                                |
+| Ativo                | Cápsula escura violeta + símbolo violeta + nome claro              | Reflete a seção realmente aberta                                |
+| Pressionado          | Fundo neutro `#34343B` na região do símbolo, sem aumento de escala | Feedback breve; ao soltar, restaura o estado correto            |
+| Foco na Web estreita | Anel `#D0B8FF` ao redor da célula                                  | Não depende do hover; nome continua legível                     |
+| Palco nesta versão   | Figura e alinhamento normais; ao tocar, popup                      | A seção anterior permanece selecionada depois de fechar o aviso |
 
 Palco é uma ação disponível para explicar a disponibilidade futura, portanto não deve receber aparência de botão desabilitado que impeça o toque. O nome acessível pode informar “Palco, disponível em versão futura”. Nenhuma prancha deve apresentar Palco como uma tela funcional já selecionada.
 
@@ -517,16 +517,16 @@ O protótipo do YouTube continua fora do menu da versão publicável. Documentos
 
 #### Medidas e alinhamento
 
-| Elemento | Web / desktop | Drawer móvel |
-| --- | --- | --- |
-| Largura de referência | 224–248 | Aproximadamente 280–320, limitado à viewport |
-| Padding lateral | 16 | 16 |
-| Linha de navegação | 28–32 de altura, com crescimento para texto ampliado | Pelo menos 48 |
-| Slot do símbolo | 24; desenho de 20 | 24; desenho de 20–22 |
-| Gap ícone / rótulo | 12 | 12 |
-| Fonte da navegação | 14–15 / entrelinha 20 | 15–16 / entrelinha 22 |
-| Espaço entre grupos | 16–24 | 16–24 |
-| Raio da linha ativa | 8 | 8 |
+| Elemento              | Web / desktop                                        | Drawer móvel                                 |
+| --------------------- | ---------------------------------------------------- | -------------------------------------------- |
+| Largura de referência | 224–248                                              | Aproximadamente 280–320, limitado à viewport |
+| Padding lateral       | 16                                                   | 16                                           |
+| Linha de navegação    | 28–32 de altura, com crescimento para texto ampliado | Pelo menos 48                                |
+| Slot do símbolo       | 24; desenho de 20                                    | 24; desenho de 20–22                         |
+| Gap ícone / rótulo    | 12                                                   | 12                                           |
+| Fonte da navegação    | 14–15 / entrelinha 20                                | 15–16 / entrelinha 22                        |
+| Espaço entre grupos   | 16–24                                                | 16–24                                        |
+| Raio da linha ativa   | 8                                                    | 8                                            |
 
 Na prancha desktop, a primeira coluna é a do símbolo; todos os rótulos começam na segunda coluna, incluindo Minhas bandas e Perfil e conta. O item Palco usa exatamente o mesmo layout. Um contorno ou fundo ativo não adiciona padding que mova o texto lateralmente.
 
@@ -545,20 +545,20 @@ As linhas compactas da Web não devem ser reutilizadas diretamente no drawer. Em
 
 ## 10. Matriz de estados
 
-| Estado | Aparência proposta | Complemento funcional |
-| --- | --- | --- |
-| Padrão | Superfície e texto do papel semântico | Rótulo/nome acessível |
-| Hover na Web | Neutral: `hover`; principal: `action.hover` | Sem deslocar elementos |
-| Pressionado | Neutral: `pressed`; principal: `action.pressed` | Conteúdo permanece legível |
-| Foco por teclado | Anel `focus.ring` | Ordem de foco previsível; pode coexistir com hover/seleção |
-| Selecionado | `selected` + violeta + check/indicador | Expor estado selecionado à tecnologia assistiva |
-| Desabilitado | Fundo `raised`, texto `disabled`, sem brilho | Explicar impedimento relevante; não usar opacidade global |
-| Carregando | Indicador e texto breve; manter estrutura | Bloquear duplicação e anunciar estado |
-| Vazio | Ícone neutro, título curto e orientação | CTA apenas para quem tem permissão |
-| Sem resultados | Explicação e limpar filtros | Preservar busca digitada |
-| Erro | Vermelho semântico em ícone/mensagem | Ação de recuperação; preservar edição |
-| Conteúdo indisponível | Mensagem neutra e caminho de retorno | Não revelar motivo privado ou dados sem autorização |
-| Sem conexão | Mensagem informativa e tentativa de reconexão | Não prometer operação offline não disponível |
+| Estado                | Aparência proposta                              | Complemento funcional                                      |
+| --------------------- | ----------------------------------------------- | ---------------------------------------------------------- |
+| Padrão                | Superfície e texto do papel semântico           | Rótulo/nome acessível                                      |
+| Hover na Web          | Neutral: `hover`; principal: `action.hover`     | Sem deslocar elementos                                     |
+| Pressionado           | Neutral: `pressed`; principal: `action.pressed` | Conteúdo permanece legível                                 |
+| Foco por teclado      | Anel `focus.ring`                               | Ordem de foco previsível; pode coexistir com hover/seleção |
+| Selecionado           | `selected` + violeta + check/indicador          | Expor estado selecionado à tecnologia assistiva            |
+| Desabilitado          | Fundo `raised`, texto `disabled`, sem brilho    | Explicar impedimento relevante; não usar opacidade global  |
+| Carregando            | Indicador e texto breve; manter estrutura       | Bloquear duplicação e anunciar estado                      |
+| Vazio                 | Ícone neutro, título curto e orientação         | CTA apenas para quem tem permissão                         |
+| Sem resultados        | Explicação e limpar filtros                     | Preservar busca digitada                                   |
+| Erro                  | Vermelho semântico em ícone/mensagem            | Ação de recuperação; preservar edição                      |
+| Conteúdo indisponível | Mensagem neutra e caminho de retorno            | Não revelar motivo privado ou dados sem autorização        |
+| Sem conexão           | Mensagem informativa e tentativa de reconexão   | Não prometer operação offline não disponível               |
 
 Indicador de carregamento pode girar durante a operação. Transições de superfície de 120–180 ms são uma sugestão para a Web; respeitar redução de movimento. Não animar continuamente cards, títulos ou letras. A seção 14 detalha movimento, retorno e preservação de estado.
 
@@ -630,11 +630,11 @@ Palco mantém alinhamento normal na navegação e abre o popup já previsto: **�
 
 ## 12. Composição responsiva
 
-| Faixa existente | Estrutura proposta | Largura e densidade |
-| --- | --- | --- |
-| Celular, abaixo de 768 | Uma coluna; barra inferior e drawer conforme navegação atual | Margem 16; listas ocupam largura útil; alvos de 48 |
-| Tablet, 768–1179 | Uma coluna ampla ou agrupamentos lado a lado quando úteis | Margem 24; detalhes/letras mantêm largura de leitura |
-| Desktop, a partir de 1180 | Menu lateral de aproximadamente 224–248 + conteúdo | Margem 32; listas podem usar 960–1120 de largura útil |
+| Faixa existente           | Estrutura proposta                                           | Largura e densidade                                   |
+| ------------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| Celular, abaixo de 768    | Uma coluna; barra inferior e drawer conforme navegação atual | Margem 16; listas ocupam largura útil; alvos de 48    |
+| Tablet, 768–1179          | Uma coluna ampla ou agrupamentos lado a lado quando úteis    | Margem 24; detalhes/letras mantêm largura de leitura  |
+| Desktop, a partir de 1180 | Menu lateral de aproximadamente 224–248 + conteúdo           | Margem 32; listas podem usar 960–1120 de largura útil |
 
 Preservar a regra atual que também usa menu lateral em tablet na orientação paisagem quando aplicável. Login continua limitado a aproximadamente 460; letra e documentos longos ficam em coluna mais estreita. Ampliar a largura de listagens no desktop exige revisar o limite compartilhado atual de 600 por tipo de tela, sem ampliar automaticamente todos os formulários.
 
@@ -642,19 +642,19 @@ O mesmo conjunto de cores vale para as três plataformas. Hover existe na Web; t
 
 ## 13. Exemplos de combinações prontas
 
-| Exemplo | Fundo | Conteúdo | Destaque / limite |
-| --- | --- | --- | --- |
-| Linha “Luzes da Rua” | `#121214` | Título `#F4F4F5`; artista/duração `#B8B8C2` | Hover `#28282D` |
-| Filtro “Com letra” selecionado | `#2B203D` | Texto e check `#B692FF` | Borda `#B692FF` |
-| Botão “Salvar” | `#B692FF` | Texto/ícone `#160D24` | Hover `#C5AAFF`; pressão `#A37CF0` |
-| Botões de login Google e Apple | `#1C1C1F` | Texto `#F4F4F5`; Google colorido; Apple branco | Borda `#74747F`; foco `#D0B8FF` |
-| Campo “Título da música” | `#1C1C1F` | Texto `#F4F4F5`; placeholder `#92929F` | Borda `#74747F`; foco `#D0B8FF` |
-| Menu “Repertório” ativo | `#2B203D` | Rótulo `#F4F4F5`; ícone `#B692FF` | Indicador violeta |
-| Chip “Pronto” | `#182B20` | Texto/check `#73D99F` | Sem borda necessária |
-| Erro ao salvar | `#341F24` | Ícone/rótulo `#FF949D` | Explicação legível + ação de correção |
-| Popup de Palco | `#1C1C1F` | Título `#F4F4F5`; mensagem `#B8B8C2` | Overlay preto a 72%; “Entendi” violeta |
-| Denunciar conteúdo | Transparente sobre `#121214` | Bandeira `#B8B8C2` | Hover neutro; foco violeta |
-| Rodapé de login | `#121214` | Disclaimer `#92929F`; links `#B692FF`; versão `#92929F` | Alinhamento esquerdo + versão à direita |
+| Exemplo                        | Fundo                        | Conteúdo                                                | Destaque / limite                       |
+| ------------------------------ | ---------------------------- | ------------------------------------------------------- | --------------------------------------- |
+| Linha “Luzes da Rua”           | `#121214`                    | Título `#F4F4F5`; artista/duração `#B8B8C2`             | Hover `#28282D`                         |
+| Filtro “Com letra” selecionado | `#2B203D`                    | Texto e check `#B692FF`                                 | Borda `#B692FF`                         |
+| Botão “Salvar”                 | `#B692FF`                    | Texto/ícone `#160D24`                                   | Hover `#C5AAFF`; pressão `#A37CF0`      |
+| Botões de login Google e Apple | `#1C1C1F`                    | Texto `#F4F4F5`; Google colorido; Apple branco          | Borda `#74747F`; foco `#D0B8FF`         |
+| Campo “Título da música”       | `#1C1C1F`                    | Texto `#F4F4F5`; placeholder `#92929F`                  | Borda `#74747F`; foco `#D0B8FF`         |
+| Menu “Repertório” ativo        | `#2B203D`                    | Rótulo `#F4F4F5`; ícone `#B692FF`                       | Indicador violeta                       |
+| Chip “Pronto”                  | `#182B20`                    | Texto/check `#73D99F`                                   | Sem borda necessária                    |
+| Erro ao salvar                 | `#341F24`                    | Ícone/rótulo `#FF949D`                                  | Explicação legível + ação de correção   |
+| Popup de Palco                 | `#1C1C1F`                    | Título `#F4F4F5`; mensagem `#B8B8C2`                    | Overlay preto a 72%; “Entendi” violeta  |
+| Denunciar conteúdo             | Transparente sobre `#121214` | Bandeira `#B8B8C2`                                      | Hover neutro; foco violeta              |
+| Rodapé de login                | `#121214`                    | Disclaimer `#92929F`; links `#B692FF`; versão `#92929F` | Alinhamento esquerdo + versão à direita |
 
 As seis pranchas mostram cores em contexto: paleta, componentes, telas, iconografia, barra inferior e menu lateral. Os exemplos de navegação permitem revisar tanto os símbolos quanto sua posição e seus rótulos.
 
@@ -666,28 +666,28 @@ O [catálogo de aplicação dos ícones](CATALOGO_ICONES_CONTENT_FIRST_DARKNESS.
 
 **Direção recomendada:** facilitar a próxima ação, explicar o resultado e permitir que a pessoa retome o trabalho de onde estava. Movimento ajuda a reconhecer a relação entre telas e elementos. Os controles continuam utilizáveis por toque simples, teclado e tecnologias assistivas.
 
-| Evidência atual no projeto | Evolução proposta |
-| --- | --- |
+| Evidência atual no projeto                                                                                                                     | Evolução proposta                                                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/app/_layout.tsx` define `animation: 'none'`, `gestureEnabled` e `fullScreenGestureEnabled`; existem Stacks internos de repertório e shows | Auditar as opções efetivas de cada Stack e escolher transições por tipo de rota. As opções do Stack principal não comprovam o comportamento de todas as telas |
-| `useNavigationDrawer.ts` abre o menu por gesto de borda nas telas principais; anima abertura em 240 ms e fechamento em 180 ms | Preservar acesso pelo botão, rever disputa com o gesto do sistema e avaliar fechamento acompanhado pelo dedo |
-| `NavigationMemory` e `useBandNavigationState` guardam rota, rolagem e estado por banda/seção | Fazer gesto e botão usarem a mesma política de destino e preservação de contexto |
-| Listas têm pull-to-refresh nativo e atualização por botão na Web | Preservar o comportamento validado e a posição da lista |
-| Editor de blocos usa arraste; telas de edição oferecem Salvar/Cancelar | Separar arraste de navegação e aplicar proteção de edição a todos os caminhos de saída |
-| Gesture Handler e Reanimated já estão nas dependências | Avaliar a solução existente antes de acrescentar infraestrutura; pacote instalado não significa interação implementada |
+| `useNavigationDrawer.ts` abre o menu por gesto de borda nas telas principais; anima abertura em 240 ms e fechamento em 180 ms                  | Preservar acesso pelo botão, rever disputa com o gesto do sistema e avaliar fechamento acompanhado pelo dedo                                                  |
+| `NavigationMemory` e `useBandNavigationState` guardam rota, rolagem e estado por banda/seção                                                   | Fazer gesto e botão usarem a mesma política de destino e preservação de contexto                                                                              |
+| Listas têm pull-to-refresh nativo e atualização por botão na Web                                                                               | Preservar o comportamento validado e a posição da lista                                                                                                       |
+| Editor de blocos usa arraste; telas de edição oferecem Salvar/Cancelar                                                                         | Separar arraste de navegação e aplicar proteção de edição a todos os caminhos de saída                                                                        |
+| Gesture Handler e Reanimated já estão nas dependências                                                                                         | Avaliar a solução existente antes de acrescentar infraestrutura; pacote instalado não significa interação implementada                                        |
 
 As recomendações abaixo são propostas de produto. Tempos, áreas e limiares são valores iniciais para prototipação e precisam de validação em aparelhos reais.
 
 ### 14.2 Gestos recomendados e alternativas visíveis
 
-| Intenção | iOS | Android | Web | Alternativa visível |
-| --- | --- | --- | --- | --- |
-| Voltar de detalhe ou leitura | Retorno do navegador nativo, preferencialmente iniciado na borda esquerda, acompanhando o dedo | Botão/gesto Voltar do sistema; validar retorno preditivo quando suportado pelo build | Histórico do navegador e Voltar do app; preservar gestos do browser/trackpad | Voltar no cabeçalho, com destino acessível |
-| Trocar Shows/Repertório/Banda | Candidato: deslize horizontal em região definida da tela principal | Mesmo candidato, preservando bordas do sistema | Menu/barra; gesto personalizado fica fora do primeiro corte Web | Itens de navegação |
-| Abrir menu lateral | Botão Menu; gesto de borda apenas na raiz da seção, quando não disputar retorno | Botão Menu como padrão; rever o gesto de borda existente diante do Voltar do sistema | Botão em viewport compacta; menu persistente no desktop | Abrir menu |
-| Fechar menu lateral | Deslize para a esquerda dentro do painel, fundo externo ou Fechar | Mesmo fechamento local; Voltar fecha o painel antes de navegar | Fechar, fundo externo ou Escape | Fechar no painel |
-| Atualizar lista | Puxar para baixo no topo, preservando o fluxo atual | Mesmo comportamento validado | Botão à direita da busca | Atualizar por ação acessível; avaliar opção no menu nativo |
-| Reordenar setlist | Arrastar pela alça; linha acompanha o dedo | Mesmo gesto; rolagem da lista fora da alça | Arraste por mouse quando disponível, teclado e opções textuais | Mover para cima / Mover para baixo |
-| Consultar ações de um item | Mais opções; pressão longa como atalho opcional | Mesmo comportamento | Mais opções e teclado | Mais opções com nome do item |
+| Intenção                      | iOS                                                                                            | Android                                                                              | Web                                                                          | Alternativa visível                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Voltar de detalhe ou leitura  | Retorno do navegador nativo, preferencialmente iniciado na borda esquerda, acompanhando o dedo | Botão/gesto Voltar do sistema; validar retorno preditivo quando suportado pelo build | Histórico do navegador e Voltar do app; preservar gestos do browser/trackpad | Voltar no cabeçalho, com destino acessível                 |
+| Trocar Shows/Repertório/Banda | Candidato: deslize horizontal em região definida da tela principal                             | Mesmo candidato, preservando bordas do sistema                                       | Menu/barra; gesto personalizado fica fora do primeiro corte Web              | Itens de navegação                                         |
+| Abrir menu lateral            | Botão Menu; gesto de borda apenas na raiz da seção, quando não disputar retorno                | Botão Menu como padrão; rever o gesto de borda existente diante do Voltar do sistema | Botão em viewport compacta; menu persistente no desktop                      | Abrir menu                                                 |
+| Fechar menu lateral           | Deslize para a esquerda dentro do painel, fundo externo ou Fechar                              | Mesmo fechamento local; Voltar fecha o painel antes de navegar                       | Fechar, fundo externo ou Escape                                              | Fechar no painel                                           |
+| Atualizar lista               | Puxar para baixo no topo, preservando o fluxo atual                                            | Mesmo comportamento validado                                                         | Botão à direita da busca                                                     | Atualizar por ação acessível; avaliar opção no menu nativo |
+| Reordenar setlist             | Arrastar pela alça; linha acompanha o dedo                                                     | Mesmo gesto; rolagem da lista fora da alça                                           | Arraste por mouse quando disponível, teclado e opções textuais               | Mover para cima / Mover para baixo                         |
+| Consultar ações de um item    | Mais opções; pressão longa como atalho opcional                                                | Mesmo comportamento                                                                  | Mais opções e teclado                                                        | Mais opções com nome do item                               |
 
 O retorno por gesto do iOS depende de existir destino anterior no Stack; entrada por link direto deve oferecer retorno contextual no cabeçalho. O Voltar preditivo do Android precisa ser validado no conjunto de versões do app: não é garantido pelas propriedades de gesto do Stack. [Expo — navegação Stack](https://docs.expo.dev/router/advanced/stack/), [Android — retorno preditivo](https://developer.android.com/guide/navigation/custom-back/predictive-back-gesture).
 
@@ -713,14 +713,14 @@ Com VoiceOver/TalkBack ativo, preservar seus gestos; desativar a captura persona
 
 **Trocar seção**, **Voltar** e **Fechar** têm intenções diferentes. Trocar seção mantém o contexto de cada área; Voltar retorna ao destino anterior válido; Fechar encerra a camada atual.
 
-| Situação | Resultado esperado |
-| --- | --- |
-| Repertório → detalhe → letra | Voltar da letra retorna ao detalhe; voltar do detalhe recupera busca, filtros e posição da lista |
-| Shows → detalhe → editor | Salvar concluído segue o retorno previsto no fluxo; sair antes disso passa pela proteção de edição |
-| Troca entre seções | Preservar memória por banda, consulta e rolagem |
-| Convite ou link direto | Histórico válido quando houver; destino contextual quando não houver, respeitando autenticação/acesso |
-| Drawer, menu ou popup aberto | Fechar a camada superior antes de sair da tela; respeitar confirmação/edição que ela contenha |
-| Voltar do Android com teclado aberto | Respeitar teclado e camadas; não disparar duas saídas no mesmo evento |
+| Situação                             | Resultado esperado                                                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Repertório → detalhe → letra         | Voltar da letra retorna ao detalhe; voltar do detalhe recupera busca, filtros e posição da lista      |
+| Shows → detalhe → editor             | Salvar concluído segue o retorno previsto no fluxo; sair antes disso passa pela proteção de edição    |
+| Troca entre seções                   | Preservar memória por banda, consulta e rolagem                                                       |
+| Convite ou link direto               | Histórico válido quando houver; destino contextual quando não houver, respeitando autenticação/acesso |
+| Drawer, menu ou popup aberto         | Fechar a camada superior antes de sair da tela; respeitar confirmação/edição que ela contenha         |
+| Voltar do Android com teclado aberto | Respeitar teclado e camadas; não disparar duas saídas no mesmo evento                                 |
 
 Ao tentar sair de uma edição alterada, propor popup **“Descartar alterações?”**, explicação **“As alterações ainda não foram salvas.”**, ações **“Continuar editando”** e **“Descartar e sair”**. Aplicar a mesma decisão ao botão Voltar, gesto nativo, troca de área e fechamento do editor. Durante salvamento, impedir envio duplicado e preservar o estado até o resultado.
 
@@ -732,23 +732,23 @@ Após retornar à lista, recuperar o lugar da tarefa. Se uma edição alterar a 
 
 **Princípio:** movimento explica entrada, saída, continuidade e resposta ao comando. Conteúdo permanece estável durante leitura e trabalho. Durações abaixo são propostas; transições nativas podem usar os tempos de cada plataforma.
 
-| Elemento / ação | Movimento proposto | Duração inicial | Continuidade e cuidado |
-| --- | --- | --- | --- |
-| Abrir detalhe/leitura no iOS | Entrada horizontal do Stack pela direita; retorno inverso | Padrão nativo | Retorno interativo acompanha o dedo e admite cancelamento |
-| Abrir detalhe no Android | Transição padrão da navegação nativa | Padrão nativo | Validar relação com Voltar e retorno preditivo no build |
-| Trocar seção por botão | Fade do conteúdo; menu/barra estáveis | 120–180 ms | Título e seleção mudam juntos; não simular novo nível de detalhe |
-| Trocar seção por deslize aprovado | Deslocamento horizontal acompanhado pelo dedo | Progresso do gesto; conclusão de 160–220 ms | Mesmo destino do botão; cancelamento não navega |
-| Navegar na Web | Troca de conteúdo com fade opcional | 100–150 ms | URL, histórico e foco corretos |
-| Abrir/fechar drawer | Painel lateral + opacidade do fundo externo | Abrir 220–260 ms; fechar 160–200 ms | Fechamento por gesto acompanha o dedo; devolver foco após fechar |
-| Abrir popup | Fade do overlay/painel; deslocamento opcional máximo de 8 unidades | 140–180 ms | Sem salto de layout; foco e estado modal acompanham abertura |
-| Sheet móvel, quando usado | Entrada inferior curta | 180–240 ms | Respeitar área segura; manter o tipo de mensagem já definido |
-| Abrir menu de opções | Fade junto ao acionador | 100–140 ms | Reposicionar para caber na viewport |
-| Pressionar botão | Mudança de cor/superfície, feedback imediato | 80–120 ms | Sem encolher alvo de toque ou mover rótulo |
-| Alterar filtro/status | Mudança de fundo, contorno e indicador | 120–160 ms | Palavra e estado acessível mudam junto da ação |
-| Reordenar setlist | Item segue o dedo; vizinhos acomodam a posição | Vizinhos: 120–180 ms | Cancelar mantém ordem inicial; sem efeito em todos os itens |
-| Carregar conteúdo | Skeleton estático; fade único ao concluir | Fade: 120–160 ms | Geometria próxima do conteúdo, sem cascata ou brilho pulsante |
-| Atualizar dados visíveis | Conteúdo permanece; indicador local | Sem transição da tela inteira | Preservar rolagem e evitar piscar a lista a cada consulta |
-| Salvar/denunciar | Indicador + “Salvando…”/“Enviando…”; confirmação no padrão de feedback | Acompanha a operação | Sem antecipar sucesso; erro permanece compreensível |
+| Elemento / ação                   | Movimento proposto                                                     | Duração inicial                             | Continuidade e cuidado                                           |
+| --------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------- |
+| Abrir detalhe/leitura no iOS      | Entrada horizontal do Stack pela direita; retorno inverso              | Padrão nativo                               | Retorno interativo acompanha o dedo e admite cancelamento        |
+| Abrir detalhe no Android          | Transição padrão da navegação nativa                                   | Padrão nativo                               | Validar relação com Voltar e retorno preditivo no build          |
+| Trocar seção por botão            | Fade do conteúdo; menu/barra estáveis                                  | 120–180 ms                                  | Título e seleção mudam juntos; não simular novo nível de detalhe |
+| Trocar seção por deslize aprovado | Deslocamento horizontal acompanhado pelo dedo                          | Progresso do gesto; conclusão de 160–220 ms | Mesmo destino do botão; cancelamento não navega                  |
+| Navegar na Web                    | Troca de conteúdo com fade opcional                                    | 100–150 ms                                  | URL, histórico e foco corretos                                   |
+| Abrir/fechar drawer               | Painel lateral + opacidade do fundo externo                            | Abrir 220–260 ms; fechar 160–200 ms         | Fechamento por gesto acompanha o dedo; devolver foco após fechar |
+| Abrir popup                       | Fade do overlay/painel; deslocamento opcional máximo de 8 unidades     | 140–180 ms                                  | Sem salto de layout; foco e estado modal acompanham abertura     |
+| Sheet móvel, quando usado         | Entrada inferior curta                                                 | 180–240 ms                                  | Respeitar área segura; manter o tipo de mensagem já definido     |
+| Abrir menu de opções              | Fade junto ao acionador                                                | 100–140 ms                                  | Reposicionar para caber na viewport                              |
+| Pressionar botão                  | Mudança de cor/superfície, feedback imediato                           | 80–120 ms                                   | Sem encolher alvo de toque ou mover rótulo                       |
+| Alterar filtro/status             | Mudança de fundo, contorno e indicador                                 | 120–160 ms                                  | Palavra e estado acessível mudam junto da ação                   |
+| Reordenar setlist                 | Item segue o dedo; vizinhos acomodam a posição                         | Vizinhos: 120–180 ms                        | Cancelar mantém ordem inicial; sem efeito em todos os itens      |
+| Carregar conteúdo                 | Skeleton estático; fade único ao concluir                              | Fade: 120–160 ms                            | Geometria próxima do conteúdo, sem cascata ou brilho pulsante    |
+| Atualizar dados visíveis          | Conteúdo permanece; indicador local                                    | Sem transição da tela inteira               | Preservar rolagem e evitar piscar a lista a cada consulta        |
+| Salvar/denunciar                  | Indicador + “Salvando…”/“Enviando…”; confirmação no padrão de feedback | Acompanha a operação                        | Sem antecipar sucesso; erro permanece compreensível              |
 
 **Exemplo:** tocar numa música → linha responde ao toque → Stack revela detalhe → título e conteúdo estabilizam → leitura permanece sem efeitos. No retorno por gesto, o detalhe acompanha o dedo e revela a lista no ponto anterior. Cancelar faz o detalhe reassumir a posição, ainda ativo.
 
@@ -758,19 +758,19 @@ Transições de imagem compartilhada entre lista/detalhe ficam fora do primeiro 
 
 ### 14.6 Outras melhorias de UX
 
-| Área | Melhoria proposta | Exemplo de aplicação |
-| --- | --- | --- |
-| Contexto da banda | Nome presente e troca de contexto explícita | Identificar a banda do repertório/show aberto |
-| Próxima ação | Verbo claro, próximo ao conteúdo, pertinente ao papel | Criar banda → Convidar integrante → Adicionar música → Criar show; sem tour obrigatório |
-| Convites | Distinguir criar, compartilhar, renovar e revogar | Mostrar papel/validade antes da ação; compartilhar atua no convite atual |
-| Edição | Rótulos persistentes, alteração e recuperação de erro | “Alterações não salvas”; erro mantém campos e indica correção |
-| Busca e filtros | Consulta contextualizada e recuperação fácil | “Nenhuma música encontrada…” + “Limpar filtros”, preservando consulta quando possível |
-| Estado vazio | Motivo e próxima ação possíveis | Repertório vazio orienta adicionar; falta de permissão explica impedimento |
-| Ações contextuais | Verbo e objeto explícitos | “Remover da setlist” e “Excluir música” como operações diferentes |
-| Leitura da letra | Poucos controles, ajuste de texto e rolagem livre | Avaliar A−/A+ com nomes acessíveis; seleção de texto não navega |
-| Teclado | Campo, erro e ações continuam alcançáveis | Barra de ação não cobre a última linha; campo focado permanece visível |
-| Lentidão/conexão | Estado verdadeiro e recuperação | Conteúdo válido permanece; “Tentar novamente”; não prometer edição offline |
-| Destruição/moderação | Confirmação clara e proporcional | Exclusão confirma; denúncia abre formulário identificável e informa resultado em popup |
+| Área                 | Melhoria proposta                                     | Exemplo de aplicação                                                                    |
+| -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Contexto da banda    | Nome presente e troca de contexto explícita           | Identificar a banda do repertório/show aberto                                           |
+| Próxima ação         | Verbo claro, próximo ao conteúdo, pertinente ao papel | Criar banda → Convidar integrante → Adicionar música → Criar show; sem tour obrigatório |
+| Convites             | Distinguir criar, compartilhar, renovar e revogar     | Mostrar papel/validade antes da ação; compartilhar atua no convite atual                |
+| Edição               | Rótulos persistentes, alteração e recuperação de erro | “Alterações não salvas”; erro mantém campos e indica correção                           |
+| Busca e filtros      | Consulta contextualizada e recuperação fácil          | “Nenhuma música encontrada…” + “Limpar filtros”, preservando consulta quando possível   |
+| Estado vazio         | Motivo e próxima ação possíveis                       | Repertório vazio orienta adicionar; falta de permissão explica impedimento              |
+| Ações contextuais    | Verbo e objeto explícitos                             | “Remover da setlist” e “Excluir música” como operações diferentes                       |
+| Leitura da letra     | Poucos controles, ajuste de texto e rolagem livre     | Avaliar A−/A+ com nomes acessíveis; seleção de texto não navega                         |
+| Teclado              | Campo, erro e ações continuam alcançáveis             | Barra de ação não cobre a última linha; campo focado permanece visível                  |
+| Lentidão/conexão     | Estado verdadeiro e recuperação                       | Conteúdo válido permanece; “Tentar novamente”; não prometer edição offline              |
+| Destruição/moderação | Confirmação clara e proporcional                      | Exclusão confirma; denúncia abre formulário identificável e informa resultado em popup  |
 
 O controle de tamanho da letra é proposta adicional a avaliar com a leitura existente. Histórico de desfazer, edição offline, reprodução e modo Palco precisam de escopo próprio se desejados. Mensagens continuam no padrão de popup definido, com ajuda junto ao campo para correções locais.
 
@@ -789,11 +789,11 @@ Reduzir efeitos não essenciais acompanha a orientação de acessibilidade para 
 
 ### 14.8 Prioridade e avaliação com pessoas
 
-| Etapa | Escopo recomendado | Evidência para avançar |
-| --- | --- | --- |
-| Primeiro corte | Retorno previsível, proteção de edição, contexto, transições de detalhe/drawer e feedback | Voltar sem perder busca/posição; compreender salvar/cancelar e o destino |
-| Segundo corte | Refinar menus, reordenação, busca/carregamento e leitura | Tarefas sem ajuda recorrente, legibilidade e ausência de gesto involuntário |
-| Piloto opcional | Deslize entre seções e pressão longa | Prever destino, cancelar, usar alternativa por botão e manter rolagem/leitura |
+| Etapa           | Escopo recomendado                                                                        | Evidência para avançar                                                        |
+| --------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Primeiro corte  | Retorno previsível, proteção de edição, contexto, transições de detalhe/drawer e feedback | Voltar sem perder busca/posição; compreender salvar/cancelar e o destino      |
+| Segundo corte   | Refinar menus, reordenação, busca/carregamento e leitura                                  | Tarefas sem ajuda recorrente, legibilidade e ausência de gesto involuntário   |
+| Piloto opcional | Deslize entre seções e pressão longa                                                      | Prever destino, cancelar, usar alternativa por botão e manter rolagem/leitura |
 
 Acrescentar ao roteiro de Think Aloud:
 
@@ -818,20 +818,20 @@ Separar cor de função: `background`, `text`, `action`, `border`, `semantic`, `
 
 Para movimento próprio, prever tokens de duração curta (100–140 ms), resposta de superfície (120–180 ms), abertura de camada (220–260 ms) e fechamento (160–200 ms), além da política de redução de movimento. Transições nativas mantêm os padrões compatíveis de cada plataforma.
 
-| Área do projeto | Revisão prevista |
-| --- | --- |
-| `src/theme/tokens.ts` | Introduzir paleta semântica, tipografia e geometria propostas |
-| `src/components/ui/AppText.tsx` | Reorganizar tons por função e retirar associação automática de `inverse` a fundo claro |
-| `AppButton`, `Card`, `AppIcon`, `StatusPill` | Variantes, estados, contraste, slots e bordas |
-| Catálogo semântico de ícones em `AppIcon` | Figuras propostas, separação de significados e retirada de badges/deformações; manter texto quando mais claro |
-| `ListControls` e seus subcomponentes | Busca, filtros, seleção, menu e foco |
-| `Screen`, shell e componentes de navegação | Superfícies, largura por contexto e adaptação à plataforma |
-| Stacks em `src/app/` e proteção de saída dos editores | Transições por rota, retorno nativo, links diretos e alterações não salvas |
-| `NavigationMemory` e `useBandNavigationState` | Mesmos destinos e estado por banda para controles e futuros gestos |
-| `useNavigationDrawer` e reconhecimento de gestos | Prioridade do sistema, acompanhamento/cancelamento e redução de movimento |
-| `Feedback` e dialogs | Tema dos popups, overlay, texto e ações |
-| `AuthScreen` e botões dos provedores | Composição do login, assets e rodapé |
-| Telas dos domínios | Retirar estilos literais conflitantes e ajustar hierarquia de conteúdo |
+| Área do projeto                                       | Revisão prevista                                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `src/theme/tokens.ts`                                 | Introduzir paleta semântica, tipografia e geometria propostas                                                 |
+| `src/components/ui/AppText.tsx`                       | Reorganizar tons por função e retirar associação automática de `inverse` a fundo claro                        |
+| `AppButton`, `Card`, `AppIcon`, `StatusPill`          | Variantes, estados, contraste, slots e bordas                                                                 |
+| Catálogo semântico de ícones em `AppIcon`             | Figuras propostas, separação de significados e retirada de badges/deformações; manter texto quando mais claro |
+| `ListControls` e seus subcomponentes                  | Busca, filtros, seleção, menu e foco                                                                          |
+| `Screen`, shell e componentes de navegação            | Superfícies, largura por contexto e adaptação à plataforma                                                    |
+| Stacks em `src/app/` e proteção de saída dos editores | Transições por rota, retorno nativo, links diretos e alterações não salvas                                    |
+| `NavigationMemory` e `useBandNavigationState`         | Mesmos destinos e estado por banda para controles e futuros gestos                                            |
+| `useNavigationDrawer` e reconhecimento de gestos      | Prioridade do sistema, acompanhamento/cancelamento e redução de movimento                                     |
+| `Feedback` e dialogs                                  | Tema dos popups, overlay, texto e ações                                                                       |
+| `AuthScreen` e botões dos provedores                  | Composição do login, assets e rodapé                                                                          |
+| Telas dos domínios                                    | Retirar estilos literais conflitantes e ajustar hierarquia de conteúdo                                        |
 
 Revisar usos de opacidade, placeholders, indicadores de refresh, scrollbar Web, status bar e superfícies nativas. Evitar trocar os tokens globais antes de adaptar os componentes que usam um nome com significados diferentes.
 
@@ -888,3 +888,14 @@ Para validar com pessoas, observar se encontram “Adicionar música”, disting
 - Documentos locais: [Arquitetura de telas](ARQUITETURA_DE_TELAS.md), [Guia de tom e voz](GUIA_DE_TOM_E_VOZ.md) e [Roteiro de teste de usabilidade](ROTEIRO_TESTE_USABILIDADE.md).
 
 Os nomes, tamanhos, cores, gestos e tempos desta proposta são recomendações para revisão. O comportamento responsivo final, a legibilidade em dispositivos reais e o atendimento integral aos critérios de acessibilidade precisam ser avaliados na implementação. As pranchas ilustram a direção visual e não definem uma nova funcionalidade de streaming ou um cronograma de entrega.
+
+## 18. Registro da implementação da change
+
+Atualizado em 5 de outubro de 2026, durante a change `implementar-ui-ux-content-first-darkness`.
+
+- Os tokens semânticos, componentes compartilhados e telas de bandas, repertório, shows, setlist, conta e moderação foram migrados para a paleta escura.
+- O mapa `AppIcon` agora diferencia ações que antes compartilhavam figuras. O logo de interface usa recorte com raio de 25%; os favicons usam cantos transparentes arredondados, enquanto os ícones nativos continuam quadrados para receber a máscara do sistema operacional uma única vez.
+- As rotas usam fade breve na Web e a transição padrão nativa em Android/iOS. A preferência de movimento reduzido é observada durante a sessão e remove as animações próprias de rotas, drawer e janelas modais.
+- Editores de música/letra, setlist e criação de show protegem a navegação com alterações pendentes. Na Web, a navegação interna mostra o aviso do Setlist; fechamento ou recarga da aba usa o aviso nativo do navegador, com texto fora do controle do app.
+- O deslize entre seções permanece desligado. A change não declara aprovação de usabilidade; ele só poderá ser considerado após o piloto Think Aloud documentado no roteiro.
+- Ainda falta inspeção manual de login, bandas, repertório/letra, shows/setlist e retorno em Web, Android e iOS, incluindo leitores de tela, texto ampliado, orientação horizontal e mudança da preferência de movimento reduzido. As capturas/observações devem ser adicionadas após a validação nos dispositivos.

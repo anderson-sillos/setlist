@@ -5,7 +5,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { colors, radii, spacing } from '@/theme/tokens';
 
 interface BottomNavigationProps {
   readonly activeSection: BandSection;
@@ -46,7 +46,7 @@ export function BottomNavigation({
               testID="bottom-navigation-item-content"
             >
               <AppIcon
-                color={active ? colors.violet : colors.muted}
+                color={active ? colors.action.primary : colors.text.secondary}
                 name={item.icon}
                 size={22}
                 strokeWidth={active ? 2.5 : 2}
@@ -84,18 +84,18 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   navigation: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderTopColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    minHeight: 52,
-    paddingVertical: 2,
+    minHeight: 60,
+    paddingVertical: spacing.xs,
   },
   item: {
     alignItems: 'center',
     flexShrink: 1,
-    height: layout.minimumTouchTarget,
+    height: 56,
     justifyContent: 'center',
     minWidth: 0,
     paddingHorizontal: spacing.xs,
@@ -104,17 +104,17 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    gap: 1,
+    gap: spacing.xs,
     justifyContent: 'center',
     width: '100%',
   },
   itemActive: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
     borderRadius: radii.sm,
   },
   label: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: 'center',
     width: '100%',
   },

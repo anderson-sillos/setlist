@@ -13,7 +13,7 @@ interface NavigationIconButtonProps {
 
 export function NavigationIconButton({
   accessibilityLabel,
-  color = colors.ink,
+  color = colors.text.primary,
   icon,
   onPress,
 }: NavigationIconButtonProps) {

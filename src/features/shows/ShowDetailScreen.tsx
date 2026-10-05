@@ -482,7 +482,7 @@ export function ShowDetailScreen({
             {canEdit ? (
               <AppButton
                 accessibilityLabel="Excluir show"
-                icon="remove"
+                icon="delete"
                 label="Excluir show"
                 onPress={openDelete}
                 variant="secondary"
@@ -590,7 +590,7 @@ export function ShowDetailScreen({
         <AppButton
           accessibilityLabel="Confirmar exclusão definitiva do show"
           disabled={deleteSubmitting}
-          icon="remove"
+          icon="delete"
           label={deleteSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
           onPress={() => void handleDeleteShow()}
         />
@@ -644,7 +644,11 @@ export function ShowDetailScreen({
                   accessible
                   style={styles.songCount}
                 >
-                  <AppIcon color={colors.violet} name="music" size={16} />
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="music"
+                    size={16}
+                  />
                   <AppText tone="accent" variant="caption">
                     {songCountLabel}
                   </AppText>
@@ -725,7 +729,7 @@ export function ShowDetailScreen({
                               style={styles.planningIcon}
                             >
                               <AppIcon
-                                color={colors.violet}
+                                color={colors.action.primary}
                                 name="planning"
                                 size={14}
                               />
@@ -798,7 +802,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   notes: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     gap: spacing.sm,
     paddingTop: spacing.lg,
@@ -809,7 +813,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   durationSummary: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     gap: spacing.xs,
@@ -833,7 +837,7 @@ const styles = StyleSheet.create({
   },
   songCount: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.pill,
     flexDirection: 'row',
     gap: spacing.xs,
@@ -883,14 +887,14 @@ const styles = StyleSheet.create({
   },
   planningIcon: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.pill,
     height: 28,
     justifyContent: 'center',
     width: 28,
   },
   separatorItem: {
-    borderTopColor: colors.violet,
+    borderTopColor: colors.action.primary,
     borderTopWidth: 2,
     marginVertical: spacing.md + spacing.sm - spacing.xs,
     opacity: 0.42,
@@ -918,15 +922,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   readinessNotice: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     gap: spacing.sm,
     padding: spacing.md,
   },
   errorText: {
-    color: colors.amber,
+    color: colors.semantic.danger,
   },
 });
 
@@ -951,7 +955,11 @@ function LyricReadinessNotice({
           <View style={styles.readinessIssues}>
             {issues.map((issue) => (
               <View key={issue.songId} style={styles.readinessIssue}>
-                <AppIcon color={colors.amber} name="duration" size={16} />
+                <AppIcon
+                  color={colors.semantic.warning}
+                  name="duration"
+                  size={16}
+                />
                 <View style={styles.readinessIssueCopy}>
                   <AppText>{issue.title}</AppText>
                   <AppText tone="muted" variant="caption">

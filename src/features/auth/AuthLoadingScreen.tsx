@@ -1,9 +1,10 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { AppLogo } from '@/components/ui/AppLogo';
 import { Screen } from '@/components/ui/Screen';
 import { AuthLoadingState } from '@/features/auth/AuthLoadingState';
-import { radii, spacing } from '@/theme/tokens';
+import { spacing } from '@/theme/tokens';
 
 interface AuthLoadingScreenProps {
   readonly label: string;
@@ -13,12 +14,7 @@ export function AuthLoadingScreen({ label }: AuthLoadingScreenProps) {
   return (
     <Screen contentStyle={styles.screenContent} testID="auth-gate-loading">
       <View style={styles.content}>
-        <Image
-          accessibilityLabel="Logo do Setlist"
-          accessibilityRole="image"
-          source={require('../../../assets/icons/app-icon-512.png')}
-          style={styles.logo}
-        />
+        <AppLogo size={64} />
         <AppText accessibilityRole="header" variant="heading">
           Setlist
         </AppText>
@@ -39,10 +35,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 320,
     paddingVertical: spacing.xxxl,
-  },
-  logo: {
-    borderRadius: radii.lg,
-    height: 88,
-    width: 88,
   },
 });

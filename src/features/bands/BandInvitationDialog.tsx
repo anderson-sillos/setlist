@@ -18,6 +18,7 @@ import type { BandInvitation } from '@/domain';
 import type { CreatedInvitation } from '@/data/supabase/invitationMutations';
 import { formatDateOnly } from '@/utils/dateTime';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface BandInvitationDialogProps {
   readonly errorMessage: string | null;
@@ -65,6 +66,7 @@ export function BandInvitationDialog({
   onRevoke,
   visible,
 }: BandInvitationDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [label, setLabel] = useState('');
   const [lastCreated, setLastCreated] = useState<CreatedInvitation | null>(
     null,
@@ -138,7 +140,7 @@ export function BandInvitationDialog({
   return (
     <>
       <Modal
-        animationType="fade"
+        animationType={reducedMotion ? 'none' : 'fade'}
         onRequestClose={handleClose}
         transparent
         visible={visible}
@@ -177,7 +179,7 @@ export function BandInvitationDialog({
                   pressed && styles.pressed,
                 ]}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
               </Pressable>
             </View>
 
@@ -197,7 +199,7 @@ export function BandInvitationDialog({
                   maxLength={120}
                   onChangeText={setLabel}
                   placeholder="Ex.: Baixista"
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={colors.text.muted}
                   style={styles.input}
                   value={label}
                 />
@@ -297,9 +299,10 @@ function InvitationLinkReadyDialog({
   onClose,
   onShare,
 }: InvitationLinkReadyDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
       transparent
       visible={invitation !== null}
@@ -332,7 +335,7 @@ function InvitationLinkReadyDialog({
                   pressed && styles.pressed,
                 ]}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
               </Pressable>
             </View>
             <View style={styles.linkContent}>
@@ -388,7 +391,7 @@ function InvitationIconButton({
       ]}
     >
       <AppIcon
-        color={disabled ? colors.muted : colors.violet}
+        color={disabled ? colors.text.secondary : colors.action.primary}
         name={icon}
         size={18}
       />
@@ -398,7 +401,7 @@ function InvitationIconButton({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -416,17 +419,17 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   linkDialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxWidth: 560,
     overflow: 'hidden',
     width: '100%',
   },
   linkText: {
-    color: colors.ink,
+    color: colors.text.primary,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxHeight: '90%',
     maxWidth: 560,
@@ -434,7 +437,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   fieldGroup: {
     gap: spacing.xs,
@@ -449,7 +452,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -457,10 +460,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
@@ -473,7 +476,7 @@ const styles = StyleSheet.create({
   },
   invitationIconButton: {
     alignItems: 'center',
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.md,
     borderWidth: 1,
     height: layout.minimumTouchTarget,
@@ -487,7 +490,7 @@ const styles = StyleSheet.create({
   },
   invitationRow: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -510,7 +513,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

@@ -75,7 +75,11 @@ export function UserAvatar({
           {initials}
         </AppText>
       ) : (
-        <AppIcon color={colors.violet} name="account" size={size * 0.52} />
+        <AppIcon
+          color={colors.action.primary}
+          name="account"
+          size={size * 0.52}
+        />
       )}
     </View>
   );
@@ -84,7 +88,7 @@ export function UserAvatar({
 const styles = StyleSheet.create({
   avatar: {
     alignItems: 'center',
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
     borderRadius: radii.pill,
     flexShrink: 0,
     justifyContent: 'center',

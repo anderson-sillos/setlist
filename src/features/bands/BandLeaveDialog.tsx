@@ -4,6 +4,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface BandLeaveDialogProps {
   readonly bandName: string;
@@ -22,12 +23,18 @@ export function BandLeaveDialog({
   onConfirm,
   visible,
 }: BandLeaveDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   if (!visible) {
     return null;
   }
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType={reducedMotion ? 'none' : 'fade'}
+      onRequestClose={onClose}
+      transparent
+      visible
+    >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
           accessibilityLabel="Fechar saída da banda"
@@ -55,7 +62,7 @@ export function BandLeaveDialog({
                 pressed && styles.pressed,
               ]}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
 
@@ -97,7 +104,7 @@ export function BandLeaveDialog({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -116,18 +123,18 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxWidth: 520,
     overflow: 'hidden',
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -144,7 +151,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

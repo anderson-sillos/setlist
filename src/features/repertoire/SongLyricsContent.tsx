@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   separator: {
-    borderTopColor: colors.muted,
+    borderTopColor: colors.text.secondary,
     borderTopWidth: 1,
     marginVertical: spacing.sm,
     minHeight: 1,

@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
-import { forwardRef, type ComponentRef, type ReactNode } from 'react';
+import { forwardRef, useState, type ComponentRef, type ReactNode } from 'react';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -7,12 +7,14 @@ import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { blurWebFocus } from '@/utils/focus';
 
-type ButtonVariant = 'primary' | 'secondary';
+type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive';
 
 type AppButtonProps = Omit<PressableProps, 'children'> & {
   icon?: AppIconName;
   label: string;
   leading?: ReactNode;
+  onBlur?: PressableProps['onBlur'];
+  onFocus?: PressableProps['onFocus'];
   variant?: ButtonVariant;
 };
 
@@ -25,6 +27,8 @@ export const AppButton = forwardRef<
     icon,
     label,
     leading,
+    onBlur,
+    onFocus,
     onPress,
     style,
     variant = 'primary',
@@ -32,7 +36,8 @@ export const AppButton = forwardRef<
   },
   ref,
 ) {
-  const contentColor = variant === 'primary' ? colors.surface : colors.violet;
+  const [focused, setFocused] = useState(false);
+  const contentColor = disabled ? colors.text.disabled : buttonColors[variant];
   const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
     blurWebFocus();
     onPress?.(event);
@@ -44,23 +49,28 @@ export const AppButton = forwardRef<
       {...props}
       ref={ref}
       accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(disabled) }}
       onPress={handlePress}
+      onFocus={(event) => {
+        setFocused(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        onBlur?.(event);
+      }}
       style={(state) => [
         styles.base,
         variants[variant],
-        disabled && styles.disabled,
-        state.pressed && styles.pressed,
+        disabled && disabledVariants[variant],
+        state.pressed && pressedVariants[variant],
+        focused && styles.focused,
         typeof style === 'function' ? style(state) : style,
       ]}
     >
       {leading ??
         (icon ? <AppIcon color={contentColor} name={icon} size={18} /> : null)}
-      <AppText
-        style={styles.label}
-        tone={variant === 'primary' ? 'inverse' : 'accent'}
-      >
-        {label}
-      </AppText>
+      <AppText style={[styles.label, { color: contentColor }]}>{label}</AppText>
     </Pressable>
   );
 });
@@ -80,21 +90,69 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: '700',
   },
-  pressed: {
-    opacity: 0.72,
-  },
-  disabled: {
-    opacity: 0.5,
+  focused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
   },
 });
 
 const variants = StyleSheet.create({
   primary: {
-    backgroundColor: colors.violet,
-    borderColor: colors.violet,
+    backgroundColor: colors.action.primary,
+    borderColor: colors.action.primary,
   },
   secondary: {
-    backgroundColor: colors.surface,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
+  },
+  tertiary: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
+  destructive: {
+    backgroundColor: colors.semantic.danger,
+    borderColor: colors.semantic.danger,
   },
 });
+
+const pressedVariants = StyleSheet.create({
+  primary: {
+    backgroundColor: colors.action.pressed,
+    borderColor: colors.action.pressed,
+  },
+  secondary: {
+    backgroundColor: colors.background.pressed,
+  },
+  tertiary: {
+    backgroundColor: colors.background.hover,
+  },
+  destructive: {
+    opacity: 0.84,
+  },
+});
+
+const disabledVariants = StyleSheet.create({
+  primary: {
+    backgroundColor: colors.background.pressed,
+    borderColor: colors.border.subtle,
+  },
+  secondary: {
+    backgroundColor: colors.background.base,
+    borderColor: colors.border.subtle,
+  },
+  tertiary: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
+  destructive: {
+    backgroundColor: colors.semantic.dangerSurface,
+    borderColor: colors.semantic.dangerSurface,
+  },
+});
+
+const buttonColors: Record<ButtonVariant, string> = {
+  primary: colors.text.onAccent,
+  secondary: colors.text.primary,
+  tertiary: colors.text.secondary,
+  destructive: colors.text.onAccent,
+};

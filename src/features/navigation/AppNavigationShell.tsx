@@ -79,6 +79,12 @@ export function AppNavigationShell({
   const layoutMode = getLayoutMode(width);
   const navigationPresentation = getNavigationPresentation(width, height);
   const persistentSidebar = navigationPresentation === 'sidebar';
+  const horizontalPadding =
+    layoutMode === 'desktop'
+      ? layout.desktopHorizontalMargin
+      : layoutMode === 'tablet'
+        ? layout.tabletHorizontalMargin
+        : layout.phoneHorizontalMargin;
   const { getSectionHref, handleScroll, initialScrollOffset } =
     useBandNavigationState({
       activeSection,
@@ -151,7 +157,14 @@ export function AppNavigationShell({
 
           {fixedContent ? (
             <View style={styles.fixedContentFrame}>
-              <View style={styles.fixedContent}>{fixedContent}</View>
+              <View
+                style={[
+                  styles.fixedContent,
+                  { paddingHorizontal: horizontalPadding },
+                ]}
+              >
+                {fixedContent}
+              </View>
             </View>
           ) : null}
 
@@ -172,7 +185,14 @@ export function AppNavigationShell({
               scrollEventThrottle={120}
               testID="screen-scroll-area"
             >
-              <View style={styles.content}>{children}</View>
+              <View
+                style={[
+                  styles.content,
+                  { paddingHorizontal: horizontalPadding },
+                ]}
+              >
+                {children}
+              </View>
             </ScrollView>
           ) : (
             <View
@@ -228,7 +248,7 @@ export function AppNavigationShell({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background.canvas,
     flex: 1,
   },
   shellRow: {
@@ -236,6 +256,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   mainArea: {
+    backgroundColor: colors.background.base,
     flex: 1,
     minWidth: 0,
   },
@@ -243,22 +264,24 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   fixedContentFrame: {
-    backgroundColor: colors.paper,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
-    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     zIndex: 2,
   },
   fixedContent: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     maxWidth: layout.contentMaxWidth,
+    paddingVertical: spacing.sm,
     width: '100%',
   },
   content: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
+    backgroundColor: colors.background.base,
     maxWidth: layout.contentMaxWidth,
-    padding: spacing.xl,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.xl,
     width: '100%',
   },
   unscrolledContent: {
@@ -275,7 +298,7 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   sidebar: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.background.canvas,
     flexBasis: 284,
     maxWidth: 320,
     minWidth: 260,

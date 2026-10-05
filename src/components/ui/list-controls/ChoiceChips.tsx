@@ -34,7 +34,7 @@ export function ChoiceChips<Value extends string>({
               pressed && styles.pressed,
             ]}
           >
-            <AppText tone={selected ? 'inverse' : 'accent'} variant="caption">
+            <AppText tone={selected ? 'onAccent' : 'muted'} variant="caption">
               {option.label}
             </AppText>
           </Pressable>
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     alignItems: 'center',
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.pill,
     borderWidth: 1,
     justifyContent: 'center',
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   selected: {
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
   },
   pressed: {
     opacity: 0.72,

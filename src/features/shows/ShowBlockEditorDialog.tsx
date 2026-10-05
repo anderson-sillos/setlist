@@ -29,6 +29,7 @@ import { moveSetlistItem } from '@/domain';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
 
 export type ShowSetlistItemDraft = ShowSetlistItem & {
@@ -50,6 +51,7 @@ interface ShowBlockEditorDialogProps {
   readonly isSubmitting: boolean;
   readonly onAddSheetVisibilityChange: (visible: boolean) => void;
   readonly onClose: () => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
   readonly visible: boolean;
@@ -160,10 +162,12 @@ export function ShowBlockEditorDialog({
   isSubmitting,
   onAddSheetVisibilityChange,
   onClose,
+  onDirtyChange,
   onSubmit,
   songs,
   visible,
 }: ShowBlockEditorDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
     cloneBlocks(initialBlocks),
   );
@@ -212,6 +216,9 @@ export function ShowBlockEditorDialog({
     [initialBlocks],
   );
   const hasChanges = JSON.stringify(blocks) !== initialSnapshot;
+  useEffect(() => {
+    onDirtyChange?.(hasChanges);
+  }, [hasChanges, onDirtyChange]);
   const requestClose = () => {
     if (isSubmitting) return;
     if (hasChanges) {
@@ -820,7 +827,7 @@ export function ShowBlockEditorDialog({
                 onPress={requestClose}
                 style={styles.closeButton}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
               </Pressable>
             </View>
           ) : null}
@@ -904,7 +911,7 @@ export function ShowBlockEditorDialog({
                 testID="setlist-drag-preview"
               >
                 <AppIcon
-                  color={colors.violet}
+                  color={colors.action.primary}
                   name={dragPreview.icon}
                   size={18}
                 />
@@ -948,10 +955,10 @@ export function ShowBlockEditorDialog({
           />
           <AppButton
             accessibilityLabel="Descartar alterações"
-            icon="remove"
             label="Descartar alterações"
             onPress={() => {
               setDiscardVisible(false);
+              onDirtyChange?.(false);
               onClose();
             }}
           />
@@ -976,7 +983,7 @@ export function ShowBlockEditorDialog({
           <AppButton
             accessibilityLabel="Confirmar exclusão do bloco"
             disabled={!blockToDelete}
-            icon="remove"
+            icon="delete"
             label="Excluir bloco"
             onPress={deleteBlock}
           />
@@ -1014,7 +1021,7 @@ export function ShowBlockEditorDialog({
           />
           <AppButton
             accessibilityLabel="Adicionar separador"
-            icon="remove"
+            icon="minus"
             label="Adicionar separador"
             onPress={addSeparator}
             variant="secondary"
@@ -1111,7 +1118,11 @@ export function ShowBlockEditorDialog({
                       {formatSongDuration(song.estimatedDurationMs)}
                     </AppText>
                     {selected ? (
-                      <AppIcon color={colors.violet} name="check" size={18} />
+                      <AppIcon
+                        color={colors.action.primary}
+                        name="check"
+                        size={18}
+                      />
                     ) : null}
                   </View>
                 </Pressable>
@@ -1127,7 +1138,7 @@ export function ShowBlockEditorDialog({
     <View style={styles.screenRoot}>{content}</View>
   ) : (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={requestClose}
       transparent
       visible={visible}
@@ -1226,17 +1237,17 @@ function BlockRow({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="remove" size={17} />
+          <AppIcon color={colors.text.secondary} name="delete" size={17} />
         </Pressable>
         <View style={styles.blockSelect}>
           <View style={styles.blockTitleRow}>
-            <AppIcon color={colors.violet} name="block" size={18} />
+            <AppIcon color={colors.text.secondary} name="block" size={18} />
             <TextInput
               accessibilityLabel={'Nome do bloco ' + (index + 1)}
               onChangeText={onChangeName}
               onFocus={onSelect}
               placeholder="Nome do bloco"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.text.muted}
               style={[styles.blockNameInput, styles.blockNameField]}
               value={block.name}
             />
@@ -1264,7 +1275,7 @@ function BlockRow({
         >
           <View style={[styles.dragHandle, styles.dragIconHitTest]}>
             <AppIcon
-              color={dragging ? colors.violet : colors.muted}
+              color={dragging ? colors.action.primary : colors.text.secondary}
               name="dragHandle"
               size={18}
               strokeWidth={2.5}
@@ -1387,7 +1398,7 @@ function SetlistItemRow({
             onRemove={onRemove}
           />
           <View style={[styles.itemContent, styles.planningItemContent]}>
-            <AppIcon color={colors.violet} name="planning" size={16} />
+            <AppIcon color={colors.text.secondary} name="planning" size={16} />
             <TextInput
               accessibilityLabel={'Descrição do planejamento ' + (index + 1)}
               onChangeText={(description) =>
@@ -1398,7 +1409,7 @@ function SetlistItemRow({
                 )
               }
               placeholder="Ex.: Troca de instrumento"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.text.muted}
               style={[styles.input, styles.planningDescription]}
               value={item.description}
             />
@@ -1538,7 +1549,7 @@ function SetlistItemRow({
         onRemove={onRemove}
       />
       <View style={styles.itemContent}>
-        <AppIcon color={colors.violet} name="music" size={16} />
+        <AppIcon color={colors.text.secondary} name="music" size={16} />
         <View style={styles.itemFields}>
           <AppText>{song?.title ?? 'Música indisponível'}</AppText>
           {song?.originalArtist ? (
@@ -1559,7 +1570,7 @@ function SetlistItemRow({
               )
             }
             placeholder="Observação opcional para este show"
-            placeholderTextColor={colors.muted}
+            placeholderTextColor={colors.text.muted}
             style={styles.input}
             value={item.notes ?? ''}
           />
@@ -1596,7 +1607,7 @@ function ItemRemoveButton({
         pressed && styles.pressed,
       ]}
     >
-      <AppIcon color={colors.violet} name="remove" size={17} />
+      <AppIcon color={colors.text.secondary} name="remove" size={17} />
     </Pressable>
   );
 }
@@ -1630,7 +1641,7 @@ function ItemDragHandle({
     >
       <View style={styles.dragIconHitTest}>
         <AppIcon
-          color={dragging ? colors.violet : colors.muted}
+          color={dragging ? colors.action.primary : colors.text.secondary}
           name="dragHandle"
           size={18}
         />
@@ -1735,7 +1746,7 @@ function DragGestureHandle({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1744,12 +1755,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   activeBlockCard: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderWidth: 2,
   },
   blockCard: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     gap: spacing.md,
@@ -1762,11 +1773,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   blockNameInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
   },
@@ -1796,12 +1807,12 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     ...Platform.select({
       android: { elevation: 8 },
       ios: {
-        shadowColor: '#172033',
+        shadowColor: '#08080a',
         shadowOffset: { height: 4, width: 0 },
         shadowOpacity: 0.18,
         shadowRadius: 16,
@@ -1815,7 +1826,7 @@ const styles = StyleSheet.create({
   },
   dragHandle: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: StyleSheet.hairlineWidth,
     height: 32,
@@ -1823,24 +1834,24 @@ const styles = StyleSheet.create({
     width: 32,
   },
   draggingHandle: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
   },
   draggingItemRow: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.sm,
     borderWidth: 2,
     paddingHorizontal: spacing.xs,
   },
   dragPreview: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.action.primary,
     borderRadius: radii.md,
     borderWidth: 2,
     ...Platform.select({
       android: { elevation: 8 },
       ios: {
-        shadowColor: '#172033',
+        shadowColor: '#08080a',
         shadowOffset: { height: 4, width: 0 },
         shadowOpacity: 0.18,
         shadowRadius: 8,
@@ -1905,8 +1916,8 @@ const styles = StyleSheet.create({
   },
   totalDurationBar: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     minHeight: layout.minimumTouchTarget,
@@ -1916,7 +1927,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  errorText: { color: colors.amber },
+  errorText: { color: colors.semantic.danger },
   toolbarCopy: {
     flex: 1,
     gap: spacing.xs,
@@ -1924,7 +1935,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     gap: spacing.md,
@@ -1934,11 +1945,11 @@ const styles = StyleSheet.create({
   },
   headerCopy: { flex: 1, gap: spacing.xs },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -1973,7 +1984,7 @@ const styles = StyleSheet.create({
   },
   itemRow: {
     alignItems: 'flex-start',
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,
@@ -1988,7 +1999,7 @@ const styles = StyleSheet.create({
   },
   modalLayer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(25, 20, 45, 0.48)',
+    backgroundColor: colors.background.overlay,
     flex: 1,
     justifyContent: 'center',
     padding: spacing.lg,
@@ -2035,7 +2046,7 @@ const styles = StyleSheet.create({
   },
   screenLayer: {
     alignSelf: 'stretch',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     flex: 1,
     minHeight: 0,
     width: '100%',
@@ -2057,7 +2068,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 0 },
   separator: {
     alignSelf: 'center',
-    borderTopColor: colors.violet,
+    borderTopColor: colors.action.primary,
     borderTopWidth: 2,
     flex: 1,
     marginVertical: spacing.sm,
@@ -2084,7 +2095,7 @@ const styles = StyleSheet.create({
   },
   songOption: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2105,8 +2116,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   songOptionSelected: {
-    backgroundColor: colors.violetSoft,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.selected,
+    borderColor: colors.action.primary,
   },
   songOptions: { gap: spacing.sm, paddingBottom: spacing.md },
   songPickerScroll: { flex: 1, minHeight: 0 },

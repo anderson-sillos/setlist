@@ -13,6 +13,7 @@ import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { blurWebFocus } from '@/utils/focus';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface MenuButtonProps {
   readonly active?: boolean;
@@ -58,11 +59,17 @@ export function MenuButton({
       onPress={handlePress}
       style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
     >
-      {icon ? <AppIcon color={colors.violet} name={icon} size={16} /> : null}
+      {icon ? (
+        <AppIcon
+          color={active ? colors.action.primary : colors.text.secondary}
+          name={icon}
+          size={16}
+        />
+      ) : null}
       <AppText
         numberOfLines={1}
         style={styles.menuButtonLabel}
-        tone="accent"
+        tone={active ? 'accent' : 'muted'}
         variant="caption"
       >
         {label}
@@ -70,14 +77,14 @@ export function MenuButton({
       {active ? (
         <View style={styles.activeIndicator}>
           <AppIcon
-            color={colors.violet}
+            color={colors.action.primary}
             name="check"
             size={7}
             strokeWidth={2.25}
           />
         </View>
       ) : null}
-      <AppIcon color={colors.violet} name="chevronDown" size={16} />
+      <AppIcon color={colors.text.secondary} name="chevronDown" size={16} />
     </Pressable>
   );
 }
@@ -92,6 +99,7 @@ export function OptionSheet({
   testID,
   visible,
 }: OptionSheetProps) {
+  const reducedMotion = useReducedMotionPreference();
   const handleClose = () => {
     blurWebFocus();
     onClose();
@@ -99,7 +107,7 @@ export function OptionSheet({
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={handleClose}
       transparent
       visible={visible}
@@ -136,7 +144,7 @@ export function OptionSheet({
                   pressed && styles.pressed,
                 ]}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.primary} name="close" size={20} />
               </Pressable>
             </View>
           ) : (
@@ -171,8 +179,8 @@ const styles = StyleSheet.create({
   menuButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -186,7 +194,7 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     alignItems: 'center',
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
     borderRadius: radii.pill,
     height: 10,
     justifyContent: 'center',
@@ -199,7 +207,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   modalScrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -207,8 +215,10 @@ const styles = StyleSheet.create({
     top: 0,
   },
   sheet: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radii.xl,
+    borderWidth: 1,
     gap: spacing.lg,
     maxWidth: 420,
     padding: spacing.xl,

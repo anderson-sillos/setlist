@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   playerHost: {
     alignSelf: 'center',
     aspectRatio: 16 / 9,
-    backgroundColor: colors.navy,
+    backgroundColor: colors.background.canvas,
     borderRadius: radii.md,
     overflow: 'hidden',
   },
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   webView: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.background.canvas,
     flex: 1,
   },
 });

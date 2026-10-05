@@ -19,13 +19,9 @@ export function AppVersionLabel({
 
   return (
     <AppText
-      style={[
-        styles.label,
-        align === 'left' && styles.left,
-        inverse && styles.inverse,
-      ]}
-      tone="muted"
-      variant="caption"
+      style={[styles.label, align === 'left' && styles.left]}
+      tone={inverse ? 'muted' : 'subtle'}
+      variant="version"
     >
       {compact ? `v${version}` : `Versão ${version}`}
     </AppText>
@@ -34,11 +30,7 @@ export function AppVersionLabel({
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 10,
     textAlign: 'center',
-  },
-  inverse: {
-    color: '#aab3ce',
   },
   left: {
     textAlign: 'left',

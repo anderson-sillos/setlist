@@ -15,6 +15,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { colors, fontSizes, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { CURRENT_BAND_TERM } from './legalTerm';
 
 export type BandCreationDialogStatus = 'error' | 'idle' | 'submitting';
@@ -37,6 +38,7 @@ export function BandCreationDialog({
   status,
   visible,
 }: BandCreationDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [name, setName] = useState('');
   const [acceptedTerm, setAcceptedTerm] = useState(false);
 
@@ -45,7 +47,7 @@ export function BandCreationDialog({
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
       transparent
       visible={visible}
@@ -84,7 +86,7 @@ export function BandCreationDialog({
                 pressed && styles.pressed,
               ]}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
           <ScrollView
@@ -106,7 +108,7 @@ export function BandCreationDialog({
                 maxLength={120}
                 onChangeText={setName}
                 placeholder="Ex.: Banda Horizonte"
-                placeholderTextColor={colors.muted}
+                placeholderTextColor={colors.text.muted}
                 style={styles.input}
                 testID="create-band-name"
                 value={name}
@@ -147,7 +149,7 @@ export function BandCreationDialog({
                 ]}
               >
                 {acceptedTerm ? (
-                  <AppIcon color={colors.surface} name="check" size={16} />
+                  <AppIcon color={colors.text.primary} name="check" size={16} />
                 ) : null}
               </View>
               <AppText style={styles.acceptanceText}>
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -211,7 +213,7 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     alignItems: 'center',
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.sm,
     borderWidth: 2,
     height: 24,
@@ -220,10 +222,10 @@ const styles = StyleSheet.create({
     width: 24,
   },
   checkboxChecked: {
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxHeight: '90%',
     maxWidth: 520,
@@ -231,7 +233,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   fieldGroup: {
     gap: spacing.xs,
@@ -246,7 +248,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -254,10 +256,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
@@ -272,7 +274,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

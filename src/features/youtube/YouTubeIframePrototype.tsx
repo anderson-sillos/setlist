@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   playerHost: {
     alignSelf: 'center',
     aspectRatio: 16 / 9,
-    backgroundColor: colors.navy,
+    backgroundColor: colors.background.canvas,
     borderRadius: radii.md,
     overflow: 'hidden',
   },

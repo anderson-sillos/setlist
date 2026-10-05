@@ -69,6 +69,8 @@ Derivar estado alterado dos valores iniciais e atuais, inclusive blocos/linhas d
 
 Integrar a proteção ao mecanismo de prevenção de remoção compatível com Expo Router e limitar interceptores ao editor ativo. Tratar popups/camadas primeiro. Navegadores podem limitar diálogo personalizado ao fechar aba, recarregar ou sair do app: proteger navegação interna e descrever/validar o comportamento externo suportado.
 
+Na Web, a navegação interna usa o aviso visual do Setlist; fechar ou recarregar a aba usa o diálogo nativo do navegador, cujo texto é controlado pelo navegador e pode variar por plataforma.
+
 **Alternativas consideradas:** alerta apenas no botão Cancelar; proteção apenas por um `beforeRemove` global; trocar toda edição para formulário controlado novo. O primeiro deixa Voltar/gestos desprotegidos; o segundo pode interceptar saídas sem edição e esconder intenção; o terceiro eleva risco. Escolher a proteção por rota, ligada ao estado dirty/submitting dos fluxos existentes.
 
 ### 7. Fazer do deslize entre seções um recurso condicionado, nativo e cancelável

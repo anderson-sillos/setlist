@@ -524,7 +524,7 @@ function MemberRow({
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.muted} name="flag" size={17} />
+            <AppIcon color={colors.text.secondary} name="flag" size={17} />
           </Pressable>
         ) : null}
         {current ? (
@@ -537,7 +537,7 @@ function MemberRow({
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.violet} name="logout" />
+            <AppIcon color={colors.text.secondary} name="logout" />
           </Pressable>
         ) : canManage ? (
           <Pressable
@@ -549,7 +549,7 @@ function MemberRow({
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.violet} name="more" />
+            <AppIcon color={colors.text.secondary} name="more" />
           </Pressable>
         ) : null}
       </View>
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   },
   groupHeader: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background.canvas,
     maxWidth: layout.contentMaxWidth,
     paddingBottom: spacing.sm,
     paddingTop: spacing.lg,
@@ -601,8 +601,8 @@ const styles = StyleSheet.create({
   },
   memberRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',

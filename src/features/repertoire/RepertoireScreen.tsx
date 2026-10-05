@@ -95,7 +95,11 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
                   }`}
                   style={styles.durationMeta}
                 >
-                  <AppIcon color={colors.violet} name="duration" size={12} />
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="duration"
+                    size={12}
+                  />
                   <AppText style={styles.durationValue} tone="accent">
                     {song.estimatedDurationMs === null
                       ? '—'
@@ -105,7 +109,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
               </View>
             </View>
             <View style={styles.rowNavigation}>
-              <AppIcon color={colors.violet} name="forward" size={20} />
+              <AppIcon color={colors.text.secondary} name="forward" size={20} />
             </View>
           </View>
         </Pressable>
@@ -311,8 +315,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   listRow: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     minHeight: 82,

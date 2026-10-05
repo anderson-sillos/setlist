@@ -14,6 +14,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { colors, fontSizes, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { CURRENT_BAND_TERM } from './legalTerm';
 
 interface BandTermAcceptanceDialogProps {
@@ -31,11 +32,12 @@ export function BandTermAcceptanceDialog({
   submitting,
   visible,
 }: BandTermAcceptanceDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [accepted, setAccepted] = useState(false);
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
       transparent
       visible={visible}
@@ -68,7 +70,7 @@ export function BandTermAcceptanceDialog({
                 pressed && styles.pressed,
               ]}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
           <ScrollView
@@ -110,7 +112,7 @@ export function BandTermAcceptanceDialog({
                 style={[styles.checkbox, accepted && styles.checkboxChecked]}
               >
                 {accepted ? (
-                  <AppIcon color={colors.surface} name="check" size={16} />
+                  <AppIcon color={colors.text.primary} name="check" size={16} />
                 ) : null}
               </View>
               <AppText style={styles.acceptanceText}>
@@ -155,7 +157,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     alignItems: 'center',
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.sm,
     borderWidth: 2,
     height: 24,
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   checkboxChecked: {
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
   },
   closeButton: {
     alignItems: 'center',
@@ -188,7 +190,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxHeight: '90%',
     maxWidth: 520,
@@ -196,11 +198,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -217,7 +219,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

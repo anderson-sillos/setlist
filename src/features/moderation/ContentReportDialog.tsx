@@ -9,6 +9,7 @@ import {
 } from '@/data/supabase/contentReports';
 import type { EntityId } from '@/domain';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface ContentReportDialogProps {
   readonly bandId: EntityId;
@@ -34,6 +35,7 @@ function VisibleContentReportDialog({
   targetId,
   targetName,
 }: Omit<ContentReportDialogProps, 'visible'>) {
+  const reducedMotion = useReducedMotionPreference();
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,7 +64,7 @@ function VisibleContentReportDialog({
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={handleClose}
       transparent
       visible
@@ -98,7 +100,7 @@ function VisibleContentReportDialog({
                 multiline
                 onChangeText={setDescription}
                 placeholder="Explique o que ocorreu"
-                placeholderTextColor={colors.muted}
+                placeholderTextColor={colors.text.muted}
                 style={styles.input}
                 textAlignVertical="top"
                 value={description}
@@ -137,19 +139,19 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     gap: spacing.lg,
     maxWidth: 520,
     padding: spacing.xl,
     width: '100%',
   },
-  errorText: { color: '#b91c1c' },
+  errorText: { color: colors.semantic.danger },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: 120,
     padding: spacing.md,
   },
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

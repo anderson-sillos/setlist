@@ -67,7 +67,7 @@ export function OptionMenu<Value extends string>({
                 <View style={styles.indicator}>
                   {selected ? (
                     <AppIcon
-                      color={colors.violet}
+                      color={colors.action.primary}
                       name="check"
                       size={18}
                       strokeWidth={2.5}
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   selected: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
   },
   indicator: {
     alignItems: 'center',

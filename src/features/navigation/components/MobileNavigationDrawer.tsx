@@ -64,7 +64,7 @@ export function MobileNavigationDrawer({
               </AppText>
               <NavigationIconButton
                 accessibilityLabel="Fechar menu geral"
-                color={colors.surface}
+                color={colors.text.primary}
                 icon="close"
                 onPress={handleClose}
               />
@@ -101,17 +101,17 @@ const styles = StyleSheet.create({
     width: '86%',
   },
   drawer: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.background.canvas,
     flex: 1,
     width: '100%',
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.52)',
+    backgroundColor: colors.background.overlay,
     flex: 1,
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.navyRaised,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',

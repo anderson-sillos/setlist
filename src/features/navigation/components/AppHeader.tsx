@@ -80,7 +80,11 @@ export function AppHeader({
         <HeaderIconButton
           accessibilityLabel="Salvar edição"
           accessibilityState={{ disabled: editActions.saveDisabled }}
-          color={editActions.saveDisabled ? colors.muted : colors.violet}
+          color={
+            editActions.saveDisabled
+              ? colors.text.secondary
+              : colors.action.primary
+          }
           disabled={editActions.saveDisabled}
           icon="check"
           onPress={editActions.onSave}
@@ -89,7 +93,7 @@ export function AppHeader({
       {headerAction ? (
         <HeaderIconButton
           accessibilityLabel={headerAction.accessibilityLabel}
-          color={colors.violet}
+          color={colors.action.primary}
           icon={headerAction.icon ?? 'more'}
           onPress={() => {
             blurWebFocus();
@@ -120,7 +124,7 @@ const HeaderIconButton = forwardRef<
   {
     accessibilityLabel,
     accessibilityState,
-    color = colors.ink,
+    color = colors.text.primary,
     disabled,
     icon,
     onPress,
@@ -151,8 +155,8 @@ const HeaderIconButton = forwardRef<
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,

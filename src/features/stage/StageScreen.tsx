@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     minWidth: 220,
   },
   exitButton: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.md,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   setlistItemCurrent: {
-    backgroundColor: colors.cyanSoft,
+    backgroundColor: colors.semantic.successSurface,
   },
   itemNumber: {
     width: 24,

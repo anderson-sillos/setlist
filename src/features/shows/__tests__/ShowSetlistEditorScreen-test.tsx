@@ -23,6 +23,7 @@ jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: jest.fn() }),
+  useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
 
 describe('<ShowSetlistEditorScreen />', () => {

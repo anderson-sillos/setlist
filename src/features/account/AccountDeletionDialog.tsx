@@ -14,6 +14,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface AccountDeletionDialogProps {
   readonly errorMessage: string | null;
@@ -32,6 +33,7 @@ export function AccountDeletionDialog({
   onConfirm,
   visible,
 }: AccountDeletionDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [confirmation, setConfirmation] = useState('');
 
   if (!visible) {
@@ -41,7 +43,12 @@ export function AccountDeletionDialog({
   const canDelete = confirmation.trim().toUpperCase() === CONFIRMATION_TEXT;
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType={reducedMotion ? 'none' : 'fade'}
+      onRequestClose={onClose}
+      transparent
+      visible
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
@@ -76,7 +83,7 @@ export function AccountDeletionDialog({
                   pressed && styles.pressed,
                 ]}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
               </Pressable>
             </View>
 
@@ -104,7 +111,7 @@ export function AccountDeletionDialog({
                   autoFocus
                   onChangeText={setConfirmation}
                   placeholder={CONFIRMATION_TEXT}
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={colors.text.muted}
                   style={styles.input}
                   value={confirmation}
                 />
@@ -126,7 +133,7 @@ export function AccountDeletionDialog({
               <AppButton
                 accessibilityLabel="Confirmar exclusão da conta"
                 disabled={isSubmitting || !canDelete}
-                icon="close"
+                icon="delete"
                 label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
                 onPress={onConfirm}
               />
@@ -140,7 +147,7 @@ export function AccountDeletionDialog({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -160,7 +167,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxHeight: '90%',
     maxWidth: 520,
@@ -168,7 +175,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   fieldGroup: {
     gap: spacing.xs,
@@ -179,7 +186,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -187,10 +194,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
@@ -208,7 +215,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

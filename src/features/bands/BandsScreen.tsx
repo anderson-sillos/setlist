@@ -241,7 +241,7 @@ export function BandsScreen({
                 <View style={styles.bandRowLayout}>
                   <View style={styles.bandRowContent}>
                     <View style={styles.bandAvatar}>
-                      <AppText tone="inverse" variant="heading">
+                      <AppText tone="onAccent" variant="heading">
                         {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
                       </AppText>
                     </View>
@@ -267,7 +267,11 @@ export function BandsScreen({
                     </View>
                   </View>
                   <View style={styles.bandRowNavigation}>
-                    <AppIcon color={colors.violet} name="forward" size={20} />
+                    <AppIcon
+                      color={colors.text.secondary}
+                      name="forward"
+                      size={20}
+                    />
                   </View>
                 </View>
               </Pressable>
@@ -305,8 +309,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bandRow: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     minHeight: 84,
@@ -332,12 +336,12 @@ const styles = StyleSheet.create({
     minWidth: 20,
   },
   lastAccessedRow: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderWidth: 2,
   },
   bandAvatar: {
     alignItems: 'center',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     borderRadius: radii.pill,
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
@@ -355,7 +359,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   lastAccessedBadge: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,

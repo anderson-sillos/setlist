@@ -91,7 +91,7 @@ export function LyricDocumentEditor({
           placeholder={
             '# Verso\nDigite ou cole a letra completa aqui…\n**Linha em destaque**\n---\n***\n# Refrão'
           }
-          placeholderTextColor={colors.muted}
+          placeholderTextColor={colors.text.muted}
           scrollEnabled
           style={styles.input}
           textAlignVertical="top"
@@ -99,7 +99,7 @@ export function LyricDocumentEditor({
           value={draftText}
         />
         <View style={styles.inputHint}>
-          <AppIcon color={colors.muted} name="music" size={16} />
+          <AppIcon color={colors.text.secondary} name="music" size={16} />
           <AppText tone="muted" variant="caption">
             Os marcadores são removidos na apresentação da letra.
           </AppText>
@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   guide: {
-    backgroundColor: colors.violetSoft,
-    borderColor: colors.line,
+    backgroundColor: colors.background.selected,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
     gap: spacing.xs,
@@ -131,15 +131,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   guideTitle: {
-    color: colors.violetDark,
+    color: colors.action.primary,
     fontWeight: '700',
   },
   marker: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.violet,
+    color: colors.action.primary,
     fontWeight: '700',
     overflow: 'hidden',
     paddingHorizontal: spacing.sm,
@@ -147,19 +147,19 @@ const styles = StyleSheet.create({
   },
   inputFrame: {
     alignSelf: 'stretch',
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     gap: spacing.sm,
     padding: spacing.sm,
   },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     height: 280,
     lineHeight: 24,

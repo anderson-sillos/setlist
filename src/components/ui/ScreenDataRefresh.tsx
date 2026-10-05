@@ -61,9 +61,9 @@ export function WebRefreshButton({
         ]}
       >
         {refreshing ? (
-          <ActivityIndicator color={colors.violet} size="small" />
+          <ActivityIndicator color={colors.text.secondary} size="small" />
         ) : (
-          <AppIcon color={colors.violet} name="renew" size={18} />
+          <AppIcon color={colors.text.secondary} name="refresh" size={18} />
         )}
       </Pressable>
     </View>
@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
   },
   webIconButton: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
     borderRadius: radii.md,
     borderWidth: 1,
     height: layout.minimumTouchTarget,
@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   webIconButtonPressed: {
-    opacity: 0.72,
+    backgroundColor: colors.background.pressed,
   },
 });

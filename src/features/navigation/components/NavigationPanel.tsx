@@ -2,6 +2,7 @@ import { Link, type Href } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
+import { AppLogo } from '@/components/ui/AppLogo';
 import { AppText } from '@/components/ui/AppText';
 import { AppVersionLabel } from '@/components/ui/AppVersionLabel';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -26,18 +27,24 @@ interface NavigationPanelProps {
 }
 
 function NavigationItemContent({
+  active = false,
   icon,
   label,
 }: {
+  readonly active?: boolean;
   readonly icon: AppIconName;
   readonly label: string;
 }) {
   return (
     <View style={styles.sectionContent}>
       <View style={styles.sectionIcon}>
-        <AppIcon color={colors.surface} name={icon} size={20} />
+        <AppIcon
+          color={active ? colors.action.primary : colors.text.secondary}
+          name={icon}
+          size={20}
+        />
       </View>
-      <AppText style={styles.sectionLabel} tone="inverse">
+      <AppText style={styles.sectionLabel} tone={active ? 'accent' : 'muted'}>
         {label}
       </AppText>
     </View>
@@ -71,7 +78,7 @@ function SidebarNavigationLink({
         active && styles.sectionItemActive,
       ])}
     >
-      <NavigationItemContent icon={icon} label={label} />
+      <NavigationItemContent active={active} icon={icon} label={label} />
     </Pressable>
   );
 
@@ -178,9 +185,7 @@ export function NavigationPanel({
   return (
     <ScrollView contentContainerStyle={styles.panel}>
       <View style={styles.brand}>
-        <View style={styles.brandMark}>
-          <AppIcon color={colors.surface} name="music" />
-        </View>
+        <AppLogo size={32} />
         <View>
           <AppText tone="inverse" variant="heading">
             Setlist
@@ -306,18 +311,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
-  brandMark: {
-    backgroundColor: colors.violet,
-    borderRadius: radii.md,
-    overflow: 'hidden',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
   muted: {
-    color: '#aab3ce',
+    color: colors.text.secondary,
   },
   accountSummary: {
-    backgroundColor: colors.navyRaised,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.md,
     gap: spacing.xs,
     padding: spacing.md,
@@ -352,6 +350,8 @@ const styles = StyleSheet.create({
   },
   sectionItem: {
     alignSelf: 'stretch',
+    borderLeftColor: 'transparent',
+    borderLeftWidth: 2,
     borderRadius: radii.md,
     justifyContent: 'center',
     minHeight: menuItemHeight,
@@ -360,7 +360,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   sectionItemActive: {
-    backgroundColor: colors.navyRaised,
+    backgroundColor: colors.background.selected,
+    borderLeftColor: colors.action.primary,
   },
   sectionContent: {
     alignItems: 'flex-start',
@@ -368,16 +369,17 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionIcon: {
-    height: 20,
-    marginTop: 2,
-    width: 20,
+    height: 24,
+    width: 24,
   },
   sectionLabel: {
     flexShrink: 1,
+    fontSize: 14,
+    lineHeight: 20,
     minWidth: 0,
   },
   generalNavigation: {
-    borderTopColor: colors.navyRaised,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     gap: 0,
     paddingTop: spacing.md,
