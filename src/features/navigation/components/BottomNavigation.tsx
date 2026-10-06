@@ -84,13 +84,19 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   navigation: {
     alignItems: 'center',
-    backgroundColor: colors.background.canvas,
+    backgroundColor: 'rgba(11, 11, 13, 0.82)',
     borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
+    bottom: 0,
+    elevation: 8,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
+    left: 0,
     minHeight: 60,
     paddingVertical: spacing.xs,
+    position: 'absolute',
+    right: 0,
+    zIndex: 2,
   },
   item: {
     alignItems: 'center',

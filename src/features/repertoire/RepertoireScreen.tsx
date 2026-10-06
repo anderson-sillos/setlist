@@ -1,6 +1,12 @@
 import { Link, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -30,6 +36,7 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { getNavigationPresentation } from '@/theme/responsive';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeForSearch } from '@/utils/text';
@@ -134,6 +141,12 @@ export function RepertoireScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  const window = useWindowDimensions();
+  const usesBottomNavigation =
+    getNavigationPresentation(
+      viewportWidth ?? window.width,
+      viewportHeight ?? window.height,
+    ) === 'bottom-tabs';
   const router = useRouter();
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
@@ -262,7 +275,10 @@ export function RepertoireScreen({
         />
       ) : null}
       <FlatList
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          usesBottomNavigation && styles.listContentWithBottomNavigation,
+        ]}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={songs}
         keyExtractor={({ id }) => id}
@@ -318,6 +334,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxxl,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
+  },
+  listContentWithBottomNavigation: {
+    paddingBottom: spacing.xxxl + layout.minimumTouchTarget,
   },
   rowFrame: {
     alignSelf: 'flex-start',

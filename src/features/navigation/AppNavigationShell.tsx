@@ -175,6 +175,7 @@ export function AppNavigationShell({
               contentOffset={{ x: 0, y: initialScrollOffset }}
               keyboardShouldPersistTaps="handled"
               onScroll={handleScroll}
+              style={styles.scrollArea}
               refreshControl={
                 onRefresh
                   ? getListRefreshControl({
@@ -189,6 +190,7 @@ export function AppNavigationShell({
               <View
                 style={[
                   styles.content,
+                  showBottomNavigation && styles.contentWithBottomNavigation,
                   { paddingHorizontal: horizontalPadding },
                 ]}
               >
@@ -260,9 +262,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.base,
     flex: 1,
     minWidth: 0,
+    position: 'relative',
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  scrollArea: {
+    flex: 1,
+    minHeight: 0,
   },
   fixedContentFrame: {
     backgroundColor: colors.background.canvas,
@@ -285,12 +292,15 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     width: '100%',
   },
+  contentWithBottomNavigation: {
+    paddingBottom: 96,
+  },
   unscrolledContent: {
     flex: 1,
     minHeight: 0,
   },
   edgeGesture: {
-    bottom: 52,
+    bottom: 68,
     left: 0,
     pointerEvents: 'box-only',
     position: 'absolute',

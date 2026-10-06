@@ -1,7 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
@@ -40,7 +46,8 @@ import {
   ShowCreationDialog,
   type ShowCreationForm,
 } from '@/features/shows/ShowCreationDialog';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { getNavigationPresentation } from '@/theme/responsive';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatDateFilter, getDateKey } from '@/utils/dateTime';
 import { normalizeForSearch } from '@/utils/text';
 
@@ -75,6 +82,12 @@ export function ShowsScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  const window = useWindowDimensions();
+  const usesBottomNavigation =
+    getNavigationPresentation(
+      viewportWidth ?? window.width,
+      viewportHeight ?? window.height,
+    ) === 'bottom-tabs';
   const router = useRouter();
   const queryClient = useQueryClient();
   const showsQuery = useShows(bandId);
@@ -415,7 +428,10 @@ export function ShowsScreen({
       ) : null}
 
       <FlatList
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          usesBottomNavigation && styles.listContentWithBottomNavigation,
+        ]}
         contentOffset={{ x: 0, y: initialScrollOffset }}
         data={shows}
         keyExtractor={({ id }) => id}
@@ -513,6 +529,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxxl,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
+  },
+  listContentWithBottomNavigation: {
+    paddingBottom: spacing.xxxl + layout.minimumTouchTarget,
   },
   pressed: {
     opacity: 0.72,
