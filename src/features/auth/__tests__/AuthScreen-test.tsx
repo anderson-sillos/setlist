@@ -75,9 +75,7 @@ describe('tela de autenticação', () => {
       ),
     ).toBeTruthy();
     expect(
-      view.getByText(
-        'Ao entrar, você concorda com os Termos de uso.',
-      ),
+      view.getByText('Ao entrar, você concorda com os Termos de uso.'),
     ).toBeTruthy();
 
     const buttonStyle = (testID: string) => {

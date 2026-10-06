@@ -116,10 +116,12 @@ describe('Google nativo opcional', () => {
       data: { idToken: 'id-token' },
       type: 'success',
     });
-    mockGoogleModule.GoogleOneTapSignIn.presentExplicitSignIn.mockResolvedValue({
-      data: { idToken: 'id-token' },
-      type: 'success',
-    });
+    mockGoogleModule.GoogleOneTapSignIn.presentExplicitSignIn.mockResolvedValue(
+      {
+        data: { idToken: 'id-token' },
+        type: 'success',
+      },
+    );
     mockGoogleModule.isSuccessResponse.mockImplementation(
       (response: { type?: string }) => response.type === 'success',
     );

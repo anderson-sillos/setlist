@@ -100,12 +100,12 @@ O objetivo é observar a interação com o app, não avaliar a pessoa nem suas e
 
 Planejar de 45 a 55 minutos por sessão:
 
-| Etapa | Tempo aproximado |
-|---|---:|
-| Boas-vindas, consentimento e contexto | 5–8 min |
-| Explicação do Think Aloud e aquecimento | 3–5 min |
-| Tarefas do perfil | 25–30 min |
-| Perguntas finais | 8–12 min |
+| Etapa                                   | Tempo aproximado |
+| --------------------------------------- | ---------------: |
+| Boas-vindas, consentimento e contexto   |          5–8 min |
+| Explicação do Think Aloud e aquecimento |          3–5 min |
+| Tarefas do perfil                       |        25–30 min |
+| Perguntas finais                        |         8–12 min |
 
 ## 9. Abertura e instruções ao participante
 
@@ -156,11 +156,11 @@ Leia uma tarefa por vez. Não dê dicas nem corrija a pessoa durante a tentativa
 
 ### Perfil A — Owner
 
-| ID | Enunciado a ler | O que observar |
-|---|---|---|
-| O1 | “Você começou uma banda chamada Horizonte e quer organizar as músicas do grupo no Setlist. Crie a banda para começar.” | Onde começa; como entende a criação; leitura e aceite do termo da banda; rótulos dos campos; entendimento da confirmação e próximo passo. |
-| O2 | “Rafa vai ajudar a atualizar músicas e shows, mas não deve administrar quem participa da banda. Convide essa pessoa com o acesso que você considera adequado.” | Como encontra convites; se distingue Owner e Editor; se a explicação dos papéis basta para escolher; como percebe criação e compartilhamento do convite. |
-| O3 | “A banda quer guardar uma música nova chamada `Luzes da Rua`, do artista `Horizonte`, para o próximo ensaio. Inclua-a no repertório e registre Tom `G` e BPM `120`.” | Onde espera criar uma música; se entende os nomes dos campos; como trata campos opcionais; como salva e percebe o resultado. |
+| ID  | Enunciado a ler                                                                                                                                                      | O que observar                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| O1  | “Você começou uma banda chamada Horizonte e quer organizar as músicas do grupo no Setlist. Crie a banda para começar.”                                               | Onde começa; como entende a criação; leitura e aceite do termo da banda; rótulos dos campos; entendimento da confirmação e próximo passo.                |
+| O2  | “Rafa vai ajudar a atualizar músicas e shows, mas não deve administrar quem participa da banda. Convide essa pessoa com o acesso que você considera adequado.”       | Como encontra convites; se distingue Owner e Editor; se a explicação dos papéis basta para escolher; como percebe criação e compartilhamento do convite. |
+| O3  | “A banda quer guardar uma música nova chamada `Luzes da Rua`, do artista `Horizonte`, para o próximo ensaio. Inclua-a no repertório e registre Tom `G` e BPM `120`.” | Onde espera criar uma música; se entende os nomes dos campos; como trata campos opcionais; como salva e percebe o resultado.                             |
 
 Critérios de conclusão:
 
@@ -172,11 +172,11 @@ Critérios de conclusão:
 
 Entregue um link de convite de teste válido, sem explicar em qual tela ele será aberto.
 
-| ID | Enunciado a ler | O que observar |
-|---|---|---|
-| E1 | “Você recebeu um convite da banda Horizonte para ajudar a manter músicas e shows antes do próximo ensaio. Entre na banda.” | Se entende o convite e o login; se percebe a banda e o próprio papel; que expectativas cria sobre permissões. |
-| E2 | “A banda combinou mudar o Tom de `Luzes da Rua` para `D`. Faça essa atualização e confirme se ela ficou salva.” | Como encontra a música e a edição; se distingue leitura de edição; se entende `Tom`; se encontra salvar e percebe sucesso ou erro. |
-| E3 | “A banda quer tocar `Luzes da Rua` no Ensaio aberto, logo depois de `Vento Norte`. Atualize a setlist e salve as alterações.” | Como encontra o show e a setlist; se entende inclusão e reordenação; se percebe alterações pendentes, salvamento e confirmação. |
+| ID  | Enunciado a ler                                                                                                               | O que observar                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| E1  | “Você recebeu um convite da banda Horizonte para ajudar a manter músicas e shows antes do próximo ensaio. Entre na banda.”    | Se entende o convite e o login; se percebe a banda e o próprio papel; que expectativas cria sobre permissões.                      |
+| E2  | “A banda combinou mudar o Tom de `Luzes da Rua` para `D`. Faça essa atualização e confirme se ela ficou salva.”               | Como encontra a música e a edição; se distingue leitura de edição; se entende `Tom`; se encontra salvar e percebe sucesso ou erro. |
+| E3  | “A banda quer tocar `Luzes da Rua` no Ensaio aberto, logo depois de `Vento Norte`. Atualize a setlist e salve as alterações.” | Como encontra o show e a setlist; se entende inclusão e reordenação; se percebe alterações pendentes, salvamento e confirmação.    |
 
 Critérios de conclusão:
 
@@ -227,20 +227,20 @@ Registre a opinião como opinião. Para priorizar uma mudança, procure ligá-la
 
 Preencha uma cópia por participante e tarefa.
 
-| Campo | Registro |
-|---|---|
-| Código do participante | Ex.: O1, O2, E1; não registrar nome na planilha de achados |
-| Perfil e papel de teste | Owner / Editor |
-| Plataforma e aparelho | Web / Android / iOS; modelo se relevante |
-| ID da tarefa | O1–O3 ou E1–E3 |
-| Resultado | Sem ajuda / após sondagem / após ajuda direta / não concluiu |
-| Primeiro lugar que procurou | Elemento, tela ou área |
-| Hesitações e caminhos inesperados | Ações observadas, em ordem |
-| Texto, ícone ou posição envolvidos | Usar o nome exibido ou descrever a localização |
-| Frase do participante | Anotação breve; sem dados pessoais ou conteúdo real de banda |
-| Confiança após a tarefa | 1–5 |
-| Gravidade inicial | Bloqueador / alta / média / baixa |
-| Observação ou hipótese | Separar o que foi observado da interpretação do moderador |
+| Campo                              | Registro                                                     |
+| ---------------------------------- | ------------------------------------------------------------ |
+| Código do participante             | Ex.: O1, O2, E1; não registrar nome na planilha de achados   |
+| Perfil e papel de teste            | Owner / Editor                                               |
+| Plataforma e aparelho              | Web / Android / iOS; modelo se relevante                     |
+| ID da tarefa                       | O1–O3 ou E1–E3                                               |
+| Resultado                          | Sem ajuda / após sondagem / após ajuda direta / não concluiu |
+| Primeiro lugar que procurou        | Elemento, tela ou área                                       |
+| Hesitações e caminhos inesperados  | Ações observadas, em ordem                                   |
+| Texto, ícone ou posição envolvidos | Usar o nome exibido ou descrever a localização               |
+| Frase do participante              | Anotação breve; sem dados pessoais ou conteúdo real de banda |
+| Confiança após a tarefa            | 1–5                                                          |
+| Gravidade inicial                  | Bloqueador / alta / média / baixa                            |
+| Observação ou hipótese             | Separar o que foi observado da interpretação do moderador    |
 
 ## 13. Classificação dos achados
 
