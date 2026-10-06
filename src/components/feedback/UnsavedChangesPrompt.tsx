@@ -6,12 +6,14 @@ import { spacing } from '@/theme/tokens';
 interface UnsavedChangesPromptProps {
   readonly onContinue: () => void;
   readonly onDiscard: () => void;
+  readonly testID?: string;
   readonly visible: boolean;
 }
 
 export function UnsavedChangesPrompt({
   onContinue,
   onDiscard,
+  testID = 'unsaved-changes-prompt',
   visible,
 }: UnsavedChangesPromptProps) {
   return (
@@ -20,7 +22,7 @@ export function UnsavedChangesPrompt({
       label="Descartar alterações?"
       onClose={onContinue}
       showCloseButton={false}
-      testID="unsaved-changes-prompt"
+      testID={testID}
       visible={visible}
     >
       <AppText tone="muted">
@@ -28,12 +30,14 @@ export function UnsavedChangesPrompt({
         descartá-las.
       </AppText>
       <AppButton
+        accessibilityLabel="Continuar editando"
         label="Continuar editando"
         onPress={onContinue}
         style={{ marginTop: spacing.lg }}
         variant="secondary"
       />
       <AppButton
+        accessibilityLabel="Descartar alterações"
         label="Descartar alterações"
         onPress={onDiscard}
         style={{ marginTop: spacing.sm }}

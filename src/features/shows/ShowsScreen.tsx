@@ -34,7 +34,11 @@ import { getShowDurationMs } from '@/domain/setlistDuration';
 import { getBrazilianNationalHolidays } from '@/features/calendar/brazilianHolidays';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { getBandSectionHref, getShowHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getShowHref,
+  getSongCreateHref,
+} from '@/features/navigation/routes';
 import {
   type BandSectionScreenProps,
   rememberListScrollOffset,
@@ -138,6 +142,10 @@ export function ShowsScreen({
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
   );
+  const hasActiveSongs = (songsQuery.data ?? []).some(
+    (song) => song.archivedAt === null,
+  );
+  const hasRegisteredShows = (showsQuery.data?.length ?? 0) > 0;
   const normalizedSearch = normalizeForSearch(state.search);
   const todayKey = getDateKey(now);
   const shows = useMemo(() => {
@@ -251,6 +259,11 @@ export function ShowsScreen({
     update('period', 'upcoming');
     update('status', 'active');
     update('sort', 'date-asc');
+  };
+  const openCreateShowDialog = () => {
+    setCreationError(null);
+    setCreationInstance((current) => current + 1);
+    setCreationVisible(true);
   };
   const activeFilterCount =
     Number(Boolean(state.date)) +
@@ -384,6 +397,9 @@ export function ShowsScreen({
     state.search.length > 0 ||
     state.period !== 'upcoming' ||
     state.status !== 'active';
+  const isMissingSongsEmptyState = !hasQuery && !hasActiveSongs;
+  const isFirstShowEmptyState =
+    !hasQuery && hasActiveSongs && !hasRegisteredShows;
 
   return (
     <BandAreaLayout
@@ -396,11 +412,7 @@ export function ShowsScreen({
               accessibilityLabel: 'Criar novo show',
               icon: 'showAdd',
               label: 'Novo show',
-              onPress: () => {
-                setCreationError(null);
-                setCreationInstance((current) => current + 1);
-                setCreationVisible(true);
-              },
+              onPress: openCreateShowDialog,
             }
           : undefined
       }
@@ -409,7 +421,9 @@ export function ShowsScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {showsQuery.isPending || songsQuery.isPending ? (
+      {showsQuery.isPending ||
+      songsQuery.isPending ||
+      userBandsQuery.isPending ? (
         <LoadingFeedback variation={1} />
       ) : null}
       <ShowCreationDialog
@@ -462,17 +476,59 @@ export function ShowsScreen({
             !songsQuery.isPending &&
             !showsQuery.isError &&
             !userBandsQuery.isError &&
+            !userBandsQuery.isPending &&
             !songsQuery.isError ? (
               <ListEmptyState
-                actionLabel={hasQuery ? 'Limpar filtros' : undefined}
+                actionIcon={
+                  hasQuery
+                    ? undefined
+                    : isMissingSongsEmptyState && canCreate
+                      ? 'musicAdd'
+                      : isFirstShowEmptyState && canCreate
+                        ? 'showAdd'
+                        : undefined
+                }
+                actionLabel={
+                  hasQuery
+                    ? 'Limpar filtros'
+                    : isMissingSongsEmptyState
+                      ? canCreate
+                        ? 'Adicionar música'
+                        : undefined
+                      : isFirstShowEmptyState && canCreate
+                        ? 'Criar primeiro show'
+                        : undefined
+                }
                 message={
                   hasQuery
                     ? 'Nem o roadie encontrou essa. Tente outra busca.'
-                    : 'A agenda ainda está em silêncio. Que tal marcar o próximo show?'
+                    : isMissingSongsEmptyState
+                      ? canCreate
+                        ? 'Cadastre a primeira música do repertório antes de planejar um show.'
+                        : 'O repertório ainda não tem músicas. Peça a um proprietário ou editor para cadastrar a primeira.'
+                      : isFirstShowEmptyState
+                        ? canCreate
+                          ? 'O repertório já tem músicas. Crie o primeiro show para organizar a apresentação.'
+                          : 'O repertório já tem músicas. Peça a um proprietário ou editor para cadastrar o primeiro show.'
+                        : 'A agenda ainda está em silêncio.'
                 }
-                onAction={hasQuery ? clearFilters : undefined}
+                onAction={
+                  hasQuery
+                    ? clearFilters
+                    : isMissingSongsEmptyState && canCreate
+                      ? () => router.push(getSongCreateHref(bandId))
+                      : isFirstShowEmptyState && canCreate
+                        ? openCreateShowDialog
+                        : undefined
+                }
                 title={
-                  hasQuery ? 'Nenhum show encontrado' : 'Nenhum show por aqui'
+                  hasQuery
+                    ? 'Nenhum show encontrado'
+                    : isMissingSongsEmptyState
+                      ? 'Comece pelo repertório'
+                      : isFirstShowEmptyState
+                        ? 'Cadastre o primeiro show'
+                        : 'Nenhum show por aqui'
                 }
               />
             ) : null

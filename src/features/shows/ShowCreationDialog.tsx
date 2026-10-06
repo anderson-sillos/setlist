@@ -15,6 +15,7 @@ import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import type { Show } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
@@ -271,31 +272,15 @@ export function ShowCreationDialog({
               shows={calendarShows}
             />
           </OptionSheet>
-          <OptionSheet
-            closeAccessibilityLabel="Continuar editando o show"
-            label="Descartar alterações?"
-            onClose={() => setDiscardVisible(false)}
+          <UnsavedChangesPrompt
+            onContinue={() => setDiscardVisible(false)}
+            onDiscard={() => {
+              setDiscardVisible(false);
+              onDirtyChange?.(false);
+              onClose();
+            }}
             visible={discardVisible}
-          >
-            <AppText tone="muted">
-              Você fez alterações neste formulário. Quer sair sem salvar?
-            </AppText>
-            <AppButton
-              accessibilityLabel="Continuar editando"
-              label="Continuar editando"
-              onPress={() => setDiscardVisible(false)}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Descartar alterações"
-              label="Descartar alterações"
-              onPress={() => {
-                setDiscardVisible(false);
-                onDirtyChange?.(false);
-                onClose();
-              }}
-            />
-          </OptionSheet>
+          />
           <View style={styles.actions}>
             <AppButton
               disabled={isSubmitting}

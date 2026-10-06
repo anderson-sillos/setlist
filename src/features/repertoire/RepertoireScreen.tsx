@@ -217,6 +217,8 @@ export function RepertoireScreen({
   )?.membership;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
+  const hasRegisteredSongs = (songsQuery.data?.length ?? 0) > 0;
+  const isFirstSongEmptyState = !hasQuery && !hasRegisteredSongs;
   const clearFilters = () => {
     update('search', '');
     update('filter', 'all');
@@ -243,7 +245,9 @@ export function RepertoireScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {songsQuery.isPending ? <LoadingFeedback /> : null}
+      {songsQuery.isPending || userBandsQuery.isPending ? (
+        <LoadingFeedback />
+      ) : null}
       {songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
@@ -262,17 +266,45 @@ export function RepertoireScreen({
           data={songs}
           keyExtractor={({ id }) => id}
           ListEmptyComponent={
-            !songsQuery.isPending && !songsQuery.isError ? (
+            !songsQuery.isPending &&
+            !songsQuery.isError &&
+            !userBandsQuery.isPending &&
+            !userBandsQuery.isError ? (
               <ListEmptyState
-                actionLabel={hasQuery ? 'Limpar filtros' : undefined}
+                actionIcon={
+                  !hasQuery && isFirstSongEmptyState && canCreate
+                    ? 'musicAdd'
+                    : undefined
+                }
+                actionLabel={
+                  hasQuery
+                    ? 'Limpar filtros'
+                    : isFirstSongEmptyState && canCreate
+                      ? 'Adicionar música'
+                      : undefined
+                }
                 message={
                   hasQuery
                     ? 'Nem o roadie encontrou essa. Tente outra busca.'
-                    : 'O palco está silencioso por aqui. Que tal adicionar a primeira música?'
+                    : isFirstSongEmptyState
+                      ? canCreate
+                        ? 'Cadastre a primeira música da banda para começar o repertório e preparar os shows.'
+                        : 'Peça a um proprietário ou editor da banda para cadastrar a primeira música do repertório.'
+                      : 'O palco está silencioso por aqui.'
                 }
-                onAction={hasQuery ? clearFilters : undefined}
+                onAction={
+                  hasQuery
+                    ? clearFilters
+                    : isFirstSongEmptyState && canCreate
+                      ? () => router.push(getSongCreateHref(bandId))
+                      : undefined
+                }
                 title={
-                  hasQuery ? 'Nenhuma música encontrada' : 'Repertório vazio'
+                  hasQuery
+                    ? 'Nenhuma música encontrada'
+                    : isFirstSongEmptyState
+                      ? 'Comece pelo repertório'
+                      : 'Repertório vazio'
                 }
               />
             ) : null

@@ -15,6 +15,7 @@ export function useUnsavedChangesGuard({
   const navigation = useNavigation();
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const pendingAction = useRef<(() => void) | null>(null);
+  const allowNextRemovalRef = useRef(false);
   const dirtyRef = useRef(dirty);
   const savingRef = useRef(saving);
   const continueEditing = useCallback(() => {
@@ -28,17 +29,32 @@ export function useUnsavedChangesGuard({
     setConfirmationVisible(false);
     action?.();
   }, []);
+  const requestConfirmation = useCallback((action: () => void) => {
+    if (savingRef.current) return;
+    pendingAction.current = action;
+    setConfirmationVisible(true);
+  }, []);
   const allowNextRemoval = useCallback(() => {
+    allowNextRemovalRef.current = true;
+    pendingAction.current = null;
     dirtyRef.current = false;
   }, []);
 
   useEffect(() => {
-    dirtyRef.current = dirty;
+    if (!allowNextRemovalRef.current) {
+      dirtyRef.current = dirty;
+    }
     savingRef.current = saving;
   }, [dirty, saving]);
 
   useEffect(() => {
     return navigation.addListener('beforeRemove', (event) => {
+      if (allowNextRemovalRef.current) {
+        allowNextRemovalRef.current = false;
+        dirtyRef.current = false;
+        return;
+      }
+
       if (!dirtyRef.current) return;
       event.preventDefault();
       if (savingRef.current) return;
@@ -64,5 +80,6 @@ export function useUnsavedChangesGuard({
     allowNextRemoval,
     continueEditing,
     discardAndLeave,
+    requestConfirmation,
   };
 }

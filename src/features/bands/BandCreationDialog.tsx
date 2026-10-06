@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -23,6 +23,7 @@ export type BandCreationDialogStatus = 'error' | 'idle' | 'submitting';
 interface BandCreationDialogProps {
   readonly errorMessage: string | null;
   readonly onClose: () => void;
+  readonly onDirtyChange: (dirty: boolean) => void;
   readonly onSubmit: (input: {
     readonly acceptedTerm: boolean;
     readonly name: string;
@@ -34,6 +35,7 @@ interface BandCreationDialogProps {
 export function BandCreationDialog({
   errorMessage,
   onClose,
+  onDirtyChange,
   onSubmit,
   status,
   visible,
@@ -44,6 +46,10 @@ export function BandCreationDialog({
 
   const isSubmitting = status === 'submitting';
   const canSubmit = name.trim().length > 0 && acceptedTerm && !isSubmitting;
+
+  useEffect(() => {
+    onDirtyChange(name.length > 0 || acceptedTerm);
+  }, [acceptedTerm, name, onDirtyChange]);
 
   return (
     <Modal

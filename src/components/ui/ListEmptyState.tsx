@@ -1,11 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
+import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface ListEmptyStateProps {
   readonly actionLabel?: string;
+  readonly actionIcon?: AppIconName;
   readonly message: string;
   readonly onAction?: () => void;
   readonly title: string;
@@ -13,6 +15,7 @@ interface ListEmptyStateProps {
 
 export function ListEmptyState({
   actionLabel,
+  actionIcon,
   message,
   onAction,
   title,
@@ -23,6 +26,7 @@ export function ListEmptyState({
       <AppText tone="muted">{message}</AppText>
       {actionLabel && onAction ? (
         <AppButton
+          icon={actionIcon}
           label={actionLabel}
           onPress={onAction}
           style={styles.action}

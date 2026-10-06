@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -15,6 +16,7 @@ import {
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import type { BandRole, Show } from '@/domain';
 import {
   BandCreationDialog,
@@ -66,7 +68,12 @@ export function BandsScreen({
   const [creationDialogVisible, setCreationDialogVisible] = useState(false);
   const [creationStatus, setCreationStatus] =
     useState<BandCreationDialogStatus>('idle');
+  const [creationDirty, setCreationDirty] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
+  const unsavedChanges = useUnsavedChangesGuard({
+    dirty: creationDirty,
+    saving: creationStatus === 'submitting',
+  });
   const normalizedSearch = normalizeForSearch(search);
 
   const openBand = async (bandId: string) => {
@@ -77,17 +84,25 @@ export function BandsScreen({
   const openCreationDialog = () => {
     setCreationError(null);
     setCreationStatus('idle');
+    setCreationDirty(false);
     setCreationDialogVisible(true);
   };
 
+  const resetCreationDialog = () => {
+    setCreationDialogVisible(false);
+    setCreationDirty(false);
+    setCreationError(null);
+    setCreationStatus('idle');
+  };
+
   const closeCreationDialog = () => {
-    if (creationStatus === 'submitting') {
+    if (creationStatus === 'submitting') return;
+    if (creationDirty) {
+      unsavedChanges.requestConfirmation(resetCreationDialog);
       return;
     }
 
-    setCreationDialogVisible(false);
-    setCreationError(null);
-    setCreationStatus('idle');
+    resetCreationDialog();
   };
 
   const handleCreateBand = async ({
@@ -106,7 +121,7 @@ export function BandsScreen({
         name,
         termVersion: CURRENT_BAND_TERM.version,
       });
-      await Promise.all([
+      void Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['bands', 'user'],
           refetchType: 'all',
@@ -117,7 +132,10 @@ export function BandsScreen({
         }),
       ]).catch(() => undefined);
       setCreationDialogVisible(false);
+      setCreationDirty(false);
       setCreationStatus('idle');
+      await setLastBand(createdBandId);
+      router.push(getBandSectionHref(createdBandId, 'repertoire'));
     } catch (error) {
       setCreationStatus('error');
       setCreationError(
@@ -192,11 +210,20 @@ export function BandsScreen({
         <BandCreationDialog
           errorMessage={creationError}
           onClose={closeCreationDialog}
+          onDirtyChange={setCreationDirty}
           onSubmit={(input) => void handleCreateBand(input)}
           status={creationStatus}
           visible
         />
       ) : null}
+      <UnsavedChangesPrompt
+        onContinue={unsavedChanges.continueEditing}
+        onDiscard={() => {
+          resetCreationDialog();
+          unsavedChanges.discardAndLeave();
+        }}
+        visible={unsavedChanges.confirmationVisible}
+      />
 
       <FlatList
         contentContainerStyle={styles.listContent}
@@ -215,6 +242,7 @@ export function BandsScreen({
               />
             ) : (
               <ListEmptyState
+                actionIcon="add"
                 actionLabel="Criar banda"
                 message="Crie uma banda ou abra o link de convite que você recebeu."
                 onAction={openCreationDialog}

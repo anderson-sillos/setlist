@@ -41,6 +41,8 @@ Atualizar tokens, texto, botões, cartões, ícones, status, inputs, busca, filt
 
 Migrar shell/autenticação/Minhas bandas; em seguida repertório/detalhe/editor/leitura; depois shows/calendário/setlist; por fim banda/convites/perfil, denúncia, telas indisponíveis e estados menos comuns. Fazer uma revisão responsiva por etapa para limitar regressões de listas e cabeçalhos.
 
+Depois de criar uma banda, persistir sua seleção e abrir diretamente o Repertório para que a pessoa comece pelo conteúdo musical. Em estados vazios, indicar o próximo passo de acordo com os dados disponíveis: cadastrar a primeira música quando o repertório não tiver músicas, ou criar o primeiro show quando já houver músicas ativas e nenhum show cadastrado. As ações de criação aparecem apenas para proprietário/editor; integrante sem permissão recebe a orientação correspondente. Busca e filtros sem resultados continuam oferecendo a recuperação de limpar esses controles, sem serem confundidos com uma lista ainda não iniciada.
+
 ### 3. Manter uma única fonte semântica para ícones e marca
 
 Revisar o mapa do `AppIcon` contra os 43 identificadores atuais e o catálogo proposto. Trocar a figura segundo o contexto sem renomear rotas ou alterar ações do domínio. Não distorcer vetores nem compor badges decorativos para ações comuns; usar texto visível onde o símbolo não for inequívoco. Preservar nomes acessíveis nos controles.

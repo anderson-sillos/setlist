@@ -22,6 +22,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { SearchField } from '@/components/ui/list-controls/SearchField';
@@ -937,32 +938,16 @@ export function ShowBlockEditorDialog({
             />
           </View>
         </View>
-        <OptionSheet
-          closeAccessibilityLabel="Continuar editando a setlist"
-          label="Descartar alterações?"
-          onClose={() => setDiscardVisible(false)}
+        <UnsavedChangesPrompt
+          onContinue={() => setDiscardVisible(false)}
+          onDiscard={() => {
+            setDiscardVisible(false);
+            onDirtyChange?.(false);
+            onClose();
+          }}
           testID="show-block-editor-discard-sheet"
           visible={discardVisible}
-        >
-          <AppText tone="muted">
-            Você fez alterações na setlist. Quer sair sem salvar?
-          </AppText>
-          <AppButton
-            accessibilityLabel="Continuar editando"
-            label="Continuar editando"
-            onPress={() => setDiscardVisible(false)}
-            variant="secondary"
-          />
-          <AppButton
-            accessibilityLabel="Descartar alterações"
-            label="Descartar alterações"
-            onPress={() => {
-              setDiscardVisible(false);
-              onDirtyChange?.(false);
-              onClose();
-            }}
-          />
-        </OptionSheet>
+        />
         <OptionSheet
           closeAccessibilityLabel="Cancelar exclusão do bloco"
           label="Excluir bloco"

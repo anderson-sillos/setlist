@@ -12,6 +12,7 @@ Esta change transforma essa direção em requisitos e etapas verificáveis. O pi
 - Harmonizar componentes compartilhados, login, listas, formulários, popups, estados vazios, feedback, barra inferior e menu lateral nas três plataformas.
 - Revisar os 43 identificadores de ícones existentes segundo o catálogo proposto; usar figuras próprias para significado distinto, manter rótulos claros e preservar a aparência arredondada recomendada para o logo.
 - Aplicar hierarquia visual de conteúdo às telas de bandas, repertório, música/letra, shows/setlists, integrantes/convites e perfil/conta, sem alterar regras de domínio ou disponibilidade de funcionalidades.
+- Guiar a primeira utilização: após criar uma banda, selecioná-la e abrir seu Repertório; orientar o próximo passo nas listas vazias de músicas e shows com ações compatíveis com as permissões.
 - Definir transições de rota apropriadas por plataforma, retorno previsível e preservação do contexto por banda, incluindo busca, filtros e rolagem.
 - Proteger edições não salvas em todos os caminhos de saída e comunicar estados de carregamento, sucesso e erro sem antecipar resultados.
 - Respeitar redução de movimento, foco, leitores de tela, teclado, áreas seguras, rolagem, pull-to-refresh e gestos do sistema.

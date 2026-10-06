@@ -50,6 +50,33 @@ The system SHALL apply consistent geometry and interaction states to shared butt
 - **WHEN** uma validação ou operação de gravação falha
 - **THEN** a mensagem explica o problema junto ao contexto adequado e o conteúdo digitado continua disponível para correção
 
+### Requirement: Orientação contextual para conteúdo inicial
+The system SHALL guide band members to the next useful creation step when a band's repertoire or show list is empty, while respecting the member's existing permissions.
+
+#### Scenario: Repertório sem músicas cadastradas
+- **WHEN** a lista do Repertório está vazia por não haver músicas cadastradas e nenhum filtro ou busca está limitando os resultados
+- **THEN** a tela explica que a primeira música pode ser cadastrada e oferece a ação nomeada “Adicionar música”, com ícone indicativo de música, para proprietários e editores
+- **AND** integrantes sem permissão de edição recebem orientação para pedir o cadastro a um proprietário ou editor
+
+#### Scenario: Shows sem músicas no repertório
+- **WHEN** a lista de Shows está vazia e a banda não tem música ativa no repertório
+- **THEN** a tela orienta a cadastrar a primeira música antes de planejar um show
+- **AND** proprietários e editores recebem a ação “Adicionar música”, com ícone indicativo de música, que abre o cadastro de música da banda
+- **AND** integrantes sem permissão de edição recebem orientação para pedir o cadastro a um proprietário ou editor
+
+#### Scenario: Repertório preenchido e nenhum show cadastrado
+- **WHEN** há pelo menos uma música ativa no repertório e nenhum show foi cadastrado, sem busca ou filtros limitando os resultados
+- **THEN** a tela orienta a criar o primeiro show e oferece a ação nomeada “Criar primeiro show”, com ícone indicativo de show, para proprietários e editores
+- **AND** integrantes sem permissão de edição recebem orientação para pedir o cadastro a um proprietário ou editor
+
+#### Scenario: Criar a primeira banda
+- **WHEN** a lista Minhas bandas está vazia e não há uma busca ativa
+- **THEN** a ação “Criar banda” aparece com o mesmo ícone de adicionar usado no cabeçalho da tela
+
+#### Scenario: Busca ou filtro sem resultados
+- **WHEN** uma busca ou filtro ativo deixa a lista de músicas ou shows sem resultados
+- **THEN** a orientação inicial não substitui a mensagem de nenhum resultado e a pessoa pode limpar a busca ou os filtros
+
 ### Requirement: Navegação visual e conteúdo responsivo
 The system SHALL apply the same visual hierarchy to band, repertoire, song and lyric, show and setlist, member and invitation, and account screens, adapting layout to Web, Android and iOS.
 

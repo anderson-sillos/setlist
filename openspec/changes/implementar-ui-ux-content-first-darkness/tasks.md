@@ -22,6 +22,7 @@
 - [x] 4.1 Migrar shell, cabeçalho, navegação e superfícies de Minhas bandas para paleta e hierarquia propostas, preservando refresh/contexto de seleção; verificar com `npm test -- --runInBand src/features/navigation/__tests__/navigationShell-test.tsx src/features/bands/__tests__/BandsScreen-test.tsx`.
 - [x] 4.2 Migrar o login, disclaimer, documentos, versão e botões sociais para fundo escuro e alinhamento responsivo, preservando assets oficiais e fluxos de autenticação existentes; verificar com `npm test -- --runInBand src/features/auth/__tests__/AuthScreen-test.tsx src/features/auth/__tests__/AuthGate-test.tsx`.
 - [ ] 4.3 Conferir a navegação inicial e estado vazio/erro de bandas em Web, Android e iOS; verificar visualmente nas larguras móvel, tablet e desktop sem dados de banda e com lista preenchida.
+- [x] 4.4 Após criar uma banda, persistir sua seleção e abrir o Repertório; apresentar orientação contextual com ícones indicativos e ações de criação nos estados vazios de Minhas bandas, Repertório e Shows, respeitando busca, filtros e permissões.
 
 ## 5. Repertório, música e leitura
 
@@ -51,7 +52,8 @@
 
 - [x] 9.1 Derivar estado alterado nos editores de música/letra, dados do show e setlist; confirmar que gravar sucesso redefine a referência e falha mantém conteúdo editável nos testes dos editores.
 - [x] 9.2 Proteger saída por botão, navegação entre áreas, gesto e Voltar do sistema com popup para continuar editando ou descartar; verificar que continuar preserva valores e confirmar descarte remove só mudanças locais.
-- [x] 9.3 Impedir envio duplicado e descarte silencioso durante salvamento; verificar operações em andamento/falha e documentar a limitação real do browser ao fechar ou recarregar aba.
+- [x] 9.3 Impedir envio duplicado e descarte silencioso durante salvamento; após gravação confirmada, permitir a navegação sem aviso de descarte; verificar operações em andamento/falha e documentar a limitação real do browser ao fechar ou recarregar aba.
+- [x] 9.4 Proteger o nome e o aceite do termo no cadastro de banda contra fechamento do diálogo, toque fora, retorno do sistema e navegação; liberar o fluxo após criação confirmada.
 
 ## 10. Movimento, gestos e acessibilidade
 

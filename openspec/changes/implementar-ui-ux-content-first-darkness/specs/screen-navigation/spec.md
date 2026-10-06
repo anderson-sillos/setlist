@@ -36,6 +36,14 @@ The system SHALL preserve valid search, filters, scroll position and last usable
 - **WHEN** a pessoa perde acesso à banda ou sua sessão termina
 - **THEN** conteúdo preservado não é mostrado como acessível e o fluxo volta para uma área autorizada
 
+### Requirement: Destino após criação de banda
+The system SHALL select a newly created band and open its repertoire as the first working area for that band.
+
+#### Scenario: Criar uma banda com sucesso
+- **WHEN** a pessoa conclui a criação de uma banda
+- **THEN** a banda criada passa a ser a banda selecionada e o destino aberto é o Repertório dessa banda
+- **AND** se não houver músicas cadastradas, a lista apresenta a orientação e a ação para adicionar a primeira música
+
 ### Requirement: Transições coerentes entre rotas
 The system SHALL use brief transitions that communicate whether a route is entering, leaving or switching context while keeping content stable and operations independent of animation completion.
 
@@ -72,6 +80,10 @@ The system SHALL ask for an explicit discard decision before leaving an editor w
 - **WHEN** a pessoa tenta voltar, trocar área, fechar o editor ou usar o gesto de retorno após editar conteúdo
 - **THEN** o sistema oferece continuar editando ou descartar as alterações antes de navegar
 
+#### Scenario: Fechar o cadastro de banda alterado
+- **WHEN** a pessoa altera o nome da banda ou o aceite do termo e tenta fechar o cadastro, tocar fora dele ou navegar para outra rota
+- **THEN** o sistema oferece continuar preenchendo ou descartar as alterações antes de fechar ou navegar
+
 #### Scenario: Continuar editando
 - **WHEN** a pessoa escolhe continuar editando no aviso de descarte
 - **THEN** o editor e todos os valores não salvos permanecem inalterados
@@ -83,6 +95,10 @@ The system SHALL ask for an explicit discard decision before leaving an editor w
 #### Scenario: Salvamento em andamento
 - **WHEN** uma gravação está em andamento e a pessoa tenta enviar novamente ou sair
 - **THEN** envio duplicado é impedido e os valores permanecem disponíveis até resposta ou decisão segura do fluxo
+
+#### Scenario: Salvamento confirmado
+- **WHEN** a gravação termina com sucesso e o editor navega para o destino seguinte
+- **THEN** a proteção reconhece a remoção autorizada da rota e não apresenta o aviso de descarte
 
 ### Requirement: Gestos complementares e sem conflito
 The system SHALL preserve platform/browser navigation gestures and provide a visible single-pointer alternative for each custom gesture. Custom navigation gestures MUST NOT intercept vertical scrolling, pull-to-refresh, text selection, keyboard input, screen-reader navigation or setlist reordering.
