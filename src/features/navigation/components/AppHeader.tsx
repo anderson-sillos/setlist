@@ -44,6 +44,7 @@ export function AppHeader({
           accessibilityLabel="Abrir menu geral"
           icon="menu"
           onPress={onOpenMenu}
+          size={32}
         />
       ) : null}
 
@@ -53,6 +54,7 @@ export function AppHeader({
             accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
             icon="back"
             role="link"
+            size={32}
           />
         </Link>
       ) : null}
@@ -88,6 +90,7 @@ export function AppHeader({
           disabled={editActions.saveDisabled}
           icon="check"
           onPress={editActions.onSave}
+          size={32}
         />
       ) : null}
       {headerAction ? (
@@ -99,6 +102,7 @@ export function AppHeader({
             blurWebFocus();
             headerAction.onPress();
           }}
+          size={32}
         />
       ) : null}
     </View>
@@ -115,6 +119,7 @@ interface HeaderIconButtonProps {
   readonly icon?: AppIconName;
   readonly onPress?: () => void;
   readonly role?: 'button' | 'link';
+  readonly size?: number;
 }
 
 const HeaderIconButton = forwardRef<
@@ -129,6 +134,7 @@ const HeaderIconButton = forwardRef<
     icon,
     onPress,
     role = 'button',
+    size = 24,
   },
   ref,
 ) {
@@ -147,7 +153,7 @@ const HeaderIconButton = forwardRef<
         pressed && styles.pressed,
       ]}
     >
-      {icon ? <AppIcon color={color} name={icon} /> : null}
+      {icon ? <AppIcon color={color} name={icon} size={size} /> : null}
     </Pressable>
   );
 });

@@ -14,7 +14,7 @@
 ## 3. Ícones, marca e assets
 
 - [x] 3.1 Revisar os 43 identificadores do `AppIcon` segundo o inventário e separar fechar, excluir, remover vínculo, renovar/restaurar, atualizar e reabrir; verificar mapa, tamanhos, acessibilidade e composições em `npm test -- --runInBand src/components/ui/__tests__/AppIcon-test.tsx`.
-- [ ] 3.2 Aplicar raio proporcional de 25% ao fundo violeta do logo nos usos de interface sem alterar nota, proporção ou cores; gerar assets com `npm run assets:icons` e conferir visualmente login, favicon e exportações nativas sem duplicar a máscara da plataforma.
+- [x] 3.2 Aplicar raio proporcional de 25% ao fundo violeta do logo nos usos de interface sem alterar nota, proporção ou cores; gerar assets com `npm run assets:icons` e conferir visualmente login, favicon e exportações nativas sem duplicar a máscara da plataforma.
 - [x] 3.3 Alinhar barra inferior, menu lateral e drawer em slots/rótulos/seleção, mantendo ordem, alvos de toque e ação atual do Palco; validar em dimensões compacta, tablet e desktop nos testes de navegação/responsividade.
 
 ## 4. Shell, login e bandas

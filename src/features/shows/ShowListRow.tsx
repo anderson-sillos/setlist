@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { type Href, Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -23,59 +24,78 @@ export function ShowListRow({
   href,
   show,
 }: ShowListRowProps) {
+  const [pressed, setPressed] = useState(false);
+
   return (
     <View style={styles.rowFrame}>
       <Link href={href} asChild>
         <Pressable
           accessibilityLabel={accessibilityLabel}
           accessibilityRole="link"
-          style={({ pressed }) => [
+          onPressIn={() => setPressed(true)}
+          onPressOut={() => setPressed(false)}
+          style={StyleSheet.flatten([
             styles.listRow,
             show.status === 'cancelled' && styles.cancelledRow,
             pressed && styles.pressed,
-          ]}
+          ])}
         >
           <View style={styles.rowLayout}>
-            <View style={styles.rowContent}>
-              <View style={styles.rowTitleLine}>
-                <AppText style={styles.rowTitle} variant="heading">
-                  {show.name}
-                </AppText>
-                <StatusPill
-                  tone={show.status === 'ready' ? 'ready' : 'default'}
-                >
-                  {showStatusLabels[show.status]}
-                </StatusPill>
+            <View style={styles.rowPrimaryContent}>
+              <View style={styles.rowLeadingIcon}>
+                <AppIcon
+                  color={colors.text.secondary}
+                  name="shows"
+                  size={40}
+                />
               </View>
-              <View style={styles.rowMetaLine}>
-                <AppText numberOfLines={1} style={styles.rowDate} tone="muted">
-                  {formatShowListDate(show.startsAt)}
-                </AppText>
-                <View
-                  accessibilityLabel={`Duração ${
-                    durationMs === null
-                      ? 'não informada'
-                      : formatShowDuration(durationMs)
-                  }`}
-                  style={styles.durationMeta}
-                >
-                  <AppIcon
-                    color={colors.text.secondary}
-                    name="duration"
-                    size={12}
-                  />
-                  <AppText style={styles.durationValue} tone="accent">
-                    {durationMs === null ? '—' : formatShowDuration(durationMs)}
+              <View style={styles.rowContent}>
+                <View style={styles.rowTitleLine}>
+                  <AppText style={styles.rowTitle} variant="heading">
+                    {show.name}
                   </AppText>
+                  <StatusPill
+                    tone={show.status === 'ready' ? 'ready' : 'default'}
+                  >
+                    {showStatusLabels[show.status]}
+                  </StatusPill>
                 </View>
+                <View style={styles.rowMetaLine}>
+                  <AppText
+                    numberOfLines={1}
+                    style={styles.rowDate}
+                    tone="muted"
+                  >
+                    {formatShowListDate(show.startsAt)}
+                  </AppText>
+                  <View
+                    accessibilityLabel={`Duração ${
+                      durationMs === null
+                        ? 'não informada'
+                        : formatShowDuration(durationMs)
+                    }`}
+                    style={styles.durationMeta}
+                  >
+                    <AppIcon
+                      color={colors.text.secondary}
+                      name="duration"
+                      size={12}
+                    />
+                    <AppText style={styles.durationValue} tone="accent">
+                      {durationMs === null
+                        ? '—'
+                        : formatShowDuration(durationMs)}
+                    </AppText>
+                  </View>
+                </View>
+                <AppText
+                  numberOfLines={1}
+                  style={styles.rowVenue}
+                  variant="caption"
+                >
+                  {show.venue}
+                </AppText>
               </View>
-              <AppText
-                numberOfLines={1}
-                style={styles.rowVenue}
-                variant="caption"
-              >
-                {show.venue}
-              </AppText>
             </View>
             <View style={styles.rowNavigation}>
               <AppIcon color={colors.text.secondary} name="forward" size={20} />
@@ -99,7 +119,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    minHeight: 82,
+    minHeight: 84,
     padding: spacing.md,
   },
   cancelledRow: {
@@ -110,6 +130,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.lg,
     width: '100%',
+  },
+  rowPrimaryContent: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minWidth: 0,
+  },
+  rowLeadingIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    width: 48,
   },
   rowContent: {
     flex: 1,

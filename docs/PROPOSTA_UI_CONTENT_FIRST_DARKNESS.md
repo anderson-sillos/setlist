@@ -58,7 +58,7 @@ A avaliação foi feita sobre os arquivos do projeto, incluindo os tokens, compo
 | Texto principal escuro                       | `ink: #172033`                                                | Texto principal quase branco `#F4F4F5`                          |
 | Violeta escuro em texto                      | `violetDark: #5B21B6` em `AppText`                            | Texto de ação em `#B692FF`                                      |
 | Botões secundários claros e contorno violeta | `AppButton`                                                   | Controles neutros; violeta reservado à ação principal           |
-| Cards com borda e padding amplo              | `Card` usa borda de 1 e padding de 24                         | Reservar cards a agrupamentos; usar linhas para listas extensas |
+| Cards com borda e padding amplo              | `Card` usa borda de 1 e padding de 24                         | Usar linhas contínuas em listas densas, exceto nas listas de Shows e Repertório, que usam cards por item para identificar o conteúdo |
 | Metadados e setas coloridos                  | Duração e chevron no repertório usam violeta                  | Usar cinza secundário; título fica mais evidente                |
 | Estados por opacidade                        | Botões e linhas usam redução geral de opacidade               | Definir cores de estado e preservar contraste do conteúdo       |
 | Estilos específicos fora dos tokens          | Ex.: `#AAB3CE` no menu lateral                                | Centralizar papéis semânticos de cor                            |
@@ -258,6 +258,8 @@ Não há conflito visual que justifique mudar o símbolo nesta proposta. A mudan
 
 Altura principal: 48. Padding horizontal: 20–24. Ícone: 18–20. Na Web, uma variante compacta pode ter 36–40 de altura para ações de toolbar; no celular, reservar 48 para o alvo.
 
+No cabeçalho, menu, voltar e ações principais usam ícones de 32 dentro de alvos de 48 × 48. Essa exceção aumenta a visibilidade sem alterar o layout nem reduzir a área de toque. Cancelar permanece com ícone de 22–24; ações auxiliares fora do cabeçalho seguem a escala compacta abaixo.
+
 Uma região de tarefa tem uma ação principal evidente. “Editar” no detalhe da música pode ser neutro; dentro do editor, “Salvar” fica violeta. O botão de atualizar permanece apenas com ícone, à direita da busca na Web. Não transformar denunciar, duração, chevron e todas as ações em botões preenchidos.
 
 ### 9.2 Busca e formulários
@@ -284,9 +286,9 @@ Filtros são controles; status são informação. Eles podem compartilhar cantos
 
 ### 9.4 Linhas e cards
 
-**Linha musical:** título `primary`, artista `secondary`, duração `secondary`, abertura com chevron neutro. Na Web, duration pode formar coluna à direita. No celular, fica na segunda linha ou área de metadados sem disputar o título.
+**Linhas de repertório e shows:** cada item segue o card da lista de bandas: fundo `raised`, borda `subtle` de 1 px, raio 12 e padding 12. Usar `Music2` à esquerda da música e `CalendarDays` à esquerda do show, ambos em 40 e cor `secondary`, centralizados em um slot de 48. Título permanece `primary`; artista, data e duração ficam em `secondary`; abertura usa chevron neutro. No celular, metadados fluem abaixo do título sem competir com ele.
 
-**Card de banda/show:** superfície `raised`, título principal, resumo útil e indicação de abertura. Usar 16 de padding e 16 de raio. Borda decorativa opcional; identificação de interação também vem da estrutura e dos controles.
+**Card de banda:** superfície `raised`, título principal, resumo útil e indicação de abertura. Usar 12 de padding, borda `subtle` de 1 px e raio 12. Identificação de interação também vem da estrutura e dos controles. Os itens de Shows e Repertório seguem essa mesma estrutura, com ícone representativo no slot inicial.
 
 Hover sobre linha usa `background.hover`. Seleção persistente usa `background.selected` + check ou indicador violeta. Abrir uma música não deve deixar seleção permanente se a operação não tiver esse significado.
 
@@ -435,7 +437,8 @@ Operações sensíveis nunca devem depender de distinguir apenas `X`, lixeira ou
 | Menu lateral Web                    | 20                       | Slot de 24, dentro de linha de 28–32         | Preservar densidade e início comum dos rótulos                                     |
 | Drawer móvel                        | 20–22                    | Slot de 24, linha de pelo menos 48           | Mesmo desenho, alvo maior                                                          |
 | Barra inferior                      | 22                       | Slot de 24; célula com pelo menos 48 × 48    | Rótulo abaixo, sempre visível                                                      |
-| Cabeçalho: voltar/menu/fechar       | 22–24                    | Botão de 48 × 48 no celular                  | Centralizar sem invadir título                                                     |
+| Cabeçalho: menu, voltar e ação principal | 32                   | Botão de 48 × 48                             | Aumentar a visibilidade sem mudar o alvo ou competir com o título                  |
+| Cabeçalho: cancelar                   | 22–24                    | Botão de 48 × 48 no celular                  | Centralizar sem invadir título                                                     |
 | Botão com texto                     | 18–20                    | Slot de 20; altura 48 no celular             | Intervalo de 8 para o rótulo                                                       |
 | Atualizar / denunciar / mais opções | 18–20                    | Slot de 20; alvo 48 no celular, 32–40 na Web | Não aumentar o desenho para aumentar o alvo                                        |
 | Indicador de metadado               | 16, se necessário        | Sem alvo quando decorativo                   | Evitar 10–12 para figura com detalhes; preferir texto para “3:42” em listas densas |
@@ -586,7 +589,7 @@ Estado vazio mantém orientação e ação “Criar banda” quando permitida. N
 
 Cabeçalho com nome da banda em informação secundária, título Repertório e ação “Adicionar música” quando autorizada. Busca vem antes da lista; filtros e ordenação são neutros.
 
-Trocar a aparência de cards separados por uma lista contínua com ritmo consistente. Título da música é a informação mais forte. Artista e duração usam cinza; status de letra aparece apenas com o peso necessário. Miniatura pode ser um slot neutro com nota musical, sem capa inventada.
+Manter cards separados em uma lista com ritmo consistente, iguais aos da lista de bandas. Cada card tem borda `subtle` de 1 px e ícone `Music2` de 40 à esquerda, centralizado em um slot de 48; não usar capa inventada. Título é a informação mais forte; artista e duração usam cinza, e status da letra aparece apenas com o peso necessário.
 
 Na Web, alinhar duração e ações em colunas. No celular, garantir duas linhas de informação sem forçar todos os atributos na mesma linha. Quando a primeira versão só oferece leitura de letra, rótulos e ações não devem sugerir sincronização ou reprodução integrada disponível.
 
@@ -604,7 +607,7 @@ Nome de bloco como “Verso” ou “Refrão” usa metadado `secondary`. Cabeç
 
 ### 11.6 Shows
 
-Lista prioriza nome, data e status. Show pronto usa chip verde discreto; rascunho é neutro; cancelado tem rótulo explícito sem tingir o card inteiro. Calendário e filtros aparecem como controles secundários, mantendo fácil acesso.
+Lista usa cards individuais iguais aos da lista de bandas, com borda `subtle` de 1 px e `CalendarDays` de 40 à esquerda em slot de 48. Prioriza nome, data e status. Show pronto usa chip verde discreto; rascunho é neutro; cancelado tem rótulo explícito sem tingir o card inteiro. Calendário e filtros aparecem como controles secundários, mantendo fácil acesso.
 
 No detalhe, resumo com data/local/duração planejada. Setlist ocupa a hierarquia central. “Editar” fica junto ao cabeçalho da setlist onde permitido; não deslocar a ação para um lugar distante do conteúdo.
 

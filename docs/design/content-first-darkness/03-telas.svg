@@ -144,35 +144,30 @@ SOFTWARE.
 <text x="420" y="383.0" fill="#B692FF" font-size="13" font-weight="500" text-anchor="start">Com letra</text>
 <text x="296" y="431" fill="#92929F" font-size="11" font-weight="600" text-anchor="start">MÚSICA</text>
 <text x="1250" y="431" fill="#92929F" font-size="11" font-weight="600" text-anchor="end">DURAÇÃO</text>
-<rect x="296" y="452" width="48" height="48" rx="8" fill="#1C1C1F"/>
-<use href="#music" xlink:href="#music" x="310" y="466" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<text x="360" y="470" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Luzes da Rua</text>
-<text x="360" y="495" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom G</text>
-<text x="1250" y="479" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">3:42</text>
-<use href="#chevron" xlink:href="#chevron" x="1316" y="466" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<path d="M296 516L1376 516" fill="none" stroke="#303035"/>
-<rect x="280" y="518" width="1112" height="68" rx="8" fill="#28282D"/>
-<rect x="296" y="526" width="48" height="48" rx="8" fill="#1C1C1F"/>
-<use href="#music" xlink:href="#music" x="310" y="540" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<text x="360" y="544" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Vento Norte</text>
-<text x="360" y="569" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom D</text>
-<text x="1250" y="553" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">4:08</text>
-<use href="#chevron" xlink:href="#chevron" x="1316" y="540" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<path d="M296 590L1376 590" fill="none" stroke="#303035"/>
-<rect x="296" y="600" width="48" height="48" rx="8" fill="#1C1C1F"/>
-<use href="#music" xlink:href="#music" x="310" y="614" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<text x="360" y="618" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Depois do Ensaio</text>
-<text x="360" y="643" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom Am</text>
-<text x="1250" y="627" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">3:16</text>
-<use href="#chevron" xlink:href="#chevron" x="1316" y="614" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<path d="M296 664L1376 664" fill="none" stroke="#303035"/>
-<rect x="296" y="674" width="48" height="48" rx="8" fill="#1C1C1F"/>
-<use href="#music" xlink:href="#music" x="310" y="688" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<text x="360" y="692" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Outra Direção</text>
-<text x="360" y="717" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom C</text>
-<text x="1250" y="701" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">4:30</text>
-<use href="#chevron" xlink:href="#chevron" x="1316" y="688" width="20" height="20" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
-<path d="M296 738L1376 738" fill="none" stroke="#303035"/>
+<rect x="296" y="452" width="1080" height="68" rx="12" fill="#1C1C1F" stroke="#303035" stroke-width="1"/>
+<use href="#music" xlink:href="#music" x="312" y="466" width="40" height="40" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<text x="368" y="479" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Luzes da Rua</text>
+<text x="368" y="503" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom G</text>
+<text x="1250" y="488" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">3:42</text>
+<use href="#chevron" xlink:href="#chevron" x="1336" y="474" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<rect x="296" y="526" width="1080" height="68" rx="12" fill="#28282D" stroke="#303035" stroke-width="1"/>
+<use href="#music" xlink:href="#music" x="312" y="540" width="40" height="40" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<text x="368" y="553" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Vento Norte</text>
+<text x="368" y="577" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom D</text>
+<text x="1250" y="562" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">4:08</text>
+<use href="#chevron" xlink:href="#chevron" x="1336" y="548" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<rect x="296" y="600" width="1080" height="68" rx="12" fill="#1C1C1F" stroke="#303035" stroke-width="1"/>
+<use href="#music" xlink:href="#music" x="312" y="614" width="40" height="40" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<text x="368" y="627" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Depois do Ensaio</text>
+<text x="368" y="651" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom Am</text>
+<text x="1250" y="636" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">3:16</text>
+<use href="#chevron" xlink:href="#chevron" x="1336" y="622" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<rect x="296" y="674" width="1080" height="68" rx="12" fill="#1C1C1F" stroke="#303035" stroke-width="1"/>
+<use href="#music" xlink:href="#music" x="312" y="688" width="40" height="40" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
+<text x="368" y="701" fill="#F4F4F5" font-size="18" font-weight="600" text-anchor="start">Outra Direção</text>
+<text x="368" y="725" fill="#B8B8C2" font-size="14" font-weight="400" text-anchor="start">Horizonte · Tom C</text>
+<text x="1250" y="710" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="end">4:30</text>
+<use href="#chevron" xlink:href="#chevron" x="1336" y="696" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#B8B8C2"/>
 <text x="32" y="818" fill="#B692FF" font-size="12" font-weight="700" text-anchor="start">MOBILE / LOGIN</text>
 <rect x="32" y="838" width="432" height="706" rx="24" fill="#121214" stroke="#303035" stroke-width="1"/>
 <text x="56" y="864" fill="#B8B8C2" font-size="11" font-weight="600" text-anchor="start">9:41</text>

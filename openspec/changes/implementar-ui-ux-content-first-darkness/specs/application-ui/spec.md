@@ -55,7 +55,7 @@ The system SHALL apply the same visual hierarchy to band, repertoire, song and l
 
 #### Scenario: Consultar repertório ou show
 - **WHEN** uma pessoa abre uma lista de músicas ou shows
-- **THEN** nome, artista/data, estado e ordem têm hierarquia clara e ações não competem com o conteúdo principal
+- **THEN** cada item aparece em card com a mesma borda `subtle` e geometria da lista de bandas, ícone representativo de 40 px em slot de 48, nome e artista/data/status em hierarquia clara, sem ações competindo com o conteúdo principal
 
 #### Scenario: Consultar letra
 - **WHEN** uma pessoa lê uma letra em tela pequena ou ampla
@@ -71,6 +71,10 @@ The system SHALL use a coherent icon family with undistorted symbols, stable ali
 #### Scenario: Ação contextual identificada
 - **WHEN** uma ação de fechar, excluir, remover vínculo, atualizar, restaurar ou reabrir é apresentada
 - **THEN** a figura e o rótulo comunicam a operação correta sem reutilizar um símbolo de significado conflitante
+
+#### Scenario: Ícones do cabeçalho
+- **WHEN** o cabeçalho apresenta menu, voltar ou uma ação principal no lado direito
+- **THEN** o ícone mede 32 px dentro de um alvo interativo de 48 × 48 px; cancelar mantém ícone de 22–24 px
 
 #### Scenario: Navegação apresentada com ícones
 - **WHEN** os destinos de navegação são mostrados na barra inferior, menu lateral ou drawer

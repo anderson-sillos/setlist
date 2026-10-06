@@ -1,5 +1,5 @@
 import { Link, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
@@ -53,58 +53,74 @@ const repertoireSorts = [
 ] as const;
 
 function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
+  const [pressed, setPressed] = useState(false);
+
   return (
     <View style={styles.rowFrame}>
       <Link href={getSongHref(bandId, song.id)} asChild>
         <Pressable
           accessibilityLabel={`Abrir música ${song.title}`}
           accessibilityRole="link"
-          style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}
+          onPressIn={() => setPressed(true)}
+          onPressOut={() => setPressed(false)}
+          style={StyleSheet.flatten([
+            styles.listRow,
+            pressed && styles.pressed,
+          ])}
         >
           <View style={styles.rowLayout}>
-            <View style={styles.rowContent}>
-              <View style={styles.rowTitleLine}>
-                <AppText style={styles.rowTitle} variant="heading">
-                  {song.title}
-                </AppText>
-                <StatusPill
-                  tone={
-                    song.lyricStatus === 'synchronized'
-                      ? 'ready'
-                      : song.lyricStatus === 'missing'
-                        ? 'warning'
-                        : 'default'
-                  }
-                >
-                  {lyricStatusLabels[song.lyricStatus]}
-                </StatusPill>
+            <View style={styles.rowPrimaryContent}>
+              <View style={styles.rowLeadingIcon}>
+                <AppIcon
+                  color={colors.text.secondary}
+                  name="music"
+                  size={40}
+                />
               </View>
-              <View style={styles.rowMetaLine}>
-                <AppText
-                  numberOfLines={1}
-                  style={styles.rowArtist}
-                  tone="muted"
-                >
-                  {song.originalArtist ?? 'Artista/Banda não informado'}
-                </AppText>
-                <View
-                  accessibilityLabel={`Duração ${
-                    song.estimatedDurationMs === null
-                      ? 'não informada'
-                      : formatSongDuration(song.estimatedDurationMs)
-                  }`}
-                  style={styles.durationMeta}
-                >
-                  <AppIcon
-                    color={colors.text.secondary}
-                    name="duration"
-                    size={12}
-                  />
-                  <AppText style={styles.durationValue} tone="accent">
-                    {song.estimatedDurationMs === null
-                      ? '—'
-                      : formatSongDuration(song.estimatedDurationMs)}
+              <View style={styles.rowContent}>
+                <View style={styles.rowTitleLine}>
+                  <AppText style={styles.rowTitle} variant="heading">
+                    {song.title}
                   </AppText>
+                  <StatusPill
+                    tone={
+                      song.lyricStatus === 'synchronized'
+                        ? 'ready'
+                        : song.lyricStatus === 'missing'
+                          ? 'warning'
+                          : 'default'
+                    }
+                  >
+                    {lyricStatusLabels[song.lyricStatus]}
+                  </StatusPill>
+                </View>
+                <View style={styles.rowMetaLine}>
+                  <AppText
+                    numberOfLines={1}
+                    style={styles.rowArtist}
+                    tone="muted"
+                  >
+                    {song.originalArtist ?? 'Artista/Banda não informado'}
+                  </AppText>
+                  <View
+                    accessibilityLabel={`Duração ${
+                      song.estimatedDurationMs === null
+                        ? 'não informada'
+                        : formatSongDuration(song.estimatedDurationMs)
+                    }`}
+                    style={styles.durationMeta}
+                  >
+                    <AppIcon
+                      color={colors.text.secondary}
+                      name="duration"
+                      size={12}
+                    />
+                    <AppText style={styles.durationValue} tone="accent">
+                      {song.estimatedDurationMs === null
+                        ? '—'
+                        : formatSongDuration(song.estimatedDurationMs)}
+                    </AppText>
+                  </View>
                 </View>
               </View>
             </View>
@@ -319,7 +335,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    minHeight: 82,
+    minHeight: 84,
     padding: spacing.md,
   },
   rowLayout: {
@@ -327,6 +343,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.lg,
     width: '100%',
+  },
+  rowPrimaryContent: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minWidth: 0,
+  },
+  rowLeadingIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    width: 48,
   },
   rowContent: {
     flex: 1,
