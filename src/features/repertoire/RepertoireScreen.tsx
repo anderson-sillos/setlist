@@ -284,7 +284,11 @@ export function RepertoireScreen({
             updateControlsVisibility(event.nativeEvent.contentOffset.y);
             rememberListScrollOffset(event, rememberScrollOffset);
           }}
-          refreshControl={getListRefreshControl({ onRefresh, refreshing })}
+          refreshControl={getListRefreshControl({
+            onRefresh,
+            progressViewOffset: controlsOverlayHeight,
+            refreshing,
+          })}
           renderItem={({ item }) => <SongRow bandId={bandId} song={item} />}
           scrollEventThrottle={120}
           showsVerticalScrollIndicator={false}

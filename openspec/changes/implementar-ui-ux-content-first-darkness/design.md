@@ -51,9 +51,11 @@ Arredondar o fundo do logo em 25% do lado (raio 6 na arte vetorial de 24; 7–8 
 
 ### 4. Configurar transições por navegador e tipo de rota
 
-Rever `screenOptions` do Stack raiz e dos layouts aninhados. Usar apresentação do navegador em detalhe/retorno nativo; reservar fade curto para troca de seção principal na Web/navegação por controle. Drawer e popup continuam camadas, com abertura/fechamento próprios. Centralizar durações de efeitos próprios em tokens; preservar tempos e gestos interativos nativos quando a preferência do sistema exigir.
+Rever `screenOptions` do Stack raiz e dos layouts aninhados. Usar apresentação do navegador em detalhe/retorno nativo. No nativo, o botão Voltar substitui a rota atual pelo destino contextual em vez de depender de outras telas no histórico; a rota de destino usa animação `pop`, para a tela correta entrar pela esquerda. A leitura de letra em tela cheia usa `dismissTo` para retornar ao detalhe da mesma música no Stack aninhado; o detalhe usa `pop` para entrar pela esquerda, inclusive quando a letra foi aberta diretamente. Na Web, navegar ao destino contextual e manter a integração com o histórico e o fade curto. Na troca de seção pelos controles nativos, avançar Shows → Repertório → Banda com substituição `push` e retroceder com `pop`, preservando a direção natural da pilha no iOS e aplicando `slide_from_right` nativo no Android. A rota raiz de Minhas bandas sempre usa `pop` ao ser substituída, para entrar pela esquerda como primeiro nível da pilha. Drawer e popup continuam camadas, com abertura/fechamento próprios. Centralizar durações de efeitos próprios em tokens; preservar tempos e gestos interativos nativos quando a preferência do sistema exigir.
 
 Começar a transição sem aguardar consulta remota; loading/erro/sucesso refletem o estado dos dados. Não animar a tela inteira em refresh, cada letra ou cada linha. Observar a estrutura de `ScrollView`, refresh control e `NavigationMemory` ao inserir animadores para não desmontar listas, perder posição ou reabrir telas em branco.
+
+Em listas com controles fixos sobre a área de rolagem, posicionar o indicador nativo de pull-to-refresh abaixo do overlay usando sua altura medida (`progressViewOffset`). O overlay continua fixo e a lista mantém a área de rolagem integral.
 
 **Alternativa considerada:** configurar uma animação global para todo push/pop. Rejeitada porque troca de seção, detalhe, popup e drawer expressam níveis diferentes e porque o Stack raiz atualmente desativa movimento enquanto stacks internos não estão explicitamente alinhados.
 

@@ -5,6 +5,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
+import { useSectionTransition } from '@/features/navigation/SectionTransition';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface BottomNavigationProps {
@@ -18,6 +19,8 @@ export function BottomNavigation({
   getSectionHref,
   onStagePress,
 }: BottomNavigationProps) {
+  const { setSectionTransition } = useSectionTransition();
+
   return (
     <View
       accessibilityRole="tablist"
@@ -36,6 +39,11 @@ export function BottomNavigation({
             accessibilityRole={stage ? 'button' : 'tab'}
             accessibilityState={stage ? undefined : { selected: active }}
             onPress={stage ? onStagePress : undefined}
+            onPressIn={
+              active || stage
+                ? undefined
+                : () => setSectionTransition(activeSection, item.section)
+            }
             style={StyleSheet.flatten([
               styles.item,
               active && styles.itemActive,

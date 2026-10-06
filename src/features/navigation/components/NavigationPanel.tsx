@@ -20,6 +20,7 @@ import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { legalUrls } from '@/features/legal/legalUrls';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
+import { useSectionTransition } from '@/features/navigation/SectionTransition';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 const roleLabels: Record<BandRole, string> = {
@@ -269,6 +270,7 @@ export function NavigationPanel({
   onStagePress,
   showBrand = true,
 }: NavigationPanelProps) {
+  const { setSectionTransition } = useSectionTransition();
   const { session } = useAuthSession();
   const { fontScale } = useWindowDimensions();
   const profileQuery = useCurrentProfile();
@@ -351,7 +353,12 @@ export function NavigationPanel({
                 label={item.label}
                 largeTargets={largeTargets}
                 rowHeight={rowHeight}
-                onNavigate={onNavigate}
+                onNavigate={() => {
+                  if (activeSection && item.section !== 'stage') {
+                    setSectionTransition(activeSection, item.section);
+                  }
+                  onNavigate?.();
+                }}
                 onPress={item.section === 'stage' ? onStagePress : undefined}
               />
             ))}

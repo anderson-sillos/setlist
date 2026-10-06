@@ -7,6 +7,8 @@ import { getStackScreenOptions } from '@/features/navigation/stackOptions';
 export default function RepertoireLayout() {
   const reducedMotion = useReducedMotionPreference();
   return (
-    <Stack screenOptions={getStackScreenOptions(Platform.OS, reducedMotion)} />
+    <Stack screenOptions={getStackScreenOptions(Platform.OS, reducedMotion)}>
+      <Stack.Screen name="index" options={{ animationTypeForReplace: 'pop' }} />
+    </Stack>
   );
 }

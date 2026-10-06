@@ -42,10 +42,24 @@ The system SHALL use brief transitions that communicate whether a route is enter
 #### Scenario: Entrar e retornar de um detalhe
 - **WHEN** uma pessoa abre um detalhe e usa retorno pelo botão ou gesto da plataforma
 - **THEN** a transição respeita a plataforma e o retorno interativo pode ser cancelado sem alterar a rota ou o conteúdo ativo
+- **AND** em iOS e Android, o botão Voltar substitui a rota atual pelo destino contextual com animação de retorno, garantindo que a tela correta entre pela esquerda mesmo se houver outras telas no histórico
+- **AND** na Web, o botão Voltar navega ao destino contextual e mantém a integração com o histórico e a transição fade
+
+#### Scenario: Retornar da letra em tela cheia
+- **WHEN** a pessoa volta da letra em tela cheia
+- **THEN** retorna ao detalhe da mesma música, sem passar pelo repertório ou por outra música do histórico
+- **AND** em iOS e Android, o detalhe entra pela esquerda; se a letra foi aberta diretamente, o detalhe é apresentado com animação de retorno
+- **AND** na Web, a navegação mantém a transição fade
 
 #### Scenario: Trocar a seção ativa
 - **WHEN** a pessoa muda de área da banda por controle de navegação
 - **THEN** conteúdo, rótulo e seção selecionada mudam juntos sem aparentar que uma tela de detalhe foi empilhada
+- **AND** nos controles nativos, avançar de Shows para Repertório ou de Repertório para Banda desliza a nova seção da direita; retroceder desliza da esquerda, mantendo a animação nativa do iOS e Android
+- **AND** na Web, a troca mantém a transição fade existente
+
+#### Scenario: Voltar para Minhas bandas
+- **WHEN** a pessoa retorna de outra rota à tela Minhas bandas
+- **THEN** Minhas bandas entra pela esquerda como o primeiro nível da pilha nativa
 
 #### Scenario: Operação termina durante a transição
 - **WHEN** navegação ou gravação prossegue enquanto a transição visual está acontecendo

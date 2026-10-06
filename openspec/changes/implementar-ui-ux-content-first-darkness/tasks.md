@@ -33,7 +33,7 @@
 
 - [x] 6.1 Migrar lista, busca, filtros, ordenação, calendário, datas, status e detalhe de show ao sistema visual preservando semântica de feriados e permissões; verificar com `npm test -- --runInBand src/features/shows/__tests__/ShowsScreen-test.tsx src/features/shows/__tests__/ShowDetailScreen-test.tsx`.
 - [x] 6.2 Migrar editor de setlist, blocos, alça, reordenação, observações, separadores e durações com estados claros; verificar preservação de ordem e alternativa textual nos testes de editor.
-- [ ] 6.3 Inspecionar scroll, pull-to-refresh, painel de calendário e arraste em celular/tablet/desktop; verificar que atualização, filtragem e ordenação existentes mantêm o resultado.
+- [ ] 6.3 Inspecionar scroll, pull-to-refresh (com o indicador abaixo dos controles fixos), painel de calendário e arraste em celular/tablet/desktop; verificar que atualização, filtragem e ordenação existentes mantêm o resultado.
 
 ## 7. Banda, conta e mensagens
 
@@ -43,7 +43,7 @@
 
 ## 8. Navegação, contexto e transições
 
-- [ ] 8.1 Configurar Stacks raiz e aninhados por tipo de tela, com apresentação nativa para detalhe/retorno e fade breve para troca de seção, sem animação de tela inteira em refresh; validar rotas internas, deep links e cancelamento nativo nos fluxos manuais por plataforma.
+- [ ] 8.1 Configurar Stacks raiz e aninhados por tipo de tela, com apresentação nativa para detalhe/retorno, retorno da letra em tela cheia ao detalhe da música com entrada pela esquerda, substituição de detalhes pelo destino contextual, transição direcional para troca de seção nos controles nativos, entrada pela esquerda ao voltar a Minhas bandas e fade breve na Web, sem animação de tela inteira em refresh; validar rotas internas, deep links e cancelamento nativo nos fluxos manuais por plataforma.
 - [x] 8.2 Unificar a resolução de destino de barra, menu e retorno, usando memória por banda/seção para rota, busca, filtros e rolagem; verificar com `npm test -- --runInBand src/features/navigation/__tests__/navigationMemory-test.tsx src/features/navigation/__tests__/navigationIntegration-test.tsx src/features/navigation/__tests__/navigationRoutes-test.ts`.
 - [ ] 8.3 Fazer Voltar fechar primeiro drawer/menu/popup quando aberto, respeitar histórico do navegador na Web e comportamento do teclado/Voltar do Android; verificar a sequência de retorno em Web, development builds Android e iOS.
 

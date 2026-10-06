@@ -14,11 +14,13 @@ import { colors, layout, radii } from '@/theme/tokens';
 
 interface ScreenDataRefreshProps {
   readonly onRefresh: () => void | Promise<void>;
+  readonly progressViewOffset?: number;
   readonly refreshing: boolean;
 }
 
 export function getListRefreshControl({
   onRefresh,
+  progressViewOffset,
   refreshing,
 }: ScreenDataRefreshProps): ReactElement<RefreshControlProps> | undefined {
   if (Platform.OS === 'web') {
@@ -27,10 +29,14 @@ export function getListRefreshControl({
 
   return (
     <RefreshControl
+      colors={[colors.action.primary]}
       onRefresh={() => {
         void onRefresh();
       }}
+      progressBackgroundColor={colors.background.raised}
+      progressViewOffset={progressViewOffset}
       refreshing={refreshing}
+      tintColor={colors.action.primary}
     />
   );
 }

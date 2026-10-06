@@ -27,7 +27,7 @@ jest.mock('expo-router', () => ({
     showId: 'show-demo-festival',
     songId: 'song-demo-luzes',
   }),
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => ({ navigate: jest.fn(), replace: jest.fn() }),
   useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
 

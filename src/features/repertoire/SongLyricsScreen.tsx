@@ -33,7 +33,7 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea} testID="song-lyrics-screen">
       <View style={styles.header}>
-        <Link href={getSongHref(bandId, songId)} asChild>
+        <Link dismissTo href={getSongHref(bandId, songId)} asChild>
           <Pressable
             accessibilityLabel="Voltar para detalhes da música"
             accessibilityRole="link"

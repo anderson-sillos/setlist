@@ -1,6 +1,6 @@
 import { forwardRef, type ComponentRef } from 'react';
-import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -36,6 +36,7 @@ export function AppHeader({
   title,
 }: AppHeaderProps) {
   const kind = screenKind ?? 'main';
+  const router = useRouter();
 
   return (
     <View style={styles.header} testID="app-header">
@@ -49,14 +50,19 @@ export function AppHeader({
       ) : null}
 
       {kind === 'detail' && backHref ? (
-        <Link href={backHref} asChild>
-          <HeaderIconButton
-            accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
-            icon="back"
-            role="link"
-            size={32}
-          />
-        </Link>
+        <HeaderIconButton
+          accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
+          icon="back"
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              router.navigate(backHref);
+              return;
+            }
+
+            router.replace(backHref);
+          }}
+          size={32}
+        />
       ) : null}
 
       {kind === 'edit' && editActions ? (
@@ -118,7 +124,6 @@ interface HeaderIconButtonProps {
   readonly disabled?: boolean;
   readonly icon?: AppIconName;
   readonly onPress?: () => void;
-  readonly role?: 'button' | 'link';
   readonly size?: number;
 }
 
@@ -133,7 +138,6 @@ const HeaderIconButton = forwardRef<
     disabled,
     icon,
     onPress,
-    role = 'button',
     size = 24,
   },
   ref,
@@ -142,7 +146,7 @@ const HeaderIconButton = forwardRef<
     <Pressable
       ref={ref}
       accessibilityLabel={accessibilityLabel}
-      accessibilityRole={role}
+      accessibilityRole="button"
       accessibilityState={accessibilityState}
       disabled={disabled}
       hitSlop={8}

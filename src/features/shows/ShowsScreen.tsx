@@ -484,7 +484,11 @@ export function ShowsScreen({
             updateControlsVisibility(event.nativeEvent.contentOffset.y);
             rememberListScrollOffset(event, rememberScrollOffset);
           }}
-          refreshControl={getListRefreshControl({ onRefresh, refreshing })}
+          refreshControl={getListRefreshControl({
+            onRefresh,
+            progressViewOffset: controlsOverlayHeight,
+            refreshing,
+          })}
           renderItem={({ item }) => (
             <ShowListRow
               accessibilityLabel={`Abrir show ${item.name}`}
