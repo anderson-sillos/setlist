@@ -42,6 +42,7 @@ import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { formatShowListDate } from '@/utils/dateTime';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
+import { toRomanNumeral } from '@/utils/romanNumerals';
 import { lyricStatusLabels } from '@/features/repertoire/songPresentation';
 import {
   showStatusIcons,
@@ -626,7 +627,9 @@ export function ShowDetailScreen({
                 accessibilityLabel={`Status: ${showStatusLabels[show.status]}`}
                 icon={showStatusIcons[show.status]}
                 tone={showStatusTones[show.status]}
-              />
+              >
+                {showStatusLabels[show.status]}
+              </StatusPill>
             </View>
             <AppText accessibilityRole="header" variant="heading">
               {show.name}
@@ -695,14 +698,14 @@ export function ShowDetailScreen({
                 />
               ) : null}
             </View>
-            {show.blocks.map((block) => {
+            {show.blocks.map((block, blockIndex) => {
               const blockDuration = getBlockDurationBreakdown(block, songsById);
 
               return (
                 <Card key={block.id} style={styles.blockCard}>
                   <View style={styles.blockHeader}>
                     <AppText tone="accent" variant="eyebrow">
-                      {block.name}
+                      {toRomanNumeral(blockIndex + 1)}. {block.name}
                     </AppText>
                     <AppText tone="muted" variant="caption">
                       {blockDuration.totalMs === null

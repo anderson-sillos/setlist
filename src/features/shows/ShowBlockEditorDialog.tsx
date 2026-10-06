@@ -32,6 +32,7 @@ import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
+import { toRomanNumeral } from '@/utils/romanNumerals';
 
 export type ShowSetlistItemDraft = ShowSetlistItem & {
   readonly isNew?: boolean;
@@ -77,6 +78,7 @@ interface ItemDragSession {
   readonly originTopY: number;
   readonly sourceBlockId: EntityId;
   lastDy: number;
+  movementDirection: -1 | 0 | 1;
   targetBlockId: EntityId;
   targetIndex: number;
 }
@@ -88,6 +90,7 @@ interface BlockDragSession {
   readonly originTopY: number;
   readonly sourceIndex: number;
   lastDy: number;
+  movementDirection: -1 | 0 | 1;
   targetIndex: number;
 }
 
@@ -235,6 +238,20 @@ export function ShowBlockEditorDialog({
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
   );
+  const songSequenceNumbers = useMemo(() => {
+    const sequenceNumbers = new Map<EntityId, number>();
+    let nextSongNumber = 0;
+
+    blocks.forEach((block) => {
+      block.items.forEach((item) => {
+        if (item.type !== 'song') return;
+        nextSongNumber += 1;
+        sequenceNumbers.set(item.id, nextSongNumber);
+      });
+    });
+
+    return sequenceNumbers;
+  }, [blocks]);
   const filteredSongs = useMemo(() => {
     const query = songSearchText.trim().toLocaleLowerCase('pt-BR');
     if (!query) return songs;
@@ -465,6 +482,7 @@ export function ShowBlockEditorDialog({
       originTopY: itemLayout.y,
       sourceBlockId: blockId,
       lastDy: 0,
+      movementDirection: 0,
       targetBlockId: blockId,
       targetIndex: itemIndex,
     };
@@ -479,6 +497,10 @@ export function ShowBlockEditorDialog({
   const moveItemDrag = (dy: number) => {
     const session = itemDragSessionRef.current;
     if (!session) return;
+    const movement = dy - session.lastDy;
+    if (movement !== 0) {
+      session.movementDirection = movement < 0 ? -1 : 1;
+    }
     session.lastDy = dy;
     const previewTop =
       scrollFrameYRef.current +
@@ -499,7 +521,11 @@ export function ShowBlockEditorDialog({
       session.targetBlockId = destination.targetBlockId;
       session.targetIndex = destination.targetIndex;
     }
-    updateAutoScrollVelocity(previewTop, dragPreview?.height ?? 72);
+    updateAutoScrollVelocity(
+      previewTop,
+      dragPreview?.height ?? 72,
+      session.movementDirection,
+    );
   };
 
   const clearItemDrag = () => {
@@ -646,6 +672,7 @@ export function ShowBlockEditorDialog({
   const updateAutoScrollVelocity = (
     previewTop: number,
     previewHeight: number,
+    movementDirection: -1 | 0 | 1,
   ) => {
     const viewportHeight = scrollViewportHeightRef.current;
     const contentHeight = scrollContentHeightRef.current;
@@ -655,21 +682,23 @@ export function ShowBlockEditorDialog({
     }
 
     const edgeSize = Math.min(72, viewportHeight * 0.2);
-    const previewCenter = previewTop + previewHeight / 2;
     const viewportTop = scrollFrameYRef.current;
     const viewportBottom = viewportTop + viewportHeight;
     let velocity = 0;
 
-    if (previewCenter < viewportTop + edgeSize) {
+    if (movementDirection < 0 && previewTop < viewportTop + edgeSize) {
       const proximity = Math.min(
         1,
-        (viewportTop + edgeSize - previewCenter) / edgeSize,
+        (viewportTop + edgeSize - previewTop) / edgeSize,
       );
       velocity = -Math.max(80, 440 * proximity);
-    } else if (previewCenter > viewportBottom - edgeSize) {
+    } else if (
+      movementDirection > 0 &&
+      previewTop + previewHeight > viewportBottom - edgeSize
+    ) {
       const proximity = Math.min(
         1,
-        (previewCenter - (viewportBottom - edgeSize)) / edgeSize,
+        (previewTop + previewHeight - (viewportBottom - edgeSize)) / edgeSize,
       );
       velocity = Math.max(80, 440 * proximity);
     }
@@ -700,6 +729,7 @@ export function ShowBlockEditorDialog({
       originTopY: blockLayout.y,
       sourceIndex: blockIndex,
       lastDy: 0,
+      movementDirection: 0,
       targetIndex: blockIndex,
     };
     setDraggingBlockId(blockId);
@@ -714,6 +744,10 @@ export function ShowBlockEditorDialog({
   const moveBlockDragPreview = (dy: number) => {
     const session = blockDragSessionRef.current;
     if (!session) return;
+    const movement = dy - session.lastDy;
+    if (movement !== 0) {
+      session.movementDirection = movement < 0 ? -1 : 1;
+    }
     session.lastDy = dy;
     const previewTop =
       scrollFrameYRef.current +
@@ -730,7 +764,11 @@ export function ShowBlockEditorDialog({
         session.originScrollOffset,
       session.blockId,
     );
-    updateAutoScrollVelocity(previewTop, dragPreview?.height ?? 120);
+    updateAutoScrollVelocity(
+      previewTop,
+      dragPreview?.height ?? 120,
+      session.movementDirection,
+    );
   };
 
   const clearBlockDrag = () => {
@@ -894,6 +932,7 @@ export function ShowBlockEditorDialog({
                   onStartBlockDrag={startBlockDrag}
                   onStartItemDrag={startItemDrag}
                   songById={songById}
+                  songSequenceNumbers={songSequenceNumbers}
                 />
               ))}
               {errorMessage ? (
@@ -1159,6 +1198,7 @@ function BlockRow({
   onStartBlockDrag,
   onStartItemDrag,
   songById,
+  songSequenceNumbers,
 }: {
   readonly block: ShowBlockDraft;
   readonly canDelete: boolean;
@@ -1194,6 +1234,7 @@ function BlockRow({
   readonly onStartBlockDrag: (blockId: EntityId) => void;
   readonly onStartItemDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly songById: ReadonlyMap<string, Song>;
+  readonly songSequenceNumbers: ReadonlyMap<EntityId, number>;
 }) {
   return (
     <View
@@ -1227,6 +1268,13 @@ function BlockRow({
         <View style={styles.blockSelect}>
           <View style={styles.blockTitleRow}>
             <AppIcon color={colors.text.secondary} name="block" size={18} />
+            <AppText
+              style={styles.blockSequenceNumber}
+              tone="accent"
+              variant="eyebrow"
+            >
+              {toRomanNumeral(index + 1)}.
+            </AppText>
             <TextInput
               accessibilityLabel={'Nome do bloco ' + (index + 1)}
               onChangeText={onChangeName}
@@ -1290,6 +1338,7 @@ function BlockRow({
             onRemove={() => onRemoveItem(item.id)}
             onStartDrag={onStartItemDrag}
             song={item.type === 'song' ? songById.get(item.songId) : undefined}
+            songSequenceNumber={songSequenceNumbers.get(item.id)}
           />
         ))
       )}
@@ -1310,6 +1359,7 @@ function SetlistItemRow({
   onRemove,
   onStartDrag,
   song,
+  songSequenceNumber,
 }: {
   readonly blockId: EntityId;
   readonly dragging: boolean;
@@ -1329,6 +1379,7 @@ function SetlistItemRow({
   readonly onRemove: () => void;
   readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly song?: Song;
+  readonly songSequenceNumber?: number;
 }) {
   const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
 
@@ -1530,11 +1581,18 @@ function SetlistItemRow({
       testID={'setlist-item-row-' + item.id}
     >
       <ItemRemoveButton
-        itemLabel={'música ' + (index + 1)}
+        itemLabel={'música ' + (songSequenceNumber ?? index + 1)}
         onRemove={onRemove}
       />
       <View style={styles.itemContent}>
         <AppIcon color={colors.text.secondary} name="music" size={16} />
+        <AppText
+          style={styles.songSequenceNumber}
+          tone="muted"
+          variant="caption"
+        >
+          {songSequenceNumber}.
+        </AppText>
         <View style={styles.itemFields}>
           <AppText>{song?.title ?? 'Música indisponível'}</AppText>
           {song?.originalArtist ? (
@@ -1546,7 +1604,9 @@ function SetlistItemRow({
             Duração · {formatSongDuration(song?.estimatedDurationMs ?? null)}
           </AppText>
           <TextInput
-            accessibilityLabel={'Observação da música ' + (index + 1)}
+            accessibilityLabel={
+              'Observação da música ' + (songSequenceNumber ?? index + 1)
+            }
             onChangeText={(notes) =>
               onChange((current) =>
                 current.type === 'song'
@@ -1564,7 +1624,7 @@ function SetlistItemRow({
       <ItemDragHandle
         dragging={dragging}
         itemId={item.id}
-        itemLabel={'música ' + (index + 1)}
+        itemLabel={'música ' + (songSequenceNumber ?? index + 1)}
         onCancelDrag={onCancelDrag}
         onEndDrag={onEndDrag}
         onMoveDrag={onMoveDrag}
@@ -1776,6 +1836,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
+  blockSequenceNumber: {
+    flexShrink: 0,
+  },
   blockNameField: {
     flex: 1,
     minWidth: 0,
@@ -1966,6 +2029,11 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
     minWidth: 0,
+  },
+  songSequenceNumber: {
+    minWidth: 20,
+    paddingTop: 2,
+    textAlign: 'right',
   },
   itemRow: {
     alignItems: 'flex-start',

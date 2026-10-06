@@ -35,20 +35,19 @@ export function StatusPill({
       }
       style={[
         styles.pill,
-        icon && styles.iconPill,
+        icon && (children ? styles.iconTextPill : styles.iconPill),
         tone === 'ready' && styles.ready,
         tone === 'warning' && styles.warning,
         tone === 'danger' && styles.danger,
         tone === 'info' && styles.info,
       ]}
     >
-      {icon ? (
-        <AppIcon color={iconTones[tone]} name={icon} size={16} />
-      ) : (
+      {icon ? <AppIcon color={iconTones[tone]} name={icon} size={16} /> : null}
+      {children ? (
         <AppText tone={textTones[tone]} variant="caption">
           {children}
         </AppText>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -67,6 +66,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 0,
     width: 24,
+  },
+  iconTextPill: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+    height: 24,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
   },
   ready: {
     backgroundColor: colors.semantic.successSurface,
