@@ -21,7 +21,11 @@ import { useBandNavigationState } from '@/features/navigation/hooks/useBandNavig
 import { useNavigationDrawer } from '@/features/navigation/hooks/useNavigationDrawer';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
 import { StageAvailabilityDialog } from '@/features/stage/StageAvailabilityDialog';
-import { getLayoutMode, getNavigationPresentation } from '@/theme/responsive';
+import {
+  getContentHorizontalPadding,
+  getLayoutMode,
+  getNavigationPresentation,
+} from '@/theme/responsive';
 import { colors, layout, spacing } from '@/theme/tokens';
 
 export type {
@@ -79,12 +83,7 @@ export function AppNavigationShell({
   const layoutMode = getLayoutMode(width);
   const navigationPresentation = getNavigationPresentation(width, height);
   const persistentSidebar = navigationPresentation === 'sidebar';
-  const horizontalPadding =
-    layoutMode === 'desktop'
-      ? layout.desktopHorizontalMargin
-      : layoutMode === 'tablet'
-        ? layout.tabletHorizontalMargin
-        : layout.phoneHorizontalMargin;
+  const horizontalPadding = getContentHorizontalPadding(width);
   const { getSectionHref, handleScroll, initialScrollOffset } =
     useBandNavigationState({
       activeSection,
@@ -275,7 +274,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.canvas,
     borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
-    paddingVertical: spacing.md,
+    paddingVertical: 0,
     zIndex: 2,
   },
   fixedContent: {

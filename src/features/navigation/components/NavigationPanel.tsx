@@ -309,7 +309,7 @@ export function NavigationPanel({
     <ScrollView contentContainerStyle={styles.panel}>
       {showBrand ? (
         <View style={styles.brand}>
-          <AppLogo size={32} />
+          <AppLogo size={40} />
           <View>
             <AppText tone="inverse" variant="heading">
               Setlist

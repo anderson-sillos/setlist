@@ -68,7 +68,7 @@ export function MobileNavigationDrawer({
             >
               <View style={styles.header}>
                 <View style={styles.brand}>
-                  <AppLogo size={32} />
+                  <AppLogo size={40} />
                   <View style={styles.brandCopy}>
                     <AppText tone="inverse" variant="heading">
                       Setlist

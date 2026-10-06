@@ -16,6 +16,7 @@ import {
   getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
+import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
 import {
   ListControls,
   OptionMenu,
@@ -36,7 +37,11 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
-import { getNavigationPresentation } from '@/theme/responsive';
+import { useScrollDirectionVisibility } from '@/hooks/useScrollDirectionVisibility';
+import {
+  getContentHorizontalPadding,
+  getNavigationPresentation,
+} from '@/theme/responsive';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeForSearch } from '@/utils/text';
@@ -147,6 +152,9 @@ export function RepertoireScreen({
       viewportWidth ?? window.width,
       viewportHeight ?? window.height,
     ) === 'bottom-tabs';
+  const horizontalPadding = getContentHorizontalPadding(
+    viewportWidth ?? window.width,
+  );
   const router = useRouter();
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
@@ -160,6 +168,13 @@ export function RepertoireScreen({
       search: '',
       sort: 'title' as RepertoireSort,
     });
+  const {
+    updateVisibility: updateControlsVisibility,
+    visible: controlsVisible,
+  } = useScrollDirectionVisibility(initialScrollOffset);
+  const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
+    spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
+  );
   const normalizedSearch = normalizeForSearch(state.search);
   const songs = useMemo(() => {
     const result = (songsQuery.data ?? []).filter((song) => {
@@ -223,43 +238,6 @@ export function RepertoireScreen({
             }
           : undefined
       }
-      fixedContent={
-        <ListControls>
-          <View style={styles.searchRow}>
-            <View style={styles.searchField}>
-              <SearchField
-                accessibilityLabel="Buscar música por título ou artista"
-                onChangeText={(value) => update('search', value)}
-                placeholder="Buscar música ou artista/banda"
-                value={state.search}
-              />
-            </View>
-            <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
-          </View>
-          <View style={styles.controlToolbarEnd}>
-            <OptionMenu
-              active={state.filter !== 'all'}
-              accessibilityLabel="Alterar filtros do repertório"
-              compact
-              icon="filter"
-              label="Filtrar"
-              onChange={(value) => update('filter', value)}
-              options={repertoireFilters}
-              value={state.filter}
-            />
-            <OptionMenu
-              active={state.sort !== 'title'}
-              accessibilityLabel="Alterar ordenação do repertório"
-              compact
-              icon="sort"
-              label="Ordenar"
-              onChange={(value) => update('sort', value)}
-              options={repertoireSorts}
-              value={state.sort}
-            />
-          </View>
-        </ListControls>
-      }
       scrollable={false}
       title="Repertório"
       viewportHeight={viewportHeight}
@@ -274,44 +252,107 @@ export function RepertoireScreen({
           }}
         />
       ) : null}
-      <FlatList
-        contentContainerStyle={[
-          styles.listContent,
-          usesBottomNavigation && styles.listContentWithBottomNavigation,
-        ]}
-        contentOffset={{ x: 0, y: initialScrollOffset }}
-        data={songs}
-        keyExtractor={({ id }) => id}
-        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
-        ListEmptyComponent={
-          !songsQuery.isPending && !songsQuery.isError ? (
-            <ListEmptyState
-              actionLabel={hasQuery ? 'Limpar filtros' : undefined}
-              message={
-                hasQuery
-                  ? 'Nem o roadie encontrou essa. Tente outra busca.'
-                  : 'O palco está silencioso por aqui. Que tal adicionar a primeira música?'
-              }
-              onAction={hasQuery ? clearFilters : undefined}
-              title={
-                hasQuery ? 'Nenhuma música encontrada' : 'Repertório vazio'
-              }
-            />
-          ) : null
-        }
-        onScroll={(event) =>
-          rememberListScrollOffset(event, rememberScrollOffset)
-        }
-        renderItem={({ item }) => <SongRow bandId={bandId} song={item} />}
-        scrollEventThrottle={120}
-        showsVerticalScrollIndicator={false}
-        testID="repertoire-list"
-      />
+      <View style={styles.listArea}>
+        <FlatList
+          contentContainerStyle={[
+            styles.listContent,
+            usesBottomNavigation && styles.listContentWithBottomNavigation,
+          ]}
+          contentOffset={{ x: 0, y: initialScrollOffset }}
+          data={songs}
+          keyExtractor={({ id }) => id}
+          ListEmptyComponent={
+            !songsQuery.isPending && !songsQuery.isError ? (
+              <ListEmptyState
+                actionLabel={hasQuery ? 'Limpar filtros' : undefined}
+                message={
+                  hasQuery
+                    ? 'Nem o roadie encontrou essa. Tente outra busca.'
+                    : 'O palco está silencioso por aqui. Que tal adicionar a primeira música?'
+                }
+                onAction={hasQuery ? clearFilters : undefined}
+                title={
+                  hasQuery ? 'Nenhuma música encontrada' : 'Repertório vazio'
+                }
+              />
+            ) : null
+          }
+          ListHeaderComponent={
+            <View style={{ height: controlsOverlayHeight }} />
+          }
+          onScroll={(event) => {
+            updateControlsVisibility(event.nativeEvent.contentOffset.y);
+            rememberListScrollOffset(event, rememberScrollOffset);
+          }}
+          refreshControl={getListRefreshControl({ onRefresh, refreshing })}
+          renderItem={({ item }) => <SongRow bandId={bandId} song={item} />}
+          scrollEventThrottle={120}
+          showsVerticalScrollIndicator={false}
+          style={styles.list}
+          testID="repertoire-list"
+        />
+        <ListControlsOverlay
+          horizontalPadding={horizontalPadding}
+          onLayout={(event) => {
+            const nextHeight = event.nativeEvent.layout.height;
+            setControlsOverlayHeight((current) =>
+              current === nextHeight ? current : nextHeight,
+            );
+          }}
+        >
+          <ListControls>
+            <View style={styles.searchRow}>
+              <View style={styles.searchField}>
+                <SearchField
+                  accessibilityLabel="Buscar música por título ou artista"
+                  onChangeText={(value) => update('search', value)}
+                  placeholder="Buscar música ou artista/banda"
+                  value={state.search}
+                />
+              </View>
+              <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+            </View>
+            {controlsVisible ? (
+              <View style={styles.controlToolbarEnd}>
+                <OptionMenu
+                  active={state.filter !== 'all'}
+                  accessibilityLabel="Alterar filtros do repertório"
+                  compact
+                  icon="filter"
+                  label="Filtrar"
+                  onChange={(value) => update('filter', value)}
+                  options={repertoireFilters}
+                  value={state.filter}
+                />
+                <OptionMenu
+                  active={state.sort !== 'title'}
+                  accessibilityLabel="Alterar ordenação do repertório"
+                  compact
+                  icon="sort"
+                  label="Ordenar"
+                  onChange={(value) => update('sort', value)}
+                  options={repertoireSorts}
+                  value={state.sort}
+                />
+              </View>
+            ) : null}
+          </ListControls>
+        </ListControlsOverlay>
+      </View>
     </BandAreaLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  listArea: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+  },
+  list: {
+    flex: 1,
+    minHeight: 0,
+  },
   searchRow: {
     alignItems: 'center',
     flexDirection: 'row',

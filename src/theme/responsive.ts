@@ -15,6 +15,18 @@ export function getLayoutMode(viewportWidth: number): LayoutMode {
   return 'phone';
 }
 
+export function getContentHorizontalPadding(viewportWidth: number): number {
+  const mode = getLayoutMode(viewportWidth);
+
+  if (mode === 'desktop') {
+    return layout.desktopHorizontalMargin;
+  }
+
+  return mode === 'tablet'
+    ? layout.tabletHorizontalMargin
+    : layout.phoneHorizontalMargin;
+}
+
 export function getNavigationPresentation(
   viewportWidth: number,
   viewportHeight: number,

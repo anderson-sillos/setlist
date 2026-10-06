@@ -18,6 +18,7 @@ import {
   getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
+import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
 import {
   ChoiceChips,
   FilterMenu,
@@ -40,13 +41,17 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useScrollDirectionVisibility } from '@/hooks/useScrollDirectionVisibility';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { ShowListRow } from '@/features/shows/ShowListRow';
 import {
   ShowCreationDialog,
   type ShowCreationForm,
 } from '@/features/shows/ShowCreationDialog';
-import { getNavigationPresentation } from '@/theme/responsive';
+import {
+  getContentHorizontalPadding,
+  getNavigationPresentation,
+} from '@/theme/responsive';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatDateFilter, getDateKey } from '@/utils/dateTime';
 import { normalizeForSearch } from '@/utils/text';
@@ -88,6 +93,9 @@ export function ShowsScreen({
       viewportWidth ?? window.width,
       viewportHeight ?? window.height,
     ) === 'bottom-tabs';
+  const horizontalPadding = getContentHorizontalPadding(
+    viewportWidth ?? window.width,
+  );
   const router = useRouter();
   const queryClient = useQueryClient();
   const showsQuery = useShows(bandId);
@@ -117,6 +125,10 @@ export function ShowsScreen({
       sort: 'date-asc' as ShowSort,
       status: 'active' as ShowStatusFilter,
     });
+  const {
+    updateVisibility: updateControlsVisibility,
+    visible: controlsVisible,
+  } = useScrollDirectionVisibility(initialScrollOffset);
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
@@ -194,6 +206,12 @@ export function ShowsScreen({
       ) ?? null
     );
   }, [state.date]);
+  const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
+    spacing.sm * (selectedDateLabel ? 4 : 3) +
+      layout.minimumTouchTarget * 2 +
+      (selectedDateLabel ? 40 : 0) +
+      1,
+  );
   const handleCreateShow = async (form: ShowCreationForm) => {
     if (creationSubmissionLock.current) return;
     creationSubmissionLock.current = true;
@@ -263,85 +281,89 @@ export function ShowsScreen({
         </View>
         <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
       </View>
-      <View style={styles.controlToolbar}>
-        <Pressable
-          accessibilityLabel="Abrir calendário para filtrar por data"
-          accessibilityRole="button"
-          onPress={() => setCalendarOpen(true)}
-          style={({ pressed }) => [
-            styles.calendarButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppIcon color={colors.text.secondary} name="shows" size={18} />
-          <AppText tone="accent" variant="caption">
-            Calendário
-          </AppText>
-        </Pressable>
-        <FilterMenu
-          active={activeFilterCount > 0}
-          accessibilityLabel="Abrir filtros dos shows"
-          icon="filter"
-          label="Filtros"
-          onClear={() => {
-            update('date', '');
-            update('period', 'upcoming');
-            update('status', 'active');
-          }}
-        >
-          <View style={styles.filterGroup}>
-            <AppText variant="eyebrow">Período</AppText>
-            <ChoiceChips
-              accessibilityLabel="Período dos shows"
-              onChange={(value) => update('period', value)}
-              options={showPeriods}
-              value={state.period}
-            />
-          </View>
-          <View style={styles.filterGroup}>
-            <AppText variant="eyebrow">Status</AppText>
-            <ChoiceChips
-              accessibilityLabel="Estado dos shows"
-              onChange={(value) => update('status', value)}
-              options={showStatuses}
-              value={state.status}
-            />
-          </View>
-        </FilterMenu>
-        <OptionMenu
-          active={state.sort !== 'date-asc'}
-          accessibilityLabel="Alterar ordenação dos shows"
-          compact
-          icon="sort"
-          label="Ordenar"
-          onChange={(value) => update('sort', value)}
-          options={showSorts}
-          value={state.sort}
-        />
-      </View>
-      <View style={styles.dateToolbar}>
-        {selectedDateLabel ? (
+      {controlsVisible ? (
+        <View style={styles.controlToolbar}>
           <Pressable
-            accessibilityLabel={`Remover filtro de data ${selectedDateLabel}`}
+            accessibilityLabel="Abrir calendário para filtrar por data"
             accessibilityRole="button"
-            onPress={clearSelectedDate}
+            onPress={() => setCalendarOpen(true)}
             style={({ pressed }) => [
-              styles.dateChip,
+              styles.calendarButton,
               pressed && styles.pressed,
             ]}
           >
-            <AppText tone="onAccent" variant="caption">
-              {selectedDateLabel}
+            <AppIcon color={colors.text.secondary} name="shows" size={18} />
+            <AppText tone="accent" variant="caption">
+              Calendário
             </AppText>
-            <AppIcon color={colors.text.onAccent} name="close" size={14} />
           </Pressable>
-        ) : null}
-        {selectedHoliday ? (
-          <AppText tone="accent" variant="body">
-            {selectedHoliday.name}
-          </AppText>
-        ) : null}
-      </View>
+          <FilterMenu
+            active={activeFilterCount > 0}
+            accessibilityLabel="Abrir filtros dos shows"
+            icon="filter"
+            label="Filtros"
+            onClear={() => {
+              update('date', '');
+              update('period', 'upcoming');
+              update('status', 'active');
+            }}
+          >
+            <View style={styles.filterGroup}>
+              <AppText variant="eyebrow">Período</AppText>
+              <ChoiceChips
+                accessibilityLabel="Período dos shows"
+                onChange={(value) => update('period', value)}
+                options={showPeriods}
+                value={state.period}
+              />
+            </View>
+            <View style={styles.filterGroup}>
+              <AppText variant="eyebrow">Status</AppText>
+              <ChoiceChips
+                accessibilityLabel="Estado dos shows"
+                onChange={(value) => update('status', value)}
+                options={showStatuses}
+                value={state.status}
+              />
+            </View>
+          </FilterMenu>
+          <OptionMenu
+            active={state.sort !== 'date-asc'}
+            accessibilityLabel="Alterar ordenação dos shows"
+            compact
+            icon="sort"
+            label="Ordenar"
+            onChange={(value) => update('sort', value)}
+            options={showSorts}
+            value={state.sort}
+          />
+        </View>
+      ) : null}
+      {controlsVisible && (selectedDateLabel || selectedHoliday) ? (
+        <View style={styles.dateToolbar}>
+          {selectedDateLabel ? (
+            <Pressable
+              accessibilityLabel={`Remover filtro de data ${selectedDateLabel}`}
+              accessibilityRole="button"
+              onPress={clearSelectedDate}
+              style={({ pressed }) => [
+                styles.dateChip,
+                pressed && styles.pressed,
+              ]}
+            >
+              <AppText tone="onAccent" variant="caption">
+                {selectedDateLabel}
+              </AppText>
+              <AppIcon color={colors.text.onAccent} name="close" size={14} />
+            </Pressable>
+          ) : null}
+          {selectedHoliday ? (
+            <AppText tone="accent" variant="body">
+              {selectedHoliday.name}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
       <OptionSheet
         closeAccessibilityLabel="Fechar calendário"
         label="Escolher data"
@@ -368,7 +390,6 @@ export function ShowsScreen({
       activeSection="shows"
       bandId={bandId}
       currentRoute={getBandSectionHref(bandId, 'shows') as string}
-      fixedContent={controls}
       headerAction={
         canCreate
           ? {
@@ -427,55 +448,82 @@ export function ShowsScreen({
         />
       ) : null}
 
-      <FlatList
-        contentContainerStyle={[
-          styles.listContent,
-          usesBottomNavigation && styles.listContentWithBottomNavigation,
-        ]}
-        contentOffset={{ x: 0, y: initialScrollOffset }}
-        data={shows}
-        keyExtractor={({ id }) => id}
-        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
-        ListEmptyComponent={
-          !showsQuery.isPending &&
-          !songsQuery.isPending &&
-          !showsQuery.isError &&
-          !userBandsQuery.isError &&
-          !songsQuery.isError ? (
-            <ListEmptyState
-              actionLabel={hasQuery ? 'Limpar filtros' : undefined}
-              message={
-                hasQuery
-                  ? 'Nem o roadie encontrou essa. Tente outra busca.'
-                  : 'A agenda ainda está em silêncio. Que tal marcar o próximo show?'
-              }
-              onAction={hasQuery ? clearFilters : undefined}
-              title={
-                hasQuery ? 'Nenhum show encontrado' : 'Nenhum show por aqui'
-              }
+      <View style={styles.listArea}>
+        <FlatList
+          contentContainerStyle={[
+            styles.listContent,
+            usesBottomNavigation && styles.listContentWithBottomNavigation,
+          ]}
+          contentOffset={{ x: 0, y: initialScrollOffset }}
+          data={shows}
+          keyExtractor={({ id }) => id}
+          ListEmptyComponent={
+            !showsQuery.isPending &&
+            !songsQuery.isPending &&
+            !showsQuery.isError &&
+            !userBandsQuery.isError &&
+            !songsQuery.isError ? (
+              <ListEmptyState
+                actionLabel={hasQuery ? 'Limpar filtros' : undefined}
+                message={
+                  hasQuery
+                    ? 'Nem o roadie encontrou essa. Tente outra busca.'
+                    : 'A agenda ainda está em silêncio. Que tal marcar o próximo show?'
+                }
+                onAction={hasQuery ? clearFilters : undefined}
+                title={
+                  hasQuery ? 'Nenhum show encontrado' : 'Nenhum show por aqui'
+                }
+              />
+            ) : null
+          }
+          ListHeaderComponent={
+            <View style={{ height: controlsOverlayHeight }} />
+          }
+          onScroll={(event) => {
+            updateControlsVisibility(event.nativeEvent.contentOffset.y);
+            rememberListScrollOffset(event, rememberScrollOffset);
+          }}
+          refreshControl={getListRefreshControl({ onRefresh, refreshing })}
+          renderItem={({ item }) => (
+            <ShowListRow
+              accessibilityLabel={`Abrir show ${item.name}`}
+              durationMs={getShowDurationMs(item, songsById)}
+              href={getShowHref(bandId, item.id)}
+              show={item}
             />
-          ) : null
-        }
-        onScroll={(event) =>
-          rememberListScrollOffset(event, rememberScrollOffset)
-        }
-        renderItem={({ item }) => (
-          <ShowListRow
-            accessibilityLabel={`Abrir show ${item.name}`}
-            durationMs={getShowDurationMs(item, songsById)}
-            href={getShowHref(bandId, item.id)}
-            show={item}
-          />
-        )}
-        scrollEventThrottle={120}
-        showsVerticalScrollIndicator={false}
-        testID="shows-list"
-      />
+          )}
+          scrollEventThrottle={120}
+          showsVerticalScrollIndicator={false}
+          style={styles.list}
+          testID="shows-list"
+        />
+        <ListControlsOverlay
+          horizontalPadding={horizontalPadding}
+          onLayout={(event) => {
+            const nextHeight = event.nativeEvent.layout.height;
+            setControlsOverlayHeight((current) =>
+              current === nextHeight ? current : nextHeight,
+            );
+          }}
+        >
+          {controls}
+        </ListControlsOverlay>
+      </View>
     </BandAreaLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  listArea: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+  },
+  list: {
+    flex: 1,
+    minHeight: 0,
+  },
   searchRow: {
     alignItems: 'center',
     flexDirection: 'row',
