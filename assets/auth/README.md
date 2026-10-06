@@ -1,6 +1,5 @@
 # Logos de autenticação
 
-- `google-g.png`: [logo G do Google](https://developers.google.com/static/identity/images/g-logo.png).
-- `apple-logo.png`: [logo gerado pela Apple para botões de login](https://appleid.cdn-apple.com/appleid/button/logo?color=white&border=false&border_radius=0&scale=3&size=30).
+Os dois símbolos são renderizados como vetores no componente `AuthProviderIcon.tsx` com `react-native-svg`: o G colorido do [Google](https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg) e a marca da Apple adaptada do [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/apple.svg), publicado sob CC0. A Apple usa preenchimento claro para o fundo escuro.
 
-Os arquivos são exibidos com `resizeMode="contain"` em `AuthProviderIcon.tsx` para manter suas proporções em Web, Android e iOS.
+Os símbolos usam o mesmo slot e tamanho visual em Web, Android e iOS.

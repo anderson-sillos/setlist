@@ -128,6 +128,7 @@ export function AppNavigationShell({
               activeSection={activeSection}
               bandId={bandId}
               bandName={bandName}
+              compact
               getSectionHref={getSectionHref}
               onLogout={handleLogout}
               onStagePress={handleStagePress}
@@ -299,8 +300,8 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     backgroundColor: colors.background.canvas,
-    flexBasis: 284,
-    maxWidth: 320,
-    minWidth: 260,
+    flexBasis: 248,
+    maxWidth: 248,
+    minWidth: 224,
   },
 });

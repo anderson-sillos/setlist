@@ -84,12 +84,19 @@ export function useBand(bandId: EntityId) {
   });
 }
 
-export function useBandMembers(bandId: EntityId) {
+export function useBandMembers(bandId: EntityId | undefined) {
   const { repositories } = useAppData();
 
   return useQuery({
+    enabled: Boolean(bandId),
     queryKey: ['bands', bandId, 'members'],
-    queryFn: () => repositories.bands.listMembers(bandId),
+    queryFn: () => {
+      if (!bandId) {
+        throw new Error('A banda é necessária para carregar os integrantes.');
+      }
+
+      return repositories.bands.listMembers(bandId);
+    },
   });
 }
 
