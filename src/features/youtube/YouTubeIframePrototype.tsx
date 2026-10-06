@@ -17,6 +17,7 @@ import {
   type YouTubePlayerState,
 } from '@/features/youtube/youtubePlayer';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface YouTubeIframePrototypeProps {
   readonly reference?: string | null;
@@ -40,7 +41,7 @@ export function YouTubeIframePrototype({
   return (
     <Screen testID="youtube-iframe-prototype">
       <View style={styles.header}>
-        <Link href="/" replace asChild>
+        <Link href="/" onPress={blurWebFocus} replace asChild>
           <AppButton
             icon="back"
             label="Fechar protótipo"

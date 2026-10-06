@@ -17,6 +17,7 @@ import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { useAppData } from '@/providers/AppProviders';
 import { colors, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface InviteScreenProps {
   readonly authenticated?: string;
@@ -197,13 +198,13 @@ export function InviteScreen({
             Entre para conferir a banda e confirmar sua entrada. O token fica
             guardado apenas durante o retorno do login.
           </AppText>
-          <Link href={authPath} replace asChild>
+          <Link href={authPath} onPress={blurWebFocus} replace asChild>
             <AppButton icon="login" label="Entrar para continuar" />
           </Link>
         </Card>
       )}
 
-      <Link href="/" replace asChild>
+      <Link href="/" onPress={blurWebFocus} replace asChild>
         <AppButton label="Voltar" variant="secondary" />
       </Link>
     </Screen>

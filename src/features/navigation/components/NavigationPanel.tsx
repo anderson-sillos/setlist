@@ -22,6 +22,7 @@ import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
 import { useSectionTransition } from '@/features/navigation/SectionTransition';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 const roleLabels: Record<BandRole, string> = {
   editor: 'Editor',
@@ -117,13 +118,19 @@ function SidebarNavigationLink({
       accessibilityLabel={onPress ? `${label}, em breve` : `Ir para ${label}`}
       accessibilityRole={onPress ? 'button' : 'tab'}
       accessibilityState={onPress ? undefined : { selected: active }}
-      onPress={onPress}
+      onPress={
+        onPress
+          ? () => {
+              blurWebFocus();
+              onPress();
+            }
+          : undefined
+      }
       onPressIn={onPress ? undefined : onNavigate}
       style={itemStyle}
     >
       {active ? (
         <View
-          pointerEvents="none"
           style={[
             styles.activeIndicator,
             compact && styles.compactActiveIndicator,
@@ -142,7 +149,7 @@ function SidebarNavigationLink({
   );
 
   return href ? (
-    <Link href={href} replace asChild>
+    <Link href={href} onPress={blurWebFocus} replace asChild>
       {item}
     </Link>
   ) : (
@@ -168,7 +175,7 @@ function GeneralNavigationLink({
   readonly onNavigate?: () => void;
 }) {
   return (
-    <Link href={href} replace asChild>
+    <Link href={href} onPress={blurWebFocus} replace asChild>
       <Pressable
         accessibilityLabel={label}
         accessibilityRole="link"
@@ -210,7 +217,10 @@ function GeneralNavigationAction({
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={() => {
+        blurWebFocus();
+        onPress();
+      }}
       style={({ pressed }) => [
         styles.sectionItem,
         compact && styles.compactItem,
@@ -508,6 +518,7 @@ const styles = StyleSheet.create({
     bottom: 8,
     left: spacing.sm,
     position: 'absolute',
+    pointerEvents: 'none',
     top: 8,
     width: 2,
   },

@@ -496,6 +496,8 @@ function MemberRow({
   readonly onManage: () => void;
   readonly onReport: () => void;
 }) {
+  const [actionFocused, setActionFocused] = useState(false);
+
   return (
     <View style={styles.rowFrame}>
       <View style={styles.memberRow}>
@@ -517,10 +519,14 @@ function MemberRow({
         {!current ? (
           <Pressable
             accessibilityLabel={`Denunciar ${member.displayName}`}
+            accessibilityHint="Abre o formulário para informar o motivo da denúncia."
             accessibilityRole="button"
+            onBlur={() => setActionFocused(false)}
+            onFocus={() => setActionFocused(true)}
             onPress={onReport}
             style={({ pressed }) => [
               styles.overflowButton,
+              actionFocused && styles.focusedOverflowButton,
               pressed && styles.pressed,
             ]}
           >
@@ -531,9 +537,12 @@ function MemberRow({
           <Pressable
             accessibilityLabel="Sair da banda"
             accessibilityRole="button"
+            onBlur={() => setActionFocused(false)}
+            onFocus={() => setActionFocused(true)}
             onPress={onLeave}
             style={({ pressed }) => [
               styles.overflowButton,
+              actionFocused && styles.focusedOverflowButton,
               pressed && styles.pressed,
             ]}
           >
@@ -543,9 +552,12 @@ function MemberRow({
           <Pressable
             accessibilityLabel={`Administrar ${member.displayName}`}
             accessibilityRole="button"
+            onBlur={() => setActionFocused(false)}
+            onFocus={() => setActionFocused(true)}
             onPress={onManage}
             style={({ pressed }) => [
               styles.overflowButton,
+              actionFocused && styles.focusedOverflowButton,
               pressed && styles.pressed,
             ]}
           >
@@ -615,6 +627,11 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  focusedOverflowButton: {
+    borderColor: colors.border.focus,
+    borderRadius: radii.pill,
+    borderWidth: 2,
   },
   pressed: {
     opacity: 0.72,

@@ -6,9 +6,10 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { Show } from '@/domain';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { formatShowListDate } from '@/utils/dateTime';
+import { colors, fontSizes, layout, radii, spacing } from '@/theme/tokens';
+import { formatCompactShowListDate } from '@/utils/dateTime';
 import { formatShowDuration } from '@/utils/duration';
+import { blurWebFocus } from '@/utils/focus';
 import {
   showStatusIcons,
   showStatusLabels,
@@ -32,7 +33,7 @@ export function ShowListRow({
 
   return (
     <View style={styles.rowFrame}>
-      <Link href={href} asChild>
+      <Link href={href} onPress={blurWebFocus} asChild>
         <Pressable
           accessibilityLabel={`${accessibilityLabel}. Status: ${showStatusLabels[show.status]}`}
           accessibilityRole="link"
@@ -51,7 +52,11 @@ export function ShowListRow({
               </View>
               <View style={styles.rowContent}>
                 <View style={styles.rowTitleLine}>
-                  <AppText style={styles.rowTitle} variant="heading">
+                  <AppText
+                    numberOfLines={2}
+                    style={styles.rowTitle}
+                    variant="heading"
+                  >
                     {show.name}
                   </AppText>
                   <StatusPill
@@ -64,10 +69,10 @@ export function ShowListRow({
                 <View style={styles.rowMetaLine}>
                   <AppText
                     numberOfLines={1}
-                    style={styles.rowDate}
-                    tone="muted"
+                    style={styles.rowVenue}
+                    variant="metadata"
                   >
-                    {formatShowListDate(show.startsAt)}
+                    {show.venue}
                   </AppText>
                   <View
                     accessibilityLabel={`Duração ${
@@ -89,12 +94,8 @@ export function ShowListRow({
                     </AppText>
                   </View>
                 </View>
-                <AppText
-                  numberOfLines={1}
-                  style={styles.rowVenue}
-                  variant="caption"
-                >
-                  {show.venue}
+                <AppText style={styles.rowDate} tone="muted">
+                  {formatCompactShowListDate(show.startsAt)}
                 </AppText>
               </View>
             </View>
@@ -151,13 +152,15 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowTitleLine: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: spacing.sm,
   },
   rowTitle: {
+    flex: 1,
     flexShrink: 1,
+    minWidth: 0,
   },
   rowMetaLine: {
     alignItems: 'center',
@@ -170,6 +173,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowVenue: {
+    fontSize: fontSizes.body,
     minWidth: 0,
   },
   rowNavigation: {

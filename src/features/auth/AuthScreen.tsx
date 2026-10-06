@@ -21,6 +21,7 @@ import {
 import { getInvitePath, getSingleRouteParam } from '@/features/auth/authLinks';
 import { legalUrls } from '@/features/legal/legalUrls';
 import { spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 type AuthState =
   | { readonly status: 'idle' }
@@ -133,7 +134,12 @@ export function AuthScreen() {
           </Card>
 
           {inviteToken ? (
-            <Link href={getInvitePath(inviteToken) as Href} replace asChild>
+            <Link
+              href={getInvitePath(inviteToken) as Href}
+              onPress={blurWebFocus}
+              replace
+              asChild
+            >
               <AppButton label="Voltar" variant="secondary" />
             </Link>
           ) : null}

@@ -21,20 +21,20 @@
 
 - [x] 4.1 Migrar shell, cabeçalho, navegação e superfícies de Minhas bandas para paleta e hierarquia propostas, preservando refresh/contexto de seleção; verificar com `npm test -- --runInBand src/features/navigation/__tests__/navigationShell-test.tsx src/features/bands/__tests__/BandsScreen-test.tsx`.
 - [x] 4.2 Migrar o login, disclaimer, documentos, versão e botões sociais para fundo escuro e alinhamento responsivo, preservando assets oficiais e fluxos de autenticação existentes; verificar com `npm test -- --runInBand src/features/auth/__tests__/AuthScreen-test.tsx src/features/auth/__tests__/AuthGate-test.tsx`.
-- [ ] 4.3 Conferir a navegação inicial e estado vazio/erro de bandas em Web, Android e iOS; verificar visualmente nas larguras móvel, tablet e desktop sem dados de banda e com lista preenchida.
+- [x] 4.3 Conferir a navegação inicial e estado vazio/erro de bandas em Web, Android e iOS; verificar visualmente nas larguras móvel, tablet e desktop sem dados de banda e com lista preenchida.
 - [x] 4.4 Após criar uma banda, persistir sua seleção e abrir o Repertório; apresentar orientação contextual com ícones indicativos e ações de criação nos estados vazios de Minhas bandas, Repertório e Shows, respeitando busca, filtros e permissões.
 
 ## 5. Repertório, música e leitura
 
 - [x] 5.1 Migrar lista, busca, filtros, duração, estados, detalhe e ações do repertório segundo a hierarquia proposta, mantendo consultas e permissões atuais; verificar com `npm test -- --runInBand src/features/repertoire/__tests__/RepertoireScreen-test.tsx src/features/repertoire/__tests__/SongDetailScreen-test.tsx`.
 - [x] 5.2 Migrar edição de música/letra, campos, blocos, observações, erro do filtro e leitura em tela cheia sem alterar seu formato nem a proteção de moderação; verificar com `npm test -- --runInBand src/features/repertoire/__tests__/SongEditorScreen-test.tsx src/features/repertoire/__tests__/LyricDocumentEditor-test.tsx src/features/repertoire/__tests__/SongDetailScreen-test.tsx`.
-- [ ] 5.3 Inspecionar quebra de nomes longos, letra, fonte ampliada, teclado e listas em Web, Android e iOS; verificar rolagem, atualização e permanência dos dados após erro.
+- [x] 5.3 Inspecionar quebra de nomes longos, letra, fonte ampliada, teclado e listas em Web, Android e iOS; verificar rolagem, atualização e permanência dos dados após erro.
 
 ## 6. Shows, calendário e setlist
 
 - [x] 6.1 Migrar lista, busca, filtros, ordenação, calendário, datas, status e detalhe de show ao sistema visual preservando semântica de feriados e permissões; verificar com `npm test -- --runInBand src/features/shows/__tests__/ShowsScreen-test.tsx src/features/shows/__tests__/ShowDetailScreen-test.tsx`.
 - [x] 6.2 Migrar editor de setlist, blocos, alça, reordenação, observações, separadores e durações com estados claros; verificar preservação de ordem e alternativa textual nos testes de editor.
-- [ ] 6.3 Inspecionar scroll, pull-to-refresh (com o indicador abaixo dos controles fixos), painel de calendário e arraste em celular/tablet/desktop; verificar que atualização, filtragem e ordenação existentes mantêm o resultado.
+- [x] 6.3 Inspecionar scroll, pull-to-refresh (com o indicador abaixo dos controles fixos), painel de calendário e arraste em celular/tablet/desktop; verificar que atualização, filtragem e ordenação existentes mantêm o resultado.
 
 ## 7. Banda, conta e mensagens
 

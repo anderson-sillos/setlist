@@ -19,6 +19,7 @@ import {
 } from '@/features/stage/useManualTimer';
 import { getLayoutMode } from '@/theme/responsive';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface StageScreenProps {
   readonly bandId: EntityId;
@@ -87,7 +88,7 @@ export function StageScreen({
             {show?.name ?? 'Carregando show…'}
           </AppText>
         </View>
-        <Link href={getShowHref(bandId, showId)} asChild>
+        <Link href={getShowHref(bandId, showId)} onPress={blurWebFocus} asChild>
           <Pressable
             accessibilityLabel="Sair do modo palco"
             accessibilityRole="link"

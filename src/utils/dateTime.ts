@@ -43,6 +43,45 @@ export function formatShowListDate(startsAt: string): string {
   return `${weekday}, ${calendarDate} · ${formatShowTime(startsAt)}`;
 }
 
+export function formatCompactShowListDate(startsAt: string): string {
+  const date = new Date(startsAt);
+  const parts = new Intl.DateTimeFormat(APP_LOCALE, {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: APP_TIME_ZONE,
+    year: 'numeric',
+  }).formatToParts(date);
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  const monthLabels = [
+    'jan.',
+    'fev.',
+    'mar.',
+    'abr.',
+    'mai.',
+    'jun.',
+    'jul.',
+    'ago.',
+    'set.',
+    'out.',
+    'nov.',
+    'dez.',
+  ];
+  const monthNumber = Number(getPart('month'));
+  const weekday = new Intl.DateTimeFormat(APP_LOCALE, {
+    timeZone: APP_TIME_ZONE,
+    weekday: 'short',
+  }).format(date);
+  const dateLabel = [
+    weekday,
+    getPart('day'),
+    monthLabels[monthNumber - 1] ?? getPart('month'),
+    getPart('year'),
+  ].join(' ');
+
+  return `${dateLabel} - ${formatShowTime(startsAt)}`;
+}
+
 export function formatShowTime(startsAt: string): string {
   const parts = new Intl.DateTimeFormat(APP_LOCALE, {
     hour: '2-digit',

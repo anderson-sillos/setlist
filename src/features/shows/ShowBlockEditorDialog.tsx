@@ -943,7 +943,6 @@ export function ShowBlockEditorDialog({
             </ScrollView>
             {dragPreview ? (
               <View
-                pointerEvents="none"
                 style={[
                   styles.dragPreview,
                   { height: dragPreview.height, top: dragPreview.top },
@@ -1010,6 +1009,7 @@ export function ShowBlockEditorDialog({
             icon="delete"
             label="Excluir bloco"
             onPress={deleteBlock}
+            variant="destructive"
           />
         </OptionSheet>
       </KeyboardAvoidingView>
@@ -1236,6 +1236,8 @@ function BlockRow({
   readonly songById: ReadonlyMap<string, Song>;
   readonly songSequenceNumbers: ReadonlyMap<EntityId, number>;
 }) {
+  const [deleteFocused, setDeleteFocused] = useState(false);
+
   return (
     <View
       onStartShouldSetResponderCapture={() => {
@@ -1256,9 +1258,13 @@ function BlockRow({
           accessibilityLabel={'Excluir bloco ' + block.name}
           accessibilityRole="button"
           disabled={!canDelete}
+          hitSlop={spacing.sm}
+          onBlur={() => setDeleteFocused(false)}
+          onFocus={() => setDeleteFocused(true)}
           onPress={onDelete}
           style={({ pressed }) => [
             styles.iconButton,
+            deleteFocused && styles.focusedIconButton,
             !canDelete && styles.disabled,
             pressed && styles.pressed,
           ]}
@@ -1641,14 +1647,19 @@ function ItemRemoveButton({
   readonly itemLabel: string;
   readonly onRemove: () => void;
 }) {
+  const [focused, setFocused] = useState(false);
+
   return (
     <Pressable
       accessibilityLabel={'Remover ' + itemLabel}
       accessibilityRole="button"
-      hitSlop={spacing.xs}
+      hitSlop={spacing.sm}
+      onBlur={() => setFocused(false)}
+      onFocus={() => setFocused(true)}
       onPress={onRemove}
       style={({ pressed }) => [
         styles.itemRemoveButton,
+        focused && styles.focusedIconButton,
         pressed && styles.pressed,
       ]}
     >
@@ -2049,6 +2060,11 @@ const styles = StyleSheet.create({
     height: 32,
     justifyContent: 'center',
     width: 32,
+  },
+  focusedIconButton: {
+    borderColor: colors.border.focus,
+    borderRadius: radii.pill,
+    borderWidth: 2,
   },
   modalLayer: {
     alignItems: 'center',

@@ -10,6 +10,7 @@ import { AuthGate } from '@/features/auth/AuthGate';
 import { AuthSessionProvider } from '@/features/auth/AuthSessionProvider';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { getStackScreenOptions } from '@/features/navigation/stackOptions';
+import { colors } from '@/theme/tokens';
 import {
   SectionTransitionProvider,
   useSectionTransition,
@@ -43,6 +44,28 @@ export default function RootLayout() {
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.title = 'Setlist';
+
+      const inputFocusStyle = document.createElement('style');
+      inputFocusStyle.dataset.setlist = 'web-text-input-focus';
+      inputFocusStyle.textContent = `
+        input:focus,
+        textarea:focus {
+          box-shadow: none !important;
+        }
+
+        input:focus,
+        textarea:focus {
+          outline: 2px solid ${colors.border.focus} !important;
+          outline-offset: 1px;
+        }
+
+        div:has(> [data-testid="search-field-icon"]) > input:focus {
+          outline: none !important;
+        }
+      `;
+      document.head.appendChild(inputFocusStyle);
+
+      return () => inputFocusStyle.remove();
     }
   }, []);
 

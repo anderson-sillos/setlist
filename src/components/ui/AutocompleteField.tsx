@@ -133,7 +133,7 @@ export function AutocompleteField({
         ref={inputRef}
         style={[
           styles.input,
-          focused && styles.inputFocused,
+          Platform.OS !== 'web' && focused && styles.inputFocused,
           error && styles.inputError,
         ]}
         value={value}

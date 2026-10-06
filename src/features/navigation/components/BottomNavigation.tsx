@@ -7,6 +7,7 @@ import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
 import { useSectionTransition } from '@/features/navigation/SectionTransition';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface BottomNavigationProps {
   readonly activeSection: BandSection;
@@ -38,7 +39,14 @@ export function BottomNavigation({
             }
             accessibilityRole={stage ? 'button' : 'tab'}
             accessibilityState={stage ? undefined : { selected: active }}
-            onPress={stage ? onStagePress : undefined}
+            onPress={
+              stage
+                ? () => {
+                    blurWebFocus();
+                    onStagePress();
+                  }
+                : undefined
+            }
             onPressIn={
               active || stage
                 ? undefined
@@ -77,6 +85,7 @@ export function BottomNavigation({
           <Link
             href={getSectionHref(item.section)}
             key={item.section}
+            onPress={blurWebFocus}
             replace
             asChild
             disabled={active}

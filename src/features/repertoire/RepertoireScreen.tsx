@@ -45,6 +45,7 @@ import {
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeForSearch } from '@/utils/text';
+import { blurWebFocus } from '@/utils/focus';
 import {
   lyricStatusIcons,
   lyricStatusLabels,
@@ -73,7 +74,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
 
   return (
     <View style={styles.rowFrame}>
-      <Link href={getSongHref(bandId, song.id)} asChild>
+      <Link href={getSongHref(bandId, song.id)} onPress={blurWebFocus} asChild>
         <Pressable
           accessibilityLabel={`Abrir música ${song.title}. Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
           accessibilityRole="link"

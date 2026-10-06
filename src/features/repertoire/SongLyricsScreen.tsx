@@ -18,6 +18,7 @@ import type { EntityId } from '@/domain';
 import { getSongHref } from '@/features/navigation/routes';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 import { SongLyricsContent } from './SongLyricsContent';
 
 interface SongLyricsScreenProps {
@@ -33,7 +34,12 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea} testID="song-lyrics-screen">
       <View style={styles.header}>
-        <Link dismissTo href={getSongHref(bandId, songId)} asChild>
+        <Link
+          dismissTo
+          href={getSongHref(bandId, songId)}
+          onPress={blurWebFocus}
+          asChild
+        >
           <Pressable
             accessibilityLabel="Voltar para detalhes da música"
             accessibilityRole="link"
@@ -52,7 +58,6 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
           </AppText>
           <AppText
             accessibilityRole="header"
-            numberOfLines={1}
             style={styles.title}
             tone="inverse"
             variant="heading"
@@ -60,7 +65,7 @@ export function SongLyricsScreen({ bandId, songId }: SongLyricsScreenProps) {
             {song?.title ?? 'Carregando música…'}
           </AppText>
           {song?.originalArtist ? (
-            <AppText numberOfLines={1} tone="muted" variant="caption">
+            <AppText tone="muted" variant="caption">
               {song.originalArtist}
             </AppText>
           ) : null}

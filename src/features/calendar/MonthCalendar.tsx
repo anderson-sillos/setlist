@@ -196,18 +196,30 @@ export function MonthCalendar({
               style={({ pressed }) => [
                 styles.dayCell,
                 weekend && styles.weekend,
-                dayShows.length > 0 && styles.eventDay,
                 holiday && styles.holiday,
-                isToday && styles.today,
                 isSelected && styles.selectedDay,
                 pressed && styles.pressed,
               ]}
             >
-              <AppText style={styles.dayNumber} variant="caption">
-                {day}
-              </AppText>
+              {isToday ? (
+                <View
+                  style={styles.todayMarker}
+                  testID="calendar-today-marker"
+                >
+                  <AppText style={styles.dayNumber} variant="caption">
+                    {day}
+                  </AppText>
+                </View>
+              ) : (
+                <AppText style={styles.dayNumber} variant="caption">
+                  {day}
+                </AppText>
+              )}
               {dayShows.length > 0 ? (
-                <View style={styles.showMarker}>
+                <View
+                  style={styles.showMarker}
+                  testID={`calendar-show-marker-${dateKey}`}
+                >
                   {dayShows.length === 1 ? (
                     <AppIcon
                       color={colors.text.onAccent}
@@ -288,14 +300,17 @@ const styles = StyleSheet.create({
   weekend: {
     backgroundColor: colors.background.selected,
   },
-  eventDay: {
-    backgroundColor: colors.semantic.successSurface,
-  },
   holiday: {
     backgroundColor: colors.semantic.warningSurface,
   },
-  today: {
-    backgroundColor: colors.semantic.successSurface,
+  todayMarker: {
+    alignItems: 'center',
+    borderColor: colors.text.secondary,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    height: 28,
+    justifyContent: 'center',
+    minWidth: 28,
   },
   selectedDay: {
     borderBottomColor: colors.action.primary,

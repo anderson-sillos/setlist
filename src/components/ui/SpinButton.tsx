@@ -82,7 +82,7 @@ export function SpinButton({
     <View
       style={[
         styles.container,
-        focused && styles.containerFocused,
+        focused && Platform.OS !== 'web' && styles.containerFocused,
         minWidth !== undefined && { minWidth },
       ]}
     >

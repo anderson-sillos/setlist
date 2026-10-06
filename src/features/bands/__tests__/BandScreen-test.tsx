@@ -23,6 +23,10 @@ import { AppProviders } from '@/providers/AppProviders';
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
+  useNavigation: () => ({
+    addListener: () => jest.fn(),
+    dispatch: jest.fn(),
+  }),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 

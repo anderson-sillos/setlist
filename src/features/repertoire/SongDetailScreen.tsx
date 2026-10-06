@@ -33,7 +33,7 @@ import {
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
-import { colors, layout, spacing } from '@/theme/tokens';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
@@ -61,6 +61,7 @@ export function SongDetailScreen({
 }: SongDetailScreenProps) {
   const router = useRouter();
   const [reportVisible, setReportVisible] = useState(false);
+  const [reportActionFocused, setReportActionFocused] = useState(false);
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
@@ -237,11 +238,15 @@ export function SongDetailScreen({
           </Card>
           <Pressable
             accessibilityLabel="Denunciar música"
+            accessibilityHint="Abre o formulário para informar o motivo da denúncia."
             accessibilityRole="button"
             hitSlop={4}
+            onBlur={() => setReportActionFocused(false)}
+            onFocus={() => setReportActionFocused(true)}
             onPress={() => setReportVisible(true)}
             style={({ pressed }) => [
               styles.reportAction,
+              reportActionFocused && styles.reportActionFocused,
               pressed && styles.reportActionPressed,
             ]}
           >
@@ -329,6 +334,11 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  reportActionFocused: {
+    borderColor: colors.border.focus,
+    borderRadius: radii.pill,
+    borderWidth: 2,
   },
   reportActionPressed: {
     opacity: 0.6,

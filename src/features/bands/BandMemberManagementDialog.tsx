@@ -45,8 +45,9 @@ export function BandMemberManagementDialog({
   const selectedAction =
     pendingAction?.memberId === member.id ? pendingAction.action : null;
   const isConfirmation = selectedAction !== null;
+  const isRemovingMember = selectedAction?.type === 'remove';
   const actionLabel = selectedAction
-    ? selectedAction.type === 'remove'
+    ? isRemovingMember
       ? 'remoção'
       : `alteração para ${roleLabels[selectedAction.role]}`
     : '';
@@ -108,8 +109,16 @@ export function BandMemberManagementDialog({
               <AppButton
                 accessibilityLabel={`Confirmar ${actionLabel} de ${member.displayName}`}
                 disabled={isSubmitting}
-                icon={selectedAction?.type === 'remove' ? 'close' : 'check'}
-                label={isSubmitting ? 'Salvando…' : 'Confirmar'}
+                icon={isRemovingMember ? 'removeMember' : 'check'}
+                label={
+                  isSubmitting
+                    ? isRemovingMember
+                      ? 'Removendo…'
+                      : 'Salvando…'
+                    : isRemovingMember
+                      ? 'Remover integrante'
+                      : 'Confirmar'
+                }
                 onPress={() => {
                   if (selectedAction) {
                     const action = selectedAction;
@@ -117,6 +126,7 @@ export function BandMemberManagementDialog({
                     onConfirm(action);
                   }
                 }}
+                variant={isRemovingMember ? 'destructive' : 'primary'}
               />
             </View>
           ) : (

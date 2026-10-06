@@ -1,7 +1,13 @@
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { Platform } from 'react-native';
+
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { spacing } from '@/theme/tokens';
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 interface UnsavedChangesPromptProps {
   readonly onContinue: () => void;
@@ -16,11 +22,56 @@ export function UnsavedChangesPrompt({
   testID = 'unsaved-changes-prompt',
   visible,
 }: UnsavedChangesPromptProps) {
+  const returnFocusTarget = useRef<HTMLElement | null>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    if (Platform.OS !== 'web' || !visible || typeof document === 'undefined') {
+      return;
+    }
+
+    const activeElement = document.activeElement;
+    if (
+      !(activeElement instanceof HTMLElement) ||
+      activeElement === document.body
+    ) {
+      returnFocusTarget.current = null;
+      return;
+    }
+
+    returnFocusTarget.current = activeElement;
+    activeElement.blur();
+  }, [visible]);
+
+  const handleWebContinue = () => {
+    const target = returnFocusTarget.current;
+    returnFocusTarget.current = null;
+    onContinue();
+
+    if (Platform.OS === 'web' && target && typeof document !== 'undefined') {
+      setTimeout(() => {
+        if (
+          document.contains(target) &&
+          !target.closest('[aria-hidden="true"]')
+        ) {
+          target.focus();
+        }
+      }, 0);
+    }
+  };
+
+  const handleWebDiscard = () => {
+    returnFocusTarget.current = null;
+    onDiscard();
+  };
+
+  // No Web, um Modal oculto mantido montado pode ficar atrás de outro diálogo.
+  if (Platform.OS === 'web' && !visible) return null;
+
   return (
     <OptionSheet
       closeAccessibilityLabel="Continuar editando"
       label="Descartar alterações?"
-      onClose={onContinue}
+      onClose={Platform.OS === 'web' ? handleWebContinue : onContinue}
       showCloseButton={false}
       testID={testID}
       visible={visible}
@@ -32,14 +83,14 @@ export function UnsavedChangesPrompt({
       <AppButton
         accessibilityLabel="Continuar editando"
         label="Continuar editando"
-        onPress={onContinue}
+        onPress={Platform.OS === 'web' ? handleWebContinue : onContinue}
         style={{ marginTop: spacing.lg }}
         variant="secondary"
       />
       <AppButton
         accessibilityLabel="Descartar alterações"
         label="Descartar alterações"
-        onPress={onDiscard}
+        onPress={Platform.OS === 'web' ? handleWebDiscard : onDiscard}
         style={{ marginTop: spacing.sm }}
         variant="destructive"
       />
