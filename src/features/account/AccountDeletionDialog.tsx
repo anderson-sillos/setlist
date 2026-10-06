@@ -136,6 +136,7 @@ export function AccountDeletionDialog({
                 icon="delete"
                 label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
                 onPress={onConfirm}
+                variant="destructive"
               />
             </View>
           </View>

@@ -143,6 +143,7 @@ export function SongLifecycleDialog({
                 icon="delete"
                 label={isSubmitting ? 'Excluindo…' : 'Confirmar exclusão'}
                 onPress={onRemove}
+                variant="destructive"
               />
             ) : null}
           </View>

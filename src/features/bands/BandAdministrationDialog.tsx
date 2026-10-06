@@ -188,6 +188,7 @@ export function BandAdministrationDialog({
                 icon="delete"
                 label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
                 onPress={onDelete}
+                variant="destructive"
               />
             )}
           </View>

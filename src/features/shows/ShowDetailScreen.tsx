@@ -597,6 +597,7 @@ export function ShowDetailScreen({
           icon="delete"
           label={deleteSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
           onPress={() => void handleDeleteShow()}
+          variant="destructive"
         />
       </OptionSheet>
 
