@@ -208,7 +208,12 @@ export async function tryNativeGoogleSignIn(
     nativeGoogleLog('configured', { hasWebClientId: true });
     await google.GoogleOneTapSignIn.checkPlayServices();
     nativeGoogleLog('play_services_available');
-    response = await google.GoogleOneTapSignIn.signIn();
+    // On iOS, signIn() can return a persisted ID token created before this
+    // attempt's nonce was configured. The explicit flow requests a fresh token.
+    response =
+      Platform.OS === 'ios'
+        ? await google.GoogleOneTapSignIn.presentExplicitSignIn()
+        : await google.GoogleOneTapSignIn.signIn();
     nativeGoogleLog('sign_in_response', {
       responseType: response.type,
     });

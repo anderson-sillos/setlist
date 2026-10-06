@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/reviewable-app
   workflow_dispatch:
 
 permissions:
@@ -40,7 +39,7 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          test -n "$EXPO_PUBLIC_SUPABASE_URL" || (echo "EXPO_PUBLIC_SUPABASE_URL não configurada nas variáveis do repositório" && exit 1)
+          test "$EXPO_PUBLIC_SUPABASE_URL" = "https://tqijocmmiwistinrjpwl.supabase.co" || (echo "EXPO_PUBLIC_SUPABASE_URL deve apontar para setlist-prod" && exit 1)
           test -n "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" || (echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY não configurada nas variáveis do repositório" && exit 1)
 
       - name: Preparar associações de links nativos
@@ -51,17 +50,16 @@ jobs:
 
       - name: Exportar aplicação web
         env:
-          EXPO_PUBLIC_APP_ENV: ${{ vars.EXPO_PUBLIC_APP_ENV || 'development' }}
+          EXPO_PUBLIC_APP_ENV: production
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
           EXPO_PUBLIC_WEB_BASE_URL: https://setlistbr.app.br
           EXPO_WEB_BASE_URL: .
         run: npm run export:web -- --output-dir dist
 
-      - name: Incluir apresentação e fallback de rotas
+      - name: Incluir apresentação, documentos legais e fallback de rotas
         run: |
-          mkdir -p pages-site/app pages-site/docs
+          mkdir -p pages-site/app pages-site/docs pages-site/termos pages-site/privacidade
           cp -R dist/. pages-site/
           cp -R dist/. pages-site/app/
           if [ -d public/.well-known ]; then
@@ -70,8 +68,11 @@ jobs:
             cp -R public/.well-known/. pages-site/app/.well-known/
           fi
           cp docs/apresentacao.html pages-site/docs/apresentacao.html
+          cp docs/legal.css pages-site/legal.css
+          cp docs/termos.html pages-site/termos/index.html
+          cp docs/privacidade.html pages-site/privacidade/index.html
           cp pages-site/index.html pages-site/404.html
-          find pages-site -type f -name '*.html' ! -path 'pages-site/docs/*' -print0 | xargs -0 -r node scripts/prepare-pages-html.mjs
+          find pages-site -type f -name '*.html' ! -path 'pages-site/docs/*' ! -path 'pages-site/termos/*' ! -path 'pages-site/privacidade/*' -print0 | xargs -0 -r node scripts/prepare-pages-html.mjs
           touch pages-site/.nojekyll
 
       - name: Configurar GitHub Pages

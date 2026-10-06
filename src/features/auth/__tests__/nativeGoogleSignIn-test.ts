@@ -37,6 +37,7 @@ jest.mock('react-native-nitro-google-signin', () => ({
     checkPlayServices: jest.fn(),
     configure: jest.fn(),
     createAccount: jest.fn(),
+    presentExplicitSignIn: jest.fn(),
     signIn: jest.fn(),
   },
   isCancelledResponse: jest.fn(
@@ -64,6 +65,7 @@ const mockGoogleModule = jest.requireMock(
     checkPlayServices: jest.Mock;
     configure: jest.Mock;
     createAccount: jest.Mock;
+    presentExplicitSignIn: jest.Mock;
     signIn: jest.Mock;
   };
   isCancelledResponse: jest.Mock;
@@ -114,6 +116,12 @@ describe('Google nativo opcional', () => {
       data: { idToken: 'id-token' },
       type: 'success',
     });
+    mockGoogleModule.GoogleOneTapSignIn.presentExplicitSignIn.mockResolvedValue(
+      {
+        data: { idToken: 'id-token' },
+        type: 'success',
+      },
+    );
     mockGoogleModule.isSuccessResponse.mockImplementation(
       (response: { type?: string }) => response.type === 'success',
     );
@@ -265,6 +273,10 @@ describe('Google nativo opcional', () => {
       nonce: 'hashed-nonce',
       webClientId: 'web-client-id',
     });
+    expect(
+      mockGoogleModule.GoogleOneTapSignIn.presentExplicitSignIn,
+    ).toHaveBeenCalledTimes(1);
+    expect(mockGoogleModule.GoogleOneTapSignIn.signIn).not.toHaveBeenCalled();
   });
 
   it('tenta criar uma conta quando não há credencial salva', async () => {

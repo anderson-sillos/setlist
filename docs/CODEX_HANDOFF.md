@@ -4,16 +4,22 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 ## Estado atual
 
-- Repositório: `anderson-sillos/setlist`; branch principal `main`.
-- Ponto atual: change OpenSpec `moderacao-conteudo-privado-e-denuncias`, implementada na branch `feat/moderacao-conteudo-privado-e-denuncias`. Antes desta atualização do handoff, o head remoto era `d8225ce`.
-- PR #26 (`feat: moderação de conteúdo privado e denúncias`): https://github.com/anderson-sillos/setlist/pull/26, com destino `main`. Na última consulta desta sessão estava aberta, sem reviews nem threads de revisão; o usuário pediu o merge. Reconsulte o estado remoto e os checks no momento da integração.
-- CI inicial no head `d8225ce`: formatação, lint, tipos e smoke test Web passaram; a suíte Jest falhou com 74 testes (incluindo ausência de mock de NetInfo e fixtures que ainda usavam o termo `2026-09`); pgTAP falhou porque a asserção `throws_ok` era executada sob o papel `authenticator`. Os ajustes foram enviados no commit `34071ec`; nesse commit, a qualidade passou com 87 suítes/584 testes, o smoke test Web passou e o workflow de migrações/pgTAP passou. Confira o head e os checks atuais da PR antes do merge.
-- OpenSpec: tarefas 14/14 concluídas e `openspec validate ... --type change --strict` aprovado. A especificação principal `openspec/specs/content-moderation/spec.md` foi sincronizada e validada; a change foi arquivada em `openspec/changes/archive/2026-10-02-moderacao-conteudo-privado-e-denuncias`.
-- Validações manuais confirmadas pelo usuário: filtro e mensagem de recusa, denúncias de música e integrante com recebimento por e-mail, ocultação via `moderated_songs`, suspensão de conta com operações protegidas bloqueadas e recuperação após reversão; fluxo integrado em Web, Android e iOS.
-- Validação automatizada: os testes direcionados anteriores passaram (8 suítes/56 testes) e `npm run typecheck` passou; o popup final de recusa foi confirmado manualmente. No CI da PR, o commit `34071ec` passou com 87 suítes/584 testes, smoke test Web e migrações/pgTAP.
-- Supabase: migrations e Edge Function `report-content` foram aplicadas somente em `setlist-dev`; produção não foi alterada. Os documentos legais e a rotina operacional continuam como rascunhos e precisam de revisão jurídica antes da distribuição pública.
-- Antes da liberação: revisar termos, política e procedimento; coordenar publicação do cliente com o termo `2026-10` e migrations em produção.
-- Procedimento de integração: o usuário determinou que commits e atualizações de PR devem ser feitos com acesso elevado, após solicitar autorização. Confirme estado, diff e checks antes de pedir essa autorização e executar as operações remotas.
+- Repositório: `anderson-sillos/setlist`; `origin/main` está em `d37278e`.
+- Branch ativa local: `feat/documentos-legais-retencao`, com o commit base `04548e2` alinhado ao remoto; corresponde à PR #27, aberta como rascunho: https://github.com/anderson-sillos/setlist/pull/27. Não foi feito merge. Neste momento, somente este handoff e `AGENTS.md` estão modificados localmente e ainda não foram commitados.
+- PR #28, `feat: implementar UI/UX Content-First Darkness`, continua aberta em https://github.com/anderson-sillos/setlist/pull/28. O commit `5143776` foi enviado em acesso elevado. A change OpenSpec está incompleta: 21/35 tarefas concluídas. Achados manuais pendentes: corrigir o símbolo Apple, restaurar os links legais no rodapé do login e resolver a incompatibilidade de nonce do login Google no iOS. Há sobreposição com a PR #27 em autenticação e links legais; ao retomar a #28, integrar primeiro as mudanças relevantes da #27 e preservar ambos os conjuntos de requisitos.
+- A PR #27 reúne as minutas legais, páginas públicas, retenção, autenticação e migrações. A aprovação final das páginas legais e a data de vigência seguem pendentes; não publicar as minutas antes disso.
+- GitHub Pages: o deploy manual mais recente registrado concluiu com sucesso, mas foi feito a partir de `main` em `d37278e` (run https://github.com/anderson-sillos/setlist/actions/runs/37045501790). Portanto, a página publicada não contém o código mais recente da PR #27; as alterações de `.github/workflows/pages.yml` estão na PR e aguardam integração.
+- Supabase de produção (`tqijocmmiwistinrjpwl`): Google e Apple aparecem ativos. O login Apple Web foi validado pelo usuário. O Client ID enviado à Apple foi corrigido de `om.andersonsillos.setlist.web` para `com.andersonsillos.setlist.web`; o callback observado é `https://tqijocmmiwistinrjpwl.supabase.co/auth/v1/callback`.
+- EAS: `eas.json` agora define `production-ios-simulator` e `production-android-validation`. O primeiro herda o ambiente de produção e gera build de simulador; o segundo herda produção e gera APK interno. O esquema OAuth iOS Google está explícito no perfil base; o Android ativa o módulo nativo Google e desativa a flag específica de iOS.
+- Build Android de validação: enviado ao EAS com ID `c728fd9d-21e1-4be4-ac85-2eb2607f2188`. Último estado observado: aguardando executor na fila. O acompanhamento local foi interrompido sem cancelar o job remoto. Acompanhar em https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/c728fd9d-21e1-4be4-ac85-2eb2607f2188.
+- Esta atualização adiciona a regra operacional neste handoff e em `AGENTS.md`; ainda não foi commitada.
+
+## Regra permanente para GitHub
+
+- Para criar commits que serão enviados, fazer `git push`, atualizar branch remota ou criar/editar/mesclar PR, usar o comando correspondente em acesso elevado (`sandbox_permissions: "require_escalated"`). Não tentar concluir gravações remotas pelo sandbox nem depender da integração GitHub conectada para gravar arquivos ou metadados: ela pode não ter permissão de escrita.
+- Uma solicitação explícita do usuário para commit, push ou atualização de PR autoriza a ação; não pedir a mesma autorização novamente. Executar pelo caminho elevado e atender qualquer aprovação adicional apresentada pela ferramenta.
+- Depois de cada operação, confirmar o resultado no remoto (SHA da branch, estado/cabeçalho/descrição da PR) antes de dizer que terminou. Se o helper ou a credencial falhar, não afirmar que o remoto foi atualizado; identificar o erro e pedir somente a autenticação que estiver faltando.
+- Aplicar esta regra em todas as sessões futuras deste repositório. Ela também está em `AGENTS.md`, que instrui as próximas sessões do Codex.
 
 ## Fontes de verdade
 
@@ -369,890 +375,888 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 ## Próxima ação recomendada
 
-Implementar a tarefa 6.6 em `feat/task-6-1-repertoire`: garantir atualização
-da música com horário do servidor e visibilidade somente do conteúdo vigente.
-Permanecem adiados o provedor Apple e o iOS nas tarefas 5.1 e 5.10.2, além da
-validação iOS dos links nativos prevista em 11.5. O change OpenSpec
-`definir-mvp-setlist` continua ativo porque representa o roadmap completo e ainda
-contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
-
-106. Após a validação manual informada pelo usuário, a tarefa 5.10 foi dividida:
-     5.10.1 (papéis e convites na web e Android, com publicação interna) foi
-     concluída; 5.10.2 (iOS) permanece adiada até existir build e ambiente de
-     validação disponíveis. O PR #14 já foi integrado em `main` por squash no
-     commit `4603c69`. A nova branch `feat/task-6-1-repertoire`, baseada nesse
-     `main`, inicia a implementação do repertório real da tarefa 6.1.
-
-107. As tarefas 6.1 e 6.2 foram implementadas na branch
-     `feat/task-6-1-repertoire`. O botão `Adicionar música` passou a aparecer
-     como ação secundária explícita no cabeçalho para Owner/Editor, com bloqueio
-     para Member e bandas demo. A tela de edição grava metadados e letra online;
-     `LyricDocumentEditor` permite adicionar, remover, nomear e reordenar blocos
-     e linhas, mantendo identificadores e tempos, e a mutação envia letra e
-     `lyric_status` derivados em uma única atualização. TypeScript, lint,
-     formatação e `npm run validate` passaram com 67 suítes e 357 testes. A
-     validação SQL local não foi executada porque a inicialização do CLI do
-     Supabase foi bloqueada pela escrita de telemetria fora da área permitida;
-     nenhum estado remoto foi alterado. A classificação dos estados de letra da
-     tarefa 6.3 foi concluída posteriormente.
-
-108. Os botões de ação do cabeçalho foram padronizados no componente
-     compartilhado `src/features/navigation/components/AppHeader.tsx`. Ações
-     contextuais de bandas, shows e repertório agora usam o mesmo botão
-     contornado com ícone, rótulo, altura, raio e espaçamento; `Salvar` mantém
-     apenas a variante primária para indicar a ação principal. `Criar banda`
-     também recebeu o ícone de inclusão. A validação completa permaneceu verde
-     com 67 suítes e 357 testes, e a PR #15 continua aberta para revisão.
-
-109. Após a revisão visual, as ações do cabeçalho deixaram de usar botões
-     contornados com texto. Menu, voltar, adicionar, editar, mais opções,
-     cancelar e salvar agora usam controles circulares somente com ícone,
-     área de toque de 48 px, `hitSlop` e o mesmo feedback de pressão dos
-     controles de navegação. Os rótulos completos continuam nos atributos de
-     acessibilidade; `Salvar` usa `check`, `Cancelar` usa `close` e ações sem
-     ícone explícito usam `more` como fallback. A validação completa passou com
-     67 suítes e 357 testes.
-
-110. A edição de letras foi simplificada para um único campo multilinha em
-     `LyricDocumentEditor`, permitindo colar ou digitar a música inteira. Linhas
-     iniciadas por `#` nomeiam blocos e uma linha `---` representa uma linha
-     vazia; `lyricEditorText.ts` converte esse formato para o documento JSONB,
-     preservando IDs e tempos existentes por posição. O campo mantém um rascunho
-     local durante a digitação para não apagar quebras de linha intermediárias.
-     O campo multiline de `Observações` recebeu dimensões explícitas somente na
-     web, evitando que seu layout invada o bloco de letra. Foram adicionados
-     testes de serialização, parsing, preservação de identidade e edição de
-     formulário; a validação completa passou com 68 suítes e 361 testes,
-     além do export web e da validação estrita do change OpenSpec.
-
-111. A revisão visual seguinte ajustou o formulário de música. A duração agora
-     usa entradas independentes para horas, minutos e segundos, recompondo o
-     formato aceito pelo domínio sem exigir digitação de `:`. O campo vazio de
-     duração permanece realmente vazio em músicas sem duração. O layout do
-     formulário deixou de aplicar crescimento flexível aos campos verticais;
-     junto às dimensões fixas do textarea multiline na web, isso evita que
-     Observações invada o bloco de Letra. As instruções da letra foram
-     reorganizadas em um guia visual compacto com exemplos de `# Refrão` e
-     `---`. A validação passou com 68 suítes e 362 testes.
-
-112. Os campos de duração foram retirados da linha de Tom/BPM e passaram para
-     uma linha própria imediatamente após `Artista/Banda`. O grupo ocupa no
-     máximo toda a largura disponível (`100%`), com inputs internos flexíveis
-     para não ultrapassar o limite em telas estreitas. A suíte de tela e a
-     verificação de tipos continuam aprovadas.
-
-113. A duração agora usa o componente reutilizável `SpinButton`, com campo
-     numérico acessível e controles verticais de incrementar/decrementar,
-     respeitando limites de horas, minutos e segundos. Os três componentes
-     ocupam partes iguais da largura disponível. `AutocompleteField` foi criado
-     para o Artista/Banda: ao focar ou digitar, ele filtra valores distintos de
-     `originalArtist` encontrados nas músicas dos repertórios das bandas da
-     conta, ignora acentos e duplicatas e permite selecionar uma sugestão;
-     o cache é invalidado após criar ou editar uma música. A validação completa
-     passou com 70 suítes e 365 testes.
-
-114. O repositório remoto não consulta mais o Supabase para IDs de bandas
-     demonstrativas (`band-demo-horizonte` e `band-demo-aurora`): músicas,
-     detalhes e integrantes desses IDs são resolvidos pelo repositório demo.
-     Isso evita erros `22P02` de UUID ao montar as sugestões de
-     `originalArtist` para o autocomplete em sessões autenticadas.
-
-115. A edição e a visualização da letra preservam novos formatos de linha:
-     `**texto**` aplica negrito e `***` cria uma linha de separação; o marcador
-     `---` continua representando uma linha em branco. A tela de detalhes
-     renderiza esses formatos dentro de cada bloco, e a validação inclui a
-     serialização, a leitura e a apresentação desses marcadores.
-
-116. Os nomes dos blocos na visualização da letra usam opacidade `0.55`,
-     mantendo os títulos identificáveis, mas com menos destaque que as linhas
-     da música.
-
-117. No web, o menu lateral desfoca o elemento ativo antes de ocultar o
-     `Modal` ao fechar ou navegar. Isso evita avisos de acessibilidade
-     `aria-hidden` quando um link ou botão do menu ainda retém foco durante a
-     troca de tela, inclusive ao acessar as telas de edição do repertório.
-
-118. O componente `SpinButton` seleciona automaticamente todo o conteúdo ao
-     receber foco (`selectTextOnFocus`). Os controles de incrementar e
-     decrementar também devolvem o foco ao campo e selecionam o novo valor,
-     permitindo substituí-lo pelo teclado sem precisar apagá-lo antes.
-
-119. A seleção acionada pelos controles do `SpinButton` foi tornada
-     compatível com todas as plataformas: no web usa `setSelectionRange` no
-     elemento HTML, enquanto no Android/iOS usa `setSelection`, com fallback
-     nativo opcional. Isso evita chamar `setNativeProps` em referências do
-     React Native Web, que não oferecem esse método.
-
-120. A seleção automática no foco deixou de usar `selectTextOnFocus` no
-     React Native Web, pois esse recurso agenda uma seleção assíncrona que
-     podia reaplicar a seleção após o primeiro caractere digitado. O
-     `SpinButton` agora seleciona o valor diretamente no evento de foco e ao
-     usar `+`/`−`, permitindo editar vários dígitos normalmente pelo teclado.
-
-121. A tela de detalhes da música passou a apresentar o título com tipografia
-     menor e organiza verticalmente, em largura total, os blocos de título,
-     informações/observações e letra. O botão de referência do YouTube abre
-     uma nova janela no web (`noopener,noreferrer`) e usa o navegador externo
-     nas plataformas nativas. A validação passou com 70 suítes e 370 testes.
-
-122. A edição dos campos de duração usa `durationFromEditorParts`, que mantém
-     os dígitos exatamente como estão sendo digitados e não adiciona zeros à
-     esquerda entre uma tecla e outra. A função `durationFromParts` continua
-     disponível para a recomposição normalizada, e a validação do formulário
-     segue normalizando a duração no salvamento. Isso permite informar, por
-     exemplo, `45` em minutos ou segundos sem o segundo dígito ser bloqueado
-     pelo `maxLength`.
-
-123. Na versão web, o `RootLayout` define o título do documento como `Setlist`
-     para manter o nome do app na aba do navegador. Todos os campos
-     `TextInput` agora removem o contorno visual automático de foco no web,
-     incluindo os campos de nome de exibição e de letra completa que ainda
-     não tinham essa regra. A alteração visual manual do título da música foi
-     mantida em `20px`.
-
-124. A remoção do contorno de foco dos campos web foi centralizada no
-     documento `src/app/+html.tsx`, aplicando `outline: none !important` a
-     `input` e `textarea` focados em todas as rotas. As regras `outlineWidth`
-     duplicadas foram removidas dos componentes individuais, mantendo a
-     aparência consistente do app web.
-
-125. O `AutocompleteField` passou a manter o foco e a lista de sugestões ao
-     selecionar uma opção, além de aguardar brevemente o `blur` antes de
-     desmontar a lista. Isso evita que o clique seja perdido no web e permite
-     continuar editando o artista no Android. O `SpinButton` mantém um rascunho
-     local durante o foco, impedindo que a normalização temporária para `0`
-     insira um zero à esquerda e bloqueie a digitação do segundo dígito.
-
-126. A saída da tela de edição de música agora verifica `router.canGoBack()` e
-     usa a rota de detalhes da música (ou do repertório, no cadastro) como
-     fallback quando a tela foi aberta diretamente por URL. Os links do menu
-     lateral fecham o drawer no `onPressIn`, antes da navegação, e todas as
-     seções passaram a informar esse callback. Isso evita o aviso de `GO_BACK`
-     sem histórico e os avisos de foco retido em elementos dentro de um
-     container `aria-hidden` durante a transição web.
-
-127. O `AutocompleteField` só abre a lista de sugestões quando há pelo menos
-     duas opções distintas para escolha. Com zero ou uma alternativa, o campo
-     permanece limpo e não apresenta uma lista sem necessidade.
-
-128. Na tela de detalhes da música, a ação `Editar música` foi movida para o
-     cabeçalho como `headerAction` com o ícone `edit`, seguindo o padrão das
-     demais telas. O botão secundário que ficava junto ao título foi removido;
-     as mensagens de bloqueio para bandas de demonstração e as permissões de
-     edição permanecem iguais.
-
-129. O autocomplete oculta uma única sugestão somente quando ela já é igual
-     ao valor preenchido, usando comparação normalizada. Se houver uma única
-     opção diferente, ela continua sendo exibida para seleção; com duas ou
-     mais opções a lista permanece disponível normalmente.
-
-130. Os headers de criação passaram a usar iconografia semântica pelo catálogo
-     `AppIcon`: `CalendarPlus` para novo show, composição `Music2 +` para nova
-     música e composição `Users +` para nova banda. O `Plus` genérico foi
-     preservado e a variante `CirclePlus` ficou disponível como `addCircle`
-     para ações genéricas destacadas. TypeScript, lint, formatação e 70 suítes
-     com 379 testes passaram.
-
-131. O `+` das composições `Music2 +` e `Users +` recebeu selo e traço
-     maiores, preservando a proporção responsiva para manter a ação de criação
-     visualmente destacada nos headers móveis e web.
-
-132. A espessura do traço do `+` foi ampliada proporcionalmente, sem alterar
-     o tamanho do selo composto.
-
-133. O traço do `+` nos ícones compostos foi dobrado novamente, mantendo o
-     selo no mesmo tamanho para preservar a composição visual.
-
-134. O ícone de nova banda passou a usar a composição `UserGroup +`, mais
-     próxima da representação visual de um grupo de usuários.
-
-135. O histórico de convites passou a usar ações iconográficas acessíveis:
-     `Share2` para compartilhar novamente, `Ban` para revogar e `RefreshCw`
-     para renovar. Convites ativos reutilizam o URL disponível na sessão ou
-     geram um novo convite mantendo o anterior ativo quando o token original
-     não está disponível, preservando o armazenamento apenas por hash no
-     Supabase. A validação completa passou com 70 suítes e 379 testes.
-
-136. A consulta de uma música recebeu a rota imersiva de letra
-     `/bands/[bandId]/repertoire/[songId]/lyrics`, acessada por `Tela cheia`.
-     O conteúdo visual é reutilizado entre detalhe e tela imersiva, preservando
-     blocos, linhas em negrito, separadores e o retorno acessível aos detalhes.
-     A ação só é apresentada para músicas que possuem letra; músicas no estado
-     `Sem letra` continuam mostrando a orientação local sem oferecer uma tela
-     vazia. Tom e BPM permanecem metadados secundários no resumo.
-
-137. Após criar ou renovar um convite, `Link pronto para o palco` é mostrado
-     em um popup próprio, separado do histórico de convites. A janela permite
-     selecionar ou compartilhar o URL, pode ser fechada pelo botão, pelo ícone
-     ou pelo fundo e é limpa ao fechar o diálogo principal. A validação completa
-     passou com 70 suítes e 382 testes.
-
-138. A tarefa 6.3 foi concluída: `deriveLyricStatus` classifica letras por
-     linhas textuais, tempos informados e ordem crescente, e as mutações
-     persistem o resultado junto ao documento JSONB. Os testes unitários cobrem
-     Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
-
-139. A tarefa 6.4 foi concluída: Owner e Editor agora consultam o aceite do
-     termo vigente antes de abrir o editor de músicas; o diálogo registra o
-     aceite pela RPC protegida `accept_current_band_term`. O banco centraliza a
-     versão vigente, exige o aceite em políticas de inserção/alteração e remove
-     a escrita direta de `legal_acceptances`. Member, leitura do repertório e
-     modo palco continuam disponíveis sem aceite. A suíte local passou com 14
-     arquivos e 267 verificações; a migração foi publicada no Supabase de
-     desenvolvimento e o lint remoto não encontrou erros.
-
-140. A tarefa 6.5 foi concluída: Owner e Editor podem arquivar, restaurar ou
-     excluir músicas pela tela de detalhes. A RPC protegida decide de forma
-     atômica: músicas sem referência em shows são removidas definitivamente;
-     músicas já usadas em setlists são arquivadas, preservando os itens
-     existentes. O repertório mantém arquivadas fora das novas setlists,
-     oferece filtro dedicado e exibe a confirmação contextual. A validação
-     passou com 15 arquivos e 278 testes SQL, lint local/remoto sem erros e
-     396 testes de aplicação; a migração foi publicada no Supabase de
-     desenvolvimento.
-
-141. A tarefa 6.6 foi concluída: as mutações de criação e edição de músicas
-     agora solicitam `id, updated_at` ao Supabase e rejeitam respostas sem um
-     horário válido gerado pelo servidor. O gatilho existente em
-     `public.songs` continua sendo a fonte exclusiva do timestamp, sem aceitar
-     datas produzidas no cliente. O teste SQL `6.6-song-current-content.sql`
-     confirma que Owner e Editor substituem o conteúdo na única linha vigente,
-     preservam o vínculo com shows e não expõem histórico. A validação passou
-     com 73 suítes e 399 testes da aplicação, 16 arquivos e 288 testes SQL,
-     lint local/remoto sem erros e banco remoto sem migrações pendentes.
-     A validação da 6.7 e a publicação da prévia estão registradas na entrada
-     seguinte; o PR permanece aberto para a revisão manual do grupo 6.
-
-142. A tarefa 6.7 foi validada nos testes de repertório para Owner, Editor e
-     Member, incluindo adaptação phone/tablet/desktop, cabeçalho fixo, blocos
-     expandidos, atualização relativa, ação de edição restrita e estados de
-     falha/indisponibilidade. A validação completa passou com 73 suítes e 399
-     testes, e os checks da PR #15 foram aprovados. A prévia web foi publicada
-     pelo workflow `35992917683` e responde com HTTP 200 em
-     `https://setlistbr.app.br/` e `/app/`. O PR #15 permanece aberto para a
-     revisão manual do grupo 6; não fazer merge ou encerrá-lo ainda.
-
-143. A tarefa 7.9 foi validada manualmente na Web e no Android. O build interno
-     Android EAS `56c043ff-d3a7-4a03-a6cf-75cf1a775c3b` (`preview`, APK,
-     commit `4b6350f`) terminou com status `FINISHED` e foi validado no aparelho.
-     O usuário adiou a validação iOS para uma etapa futura; a tarefa 7.9 está
-     concluída com esse escopo. O grupo 8 só começa após integrar o PR #16.
-     A PR #16 falhou inicialmente com 79,08% de branches; foram adicionados
-     testes de fluxos de salvamento e ações de show. A validação local final
-     passou: 82 suítes, 540 testes, cobertura de branches em 80,00%, lint,
-     tipos, formatação e OpenSpec. O novo commit precisa rodar os checks no
-     GitHub; manter o PR aberto até o check ficar verde e integrá-lo antes de
-     iniciar o grupo 8.
-
-144. As correções recentes foram validadas manualmente no Android e na Web. A
-     raiz `GestureHandlerRootView` foi aplicada ao app e ao conteúdo do Modal de
-     edição do setlist, removendo o erro de `PanGestureHandler` no Android. Na
-     Web, o avatar usa uma imagem HTML com carregamento sob demanda; após uma
-     resposta HTTP 429 temporária de `lh3.googleusercontent.com`, as fotos
-     apareceram e o usuário confirmou a validação. O aviso de `aria-hidden` no
-     console é de foco retido na tela anterior durante navegação web e não
-     interrompe a execução. A PR #18 foi reaberta para integração à `main`;
-     o check de CI da reabertura falhou porque o mock de gesture handler não
-     exportava `GestureHandlerRootView`; o mock foi atualizado para incluí-lo.
-
-145. A PR #18 foi integrada por squash à `main` no commit `1beb994`; o CI ficou
-     verde e o usuário confirmou a validação Android/Web antes da integração.
-     A limpeza prévia ao próximo incremento alinhou `main` ao remoto, removeu a
-     branch local da PR já integrada e preservou a branch experimental e a
-     branch remota da PR. O Metro segue ativo na porta 8081 com um cliente
-     conectado. Antes de iniciar o item 8.1, o usuário decidiu adiar os grupos
-     8, 9 e 10 para uma versão complementar e concluir primeiro a consolidação
-     e o piloto da primeira versão publicável em Web e Android. Essa decisão foi
-     registrada no design e no plano de tarefas; nenhum item dos grupos adiados
-     foi marcado como concluído.
-
-146. A preparação da primeira versão começou pelo item 11.1. `npm run validate`
-     passou com formatação, lint, TypeScript e 82 suítes/542 testes Jest; a
-     cobertura global de branches foi 80,01%. Os testes de banco pgTAP não foram
-     executados porque Docker não está instalado neste ambiente. Não há
-     configuração de Maestro ou Playwright no repositório. O item 11.1 continua
-     pendente até completar a validação de RLS e definir/executar os fluxos e2e
-     aplicáveis à versão 1. A validação OpenSpec estrita passou após a mudança
-     de escopo.
-
-147. O usuário iniciou a preparação do iOS via EAS. O perfil
-     `development-ios-simulator` gera um development build com Google nativo
-     no iOS. `EXPO_PUBLIC_APP_ENV`, as
-     duas variáveis Supabase, os Client IDs Google Web/iOS e
-     `EXPO_PUBLIC_WEB_BASE_URL` foram sincronizados do `.env.local` para o EAS
-     `development`. `SETLIST_IOS_TEAM_ID` foi configurado no EAS `development`
-     e `production`, e `app.config.ts` o mapeia para `ios.appleTeamId`. A mesma
-     variável foi configurada e conferida como variável de repositório no
-     GitHub Actions para gerar o AASA. O build EAS de simulador
-     `c9f1ca0e-2feb-4395-9c6d-3cf5961e2c0d` concluiu. A instalação falhou porque
-     o artefato exige iOS 16.4 e o Mac tem somente runtime 16.2 no Xcode 14.2;
-     instalar Xcode/runtime compatível antes de retomar a validação.
-
-148. A CI da PR #19 executou 82 suítes e 542 testes, todos aprovados, mas ficou
-     abaixo do limite global de branches (79,92%). Foram acrescentados dois
-     cenários em `nativeGoogleSignIn-test.ts` para o requisito e a configuração
-     do Client ID iOS. `npm run test:ci` passou localmente com 82 suítes, 544
-     testes e cobertura de branches de 80,05%; formatação, lint e TypeScript
-     também passaram. O commit `bc85f44` foi enviado à PR #19; o run remoto
-     `36518619647` aprovou formatação, lint, tipos e testes. A revisão do diff
-     não encontrou bloqueios; a PR segue aberta, sem merge.
-
-149. Em 29/09/2026, a PR #19 foi integrada por squash ao `main` no commit
-     `3cc8d5e`; o GitHub Pages em `https://setlistbr.app.br` respondeu HTTP 200
-     e o deploy mais recente publicou esse commit. O usuário confirmou a
-     validação funcional da versão Web e Android. O APK
-     standalone local de release foi gerado em `android/app/build/outputs/apk/release/app-release.apk`,
-     com bundle JS embutido, somente `arm64-v8a`, assinado pelo keystore local
-     (SHA-1 `5e8f16062ea3cd2c4a0d547876baa6f38cabf625`), instalado via ADB e
-     validado pelo usuário sem Metro. O item 11.1 segue aberto para as suítes
-     automatizadas RLS, Maestro e Playwright. O Mac está no macOS 12.7.6 e não
-     possui runtime Docker; executar RLS em runner Linux do GitHub Actions é o
-     próximo caminho a avaliar.
-
-150. Em 29/09/2026, a suíte pgTAP/RLS foi adicionada ao workflow do GitHub
-     Actions e passou na PR #20 junto com os checks de qualidade. O workflow de
-     qualidade agora também gera um export Web com valores públicos fictícios
-     e executa um smoke test Playwright para a tela de autenticação; o teste
-     verifica os provedores visíveis e ausência de exceções JavaScript. O fluxo
-     Maestro `.maestro/flows/android-auth-screen.yaml` cobre a abertura da tela
-     Android e os botões de provedores. O usuário confirmou a validação manual
-     de Web e Android. A execução local de Playwright não foi possível porque
-     o export Metro permaneceu sem concluir nesta máquina e o Playwright não
-     oferece Chromium para macOS 12; o daemon ADB também não iniciou nesta
-     sessão. Na PR #20, passaram os três checks: qualidade (run `36578740301`),
-     pgTAP/RLS (run `36578740356`) e smoke Playwright (run `36578740301`). Não
-     havia dispositivo conectado ao ADB ao tentar executar Maestro. O item 11.1
-     permanece pendente até rodar o fluxo Maestro em dispositivo/emulador; a
-     validação Android manual foi confirmada pelo usuário.
-
-151. Em 29/09/2026, o aparelho Android `SM_S731B` conectou via ADB Wi-Fi e o
-     fluxo Maestro `.maestro/flows/android-auth-screen.yaml` passou com Maestro
-     2.11.0: o app abriu após limpar o estado e exibiu Setlist, Continuar com
-     Google e Continuar com Apple (em breve). Com as 82 suítes/544 testes Jest,
-     pgTAP/RLS, Playwright e as validações manuais Web/Android aprovadas, a
-     tarefa 11.1 foi marcada como concluída. Progresso OpenSpec: 75/106; as
-     demais tarefas do grupo 11 seguem pendentes.
-
-152. Registrar como melhoria futura a ampliação da cobertura Maestro para
-     fluxos Android além da abertura e da tela de autenticação: login Google e
-     jornadas críticas de bandas, repertório e shows. O smoke test atual foi
-     considerado suficiente para o item 11.1 porque os fluxos críticos também
-     foram validados manualmente pelo usuário; a ampliação não bloqueia essa
-     conclusão.
-
-153. O Playwright cobre a versão Web no navegador: o smoke test atual abre o
-     export estático e verifica a tela inicial de autenticação, os provedores
-     apresentados e a ausência de exceções JavaScript não tratadas. Ampliar
-     futuramente essa suíte para os fluxos Web críticos, incluindo navegação e
-     operações de bandas, repertório e shows, mantendo a cobertura de callbacks
-     OAuth isolada de credenciais pessoais.
-
-154. Em 29/09/2026, o item 11.2 avançou com revisão estática de acessibilidade,
-     responsividade, desempenho e tom de voz. O texto `muted` tinha contraste
-     4,46:1 sobre o fundo principal; o token foi ajustado para 5,07:1 e os pares
-     principais de texto/fundo agora têm testes de contraste AA. O foco visível
-     de teclado foi restaurado para campos de texto na Web; o drawer móvel
-     informa que é modal e o foco do botão de navegação é removido antes de
-     abrir o modal para evitar foco dentro de conteúdo ocultado. O CI da PR #20
-     passou nos três checks: qualidade/testes, pgTAP/RLS e Playwright. Os testes
-     Playwright atuais verificam a tela de autenticação em 320, 768 e 1280 px,
-     axe nessa tela e o foco visível do botão Google. O build Android release
-     local com bundle JS foi concluído (`android/app/build/outputs/apk/release/app-release.apk`,
-     47 MB, somente arm64-v8a). Inicialmente não havia aparelho no ADB; depois,
-     o APK foi instalado no `SM_S731B`, abriu na tela de autenticação e o logcat
-     não mostrou exceção fatal. Essa revisão visual cobriu somente a tela de
-     autenticação em um celular. A revisão de desempenho foi estática: listas
-     de bandas, repertório e shows usam `FlatList`, enquanto telas de
-     detalhe/editor usam conteúdo rolável delimitado; não houve medição em
-     profiler. Como referência inicial no `SM_S731B`, `am start -W` reportou
-     420 ms para iniciar a Activity em cold start; no estado de autenticação,
-     `dumpsys meminfo` mostrou PSS total de aproximadamente 174 MiB. São
-     amostras pontuais, sem comparação e sem representar uma jornada completa.
-     A leitura do guia de tom não encontrou inconsistências que exigissem
-     alteração. O item 11.2 permanece pendente: ainda falta validar
-     as telas autenticadas e fluxos principais em celular/tablet/computador e
-     medir desempenho em uso representativo.
-
-155. Ainda em 29/09/2026, o aparelho `SM_S731B` foi conectado. O APK release foi
-     instalado por cima da versão anterior e manteve a sessão; após o login, a
-     revisão visual em celular percorreu Minhas bandas, integrantes da banda,
-     listas e detalhes de shows, repertório e música. Os avatares dos integrantes
-     carregaram, a letra longa rolou até o final mantendo a navegação acessível
-     e o logcat não mostrou exceções durante a navegação. O detalhe de música
-     exibia um cartão contextual vazio quando a música não tinha observações nem
-     referência externa; a renderização agora omite o cartão nesse caso e o
-     teste `SongDetailScreen-test.tsx` passou (12 testes). O APK foi reconstruído
-     e reinstalado para confirmar a correção na tela; o cartão vazio não aparece.
-     O item 11.2 permanece pendente para revisão das telas autenticadas em
-     tablet/computador e medições de desempenho representativas. O detalhe de
-     show ainda expõe o acesso ao modo palco, que deve ser ocultado conforme a
-     tarefa 11.6 antes do candidato a piloto.
-
-156. Ainda em 29/09/2026, a revisão Web autenticada foi retomada no Chrome com
-     Metro na porta 19006. Minhas bandas, lista de shows, integrantes,
-     repertório, detalhe do show e detalhe da música carregaram; os avatares dos
-     integrantes foram exibidos. A letra de `Cowboys from Hell` rolou até o fim
-     e a navegação inferior permaneceu visível. A tela de detalhes do show foi
-     revisada em larguras de janela de aproximadamente 1120, 768 e 390 px, sem
-     cortes horizontais aparentes. O Metro não registrou exceções durante essa
-     navegação. As larguras menores foram simuladas redimensionando o Chrome,
-     não em tablets ou celulares físicos. O item 11.2 permanece pendente para
-     medir desempenho em uso representativo e revisar interações adicionais;
-     o acesso ao modo palco continua visível até a tarefa 11.6.
-
-157. Em 29/09/2026, foi coletada uma referência inicial de desempenho Web a
-     partir do export estático de produção, em três contextos novos de Chrome
-     headless e sem throttling, servido por loopback. No desktop, as medianas
-     foram: TTFB 4 ms, DOMContentLoaded 429 ms, load 431 ms, FCP 136 ms e LCP
-     840 ms. Em viewport móvel emulada de 390×844 px: TTFB 3 ms,
-     DOMContentLoaded 423 ms, load 424 ms, FCP 140 ms e LCP 788 ms; as três
-     sessões não tiveram overflow horizontal. Não houve erros de página nem de
-     console. O bundle JavaScript único mede 5.455.098 bytes sem compressão e
-     980.922 bytes em gzip. São referências locais da rota inicial, sem sessão
-     autenticada, throttling ou latência de rede; as larguras móveis são
-     emulação no desktop, não medição em aparelho.
-
-158. Ainda em 29/09/2026, o editor do setlist foi revisado na Web em larguras
-     de janela de aproximadamente 1120, 768 e 390 px; os campos e ações
-     principais permaneceram visíveis. No fluxo de arraste, o usuário moveu
-     `Bloco 2` acima de `Principal` e Cancelar abriu o diálogo de descarte. Com
-     autorização do usuário, o editor foi fechado sem salvar; a tela de
-     detalhes voltou a mostrar a ordem persistida original. A confirmação foi
-     concluída por navegação para fora do editor porque o macOS bloqueou o
-     clique automatizado no diálogo. Em conjunto com a revisão Android física,
-     amostras Android de cold start/PSS já registradas, verificações de
-     acessibilidade e voz documentadas no item 154 e as referências Web dos
-     itens 156–157, o item 11.2 está concluído. As métricas são linhas de base
-     locais e não estabelecem metas de desempenho para rede real.
-
-159. Em 29/09/2026, foi iniciado o item 11.3. Foram criados rascunhos de
-     termos de uso, política de privacidade e procedimento de remoção em
-     `docs/TERMOS_DE_USO_RASCUNHO.md`,
-     `docs/POLITICA_DE_PRIVACIDADE_RASCUNHO.md` e
-     `docs/PROCEDIMENTO_DE_REMOCAO_RASCUNHO.md`. O conteúdo reflete o schema e
-     os fluxos atuais: dados básicos de perfil, conteúdo compartilhado por
-     banda, aceites e convites; exclusão de conta com desvinculação/anonimização
-     de referências e preservação do conteúdo das bandas ativas. Não foram
-     presumidos controlador, canal de privacidade, prazos de retenção, região de
-     hospedagem, política para menores, bases legais ou processo operacional de
-     denúncias; esses pontos estão destacados como pendências. Os documentos
-     são rascunhos e precisam de confirmação do responsável e revisão jurídica.
-     A tarefa 11.3 continua pendente e não pode ser tratada como concluída até
-     essa revisão. Progresso OpenSpec: 76/106.
-
-160. Na revisão guiada dos documentos, o responsável informou que opera o
-     Setlist como pessoa física e questionou a divulgação pública de nome e
-     documento. Os rascunhos agora separam identificação do controlador e canal
-     de contato, registram o operador como pessoa física e deixam CPF/endereço
-     sem preenchimento até avaliação jurídica. O canal de contato dedicado
-     ainda precisa ser escolhido. Foi esclarecido que a LGPD enumera
-     identificação e contato do controlador separadamente; exigências do
-     Decreto nº 7.962/2013 podem depender de o serviço se enquadrar como oferta
-     ou contratação de consumo em meio eletrônico. O modelo comercial
-     (gratuito/pago e eventual contratação pelo app/site) e a decisão jurídica
-     permanecem pendentes.
-
-161. O responsável confirmou em 29/09/2026 que o Setlist será gratuito para
-     usuários e que pretende disponibilizar o código-fonte como open source.
-     Os rascunhos de termos e privacidade agora registram essa decisão e
-     distinguem o código aberto do conteúdo privado das bandas. A licença do
-     repositório ainda não foi escolhida: não há arquivo `LICENSE` na raiz nem
-     campo `license` ou `repository` no `package.json`. A política também deixa
-     pendente confirmar publicidade, patrocínio ou receita indireta; não se
-     presume que gratuidade, por si só, resolva a aplicabilidade das regras de
-     consumo. A revisão jurídica continua necessária.
-
-162. O responsável confirmou que pretende abrir o repositório inteiro, sem
-     preferência de licença. O documento de termos esclarece que a intenção
-     abrange o código original de app, migrações e documentação, enquanto
-     arquivos de terceiros continuam sujeitos aos avisos/licenças próprios.
-     Foi verificado que não existe licença geral na raiz; o único arquivo
-     encontrado é `vendor/decode-uri-component/LICENSE`. A escolha da licença
-     continua pendente de decisão explícita; não foi criada licença nem
-     declarada a publicação legal do projeto como open source.
-
-163. Em 29/09/2026, o responsável escolheu GNU AGPL-3.0 para o repositório
-     inteiro. Foi adicionada a cópia oficial e inalterada da licença em
-     `LICENSE`, com identificador `AGPL-3.0-only` em `package.json`. O README e
-     os rascunhos de termos e privacidade registram que o material original do
-     projeto (app, migrações e documentação) usa AGPL-3.0-only, que componentes
-     de terceiros retêm seus avisos e licenças e que isso não licencia dados ou
-     letras enviadas pelos usuários. O item 162 registra o estado anterior à
-     decisão. A revisão jurídica dos documentos de produto continua pendente.
-
-164. Na revisão guiada em 29/09/2026, o responsável confirmou que não haverá
-     anúncios, patrocínios, doações ou receita ligada ao aplicativo nos planos
-     atuais e que os custos serão cobertos pelo responsável. A política de
-     privacidade foi atualizada com essa informação e orienta nova revisão se
-     o modelo mudar.
-
-165. O responsável escolheu um canal geral de contato, em vez de um endereço
-     exclusivo para privacidade. Os três rascunhos agora indicam que o mesmo
-     e-mail geral receberá dúvidas, solicitações de titulares e pedidos de
-     remoção de conteúdo. O endereço ainda não foi definido e permanece como
-     campo pendente; antes da publicação será necessário monitorá-lo para esses
-     tipos de solicitação.
-
-166. O responsável definiu `contato@setlistbr.app.br` como canal geral. O
-     endereço foi inserido nos três rascunhos e será monitorado. O
-     responsável também decidiu destinar o Setlist apenas a pessoas com 18 anos
-     ou mais. Termos e política registram essa regra, mas o app ainda precisa
-     de uma forma de confirmação de idade e de procedimento para contas que
-     eventualmente pertençam a menores. O item 11.3 continua pendente, inclusive
-     de revisão jurídica. A LGPD exige melhor interesse no tratamento de dados
-     de crianças e adolescentes (art. 14):
-     <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
-
-167. O responsável não quer publicar nome ou documento pessoal e perguntou se
-     o domínio do app pode servir como identificação. Os rascunhos registram
-     provisoriamente `Setlist — setlistbr.app.br` como identificação pública
-     pretendida, sem inserir nome ou CPF; a suficiência jurídica dessa forma
-     para identificar o controlador pessoa física permanece pendente de
-     assessoria. A LGPD lista identificação e contato do controlador como
-     informações distintas (art. 9º). O domínio pode estar associado a dados do
-     titular consultáveis publicamente; o responsável aceita essa possibilidade.
-     Referência jurídica: <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
-
-168. O responsável decidiu usar `Setlist — setlistbr.app.br` como identificação
-     pública nos documentos. Termos e política foram ajustados de “pretendida”
-     para “escolhida”; não foram inseridos nome ou CPF. A validação jurídica de
-     que essa identificação é suficiente continua pendente. A tarefa 11.3
-     permanece aberta.
-
-169. O responsável confirmou que não se opõe à divulgação de dados do titular
-     que possam aparecer em consultas públicas sobre o domínio. Esse ponto
-     deixa de ser uma pendência para a escolha do domínio. Continua pendente a revisão
-     jurídica sobre se `Setlist — setlistbr.app.br` identifica suficientemente
-     o controlador pessoa física; a tarefa 11.3 permanece aberta.
-
-170. O responsável confirmou que o e-mail geral `contato@setlistbr.app.br` será
-     devidamente monitorado. Os três rascunhos agora registram esse
-     compromisso; a tarefa 11.3 permanece aberta.
-
-171. Para a regra de acesso a maiores de 18 anos, o responsável escolheu uma
-     autodeclaração antes do login. Termos e política agora dizem que a pessoa
-     confirmará ter 18 anos ou mais antes de iniciar a autenticação, sem pedir
-     data de nascimento para esse fim. O controle ainda não está implementado.
-
-172. O responsável questionou se é necessário detalhar um fluxo específico para
-     contas de menores. Os rascunhos agora usam uma regra geral: o serviço pode
-     restringir ou suspender o acesso se houver motivo para entender que os
-     critérios de elegibilidade não foram atendidos, e tratar os dados conforme
-     a política e as obrigações legais, sem prometer exclusão automática. A LGPD
-     exige que o tratamento de dados de crianças e adolescentes observe seu
-     melhor interesse (art. 14); não foi afirmada uma obrigação de exclusão
-     automática. O item 11.3 continua pendente de implementação e revisão
-     jurídica. Referência: <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
-
-173. O responsável escolheu não nomear encarregado formal, usando o canal geral
-     `contato@setlistbr.app.br` para comunicação com titulares, condicionado à
-     confirmação jurídica de que se aplica a dispensa para agentes de
-     tratamento de pequeno porte. A política e o procedimento registram a
-     intenção e mantêm pendente verificar os requisitos e as exclusões, como
-     tratamento de alto risco. A Resolução CD/ANPD nº 2/2022 prevê a dispensa
-     para agentes elegíveis e exige que mantenham canal de comunicação:
-     <https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022>.
-     O item 11.3 continua pendente de confirmação jurídica.
-
-174. A apuração de retenção para a política foi retomada em 30/09/2026. O
-     workflow do GitHub Pages configura o artefato estático de publicação com
-     retenção de 1 dia. Pela API autenticada do GitHub, a retenção configurada
-     para artefatos e logs do Actions neste repositório é de 90 dias (máximo
-     permitido também 90). O CLI Supabase lista `setlist-dev` e `setlist-prod`
-     na organização; o `.env.local` deste checkout aponta para `setlist-dev`.
-     A listagem não informa o plano nem PITR. A documentação Supabase informa
-     logs API/DB por 1 dia no Free, 7 no Pro, 28 no Team e 90 no Enterprise;
-     backups automáticos diários não estão incluídos no Free, ficam 7 dias no
-     Pro, 14 no Team e têm prazo personalizado no Enterprise. Confirmar o plano
-     e o PITR no painel Supabase; ainda falta definir retenção de dados ativos,
-     aceites e exclusão dos backups. A nota interna da política foi atualizada
-     com os achados e deve ser substituída por prazos do projeto antes da
-     publicação. Referências: <https://supabase.com/pricing>,
-     <https://supabase.com/features/database-backups>,
-     <https://supabase.com/docs/reference/api/v1-get-an-organization> e
-     <https://docs.github.com/en/organizations/managing-organization-settings/configuring-the-retention-period-for-github-actions-artifacts-and-logs-in-your-organization>.
-
-175. O responsável concordou que os termos concedam ao Setlist uma autorização
-     não exclusiva e sem cobrança, limitada a armazenar, processar, fazer cópias
-     técnicas necessárias e exibir conteúdo às pessoas autorizadas da banda para
-     operar o serviço. A cláusula exclui publicação fora da banda, anúncios e
-     treinamento de modelos; permite operações pelos fornecedores de
-     infraestrutura; e prevê que conteúdo compartilhado pode permanecer após a
-     exclusão da conta de quem o enviou, terminando a autorização após remoção
-     dos sistemas ativos, ressalvados backups e retenções legais. A seção 3 dos
-     termos foi atualizada. Confirmar redação, alcance e compatibilidade com
-     fluxos de exclusão na revisão jurídica; item 11.3 continua aberto.
-
-176. O responsável concordou que mudanças relevantes e encerramento planejado
-     sejam comunicados pelo e-mail cadastrado e por aviso dentro do app, com
-     antecedência razoável sempre que possível. Pedidos de acesso/portabilidade
-     de dados pessoais serão avaliados pelo canal geral conforme a política e a
-     lei. Não se promete exportação completa do conteúdo das bandas, pois o app
-     não oferece essa função; o destino do conteúdo deve ser explicado no aviso
-     de encerramento, respeitando direitos e obrigações legais. A seção 5 dos
-     termos foi atualizada. Revisar a formulação jurídica antes da publicação;
-     item 11.3 continua aberto.
-
-177. O responsável confirmou que o app não tem finalidades adicionais como
-     analytics, publicidade, marketing, venda de dados ou compartilhamento
-     comercial. A seção 3 da política agora descreve os propósitos observados e
-     inclui um mapeamento preliminar de bases legais candidatas, sem as
-     apresentar como conclusões: execução de contrato para funções pedidas;
-     obrigação legal ou exercício regular de direitos conforme a operação; e legítimo
-     interesse para segurança/abuso apenas após avaliação documentada. A seção
-     4 registra a ausência de monetização/comercialização e mantém pendente o
-     inventário dos fornecedores e compartilhamentos operacionais. A LGPD prevê
-     as hipóteses do art. 7º; a ANPD orienta teste de finalidade, necessidade,
-     balanceamento e salvaguardas para legítimo interesse:
-     <https://www.planalto.gov.br/ccivil_03/leis/l13709.htm> e
-     <https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia_orientativo_hipoteses_legais_tratamento_de_dados_pessoais_legitimo_interesse>.
-     O mapa requer revisão jurídica e confirmação de retenção e dados técnicos;
-     item 11.3 permanece aberto.
-
-178. O inventário técnico identificou Google OAuth, Supabase (Auth e banco),
-     GitHub Pages para a versão Web e player oficial do YouTube. O CLI Supabase
-     lista dev e prod em `sa-east-1` (São Paulo); a região primária não prova que
-     todo processamento/subprocessamento ocorre no Brasil, pois o DPA permite
-     subprocessadores em outros locais. O GitHub declara que registra IPs de
-     visitantes do Pages por segurança; prazo desses registros de visita não
-     foi confirmado e é separado da retenção de logs/artifacts do Actions. O
-     código usa `youtube.com/iframe_api`, portanto o player externo é carregado
-     quando usado. A Apple foi incluída como integração planejada: o botão de
-     login está desabilitado e indica “em breve”, então ainda não foi incluída
-     como fluxo ativo. O fornecedor da caixa `contato@setlistbr.app.br`, os
-     escopos Google, contratos e suboperadores, destinos e mecanismos para
-     transferências internacionais ainda precisam ser inventariados. Política
-     §2 e §4 recebeu o inventário e ressalvas. Referências: <https://supabase.com/docs/guides/platform/regions>,
-     <https://supabase.com/legal/customer-resources/data-processing-addendum>,
-     <https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages>,
-     <https://developers.google.com/identity/protocols/oauth2/policies>,
-     <https://www.apple.com/legal/privacy/data/en/sign-in-with-apple/> e
-     <https://developers.google.com/youtube/terms/developer-policies>.
-     A tarefa 11.3 continua aberta.
-
-179. Por solicitação do responsável, Apple foi incluída no inventário como
-     integração planejada, não ativa: o botão atual diz “em breve” e não inicia
-     login. Uma consulta aos registros MX públicos de `setlistbr.app.br` retornou
-     `route1/2/3.mx.cloudflare.net`, compatível com roteamento de entrada do
-     Cloudflare Email Routing. Isso identifica o primeiro salto do e-mail, mas
-     não revela a regra nem a caixa de destino. A política agora registra
-     Cloudflare para o roteamento e deixa o destino final pendente. Confirmar
-     com o responsável a plataforma que recebe as mensagens. Documentação:
-     <https://developers.cloudflare.com/email-service/configuration/domains/>.
-
-180. O responsável confirmou que as mensagens encaminhadas pela Cloudflare para
-     `contato@setlistbr.app.br` chegam a uma caixa Gmail/Google. A política agora
-     identifica Cloudflare como roteador de entrada e Google como destinatário
-     final das mensagens, que podem conter dados pessoais inseridos pela pessoa
-     solicitante. Item registrado sob a mesma seção de fornecedores; verificar
-     os termos efetivamente usados na revisão jurídica. O item 11.3 continua
-     aberto.
-
-181. O responsável aprovou a confirmação de recebimento de pedidos gerais e
-     denúncias de conteúdo em até 5 dias úteis. Os rascunhos da política de
-     privacidade e do procedimento de remoção agora distinguem esse aviso do
-     prazo de atendimento ou resposta de mérito, que segue o prazo legal
-     aplicável ou a análise necessária ao caso. Ainda falta definir prazo de
-     retenção dos registros de solicitações. Referências oficiais: a ANPD indica
-     os prazos legais por categoria de pedido e a Resolução nº 2/2022 prevê
-     prazos diferenciados para agentes de pequeno porte elegíveis:
-     <https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/direito-dos-titulares>
-     e
-     <https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022>.
-
-182. O responsável aprovou verificar pedidos de conta primeiro pelo e-mail
-     associado à conta e pedir apenas confirmação adicional mínima se houver
-     divergência ou dúvida sobre autoridade. Denúncias de conteúdo também terão
-     verificação proporcional da relação com o conteúdo/direito invocado. Não
-     pedir documento oficial de identidade por padrão; em caso excepcional,
-     explicar a necessidade e usar canal seguro. A política e o procedimento
-     foram atualizados. Falta definir o procedimento seguro para documentos
-     excepcionais e revisar a redação juridicamente; item 11.3 permanece aberto.
-
-183. O responsável aprovou usar a caixa Gmail do canal como registro de casos,
-     com uma etiqueta dedicada a privacidade/remoção, acesso restrito e sem
-     planilha paralela. Acompanhar cada pedido pelo histórico da própria
-     mensagem, anotando data, tipo, situação e encerramento; manter somente uma
-     justificativa resumida e necessária. O responsável aprovou uma regra de
-     retenção orientada à finalidade: conservar registros enquanto necessários
-     para tratar/documentar o caso, cumprir obrigações ou exercer direitos;
-     depois excluir ou anonimizar, salvo hipótese legal de guarda adicional,
-     sem retenção indefinida. Política e procedimento foram atualizados. O
-     inventário deve confirmar prazos e exceções concretos com assessoria
-     jurídica antes da publicação. A LGPD (arts. 15 e 16) não fixa um prazo
-     universal; a ANPD orienta que a necessidade seja avaliada conforme o caso:
-     <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>
-     e
-     <https://www.gov.br/anpd/pt-br/acesso-a-informacao/perguntas-frequentes/perguntas-frequentes>.
-     Item 11.3 continua aberto.
-
-184. O responsável aprovou o procedimento excepcional para documentos de
-     identidade: não solicitar por padrão nem receber na caixa geral de e-mail;
-     se indispensável, explicar o motivo, usar apenas canal seguro previamente
-     habilitado, apagar a cópia após a verificação salvo obrigação legal de
-     retenção e guardar no caso somente justificativa, data e resultado, sem
-     reproduzir dados do documento. Se o canal seguro não estiver disponível,
-     buscar meio alternativo proporcional e não pedir o envio do documento. A
-     política e o procedimento foram atualizados. Continua pendente habilitar
-     um canal seguro antes de qualquer coleta excepcional, caso ela venha a ser
-     necessária, além da revisão jurídica. Item 11.3 permanece aberto.
-
-185. O responsável aprovou que o controlador receba e trate alertas de
-     segurança pela caixa `contato@setlistbr.app.br`, usando etiqueta separada
-     para incidentes e acesso restrito. O procedimento de remoção agora inclui
-     triagem, preservação limitada de evidências, avaliação de risco, mitigação
-     e registro mínimo das decisões; a política também lista incidentes como
-     assunto que pode ser encaminhado ao canal geral. Ainda é necessário
-     validar medidas técnicas concretas, completar o plano operacional de
-     resposta e revisar prazos/comunicações conforme as regras aplicáveis; item
-     11.3 continua aberto.
-
-186. O responsável informou que já tem acesso à caixa postal
-     `contato@setlistbr.app.br`. O procedimento agora registra esse estado e
-     mantém como verificação operacional antes da ativação a criação das
-     etiquetas separadas para privacidade/remoção e incidentes e a conferência
-     dos acessos. A disponibilidade da caixa não confirma, por si só, a
-     inclusão do endereço na Web/aplicativos ou a configuração das etiquetas.
-
-187. A integração Sign in with Apple foi validada manualmente pelo usuário na
-     Web e no Android, tanto no sucesso quanto na falha. O APK de desenvolvimento
-     foi instalado no aparelho e conectado ao Metro em `19006`; o login Apple
-     concluiu e retornou ao app. O `site_url` do projeto Supabase de
-     desenvolvimento está em HTTPS para servir de fallback global quando o
-     estado OAuth não puder ser recuperado; os redirects explícitos continuam
-     sendo calculados por plataforma no início do login. A configuração de
-     produção não foi alterada. A validação nativa iOS, inclusive falha, segue
-     pendente até haver simulador compatível; nenhum build iOS foi feito.
-
-188. Para validar em iPhone físico sem Development Client, foi criado o perfil
-     EAS `preview-ios`, isolado do preview Android/Web. Ele herda distribuição
-     interna, não define `developmentClient`, ativa o plugin Google nativo para
-     aplicar os `modular_headers` necessários a `AppCheckCore`,
-     `GoogleUtilities` e `RecaptchaInterop` e informa o URL scheme reverso do
-     cliente iOS durante a avaliação inicial do app config. Os quatro pacotes
-     Expo fora do patch esperado pelo SDK 57 foram atualizados; a primeira
-     tentativa de build falhou no Expo Doctor e a segunda revelou a dependência
-     dos module maps. A terceira compilação concluiu como IPA Ad Hoc para o
-     iPhone XR registrado. Build EAS: `4dcab6d9-67c6-4d92-87ef-c24742faf799`.
-     O IPA está pronto para instalação pelo link/QR da página da build. Ainda
-     naquele momento faltavam a instalação e a validação manual no iOS; as
-     validações Web/Android já estavam aprovadas.
-
-189. O usuário instalou e validou o build EAS `preview-ios` em um iPhone físico.
-     Os logins Google e Apple concluíram com sucesso e a navegação pelas telas
-     foi verificada. A validação funcional básica do iOS está aprovada. Ainda
-     faltava confirmar o fluxo de falha Apple e os testes e2e de papéis e
-     convites no iOS; o teste não foi feito em simulador.
-
-190. O usuário confirmou que o fluxo de falha do login Apple e os testes de
-     papéis e convites também foram validados no iOS. As tarefas OpenSpec
-     5.1.2.4 e 5.10.2 foram concluídas. Com isso, os fluxos funcionais de
-     autenticação, papéis e convites estão validados em Web, Android e iOS.
-
-191. O usuário confirmou que retorno e renovação de sessão foram validados em
-     Web, Android e iOS. A tarefa OpenSpec 5.1 está concluída; os fluxos de
-     autenticação Google/Apple e o ciclo de sessão estão validados nas três
-     plataformas.
-
-192. Após integrar o PR #22, foi aberta a branch `feat/pull-to-refresh-data`
-     para adicionar atualização manual e revalidação ao foco, limitada às
-     queries da tela ativa, em Minhas bandas, Banda, Repertório e Shows. O
-     change OpenSpec `atualizacao-direcionada-dados` acompanha o trabalho; as
-     tarefas de implementação e validação manual ainda não foram concluídas.
-     A validação atual revelou a tela Minhas bandas vazia em Web e Android.
-     Na Web, ao tocar em Atualizar, logs de desenvolvimento confirmaram 2
-     vínculos e 2 registros de bandas sem erro do Supabase, embora a lista
-     continue visualmente vazia. O próximo passo é conferir se há busca ativa,
-     qual mensagem vazia é exibida e revisar a renderização; depois remover a
-     instrumentação temporária de contagens em
-     `src/data/supabase/repositories.ts`. Não havia aparelho conectado ao ADB
-     para inspecionar a execução Android. O Metro está na porta `19006` e
-     serviu bundles Web e Android com HTTP 200. O trabalho foi salvo na branch
-     de feature para retomar esse diagnóstico; não integrar a PR antes de o
-     usuário validar manualmente.
-
-193. Na retomada, antes de revisar este handoff, confirmei que a branch atual é
-     `feat/pull-to-refresh-data`, no commit `7332d6b`, rastreando
-     `origin/feat/pull-to-refresh-data`, com a árvore limpa. O OpenSpec CLI
-     `1.14.0` reconhece
-     `atualizacao-direcionada-dados` e informa 4/4 artefatos de planejamento;
-     no checklist, 3.1 é a única tarefa concluída. Não há processo ouvindo na
-     porta `19006` e o comando `adb` não está disponível nesta máquina. Node
-     `24.21.0` e npm `11.20.0` atendem às versões fixadas pelo projeto.
-
-194. Os logs da Web mostraram que `useUserBandSummaries` conclui com 2 bandas,
-     e `BandsScreen` recebe `queryStatus: success`, `sourceCount: 2`,
-     `displayedCount: 2` e `searchActive: false`. Isso descartou falha na
-     consulta e no filtro como causa da lista vazia.
-
-195. A implementação do gesto de atualização passava `<ListRefreshControl />`
-     dentro da prop `refreshControl`. O `ScrollView` do React Native Web clona
-     essa prop envolvendo o próprio conteúdo; como o wrapper retornava `null`
-     na Web e descartava `children` no Android, o conteúdo inteiro da lista era
-     removido nas duas plataformas. O helper agora retorna `undefined` na Web
-     e um elemento `RefreshControl` nativo diretamente no Android/iOS. As
-     referências foram atualizadas em todas as telas afetadas. Uma edição
-     intermediária de diagnóstico também causou erro de sintaxe no Metro; a
-     sintaxe foi corrigida, os logs temporários removidos e o último bundle Web
-     compilou. Naquele momento, faltava a validação visual final no Web e no
-     Android; ela foi confirmada pelo usuário no item 196.
-
-196. O usuário confirmou que, após corrigir a prop `refreshControl`, as
-     informações voltaram a aparecer no Web e no Android. A instrumentação
-     temporária `[bands:*]` não está mais no código; os logs de diagnóstico do
-     repositório também foram removidos. Revisei os demais callsites alterados:
-     listas de integrantes, repertório e shows, letra em tela cheia e o shell
-     de detalhes passam um `RefreshControl` nativo direto e mantêm o botão Web
-     visível onde previsto. Não identifiquei outro wrapper descartando conteúdo.
-     Ainda falta validar manualmente gesto/botão e revalidação nessas telas; o
-     change `atualizacao-direcionada-dados` permanece incompleto; a revisão dos
-     controles compartilhados concluiu a tarefa 1.1 no checklist.
-
-197. A pedido do usuário, em Minhas bandas o botão de atualização Web foi
-     alinhado à direita do campo de busca e passou a exibir somente o ícone.
-     Enquanto atualiza, o ícone é substituído por um indicador de atividade;
-     o rótulo acessível informa o estado. O botão continua exclusivo da Web e
-     o gesto nativo de atualização Android não foi alterado.
-
-198. O mesmo padrão compacto foi aplicado aos outros botões de atualização
-     Web: integrantes, repertório, shows, letra em tela cheia e detalhes de
-     música/show. Repertório e shows exibem a ação à direita da busca; os
-     controles de detalhes e integrantes preservam seu alinhamento. Todos
-     mantêm rótulos acessíveis e indicador visual durante a atualização.
-
-199. Corrigido o botão `Compartilhar convite novamente` na Web: quando o link
-     ativo não está no cache da tela, a ação agora chama `renew_invitation`
-     para revogar o link anterior, gerar o substituto e compartilhá-lo. Isso
-     evita deixar dois convites ativos para a mesma ação. Se o link já está em
-     cache, ele continua sendo compartilhado sem renovação. O fluxo nativo não
-     foi alterado.
-
-200. A revisão seguinte confirmou que a causa não era exclusiva da Web: sem a
-     URL em memória, o fallback antigo chamava `onCreate` em qualquer
-     plataforma. O recompartilhamento agora usa `onRenew` em Web, Android e
-     iOS quando o link não está no cache; quando está, compartilha o link sem
-     renovação. O teste existente foi ajustado para esperar a renovação, mas
-     não foi executado.
-
-201. O modo palco foi ocultado nesta primeira versão: o item Palco abre um
+1. Acompanhar o build Android `c728fd9d-21e1-4be4-ac85-2eb2607f2188`; quando concluir, instalar o APK e validar o login nativo Google contra produção.
+2. Gerar o build iOS de simulador com `eas build --platform ios --profile production-ios-simulator` e validar Apple/Google nativos contra produção.
+3. Revisar a diferença entre a Web publicada (`d37278e`) e a branch da PR #27. Integrar a PR somente depois da aprovação final das minutas legais; o Pages publica automaticamente na `main`.
+4. Continuar o checklist de publicação nas lojas depois das validações de plataforma e da conclusão jurídica.
+
+5. Após a validação manual informada pelo usuário, a tarefa 5.10 foi dividida:
+   5.10.1 (papéis e convites na web e Android, com publicação interna) foi
+   concluída; 5.10.2 (iOS) permanece adiada até existir build e ambiente de
+   validação disponíveis. O PR #14 já foi integrado em `main` por squash no
+   commit `4603c69`. A nova branch `feat/task-6-1-repertoire`, baseada nesse
+   `main`, inicia a implementação do repertório real da tarefa 6.1.
+
+6. As tarefas 6.1 e 6.2 foram implementadas na branch
+   `feat/task-6-1-repertoire`. O botão `Adicionar música` passou a aparecer
+   como ação secundária explícita no cabeçalho para Owner/Editor, com bloqueio
+   para Member e bandas demo. A tela de edição grava metadados e letra online;
+   `LyricDocumentEditor` permite adicionar, remover, nomear e reordenar blocos
+   e linhas, mantendo identificadores e tempos, e a mutação envia letra e
+   `lyric_status` derivados em uma única atualização. TypeScript, lint,
+   formatação e `npm run validate` passaram com 67 suítes e 357 testes. A
+   validação SQL local não foi executada porque a inicialização do CLI do
+   Supabase foi bloqueada pela escrita de telemetria fora da área permitida;
+   nenhum estado remoto foi alterado. A classificação dos estados de letra da
+   tarefa 6.3 foi concluída posteriormente.
+
+7. Os botões de ação do cabeçalho foram padronizados no componente
+   compartilhado `src/features/navigation/components/AppHeader.tsx`. Ações
+   contextuais de bandas, shows e repertório agora usam o mesmo botão
+   contornado com ícone, rótulo, altura, raio e espaçamento; `Salvar` mantém
+   apenas a variante primária para indicar a ação principal. `Criar banda`
+   também recebeu o ícone de inclusão. A validação completa permaneceu verde
+   com 67 suítes e 357 testes, e a PR #15 continua aberta para revisão.
+
+8. Após a revisão visual, as ações do cabeçalho deixaram de usar botões
+   contornados com texto. Menu, voltar, adicionar, editar, mais opções,
+   cancelar e salvar agora usam controles circulares somente com ícone,
+   área de toque de 48 px, `hitSlop` e o mesmo feedback de pressão dos
+   controles de navegação. Os rótulos completos continuam nos atributos de
+   acessibilidade; `Salvar` usa `check`, `Cancelar` usa `close` e ações sem
+   ícone explícito usam `more` como fallback. A validação completa passou com
+   67 suítes e 357 testes.
+
+9. A edição de letras foi simplificada para um único campo multilinha em
+   `LyricDocumentEditor`, permitindo colar ou digitar a música inteira. Linhas
+   iniciadas por `#` nomeiam blocos e uma linha `---` representa uma linha
+   vazia; `lyricEditorText.ts` converte esse formato para o documento JSONB,
+   preservando IDs e tempos existentes por posição. O campo mantém um rascunho
+   local durante a digitação para não apagar quebras de linha intermediárias.
+   O campo multiline de `Observações` recebeu dimensões explícitas somente na
+   web, evitando que seu layout invada o bloco de letra. Foram adicionados
+   testes de serialização, parsing, preservação de identidade e edição de
+   formulário; a validação completa passou com 68 suítes e 361 testes,
+   além do export web e da validação estrita do change OpenSpec.
+
+10. A revisão visual seguinte ajustou o formulário de música. A duração agora
+    usa entradas independentes para horas, minutos e segundos, recompondo o
+    formato aceito pelo domínio sem exigir digitação de `:`. O campo vazio de
+    duração permanece realmente vazio em músicas sem duração. O layout do
+    formulário deixou de aplicar crescimento flexível aos campos verticais;
+    junto às dimensões fixas do textarea multiline na web, isso evita que
+    Observações invada o bloco de Letra. As instruções da letra foram
+    reorganizadas em um guia visual compacto com exemplos de `# Refrão` e
+    `---`. A validação passou com 68 suítes e 362 testes.
+
+11. Os campos de duração foram retirados da linha de Tom/BPM e passaram para
+    uma linha própria imediatamente após `Artista/Banda`. O grupo ocupa no
+    máximo toda a largura disponível (`100%`), com inputs internos flexíveis
+    para não ultrapassar o limite em telas estreitas. A suíte de tela e a
+    verificação de tipos continuam aprovadas.
+
+12. A duração agora usa o componente reutilizável `SpinButton`, com campo
+    numérico acessível e controles verticais de incrementar/decrementar,
+    respeitando limites de horas, minutos e segundos. Os três componentes
+    ocupam partes iguais da largura disponível. `AutocompleteField` foi criado
+    para o Artista/Banda: ao focar ou digitar, ele filtra valores distintos de
+    `originalArtist` encontrados nas músicas dos repertórios das bandas da
+    conta, ignora acentos e duplicatas e permite selecionar uma sugestão;
+    o cache é invalidado após criar ou editar uma música. A validação completa
+    passou com 70 suítes e 365 testes.
+
+13. O repositório remoto não consulta mais o Supabase para IDs de bandas
+    demonstrativas (`band-demo-horizonte` e `band-demo-aurora`): músicas,
+    detalhes e integrantes desses IDs são resolvidos pelo repositório demo.
+    Isso evita erros `22P02` de UUID ao montar as sugestões de
+    `originalArtist` para o autocomplete em sessões autenticadas.
+
+14. A edição e a visualização da letra preservam novos formatos de linha:
+    `**texto**` aplica negrito e `***` cria uma linha de separação; o marcador
+    `---` continua representando uma linha em branco. A tela de detalhes
+    renderiza esses formatos dentro de cada bloco, e a validação inclui a
+    serialização, a leitura e a apresentação desses marcadores.
+
+15. Os nomes dos blocos na visualização da letra usam opacidade `0.55`,
+    mantendo os títulos identificáveis, mas com menos destaque que as linhas
+    da música.
+
+16. No web, o menu lateral desfoca o elemento ativo antes de ocultar o
+    `Modal` ao fechar ou navegar. Isso evita avisos de acessibilidade
+    `aria-hidden` quando um link ou botão do menu ainda retém foco durante a
+    troca de tela, inclusive ao acessar as telas de edição do repertório.
+
+17. O componente `SpinButton` seleciona automaticamente todo o conteúdo ao
+    receber foco (`selectTextOnFocus`). Os controles de incrementar e
+    decrementar também devolvem o foco ao campo e selecionam o novo valor,
+    permitindo substituí-lo pelo teclado sem precisar apagá-lo antes.
+
+18. A seleção acionada pelos controles do `SpinButton` foi tornada
+    compatível com todas as plataformas: no web usa `setSelectionRange` no
+    elemento HTML, enquanto no Android/iOS usa `setSelection`, com fallback
+    nativo opcional. Isso evita chamar `setNativeProps` em referências do
+    React Native Web, que não oferecem esse método.
+
+19. A seleção automática no foco deixou de usar `selectTextOnFocus` no
+    React Native Web, pois esse recurso agenda uma seleção assíncrona que
+    podia reaplicar a seleção após o primeiro caractere digitado. O
+    `SpinButton` agora seleciona o valor diretamente no evento de foco e ao
+    usar `+`/`−`, permitindo editar vários dígitos normalmente pelo teclado.
+
+20. A tela de detalhes da música passou a apresentar o título com tipografia
+    menor e organiza verticalmente, em largura total, os blocos de título,
+    informações/observações e letra. O botão de referência do YouTube abre
+    uma nova janela no web (`noopener,noreferrer`) e usa o navegador externo
+    nas plataformas nativas. A validação passou com 70 suítes e 370 testes.
+
+21. A edição dos campos de duração usa `durationFromEditorParts`, que mantém
+    os dígitos exatamente como estão sendo digitados e não adiciona zeros à
+    esquerda entre uma tecla e outra. A função `durationFromParts` continua
+    disponível para a recomposição normalizada, e a validação do formulário
+    segue normalizando a duração no salvamento. Isso permite informar, por
+    exemplo, `45` em minutos ou segundos sem o segundo dígito ser bloqueado
+    pelo `maxLength`.
+
+22. Na versão web, o `RootLayout` define o título do documento como `Setlist`
+    para manter o nome do app na aba do navegador. Todos os campos
+    `TextInput` agora removem o contorno visual automático de foco no web,
+    incluindo os campos de nome de exibição e de letra completa que ainda
+    não tinham essa regra. A alteração visual manual do título da música foi
+    mantida em `20px`.
+
+23. A remoção do contorno de foco dos campos web foi centralizada no
+    documento `src/app/+html.tsx`, aplicando `outline: none !important` a
+    `input` e `textarea` focados em todas as rotas. As regras `outlineWidth`
+    duplicadas foram removidas dos componentes individuais, mantendo a
+    aparência consistente do app web.
+
+24. O `AutocompleteField` passou a manter o foco e a lista de sugestões ao
+    selecionar uma opção, além de aguardar brevemente o `blur` antes de
+    desmontar a lista. Isso evita que o clique seja perdido no web e permite
+    continuar editando o artista no Android. O `SpinButton` mantém um rascunho
+    local durante o foco, impedindo que a normalização temporária para `0`
+    insira um zero à esquerda e bloqueie a digitação do segundo dígito.
+
+25. A saída da tela de edição de música agora verifica `router.canGoBack()` e
+    usa a rota de detalhes da música (ou do repertório, no cadastro) como
+    fallback quando a tela foi aberta diretamente por URL. Os links do menu
+    lateral fecham o drawer no `onPressIn`, antes da navegação, e todas as
+    seções passaram a informar esse callback. Isso evita o aviso de `GO_BACK`
+    sem histórico e os avisos de foco retido em elementos dentro de um
+    container `aria-hidden` durante a transição web.
+
+26. O `AutocompleteField` só abre a lista de sugestões quando há pelo menos
+    duas opções distintas para escolha. Com zero ou uma alternativa, o campo
+    permanece limpo e não apresenta uma lista sem necessidade.
+
+27. Na tela de detalhes da música, a ação `Editar música` foi movida para o
+    cabeçalho como `headerAction` com o ícone `edit`, seguindo o padrão das
+    demais telas. O botão secundário que ficava junto ao título foi removido;
+    as mensagens de bloqueio para bandas de demonstração e as permissões de
+    edição permanecem iguais.
+
+28. O autocomplete oculta uma única sugestão somente quando ela já é igual
+    ao valor preenchido, usando comparação normalizada. Se houver uma única
+    opção diferente, ela continua sendo exibida para seleção; com duas ou
+    mais opções a lista permanece disponível normalmente.
+
+29. Os headers de criação passaram a usar iconografia semântica pelo catálogo
+    `AppIcon`: `CalendarPlus` para novo show, composição `Music2 +` para nova
+    música e composição `Users +` para nova banda. O `Plus` genérico foi
+    preservado e a variante `CirclePlus` ficou disponível como `addCircle`
+    para ações genéricas destacadas. TypeScript, lint, formatação e 70 suítes
+    com 379 testes passaram.
+
+30. O `+` das composições `Music2 +` e `Users +` recebeu selo e traço
+    maiores, preservando a proporção responsiva para manter a ação de criação
+    visualmente destacada nos headers móveis e web.
+
+31. A espessura do traço do `+` foi ampliada proporcionalmente, sem alterar
+    o tamanho do selo composto.
+
+32. O traço do `+` nos ícones compostos foi dobrado novamente, mantendo o
+    selo no mesmo tamanho para preservar a composição visual.
+
+33. O ícone de nova banda passou a usar a composição `UserGroup +`, mais
+    próxima da representação visual de um grupo de usuários.
+
+34. O histórico de convites passou a usar ações iconográficas acessíveis:
+    `Share2` para compartilhar novamente, `Ban` para revogar e `RefreshCw`
+    para renovar. Convites ativos reutilizam o URL disponível na sessão ou
+    geram um novo convite mantendo o anterior ativo quando o token original
+    não está disponível, preservando o armazenamento apenas por hash no
+    Supabase. A validação completa passou com 70 suítes e 379 testes.
+
+35. A consulta de uma música recebeu a rota imersiva de letra
+    `/bands/[bandId]/repertoire/[songId]/lyrics`, acessada por `Tela cheia`.
+    O conteúdo visual é reutilizado entre detalhe e tela imersiva, preservando
+    blocos, linhas em negrito, separadores e o retorno acessível aos detalhes.
+    A ação só é apresentada para músicas que possuem letra; músicas no estado
+    `Sem letra` continuam mostrando a orientação local sem oferecer uma tela
+    vazia. Tom e BPM permanecem metadados secundários no resumo.
+
+36. Após criar ou renovar um convite, `Link pronto para o palco` é mostrado
+    em um popup próprio, separado do histórico de convites. A janela permite
+    selecionar ou compartilhar o URL, pode ser fechada pelo botão, pelo ícone
+    ou pelo fundo e é limpa ao fechar o diálogo principal. A validação completa
+    passou com 70 suítes e 382 testes.
+
+37. A tarefa 6.3 foi concluída: `deriveLyricStatus` classifica letras por
+    linhas textuais, tempos informados e ordem crescente, e as mutações
+    persistem o resultado junto ao documento JSONB. Os testes unitários cobrem
+    Sem letra, Letra estática, Sincronização incompleta e Sincronizada.
+
+38. A tarefa 6.4 foi concluída: Owner e Editor agora consultam o aceite do
+    termo vigente antes de abrir o editor de músicas; o diálogo registra o
+    aceite pela RPC protegida `accept_current_band_term`. O banco centraliza a
+    versão vigente, exige o aceite em políticas de inserção/alteração e remove
+    a escrita direta de `legal_acceptances`. Member, leitura do repertório e
+    modo palco continuam disponíveis sem aceite. A suíte local passou com 14
+    arquivos e 267 verificações; a migração foi publicada no Supabase de
+    desenvolvimento e o lint remoto não encontrou erros.
+
+39. A tarefa 6.5 foi concluída: Owner e Editor podem arquivar, restaurar ou
+    excluir músicas pela tela de detalhes. A RPC protegida decide de forma
+    atômica: músicas sem referência em shows são removidas definitivamente;
+    músicas já usadas em setlists são arquivadas, preservando os itens
+    existentes. O repertório mantém arquivadas fora das novas setlists,
+    oferece filtro dedicado e exibe a confirmação contextual. A validação
+    passou com 15 arquivos e 278 testes SQL, lint local/remoto sem erros e
+    396 testes de aplicação; a migração foi publicada no Supabase de
+    desenvolvimento.
+
+40. A tarefa 6.6 foi concluída: as mutações de criação e edição de músicas
+    agora solicitam `id, updated_at` ao Supabase e rejeitam respostas sem um
+    horário válido gerado pelo servidor. O gatilho existente em
+    `public.songs` continua sendo a fonte exclusiva do timestamp, sem aceitar
+    datas produzidas no cliente. O teste SQL `6.6-song-current-content.sql`
+    confirma que Owner e Editor substituem o conteúdo na única linha vigente,
+    preservam o vínculo com shows e não expõem histórico. A validação passou
+    com 73 suítes e 399 testes da aplicação, 16 arquivos e 288 testes SQL,
+    lint local/remoto sem erros e banco remoto sem migrações pendentes.
+    A validação da 6.7 e a publicação da prévia estão registradas na entrada
+    seguinte; o PR permanece aberto para a revisão manual do grupo 6.
+
+41. A tarefa 6.7 foi validada nos testes de repertório para Owner, Editor e
+    Member, incluindo adaptação phone/tablet/desktop, cabeçalho fixo, blocos
+    expandidos, atualização relativa, ação de edição restrita e estados de
+    falha/indisponibilidade. A validação completa passou com 73 suítes e 399
+    testes, e os checks da PR #15 foram aprovados. A prévia web foi publicada
+    pelo workflow `35992917683` e responde com HTTP 200 em
+    `https://setlistbr.app.br/` e `/app/`. O PR #15 permanece aberto para a
+    revisão manual do grupo 6; não fazer merge ou encerrá-lo ainda.
+
+42. A tarefa 7.9 foi validada manualmente na Web e no Android. O build interno
+    Android EAS `56c043ff-d3a7-4a03-a6cf-75cf1a775c3b` (`preview`, APK,
+    commit `4b6350f`) terminou com status `FINISHED` e foi validado no aparelho.
+    O usuário adiou a validação iOS para uma etapa futura; a tarefa 7.9 está
+    concluída com esse escopo. O grupo 8 só começa após integrar o PR #16.
+    A PR #16 falhou inicialmente com 79,08% de branches; foram adicionados
+    testes de fluxos de salvamento e ações de show. A validação local final
+    passou: 82 suítes, 540 testes, cobertura de branches em 80,00%, lint,
+    tipos, formatação e OpenSpec. O novo commit precisa rodar os checks no
+    GitHub; manter o PR aberto até o check ficar verde e integrá-lo antes de
+    iniciar o grupo 8.
+
+43. As correções recentes foram validadas manualmente no Android e na Web. A
+    raiz `GestureHandlerRootView` foi aplicada ao app e ao conteúdo do Modal de
+    edição do setlist, removendo o erro de `PanGestureHandler` no Android. Na
+    Web, o avatar usa uma imagem HTML com carregamento sob demanda; após uma
+    resposta HTTP 429 temporária de `lh3.googleusercontent.com`, as fotos
+    apareceram e o usuário confirmou a validação. O aviso de `aria-hidden` no
+    console é de foco retido na tela anterior durante navegação web e não
+    interrompe a execução. A PR #18 foi reaberta para integração à `main`;
+    o check de CI da reabertura falhou porque o mock de gesture handler não
+    exportava `GestureHandlerRootView`; o mock foi atualizado para incluí-lo.
+
+44. A PR #18 foi integrada por squash à `main` no commit `1beb994`; o CI ficou
+    verde e o usuário confirmou a validação Android/Web antes da integração.
+    A limpeza prévia ao próximo incremento alinhou `main` ao remoto, removeu a
+    branch local da PR já integrada e preservou a branch experimental e a
+    branch remota da PR. O Metro segue ativo na porta 8081 com um cliente
+    conectado. Antes de iniciar o item 8.1, o usuário decidiu adiar os grupos
+    8, 9 e 10 para uma versão complementar e concluir primeiro a consolidação
+    e o piloto da primeira versão publicável em Web e Android. Essa decisão foi
+    registrada no design e no plano de tarefas; nenhum item dos grupos adiados
+    foi marcado como concluído.
+
+45. A preparação da primeira versão começou pelo item 11.1. `npm run validate`
+    passou com formatação, lint, TypeScript e 82 suítes/542 testes Jest; a
+    cobertura global de branches foi 80,01%. Os testes de banco pgTAP não foram
+    executados porque Docker não está instalado neste ambiente. Não há
+    configuração de Maestro ou Playwright no repositório. O item 11.1 continua
+    pendente até completar a validação de RLS e definir/executar os fluxos e2e
+    aplicáveis à versão 1. A validação OpenSpec estrita passou após a mudança
+    de escopo.
+
+46. O usuário iniciou a preparação do iOS via EAS. O perfil
+    `development-ios-simulator` gera um development build com Google nativo
+    no iOS. `EXPO_PUBLIC_APP_ENV`, as
+    duas variáveis Supabase, os Client IDs Google Web/iOS e
+    `EXPO_PUBLIC_WEB_BASE_URL` foram sincronizados do `.env.local` para o EAS
+    `development`. `SETLIST_IOS_TEAM_ID` foi configurado no EAS `development`
+    e `production`, e `app.config.ts` o mapeia para `ios.appleTeamId`. A mesma
+    variável foi configurada e conferida como variável de repositório no
+    GitHub Actions para gerar o AASA. O build EAS de simulador
+    `c9f1ca0e-2feb-4395-9c6d-3cf5961e2c0d` concluiu. A instalação falhou porque
+    o artefato exige iOS 16.4 e o Mac tem somente runtime 16.2 no Xcode 14.2;
+    instalar Xcode/runtime compatível antes de retomar a validação.
+
+47. A CI da PR #19 executou 82 suítes e 542 testes, todos aprovados, mas ficou
+    abaixo do limite global de branches (79,92%). Foram acrescentados dois
+    cenários em `nativeGoogleSignIn-test.ts` para o requisito e a configuração
+    do Client ID iOS. `npm run test:ci` passou localmente com 82 suítes, 544
+    testes e cobertura de branches de 80,05%; formatação, lint e TypeScript
+    também passaram. O commit `bc85f44` foi enviado à PR #19; o run remoto
+    `36518619647` aprovou formatação, lint, tipos e testes. A revisão do diff
+    não encontrou bloqueios; a PR segue aberta, sem merge.
+
+48. Em 29/09/2026, a PR #19 foi integrada por squash ao `main` no commit
+    `3cc8d5e`; o GitHub Pages em `https://setlistbr.app.br` respondeu HTTP 200
+    e o deploy mais recente publicou esse commit. O usuário confirmou a
+    validação funcional da versão Web e Android. O APK
+    standalone local de release foi gerado em `android/app/build/outputs/apk/release/app-release.apk`,
+    com bundle JS embutido, somente `arm64-v8a`, assinado pelo keystore local
+    (SHA-1 `5e8f16062ea3cd2c4a0d547876baa6f38cabf625`), instalado via ADB e
+    validado pelo usuário sem Metro. O item 11.1 segue aberto para as suítes
+    automatizadas RLS, Maestro e Playwright. O Mac está no macOS 12.7.6 e não
+    possui runtime Docker; executar RLS em runner Linux do GitHub Actions é o
+    próximo caminho a avaliar.
+
+49. Em 29/09/2026, a suíte pgTAP/RLS foi adicionada ao workflow do GitHub
+    Actions e passou na PR #20 junto com os checks de qualidade. O workflow de
+    qualidade agora também gera um export Web com valores públicos fictícios
+    e executa um smoke test Playwright para a tela de autenticação; o teste
+    verifica os provedores visíveis e ausência de exceções JavaScript. O fluxo
+    Maestro `.maestro/flows/android-auth-screen.yaml` cobre a abertura da tela
+    Android e os botões de provedores. O usuário confirmou a validação manual
+    de Web e Android. A execução local de Playwright não foi possível porque
+    o export Metro permaneceu sem concluir nesta máquina e o Playwright não
+    oferece Chromium para macOS 12; o daemon ADB também não iniciou nesta
+    sessão. Na PR #20, passaram os três checks: qualidade (run `36578740301`),
+    pgTAP/RLS (run `36578740356`) e smoke Playwright (run `36578740301`). Não
+    havia dispositivo conectado ao ADB ao tentar executar Maestro. O item 11.1
+    permanece pendente até rodar o fluxo Maestro em dispositivo/emulador; a
+    validação Android manual foi confirmada pelo usuário.
+
+50. Em 29/09/2026, o aparelho Android `SM_S731B` conectou via ADB Wi-Fi e o
+    fluxo Maestro `.maestro/flows/android-auth-screen.yaml` passou com Maestro
+    2.11.0: o app abriu após limpar o estado e exibiu Setlist, Continuar com
+    Google e Continuar com Apple (em breve). Com as 82 suítes/544 testes Jest,
+    pgTAP/RLS, Playwright e as validações manuais Web/Android aprovadas, a
+    tarefa 11.1 foi marcada como concluída. Progresso OpenSpec: 75/106; as
+    demais tarefas do grupo 11 seguem pendentes.
+
+51. Registrar como melhoria futura a ampliação da cobertura Maestro para
+    fluxos Android além da abertura e da tela de autenticação: login Google e
+    jornadas críticas de bandas, repertório e shows. O smoke test atual foi
+    considerado suficiente para o item 11.1 porque os fluxos críticos também
+    foram validados manualmente pelo usuário; a ampliação não bloqueia essa
+    conclusão.
+
+52. O Playwright cobre a versão Web no navegador: o smoke test atual abre o
+    export estático e verifica a tela inicial de autenticação, os provedores
+    apresentados e a ausência de exceções JavaScript não tratadas. Ampliar
+    futuramente essa suíte para os fluxos Web críticos, incluindo navegação e
+    operações de bandas, repertório e shows, mantendo a cobertura de callbacks
+    OAuth isolada de credenciais pessoais.
+
+53. Em 29/09/2026, o item 11.2 avançou com revisão estática de acessibilidade,
+    responsividade, desempenho e tom de voz. O texto `muted` tinha contraste
+    4,46:1 sobre o fundo principal; o token foi ajustado para 5,07:1 e os pares
+    principais de texto/fundo agora têm testes de contraste AA. O foco visível
+    de teclado foi restaurado para campos de texto na Web; o drawer móvel
+    informa que é modal e o foco do botão de navegação é removido antes de
+    abrir o modal para evitar foco dentro de conteúdo ocultado. O CI da PR #20
+    passou nos três checks: qualidade/testes, pgTAP/RLS e Playwright. Os testes
+    Playwright atuais verificam a tela de autenticação em 320, 768 e 1280 px,
+    axe nessa tela e o foco visível do botão Google. O build Android release
+    local com bundle JS foi concluído (`android/app/build/outputs/apk/release/app-release.apk`,
+    47 MB, somente arm64-v8a). Inicialmente não havia aparelho no ADB; depois,
+    o APK foi instalado no `SM_S731B`, abriu na tela de autenticação e o logcat
+    não mostrou exceção fatal. Essa revisão visual cobriu somente a tela de
+    autenticação em um celular. A revisão de desempenho foi estática: listas
+    de bandas, repertório e shows usam `FlatList`, enquanto telas de
+    detalhe/editor usam conteúdo rolável delimitado; não houve medição em
+    profiler. Como referência inicial no `SM_S731B`, `am start -W` reportou
+    420 ms para iniciar a Activity em cold start; no estado de autenticação,
+    `dumpsys meminfo` mostrou PSS total de aproximadamente 174 MiB. São
+    amostras pontuais, sem comparação e sem representar uma jornada completa.
+    A leitura do guia de tom não encontrou inconsistências que exigissem
+    alteração. O item 11.2 permanece pendente: ainda falta validar
+    as telas autenticadas e fluxos principais em celular/tablet/computador e
+    medir desempenho em uso representativo.
+
+54. Ainda em 29/09/2026, o aparelho `SM_S731B` foi conectado. O APK release foi
+    instalado por cima da versão anterior e manteve a sessão; após o login, a
+    revisão visual em celular percorreu Minhas bandas, integrantes da banda,
+    listas e detalhes de shows, repertório e música. Os avatares dos integrantes
+    carregaram, a letra longa rolou até o final mantendo a navegação acessível
+    e o logcat não mostrou exceções durante a navegação. O detalhe de música
+    exibia um cartão contextual vazio quando a música não tinha observações nem
+    referência externa; a renderização agora omite o cartão nesse caso e o
+    teste `SongDetailScreen-test.tsx` passou (12 testes). O APK foi reconstruído
+    e reinstalado para confirmar a correção na tela; o cartão vazio não aparece.
+    O item 11.2 permanece pendente para revisão das telas autenticadas em
+    tablet/computador e medições de desempenho representativas. O detalhe de
+    show ainda expõe o acesso ao modo palco, que deve ser ocultado conforme a
+    tarefa 11.6 antes do candidato a piloto.
+
+55. Ainda em 29/09/2026, a revisão Web autenticada foi retomada no Chrome com
+    Metro na porta 19006. Minhas bandas, lista de shows, integrantes,
+    repertório, detalhe do show e detalhe da música carregaram; os avatares dos
+    integrantes foram exibidos. A letra de `Cowboys from Hell` rolou até o fim
+    e a navegação inferior permaneceu visível. A tela de detalhes do show foi
+    revisada em larguras de janela de aproximadamente 1120, 768 e 390 px, sem
+    cortes horizontais aparentes. O Metro não registrou exceções durante essa
+    navegação. As larguras menores foram simuladas redimensionando o Chrome,
+    não em tablets ou celulares físicos. O item 11.2 permanece pendente para
+    medir desempenho em uso representativo e revisar interações adicionais;
+    o acesso ao modo palco continua visível até a tarefa 11.6.
+
+56. Em 29/09/2026, foi coletada uma referência inicial de desempenho Web a
+    partir do export estático de produção, em três contextos novos de Chrome
+    headless e sem throttling, servido por loopback. No desktop, as medianas
+    foram: TTFB 4 ms, DOMContentLoaded 429 ms, load 431 ms, FCP 136 ms e LCP
+    840 ms. Em viewport móvel emulada de 390×844 px: TTFB 3 ms,
+    DOMContentLoaded 423 ms, load 424 ms, FCP 140 ms e LCP 788 ms; as três
+    sessões não tiveram overflow horizontal. Não houve erros de página nem de
+    console. O bundle JavaScript único mede 5.455.098 bytes sem compressão e
+    980.922 bytes em gzip. São referências locais da rota inicial, sem sessão
+    autenticada, throttling ou latência de rede; as larguras móveis são
+    emulação no desktop, não medição em aparelho.
+
+57. Ainda em 29/09/2026, o editor do setlist foi revisado na Web em larguras
+    de janela de aproximadamente 1120, 768 e 390 px; os campos e ações
+    principais permaneceram visíveis. No fluxo de arraste, o usuário moveu
+    `Bloco 2` acima de `Principal` e Cancelar abriu o diálogo de descarte. Com
+    autorização do usuário, o editor foi fechado sem salvar; a tela de
+    detalhes voltou a mostrar a ordem persistida original. A confirmação foi
+    concluída por navegação para fora do editor porque o macOS bloqueou o
+    clique automatizado no diálogo. Em conjunto com a revisão Android física,
+    amostras Android de cold start/PSS já registradas, verificações de
+    acessibilidade e voz documentadas no item 154 e as referências Web dos
+    itens 156–157, o item 11.2 está concluído. As métricas são linhas de base
+    locais e não estabelecem metas de desempenho para rede real.
+
+58. Em 29/09/2026, foi iniciado o item 11.3. Foram criados rascunhos de
+    termos de uso, política de privacidade e procedimento de remoção em
+    `docs/TERMOS_DE_USO_RASCUNHO.md`,
+    `docs/POLITICA_DE_PRIVACIDADE_RASCUNHO.md` e
+    `docs/PROCEDIMENTO_DE_REMOCAO_RASCUNHO.md`. O conteúdo reflete o schema e
+    os fluxos atuais: dados básicos de perfil, conteúdo compartilhado por
+    banda, aceites e convites; exclusão de conta com desvinculação/anonimização
+    de referências e preservação do conteúdo das bandas ativas. Não foram
+    presumidos controlador, canal de privacidade, prazos de retenção, região de
+    hospedagem, política para menores, bases legais ou processo operacional de
+    denúncias; esses pontos estão destacados como pendências. Os documentos
+    são rascunhos e precisam de confirmação do responsável e revisão jurídica.
+    A tarefa 11.3 continua pendente e não pode ser tratada como concluída até
+    essa revisão. Progresso OpenSpec: 76/106.
+
+59. Na revisão guiada dos documentos, o responsável informou que opera o
+    Setlist como pessoa física e questionou a divulgação pública de nome e
+    documento. Os rascunhos agora separam identificação do controlador e canal
+    de contato, registram o operador como pessoa física e deixam CPF/endereço
+    sem preenchimento até avaliação jurídica. O canal de contato dedicado
+    ainda precisa ser escolhido. Foi esclarecido que a LGPD enumera
+    identificação e contato do controlador separadamente; exigências do
+    Decreto nº 7.962/2013 podem depender de o serviço se enquadrar como oferta
+    ou contratação de consumo em meio eletrônico. O modelo comercial
+    (gratuito/pago e eventual contratação pelo app/site) e a decisão jurídica
+    permanecem pendentes.
+
+60. O responsável confirmou em 29/09/2026 que o Setlist será gratuito para
+    usuários e que pretende disponibilizar o código-fonte como open source.
+    Os rascunhos de termos e privacidade agora registram essa decisão e
+    distinguem o código aberto do conteúdo privado das bandas. A licença do
+    repositório ainda não foi escolhida: não há arquivo `LICENSE` na raiz nem
+    campo `license` ou `repository` no `package.json`. A política também deixa
+    pendente confirmar publicidade, patrocínio ou receita indireta; não se
+    presume que gratuidade, por si só, resolva a aplicabilidade das regras de
+    consumo. A revisão jurídica continua necessária.
+
+61. O responsável confirmou que pretende abrir o repositório inteiro, sem
+    preferência de licença. O documento de termos esclarece que a intenção
+    abrange o código original de app, migrações e documentação, enquanto
+    arquivos de terceiros continuam sujeitos aos avisos/licenças próprios.
+    Foi verificado que não existe licença geral na raiz; o único arquivo
+    encontrado é `vendor/decode-uri-component/LICENSE`. A escolha da licença
+    continua pendente de decisão explícita; não foi criada licença nem
+    declarada a publicação legal do projeto como open source.
+
+62. Em 29/09/2026, o responsável escolheu GNU AGPL-3.0 para o repositório
+    inteiro. Foi adicionada a cópia oficial e inalterada da licença em
+    `LICENSE`, com identificador `AGPL-3.0-only` em `package.json`. O README e
+    os rascunhos de termos e privacidade registram que o material original do
+    projeto (app, migrações e documentação) usa AGPL-3.0-only, que componentes
+    de terceiros retêm seus avisos e licenças e que isso não licencia dados ou
+    letras enviadas pelos usuários. O item 162 registra o estado anterior à
+    decisão. A revisão jurídica dos documentos de produto continua pendente.
+
+63. Na revisão guiada em 29/09/2026, o responsável confirmou que não haverá
+    anúncios, patrocínios, doações ou receita ligada ao aplicativo nos planos
+    atuais e que os custos serão cobertos pelo responsável. A política de
+    privacidade foi atualizada com essa informação e orienta nova revisão se
+    o modelo mudar.
+
+64. O responsável escolheu um canal geral de contato, em vez de um endereço
+    exclusivo para privacidade. Os três rascunhos agora indicam que o mesmo
+    e-mail geral receberá dúvidas, solicitações de titulares e pedidos de
+    remoção de conteúdo. O endereço ainda não foi definido e permanece como
+    campo pendente; antes da publicação será necessário monitorá-lo para esses
+    tipos de solicitação.
+
+65. O responsável definiu `contato@setlistbr.app.br` como canal geral. O
+    endereço foi inserido nos três rascunhos e será monitorado. O
+    responsável também decidiu destinar o Setlist apenas a pessoas com 18 anos
+    ou mais. Termos e política registram essa regra, mas o app ainda precisa
+    de uma forma de confirmação de idade e de procedimento para contas que
+    eventualmente pertençam a menores. O item 11.3 continua pendente, inclusive
+    de revisão jurídica. A LGPD exige melhor interesse no tratamento de dados
+    de crianças e adolescentes (art. 14):
+    <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
+
+66. O responsável não quer publicar nome ou documento pessoal e perguntou se
+    o domínio do app pode servir como identificação. Os rascunhos registram
+    provisoriamente `Setlist — setlistbr.app.br` como identificação pública
+    pretendida, sem inserir nome ou CPF; a suficiência jurídica dessa forma
+    para identificar o controlador pessoa física permanece pendente de
+    assessoria. A LGPD lista identificação e contato do controlador como
+    informações distintas (art. 9º). O domínio pode estar associado a dados do
+    titular consultáveis publicamente; o responsável aceita essa possibilidade.
+    Referência jurídica: <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
+
+67. O responsável decidiu usar `Setlist — setlistbr.app.br` como identificação
+    pública nos documentos. Termos e política foram ajustados de “pretendida”
+    para “escolhida”; não foram inseridos nome ou CPF. A validação jurídica de
+    que essa identificação é suficiente continua pendente. A tarefa 11.3
+    permanece aberta.
+
+68. O responsável confirmou que não se opõe à divulgação de dados do titular
+    que possam aparecer em consultas públicas sobre o domínio. Esse ponto
+    deixa de ser uma pendência para a escolha do domínio. Continua pendente a revisão
+    jurídica sobre se `Setlist — setlistbr.app.br` identifica suficientemente
+    o controlador pessoa física; a tarefa 11.3 permanece aberta.
+
+69. O responsável confirmou que o e-mail geral `contato@setlistbr.app.br` será
+    devidamente monitorado. Os três rascunhos agora registram esse
+    compromisso; a tarefa 11.3 permanece aberta.
+
+70. Para a regra de acesso a maiores de 18 anos, o responsável escolheu uma
+    autodeclaração antes do login. Termos e política agora dizem que a pessoa
+    confirmará ter 18 anos ou mais antes de iniciar a autenticação, sem pedir
+    data de nascimento para esse fim. O controle ainda não está implementado.
+
+71. O responsável questionou se é necessário detalhar um fluxo específico para
+    contas de menores. Os rascunhos agora usam uma regra geral: o serviço pode
+    restringir ou suspender o acesso se houver motivo para entender que os
+    critérios de elegibilidade não foram atendidos, e tratar os dados conforme
+    a política e as obrigações legais, sem prometer exclusão automática. A LGPD
+    exige que o tratamento de dados de crianças e adolescentes observe seu
+    melhor interesse (art. 14); não foi afirmada uma obrigação de exclusão
+    automática. O item 11.3 continua pendente de implementação e revisão
+    jurídica. Referência: <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>.
+
+72. O responsável escolheu não nomear encarregado formal, usando o canal geral
+    `contato@setlistbr.app.br` para comunicação com titulares, condicionado à
+    confirmação jurídica de que se aplica a dispensa para agentes de
+    tratamento de pequeno porte. A política e o procedimento registram a
+    intenção e mantêm pendente verificar os requisitos e as exclusões, como
+    tratamento de alto risco. A Resolução CD/ANPD nº 2/2022 prevê a dispensa
+    para agentes elegíveis e exige que mantenham canal de comunicação:
+    <https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022>.
+    O item 11.3 continua pendente de confirmação jurídica.
+
+73. A apuração de retenção para a política foi retomada em 30/09/2026. O
+    workflow do GitHub Pages configura o artefato estático de publicação com
+    retenção de 1 dia. Pela API autenticada do GitHub, a retenção configurada
+    para artefatos e logs do Actions neste repositório é de 90 dias (máximo
+    permitido também 90). O CLI Supabase lista `setlist-dev` e `setlist-prod`
+    na organização; o `.env.local` deste checkout aponta para `setlist-dev`.
+    A listagem não informa o plano nem PITR. A documentação Supabase informa
+    logs API/DB por 1 dia no Free, 7 no Pro, 28 no Team e 90 no Enterprise;
+    backups automáticos diários não estão incluídos no Free, ficam 7 dias no
+    Pro, 14 no Team e têm prazo personalizado no Enterprise. Confirmar o plano
+    e o PITR no painel Supabase; ainda falta definir retenção de dados ativos,
+    aceites e exclusão dos backups. A nota interna da política foi atualizada
+    com os achados e deve ser substituída por prazos do projeto antes da
+    publicação. Referências: <https://supabase.com/pricing>,
+    <https://supabase.com/features/database-backups>,
+    <https://supabase.com/docs/reference/api/v1-get-an-organization> e
+    <https://docs.github.com/en/organizations/managing-organization-settings/configuring-the-retention-period-for-github-actions-artifacts-and-logs-in-your-organization>.
+
+74. O responsável concordou que os termos concedam ao Setlist uma autorização
+    não exclusiva e sem cobrança, limitada a armazenar, processar, fazer cópias
+    técnicas necessárias e exibir conteúdo às pessoas autorizadas da banda para
+    operar o serviço. A cláusula exclui publicação fora da banda, anúncios e
+    treinamento de modelos; permite operações pelos fornecedores de
+    infraestrutura; e prevê que conteúdo compartilhado pode permanecer após a
+    exclusão da conta de quem o enviou, terminando a autorização após remoção
+    dos sistemas ativos, ressalvados backups e retenções legais. A seção 3 dos
+    termos foi atualizada. Confirmar redação, alcance e compatibilidade com
+    fluxos de exclusão na revisão jurídica; item 11.3 continua aberto.
+
+75. O responsável concordou que mudanças relevantes e encerramento planejado
+    sejam comunicados pelo e-mail cadastrado e por aviso dentro do app, com
+    antecedência razoável sempre que possível. Pedidos de acesso/portabilidade
+    de dados pessoais serão avaliados pelo canal geral conforme a política e a
+    lei. Não se promete exportação completa do conteúdo das bandas, pois o app
+    não oferece essa função; o destino do conteúdo deve ser explicado no aviso
+    de encerramento, respeitando direitos e obrigações legais. A seção 5 dos
+    termos foi atualizada. Revisar a formulação jurídica antes da publicação;
+    item 11.3 continua aberto.
+
+76. O responsável confirmou que o app não tem finalidades adicionais como
+    analytics, publicidade, marketing, venda de dados ou compartilhamento
+    comercial. A seção 3 da política agora descreve os propósitos observados e
+    inclui um mapeamento preliminar de bases legais candidatas, sem as
+    apresentar como conclusões: execução de contrato para funções pedidas;
+    obrigação legal ou exercício regular de direitos conforme a operação; e legítimo
+    interesse para segurança/abuso apenas após avaliação documentada. A seção
+    4 registra a ausência de monetização/comercialização e mantém pendente o
+    inventário dos fornecedores e compartilhamentos operacionais. A LGPD prevê
+    as hipóteses do art. 7º; a ANPD orienta teste de finalidade, necessidade,
+    balanceamento e salvaguardas para legítimo interesse:
+    <https://www.planalto.gov.br/ccivil_03/leis/l13709.htm> e
+    <https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia_orientativo_hipoteses_legais_tratamento_de_dados_pessoais_legitimo_interesse>.
+    O mapa requer revisão jurídica e confirmação de retenção e dados técnicos;
+    item 11.3 permanece aberto.
+
+77. O inventário técnico identificou Google OAuth, Supabase (Auth e banco),
+    GitHub Pages para a versão Web e player oficial do YouTube. O CLI Supabase
+    lista dev e prod em `sa-east-1` (São Paulo); a região primária não prova que
+    todo processamento/subprocessamento ocorre no Brasil, pois o DPA permite
+    subprocessadores em outros locais. O GitHub declara que registra IPs de
+    visitantes do Pages por segurança; prazo desses registros de visita não
+    foi confirmado e é separado da retenção de logs/artifacts do Actions. O
+    código usa `youtube.com/iframe_api`, portanto o player externo é carregado
+    quando usado. A Apple foi incluída como integração planejada: o botão de
+    login está desabilitado e indica “em breve”, então ainda não foi incluída
+    como fluxo ativo. O fornecedor da caixa `contato@setlistbr.app.br`, os
+    escopos Google, contratos e suboperadores, destinos e mecanismos para
+    transferências internacionais ainda precisam ser inventariados. Política
+    §2 e §4 recebeu o inventário e ressalvas. Referências: <https://supabase.com/docs/guides/platform/regions>,
+    <https://supabase.com/legal/customer-resources/data-processing-addendum>,
+    <https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages>,
+    <https://developers.google.com/identity/protocols/oauth2/policies>,
+    <https://www.apple.com/legal/privacy/data/en/sign-in-with-apple/> e
+    <https://developers.google.com/youtube/terms/developer-policies>.
+    A tarefa 11.3 continua aberta.
+
+78. Por solicitação do responsável, Apple foi incluída no inventário como
+    integração planejada, não ativa: o botão atual diz “em breve” e não inicia
+    login. Uma consulta aos registros MX públicos de `setlistbr.app.br` retornou
+    `route1/2/3.mx.cloudflare.net`, compatível com roteamento de entrada do
+    Cloudflare Email Routing. Isso identifica o primeiro salto do e-mail, mas
+    não revela a regra nem a caixa de destino. A política agora registra
+    Cloudflare para o roteamento e deixa o destino final pendente. Confirmar
+    com o responsável a plataforma que recebe as mensagens. Documentação:
+    <https://developers.cloudflare.com/email-service/configuration/domains/>.
+
+79. O responsável confirmou que as mensagens encaminhadas pela Cloudflare para
+    `contato@setlistbr.app.br` chegam a uma caixa Gmail/Google. A política agora
+    identifica Cloudflare como roteador de entrada e Google como destinatário
+    final das mensagens, que podem conter dados pessoais inseridos pela pessoa
+    solicitante. Item registrado sob a mesma seção de fornecedores; verificar
+    os termos efetivamente usados na revisão jurídica. O item 11.3 continua
+    aberto.
+
+80. O responsável aprovou a confirmação de recebimento de pedidos gerais e
+    denúncias de conteúdo em até 5 dias úteis. Os rascunhos da política de
+    privacidade e do procedimento de remoção agora distinguem esse aviso do
+    prazo de atendimento ou resposta de mérito, que segue o prazo legal
+    aplicável ou a análise necessária ao caso. Ainda falta definir prazo de
+    retenção dos registros de solicitações. Referências oficiais: a ANPD indica
+    os prazos legais por categoria de pedido e a Resolução nº 2/2022 prevê
+    prazos diferenciados para agentes de pequeno porte elegíveis:
+    <https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/direito-dos-titulares>
+    e
+    <https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022>.
+
+81. O responsável aprovou verificar pedidos de conta primeiro pelo e-mail
+    associado à conta e pedir apenas confirmação adicional mínima se houver
+    divergência ou dúvida sobre autoridade. Denúncias de conteúdo também terão
+    verificação proporcional da relação com o conteúdo/direito invocado. Não
+    pedir documento oficial de identidade por padrão; em caso excepcional,
+    explicar a necessidade e usar canal seguro. A política e o procedimento
+    foram atualizados. Falta definir o procedimento seguro para documentos
+    excepcionais e revisar a redação juridicamente; item 11.3 permanece aberto.
+
+82. O responsável aprovou usar a caixa Gmail do canal como registro de casos,
+    com uma etiqueta dedicada a privacidade/remoção, acesso restrito e sem
+    planilha paralela. Acompanhar cada pedido pelo histórico da própria
+    mensagem, anotando data, tipo, situação e encerramento; manter somente uma
+    justificativa resumida e necessária. O responsável aprovou uma regra de
+    retenção orientada à finalidade: conservar registros enquanto necessários
+    para tratar/documentar o caso, cumprir obrigações ou exercer direitos;
+    depois excluir ou anonimizar, salvo hipótese legal de guarda adicional,
+    sem retenção indefinida. Política e procedimento foram atualizados. O
+    inventário deve confirmar prazos e exceções concretos com assessoria
+    jurídica antes da publicação. A LGPD (arts. 15 e 16) não fixa um prazo
+    universal; a ANPD orienta que a necessidade seja avaliada conforme o caso:
+    <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm>
+    e
+    <https://www.gov.br/anpd/pt-br/acesso-a-informacao/perguntas-frequentes/perguntas-frequentes>.
+    Item 11.3 continua aberto.
+
+83. O responsável aprovou o procedimento excepcional para documentos de
+    identidade: não solicitar por padrão nem receber na caixa geral de e-mail;
+    se indispensável, explicar o motivo, usar apenas canal seguro previamente
+    habilitado, apagar a cópia após a verificação salvo obrigação legal de
+    retenção e guardar no caso somente justificativa, data e resultado, sem
+    reproduzir dados do documento. Se o canal seguro não estiver disponível,
+    buscar meio alternativo proporcional e não pedir o envio do documento. A
+    política e o procedimento foram atualizados. Continua pendente habilitar
+    um canal seguro antes de qualquer coleta excepcional, caso ela venha a ser
+    necessária, além da revisão jurídica. Item 11.3 permanece aberto.
+
+84. O responsável aprovou que o controlador receba e trate alertas de
+    segurança pela caixa `contato@setlistbr.app.br`, usando etiqueta separada
+    para incidentes e acesso restrito. O procedimento de remoção agora inclui
+    triagem, preservação limitada de evidências, avaliação de risco, mitigação
+    e registro mínimo das decisões; a política também lista incidentes como
+    assunto que pode ser encaminhado ao canal geral. Ainda é necessário
+    validar medidas técnicas concretas, completar o plano operacional de
+    resposta e revisar prazos/comunicações conforme as regras aplicáveis; item
+    11.3 continua aberto.
+
+85. O responsável informou que já tem acesso à caixa postal
+    `contato@setlistbr.app.br`. O procedimento agora registra esse estado e
+    mantém como verificação operacional antes da ativação a criação das
+    etiquetas separadas para privacidade/remoção e incidentes e a conferência
+    dos acessos. A disponibilidade da caixa não confirma, por si só, a
+    inclusão do endereço na Web/aplicativos ou a configuração das etiquetas.
+
+86. A integração Sign in with Apple foi validada manualmente pelo usuário na
+    Web e no Android, tanto no sucesso quanto na falha. O APK de desenvolvimento
+    foi instalado no aparelho e conectado ao Metro em `19006`; o login Apple
+    concluiu e retornou ao app. O `site_url` do projeto Supabase de
+    desenvolvimento está em HTTPS para servir de fallback global quando o
+    estado OAuth não puder ser recuperado; os redirects explícitos continuam
+    sendo calculados por plataforma no início do login. A configuração de
+    produção não foi alterada. A validação nativa iOS, inclusive falha, segue
+    pendente até haver simulador compatível; nenhum build iOS foi feito.
+
+87. Para validar em iPhone físico sem Development Client, foi criado o perfil
+    EAS `preview-ios`, isolado do preview Android/Web. Ele herda distribuição
+    interna, não define `developmentClient`, ativa o plugin Google nativo para
+    aplicar os `modular_headers` necessários a `AppCheckCore`,
+    `GoogleUtilities` e `RecaptchaInterop` e informa o URL scheme reverso do
+    cliente iOS durante a avaliação inicial do app config. Os quatro pacotes
+    Expo fora do patch esperado pelo SDK 57 foram atualizados; a primeira
+    tentativa de build falhou no Expo Doctor e a segunda revelou a dependência
+    dos module maps. A terceira compilação concluiu como IPA Ad Hoc para o
+    iPhone XR registrado. Build EAS: `4dcab6d9-67c6-4d92-87ef-c24742faf799`.
+    O IPA está pronto para instalação pelo link/QR da página da build. Ainda
+    naquele momento faltavam a instalação e a validação manual no iOS; as
+    validações Web/Android já estavam aprovadas.
+
+88. O usuário instalou e validou o build EAS `preview-ios` em um iPhone físico.
+    Os logins Google e Apple concluíram com sucesso e a navegação pelas telas
+    foi verificada. A validação funcional básica do iOS está aprovada. Ainda
+    faltava confirmar o fluxo de falha Apple e os testes e2e de papéis e
+    convites no iOS; o teste não foi feito em simulador.
+
+89. O usuário confirmou que o fluxo de falha do login Apple e os testes de
+    papéis e convites também foram validados no iOS. As tarefas OpenSpec
+    5.1.2.4 e 5.10.2 foram concluídas. Com isso, os fluxos funcionais de
+    autenticação, papéis e convites estão validados em Web, Android e iOS.
+
+90. O usuário confirmou que retorno e renovação de sessão foram validados em
+    Web, Android e iOS. A tarefa OpenSpec 5.1 está concluída; os fluxos de
+    autenticação Google/Apple e o ciclo de sessão estão validados nas três
+    plataformas.
+
+91. Após integrar o PR #22, foi aberta a branch `feat/pull-to-refresh-data`
+    para adicionar atualização manual e revalidação ao foco, limitada às
+    queries da tela ativa, em Minhas bandas, Banda, Repertório e Shows. O
+    change OpenSpec `atualizacao-direcionada-dados` acompanha o trabalho; as
+    tarefas de implementação e validação manual ainda não foram concluídas.
+    A validação atual revelou a tela Minhas bandas vazia em Web e Android.
+    Na Web, ao tocar em Atualizar, logs de desenvolvimento confirmaram 2
+    vínculos e 2 registros de bandas sem erro do Supabase, embora a lista
+    continue visualmente vazia. O próximo passo é conferir se há busca ativa,
+    qual mensagem vazia é exibida e revisar a renderização; depois remover a
+    instrumentação temporária de contagens em
+    `src/data/supabase/repositories.ts`. Não havia aparelho conectado ao ADB
+    para inspecionar a execução Android. O Metro está na porta `19006` e
+    serviu bundles Web e Android com HTTP 200. O trabalho foi salvo na branch
+    de feature para retomar esse diagnóstico; não integrar a PR antes de o
+    usuário validar manualmente.
+
+92. Na retomada, antes de revisar este handoff, confirmei que a branch atual é
+    `feat/pull-to-refresh-data`, no commit `7332d6b`, rastreando
+    `origin/feat/pull-to-refresh-data`, com a árvore limpa. O OpenSpec CLI
+    `1.14.0` reconhece
+    `atualizacao-direcionada-dados` e informa 4/4 artefatos de planejamento;
+    no checklist, 3.1 é a única tarefa concluída. Não há processo ouvindo na
+    porta `19006` e o comando `adb` não está disponível nesta máquina. Node
+    `24.21.0` e npm `11.20.0` atendem às versões fixadas pelo projeto.
+
+93. Os logs da Web mostraram que `useUserBandSummaries` conclui com 2 bandas,
+    e `BandsScreen` recebe `queryStatus: success`, `sourceCount: 2`,
+    `displayedCount: 2` e `searchActive: false`. Isso descartou falha na
+    consulta e no filtro como causa da lista vazia.
+
+94. A implementação do gesto de atualização passava `<ListRefreshControl />`
+    dentro da prop `refreshControl`. O `ScrollView` do React Native Web clona
+    essa prop envolvendo o próprio conteúdo; como o wrapper retornava `null`
+    na Web e descartava `children` no Android, o conteúdo inteiro da lista era
+    removido nas duas plataformas. O helper agora retorna `undefined` na Web
+    e um elemento `RefreshControl` nativo diretamente no Android/iOS. As
+    referências foram atualizadas em todas as telas afetadas. Uma edição
+    intermediária de diagnóstico também causou erro de sintaxe no Metro; a
+    sintaxe foi corrigida, os logs temporários removidos e o último bundle Web
+    compilou. Naquele momento, faltava a validação visual final no Web e no
+    Android; ela foi confirmada pelo usuário no item 196.
+
+95. O usuário confirmou que, após corrigir a prop `refreshControl`, as
+    informações voltaram a aparecer no Web e no Android. A instrumentação
+    temporária `[bands:*]` não está mais no código; os logs de diagnóstico do
+    repositório também foram removidos. Revisei os demais callsites alterados:
+    listas de integrantes, repertório e shows, letra em tela cheia e o shell
+    de detalhes passam um `RefreshControl` nativo direto e mantêm o botão Web
+    visível onde previsto. Não identifiquei outro wrapper descartando conteúdo.
+    Ainda falta validar manualmente gesto/botão e revalidação nessas telas; o
+    change `atualizacao-direcionada-dados` permanece incompleto; a revisão dos
+    controles compartilhados concluiu a tarefa 1.1 no checklist.
+
+96. A pedido do usuário, em Minhas bandas o botão de atualização Web foi
+    alinhado à direita do campo de busca e passou a exibir somente o ícone.
+    Enquanto atualiza, o ícone é substituído por um indicador de atividade;
+    o rótulo acessível informa o estado. O botão continua exclusivo da Web e
+    o gesto nativo de atualização Android não foi alterado.
+
+97. O mesmo padrão compacto foi aplicado aos outros botões de atualização
+    Web: integrantes, repertório, shows, letra em tela cheia e detalhes de
+    música/show. Repertório e shows exibem a ação à direita da busca; os
+    controles de detalhes e integrantes preservam seu alinhamento. Todos
+    mantêm rótulos acessíveis e indicador visual durante a atualização.
+
+98. Corrigido o botão `Compartilhar convite novamente` na Web: quando o link
+    ativo não está no cache da tela, a ação agora chama `renew_invitation`
+    para revogar o link anterior, gerar o substituto e compartilhá-lo. Isso
+    evita deixar dois convites ativos para a mesma ação. Se o link já está em
+    cache, ele continua sendo compartilhado sem renovação. O fluxo nativo não
+    foi alterado.
+
+99. A revisão seguinte confirmou que a causa não era exclusiva da Web: sem a
+    URL em memória, o fallback antigo chamava `onCreate` em qualquer
+    plataforma. O recompartilhamento agora usa `onRenew` em Web, Android e
+    iOS quando o link não está no cache; quando está, compartilha o link sem
+    renovação. O teste existente foi ajustado para esperar a renovação, mas
+    não foi executado.
+
+100. O modo palco foi ocultado nesta primeira versão: o item Palco abre um
      popup informando que a função estará disponível no futuro. URLs antigas
      do palco também exibem o popup e voltam para a tela anterior ao fechá-lo.
      O botão de entrada no palco foi removido do detalhe do show.
 
-202. O menu lateral foi alinhado e compactado, mantendo o item Palco com a
+101. O menu lateral foi alinhado e compactado, mantendo o item Palco com a
      mesma apresentação dos demais. Os itens Player YouTube e Perfil e conta
      compartilham a mesma estrutura visual dos links da banda. O rodapé do
      menu lateral e a tela de login exibem discretamente a versão do app.
      O usuário confirmou visualmente os ajustes de navegação antes do commit.
 
-203. Os botões de login Apple e Google usam imagens dos logos oficiais em
+102. Os botões de login Apple e Google usam imagens dos logos oficiais em
      Web, Android e iOS; no iOS, o botão Apple usa o mesmo componente visual
      do Google. A configuração do build de desenvolvimento para simulador iOS
      recebeu o esquema de URL do cliente Google. Os registros anteriores sobre
      indisponibilidade do simulador referem-se a uma etapa anterior: depois o
      usuário disponibilizou um simulador com iOS 18.3.
 
-204. Em 01/10/2026, a retomada do item 11.3 revisou os três rascunhos e o
+103. Em 01/10/2026, a retomada do item 11.3 revisou os três rascunhos e o
      comportamento atual do app. A tela de login já oferece Google e Apple,
      enquanto os rascunhos descreviam Apple como indisponível; a tabela da
      política também descrevia YouTube como integrado à sincronização, embora
@@ -1261,7 +1265,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      ANPD e às pessoas afetadas em até 3 dias úteis quando houver risco ou dano
      relevante, com complementação fundamentada em até 20 dias úteis quando
      aplicável, conforme a Resolução CD/ANPD nº 15/2024 e orientação da ANPD.
-205. A revisão jurídica identificou que a autodeclaração de idade, decisão
+104. A revisão jurídica identificou que a autodeclaração de idade, decisão
      anterior do responsável e ainda não implementada no app, precisa ser
      reavaliada diante do ECA Digital (Lei nº 15.211/2025), em vigor desde
      17/03/2026, e das orientações preliminares da ANPD sobre aferição de idade.
@@ -1269,7 +1273,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      de acesso provável por eles e qual mecanismo atende ao caso; não presumir
      que autodeclaração é suficiente. Referências: <https://planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15211.htm>
      e <https://www.gov.br/anpd/pt-br/assuntos/eca-digital/mecanismos-confiaveis-de-afericao-de-idade-orientacoes-preliminares.pdf>.
-206. O item 11.3 continua aberto. A caixa `contato@setlistbr.app.br` foi
+105. O item 11.3 continua aberto. A caixa `contato@setlistbr.app.br` foi
      confirmada como acessível pelo responsável, mas ainda não foi verificada
      a criação das etiquetas separadas e a restrição dos acessos. O contato
      ainda não aparece na Web/app; `Termos e privacidade` está desabilitado no
@@ -1280,7 +1284,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      confirmadas, critérios de remoção e revisão por profissional jurídico.
      Progresso OpenSpec permanece 85/113; 11.3 não foi marcada como concluída.
 
-207. Em 01/10/2026, foi feita revisão jurídica preliminar dos três rascunhos,
+106. Em 01/10/2026, foi feita revisão jurídica preliminar dos três rascunhos,
      documentada em `docs/REVISAO_JURIDICA_PRELIMINAR.md`. Os textos foram
      confrontados com LGPD, Lei de Direitos Autorais, regulamentos e orientações
      da ANPD e com o comportamento do app. Foram corrigidos: a afirmação de que
@@ -1296,7 +1300,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      pequeno porte, aferição de idade e avaliação por profissional habilitado.
      Os três textos continuam rascunhos; o item 11.3 permanece aberto.
 
-208. Em 01/10/2026, o responsável confirmou as URLs canônicas futuras dos
+107. Em 01/10/2026, o responsável confirmou as URLs canônicas futuras dos
      documentos públicos: `https://setlistbr.app.br/termos/` e
      `https://setlistbr.app.br/privacidade/`. As minutas passaram a registrar
      esses endereços como aprovados para publicação futura, sem afirmar que as
@@ -1306,7 +1310,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      escolhida permanece `Setlist — setlistbr.app.br`, cuja suficiência jurídica
      ainda depende de avaliação profissional. O item 11.3 continua aberto.
 
-209. A revisão da retenção do item 11.3 acrescentou à política uma matriz do
+108. A revisão da retenção do item 11.3 acrescentou à política uma matriz do
      ciclo de dados no banco ativo, baseada nas migrações: exclusão de conta
      remove perfil e autenticação, mas preserva conteúdo de bandas ativas;
      convites históricos e aceites permanecem até a exclusão da banda, com
@@ -1318,7 +1322,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      configuração ativa. Nenhum prazo específico de fornecedor foi publicado
      nas minutas como fato confirmado.
 
-210. A etapa seguinte do item 11.3 mapeou bases legais candidatas por operação
+109. A etapa seguinte do item 11.3 mapeou bases legais candidatas por operação
      em `docs/REVISAO_JURIDICA_PRELIMINAR.md`: prestação do serviço, aceites,
      atendimento de pedidos e segurança exigem análise separada. O texto
      ressalva que letras e observações livres podem conter dados pessoais de
@@ -1331,7 +1335,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      no navegador. A
      configuração efetiva de produção e as bases finais continuam pendentes.
 
-211. A avaliação preliminar de idade foi detalhada na revisão jurídica: o
+110. A avaliação preliminar de idade foi detalhada na revisão jurídica: o
      ECA Digital usa critérios de acesso provável por menores (art. 1º), e a
      vedação expressa à autodeclaração do art. 9º, § 1º, refere-se a conteúdo,
      produto ou serviço impróprio, inadequado ou proibido a menores. A opção do
@@ -1341,7 +1345,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      consultado; o protótipo YouTube também deve entrar na avaliação. A
      classificação e o mecanismo proporcional dependem de análise jurídica.
 
-212. A etapa seguinte do item 11.3 mapeou os fluxos de Supabase, Google/Apple,
+111. A etapa seguinte do item 11.3 mapeou os fluxos de Supabase, Google/Apple,
      GitHub Pages, YouTube e Cloudflare → Gmail na revisão jurídica preliminar.
      A política agora separa a região primária brasileira do Supabase das
      possíveis operações fora do país, descreve a coleta do player já na
@@ -1355,7 +1359,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      bases legais e eventual transparência do art. 17. As minutas seguem sem
      autorização para publicação; o item 11.3 permanece aberto.
 
-213. A revisão de retenção local identificou que a última banda selecionada
+112. A revisão de retenção local identificou que a última banda selecionada
      fica em SecureStore no móvel e localStorage na Web. O logout não a limpava;
      a ação agora a remove. O QueryClient também mantinha cache em memória por
      tempo indefinido, com chaves de banda sem identificador da conta; ele
@@ -1366,7 +1370,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      conferência; as minutas não estão aprovadas para publicação e 11.3 segue
      pendente.
 
-214. Uma revisão cruzada do item 11.3 encontrou no design, na spec
+113. Uma revisão cruzada do item 11.3 encontrou no design, na spec
      `band-access` e na apresentação pública a expressão de que o conteúdo
      pertenceria à banda. Esses materiais agora descrevem somente o vínculo
      técnico e a preservação do conteúdo para integrantes remanescentes, sem
@@ -1380,7 +1384,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      procedimento real de aviso e adequar a redação. As minutas permanecem
      rascunhos; 11.3 continua aberta.
 
-215. O inventário preliminar de retenção foi ampliado com uma separação entre
+114. O inventário preliminar de retenção foi ampliado com uma separação entre
      banco ativo, logs de API/banco, auditoria de autenticação, backups/PITR,
      visitas ao GitHub Pages, registros de encaminhamento da Cloudflare e
      mensagens no Gmail. O Supabase grava eventos de autenticação em logs
@@ -1394,7 +1398,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      sem atribuir prazos presumidos à produção. Não foram executados testes;
      as minutas seguem sem aprovação para publicação e 11.3 permanece aberta.
 
-216. A etapa seguinte examinou a promessa de aviso de alterações nas minutas.
+115. A etapa seguinte examinou a promessa de aviso de alterações nas minutas.
      O login não oferece links para termos e política, o menu mantém “Termos e
      privacidade” desabilitado e não há fluxo de avisos legais no app. A caixa
      de contato foi confirmada para recebimento, mas o remetente de saída e a
@@ -1407,7 +1411,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      antes da publicação; a simples atualização da página não comprova ciência
      ou concordância. O item 11.3 continua aberto.
 
-217. A revisão do procedimento de denúncias encontrou duas limitações técnicas
+116. A revisão do procedimento de denúncias encontrou duas limitações técnicas
      que impedem tratar a minuta como fluxo operacional ativo. A função
      `remove_song` arquiva músicas ligadas a shows; a RLS ainda permite que
      integrantes leiam a música arquivada, portanto arquivar não retira o
@@ -1423,7 +1427,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      administrativo, prazos de recurso e critérios jurídicos. O item 11.3
      permanece aberto.
 
-218. Na análise ponto a ponto das decisões jurídicas do item 11.3, o
+117. Na análise ponto a ponto das decisões jurídicas do item 11.3, o
      responsável informou que não há menores de 18 anos nem bandas escolares
      entre os usuários atuais ou as bandas previstas para o piloto. A revisão
      jurídica preliminar registra esse fato e corrige a redação anterior, que
@@ -1436,7 +1440,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      lojas. A ausência de menores no piloto não encerra, por si, a avaliação
      do ECA Digital. As minutas seguem rascunhos e 11.3 continua aberto.
 
-219. O responsável esclareceu que o primeiro lançamento Web/Android será
+118. O responsável esclareceu que o primeiro lançamento Web/Android será
      aberto ao público, sem convite ou allowlist para criar uma conta. A revisão
      jurídica preliminar foi atualizada: a facilidade de acesso passa a integrar
      expressamente a avaliação de acesso provável por menores do art. 1º do ECA
@@ -1447,7 +1451,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      idade implementada. Nenhuma minuta foi aprovada para publicação; 11.3
      segue aberto.
 
-220. O responsável definiu que conteúdo pornográfico deve ser expressamente
+119. O responsável definiu que conteúdo pornográfico deve ser expressamente
      proibido, inclusive quando inserido em letras, observações ou links, e
      que a pessoa que o insere ou edita responde por seus atos. As três minutas
      receberam essa orientação: termos com proibição e canal de denúncia,
@@ -1459,7 +1463,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      aponta que o aceite vigente da banda ainda precisa ser alinhado antes da
      publicação. O item 11.3 permanece aberto para revisão profissional.
 
-221. Na etapa seguinte da avaliação etária do item 11.3, foi confirmado que o
+120. Na etapa seguinte da avaliação etária do item 11.3, foi confirmado que o
      item `Player YouTube (protótipo)` ainda está visível no menu lateral e a
      rota carrega um vídeo de referência. A primeira versão pública foi
      descrita como preparação online, mas ainda não há decisão sobre incluir
@@ -1468,7 +1472,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      decisão do responsável; cadastro público e campos livres continuam na
      análise mesmo se o protótipo for retirado. O item 11.3 segue aberto.
 
-222. O responsável decidiu inibir o acesso ao protótipo do YouTube na primeira
+121. O responsável decidiu inibir o acesso ao protótipo do YouTube na primeira
      versão pública Web/Android. O item temporário foi removido do menu lateral
      e a rota `/youtube-prototype` foi excluída, de modo que um endereço direto
      também não carregue o player. O componente técnico foi preservado para a
@@ -1479,7 +1483,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      temporário; nenhuma suíte foi executada nesta etapa. A classificação
      etária, a avaliação do ECA Digital e o item 11.3 continuam pendentes.
 
-223. O responsável definiu que a primeira disponibilização pública será pela
+122. O responsável definiu que a primeira disponibilização pública será pela
      Web e pelo Google Play no Android. O repositório só comprova APKs internos
      nos perfis `development-android` e `preview`; o perfil `production` ainda
      não define envio à loja. A revisão jurídica foi atualizada com essa decisão
@@ -1488,7 +1492,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      na loja ou dos valores declarados. A análise da Web e da aferição de idade
      permanece independente do preenchimento da loja; o item 11.3 segue aberto.
 
-224. O responsável esclareceu que a limitação dos testes iOS foi resolvida e
+123. O responsável esclareceu que a limitação dos testes iOS foi resolvida e
      incluiu distribuição pública pela App Store na primeira versão, junto com
      Web e Google Play. O escopo atual de design, tarefas, termos, apresentação
      e revisão jurídica foi atualizado para Web/Android/iOS. As validações já
@@ -1503,7 +1507,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      privacidade das lojas continuam sem confirmação. O item 11.3 permanece
      aberto e nenhuma minuta foi aprovada para publicação.
 
-225. O responsável confirmou que o Setlist ainda não está cadastrado no Google
+124. O responsável confirmou que o Setlist ainda não está cadastrado no Google
      Play Console nem no App Store Connect. Não há classificação IARC, faixa
      etária da App Store nem declarações de privacidade das lojas já preenchidas.
      A revisão jurídica preliminar foi corrigida para tratar criação dos
@@ -1512,7 +1516,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      operacional é o tratamento do conteúdo enviado por usuários exigido pela
      diretriz 1.2 da Apple. O item 11.3 segue aberto.
 
-226. O responsável decidiu assumir um processo paralelo de filtragem de
+125. O responsável decidiu assumir um processo paralelo de filtragem de
      conteúdo indevido para a distribuição pública, separado da edição da banda.
      A revisão jurídica e a tarefa 11.8.1 registram a decisão como plano
      operacional, sem afirmar que o fluxo já está implementado ou que a App
@@ -1522,7 +1526,7 @@ contém os grupos futuros de letras sincronizadas, shows, modo palco e offline.
      exige método de filtragem de material inadequado antes da postagem; o
      funcionamento concreto precisa ser confrontado com isso antes do envio.
 
-227. O responsável definiu o processo paralelo como revisão **posterior** à
+126. O responsável definiu o processo paralelo como revisão **posterior** à
      publicação, acionada por denúncia ou inspeção. Todas as denúncias de
      usuários devem ser enviadas por e-mail a `contato@setlistbr.app.br`. Termos,
      política, procedimento interno e revisão jurídica foram ajustados para não

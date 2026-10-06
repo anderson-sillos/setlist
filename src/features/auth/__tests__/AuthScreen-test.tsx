@@ -75,9 +75,7 @@ describe('tela de autenticação', () => {
       ),
     ).toBeTruthy();
     expect(
-      view.getByText(
-        'Ao continuar, você concorda com os termos de uso e a política de privacidade do Setlist.',
-      ),
+      view.getByText('Ao entrar, você concorda com os Termos de uso.'),
     ).toBeTruthy();
 
     const buttonStyle = (testID: string) => {
