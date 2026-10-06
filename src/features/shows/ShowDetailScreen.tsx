@@ -43,7 +43,11 @@ import { colors, radii, spacing } from '@/theme/tokens';
 import { formatShowListDate } from '@/utils/dateTime';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
 import { lyricStatusLabels } from '@/features/repertoire/songPresentation';
-import { showStatusLabels } from './showPresentation';
+import {
+  showStatusIcons,
+  showStatusLabels,
+  showStatusTones,
+} from './showPresentation';
 import {
   ShowCreationDialog,
   type ShowCreationForm,
@@ -617,9 +621,11 @@ export function ShowDetailScreen({
         >
           <Card style={styles.showSummary}>
             <View style={styles.summaryLine}>
-              <StatusPill tone={show.status === 'ready' ? 'ready' : 'default'}>
-                {showStatusLabels[show.status]}
-              </StatusPill>
+              <StatusPill
+                accessibilityLabel={`Status: ${showStatusLabels[show.status]}`}
+                icon={showStatusIcons[show.status]}
+                tone={showStatusTones[show.status]}
+              />
             </View>
             <AppText accessibilityRole="header" variant="heading">
               {show.name}

@@ -1,10 +1,12 @@
 # Setlist — catálogo de ícones propostos e aplicações
 
-**Data:** 05/10/2026  
-**Status:** proposta de iconografia; sem implementação.  
-**Cobertura:** 49 figuras propostas ou condicionais, além das ações que devem usar somente texto.
+**Data:** 05/10/2026
 
-Este catálogo organiza a direção de [Content-First Darkness](PROPOSTA_UI_CONTENT_FIRST_DARKNESS.md#99-revisão-completa-da-iconografia) por figura e aplicação. O inventário dos 43 identificadores atuais e suas substituições permanece na proposta principal. Aqui, símbolos que hoje compartilham um identificador são separados pelo significado da ação.
+**Status:** proposta de iconografia; indicadores de status de música e show aplicados parcialmente.
+
+**Cobertura:** inventário das figuras propostas, seus usos e das ações que devem usar somente texto.
+
+Este catálogo organiza a direção de [Content-First Darkness](PROPOSTA_UI_CONTENT_FIRST_DARKNESS.md#99-revisão-completa-da-iconografia) por figura e aplicação. O inventário dos 54 identificadores atuais e suas substituições permanece na proposta principal. Aqui, símbolos que hoje compartilham um identificador são separados pelo significado da ação.
 
 ![Catálogo visual de figuras e aplicações](design/content-first-darkness/07-catalogo-icones.svg)
 
@@ -103,6 +105,22 @@ Este catálogo organiza a direção de [Content-First Darkness](PROPOSTA_UI_CONT
 | ![Music2](design/content-first-darkness/icons/Music2.svg)             | **`Music2`** — Nota musical individual               | Itens da lista de músicas do repertório          | Música                                           | 40 em slot de 48 à esquerda do card; 32–40 em estado vazio  | Identifica o tipo de conteúdo sem sugerir reprodução.                         |
 | ![LoaderCircle](design/content-first-darkness/icons/LoaderCircle.svg) | **`LoaderCircle`** — Indicador circular de progresso | Carregamento de lista, salvamento ou atualização | Carregando… / Salvando… / Atualizando… | 18–20 junto ao rótulo; indicador nativo quando adequado | Substitui temporariamente a figura da ação; não cria novo botão e respeita redução de movimento. |
 
+## Indicadores de status usados no `StatusPill`
+
+Nas listas e nos resumos compactos, o `StatusPill` mede 24 × 24 px e o desenho do ícone mede 16 × 16 px. O ícone e a superfície semântica reduzem o espaço ocupado; o nome completo do estado permanece no rótulo acessível. As miniaturas abaixo mostram a figura ampliada para facilitar a identificação.
+
+| Visual | Ícone Lucide (`AppIcon`) | Estado representado | Tom visual |
+| --- | --- | --- | --- |
+| ![Check](design/content-first-darkness/icons/Check.svg) | `Check` (`check`) | Letra sincronizada | Verde de sucesso |
+| ![CircleAlert](design/content-first-darkness/icons/CircleAlert.svg) | `CircleAlert` (`alert`) | Sincronização incompleta | Âmbar de atenção |
+| ![FileX2](design/content-first-darkness/icons/FileX2.svg) | `FileX2` (`fileMissing`) | Música sem letra | Âmbar de atenção |
+| ![FileText](design/content-first-darkness/icons/FileText.svg) | `FileText` (`fileText`) | Letra estática | Neutro |
+| ![CircleDashed](design/content-first-darkness/icons/CircleDashed.svg) | `CircleDashed` (`showDraft`) | Show em rascunho | Neutro |
+| ![Check](design/content-first-darkness/icons/Check.svg) | `Check` (`check`) | Show pronto | Verde de sucesso |
+| ![CircleX](design/content-first-darkness/icons/CircleX.svg) | `CircleX` (`showCancelled`) | Show cancelado | Vermelho discreto |
+
+O nome acessível informa, por exemplo, “Status da letra: Sincronização incompleta” ou “Status: Cancelado”. Em cards clicáveis, o status também integra o rótulo acessível do card.
+
 ## Ações e informações que devem usar texto
 
 | Ação / informação      | Apresentação proposta                                         | Aplicação                                                                                  |
@@ -115,7 +133,6 @@ Este catálogo organiza a direção de [Content-First Darkness](PROPOSTA_UI_CONT
 | Tom e BPM              | **Tom G**, **BPM 120**                                        | Metadados da música; sem ícone para cada atributo                                          |
 | Duração em lista densa | **3:42**                                                      | Coluna/linha de metadados; Clock reservado a resumo quando ajudar                          |
 | Nome do bloco          | Nome do bloco em texto                                        | Cabeçalho da setlist; Layers opcional quando acrescentar informação                        |
-| Status neutro          | **Rascunho**, **Cancelado**, conforme estado                  | Chip/status; cor não substitui a palavra                                                   |
 | Documentos legais      | **Termos de uso**, **Política de privacidade**                | Rodapé de login/menu; ExternalLink pequeno ao final quando útil                            |
 
 ## Marca e autenticação

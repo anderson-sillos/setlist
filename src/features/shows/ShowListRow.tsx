@@ -9,7 +9,11 @@ import type { Show } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatShowListDate } from '@/utils/dateTime';
 import { formatShowDuration } from '@/utils/duration';
-import { showStatusLabels } from './showPresentation';
+import {
+  showStatusIcons,
+  showStatusLabels,
+  showStatusTones,
+} from './showPresentation';
 
 interface ShowListRowProps {
   readonly accessibilityLabel: string;
@@ -30,7 +34,7 @@ export function ShowListRow({
     <View style={styles.rowFrame}>
       <Link href={href} asChild>
         <Pressable
-          accessibilityLabel={accessibilityLabel}
+          accessibilityLabel={`${accessibilityLabel}. Status: ${showStatusLabels[show.status]}`}
           accessibilityRole="link"
           onPressIn={() => setPressed(true)}
           onPressOut={() => setPressed(false)}
@@ -43,11 +47,7 @@ export function ShowListRow({
           <View style={styles.rowLayout}>
             <View style={styles.rowPrimaryContent}>
               <View style={styles.rowLeadingIcon}>
-                <AppIcon
-                  color={colors.text.secondary}
-                  name="shows"
-                  size={40}
-                />
+                <AppIcon color={colors.text.secondary} name="shows" size={40} />
               </View>
               <View style={styles.rowContent}>
                 <View style={styles.rowTitleLine}>
@@ -55,10 +55,11 @@ export function ShowListRow({
                     {show.name}
                   </AppText>
                   <StatusPill
-                    tone={show.status === 'ready' ? 'ready' : 'default'}
-                  >
-                    {showStatusLabels[show.status]}
-                  </StatusPill>
+                    accessible={false}
+                    accessibilityLabel={`Status: ${showStatusLabels[show.status]}`}
+                    icon={showStatusIcons[show.status]}
+                    tone={showStatusTones[show.status]}
+                  />
                 </View>
                 <View style={styles.rowMetaLine}>
                   <AppText

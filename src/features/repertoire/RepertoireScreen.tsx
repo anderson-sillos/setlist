@@ -33,7 +33,11 @@ import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeForSearch } from '@/utils/text';
-import { lyricStatusLabels } from './songPresentation';
+import {
+  lyricStatusIcons,
+  lyricStatusLabels,
+  lyricStatusTones,
+} from './songPresentation';
 
 type RepertoireFilter = 'all' | 'archived' | 'pending' | 'synchronized';
 type RepertoireSort = 'artist' | 'duration' | 'title' | 'updated';
@@ -59,7 +63,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
     <View style={styles.rowFrame}>
       <Link href={getSongHref(bandId, song.id)} asChild>
         <Pressable
-          accessibilityLabel={`Abrir música ${song.title}`}
+          accessibilityLabel={`Abrir música ${song.title}. Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
           accessibilityRole="link"
           onPressIn={() => setPressed(true)}
           onPressOut={() => setPressed(false)}
@@ -71,11 +75,7 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
           <View style={styles.rowLayout}>
             <View style={styles.rowPrimaryContent}>
               <View style={styles.rowLeadingIcon}>
-                <AppIcon
-                  color={colors.text.secondary}
-                  name="music"
-                  size={40}
-                />
+                <AppIcon color={colors.text.secondary} name="music" size={40} />
               </View>
               <View style={styles.rowContent}>
                 <View style={styles.rowTitleLine}>
@@ -83,16 +83,11 @@ function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
                     {song.title}
                   </AppText>
                   <StatusPill
-                    tone={
-                      song.lyricStatus === 'synchronized'
-                        ? 'ready'
-                        : song.lyricStatus === 'missing'
-                          ? 'warning'
-                          : 'default'
-                    }
-                  >
-                    {lyricStatusLabels[song.lyricStatus]}
-                  </StatusPill>
+                    accessible={false}
+                    accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                    icon={lyricStatusIcons[song.lyricStatus]}
+                    tone={lyricStatusTones[song.lyricStatus]}
+                  />
                 </View>
                 <View style={styles.rowMetaLine}>
                   <AppText

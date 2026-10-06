@@ -280,7 +280,9 @@ Filtros são controles; status são informação. Eles podem compartilhar cantos
 - Chip de filtro não selecionado: fundo `raised`, borda `control`, texto `secondary`.
 - Selecionado: fundo `selected`, texto e borda `action.primary`, check quando couber.
 - Quantidade de filtros ativos aparece no próprio controle de filtro; o usuário consegue limpar a seleção.
-- Status usa fundo semântico discreto + palavra; altura visual de 24–28 pode ser suficiente porque não é interativo.
+- Em listas e resumos compactos de música/show, status usa indicador de 24 × 24 com ícone de 16 × 16 e fundo semântico discreto; o nome completo continua no rótulo acessível. Em contextos sem espaço restrito, o texto pode permanecer visível.
+- Letras sincronizadas usam `Check`; sincronização incompleta, `CircleAlert`; sem letra, `FileX2`; letra estática, `FileText`. No `StatusPill`, show pronto usa `Check`, rascunho `CircleDashed` e cancelado `CircleX`, sem desenhos de calendário.
+- A cor acompanha o ícone, sem ser o único sinal do estado; leitores de tela anunciam o rótulo completo e os cards de lista incluem esse estado no nome acessível.
 - “Com letra” pode ser neutro; “Sem letra” usa atenção quando necessário para a tarefa. Não atribuir uma cor forte a cada atributo.
 - Indicadores de permissão usam palavras claras, preservando os papéis reais do aplicativo.
 
@@ -607,7 +609,7 @@ Nome de bloco como “Verso” ou “Refrão” usa metadado `secondary`. Cabeç
 
 ### 11.6 Shows
 
-Lista usa cards individuais iguais aos da lista de bandas, com borda `subtle` de 1 px e `CalendarDays` de 40 à esquerda em slot de 48. Prioriza nome, data e status. Show pronto usa chip verde discreto; rascunho é neutro; cancelado tem rótulo explícito sem tingir o card inteiro. Calendário e filtros aparecem como controles secundários, mantendo fácil acesso.
+Lista usa cards individuais iguais aos da lista de bandas, com borda `subtle` de 1 px e `CalendarDays` de 40 à esquerda em slot de 48. Prioriza nome, data e status. O `StatusPill` usa `CircleDashed` para rascunho, `Check` para pronto e `CircleX` para cancelado, sem desenho de calendário; o nome completo permanece acessível. Calendário e filtros aparecem como controles secundários, mantendo fácil acesso.
 
 No detalhe, resumo com data/local/duração planejada. Setlist ocupa a hierarquia central. “Editar” fica junto ao cabeçalho da setlist onde permitido; não deslocar a ação para um lugar distante do conteúdo.
 

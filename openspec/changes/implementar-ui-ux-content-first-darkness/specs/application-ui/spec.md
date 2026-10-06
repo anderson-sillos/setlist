@@ -56,6 +56,7 @@ The system SHALL apply the same visual hierarchy to band, repertoire, song and l
 #### Scenario: Consultar repertório ou show
 - **WHEN** uma pessoa abre uma lista de músicas ou shows
 - **THEN** cada item aparece em card com a mesma borda `subtle` e geometria da lista de bandas, ícone representativo de 40 px em slot de 48, nome e artista/data/status em hierarquia clara, sem ações competindo com o conteúdo principal
+- **AND** o status em lista/resumo compacto ocupa um indicador de 24 × 24 px com ícone de 16 × 16 px e mantém o nome completo acessível
 
 #### Scenario: Consultar letra
 - **WHEN** uma pessoa lê uma letra em tela pequena ou ampla

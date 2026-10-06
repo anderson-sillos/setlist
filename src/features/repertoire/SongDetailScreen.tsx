@@ -38,7 +38,11 @@ import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
 import { SongLyricsContent } from './SongLyricsContent';
-import { lyricStatusLabels } from './songPresentation';
+import {
+  lyricStatusIcons,
+  lyricStatusLabels,
+  lyricStatusTones,
+} from './songPresentation';
 
 interface SongDetailScreenProps {
   readonly bandId: EntityId;
@@ -150,16 +154,10 @@ export function SongDetailScreen({
             </View>
             <View style={styles.summaryLine}>
               <StatusPill
-                tone={
-                  song.lyricStatus === 'synchronized'
-                    ? 'ready'
-                    : song.lyricStatus === 'missing'
-                      ? 'warning'
-                      : 'default'
-                }
-              >
-                {lyricStatusLabels[song.lyricStatus]}
-              </StatusPill>
+                accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                icon={lyricStatusIcons[song.lyricStatus]}
+                tone={lyricStatusTones[song.lyricStatus]}
+              />
               {song.archivedAt ? (
                 <StatusPill tone="warning">Arquivada</StatusPill>
               ) : null}
