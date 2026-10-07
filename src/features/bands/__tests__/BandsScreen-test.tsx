@@ -63,7 +63,7 @@ describe('<BandsScreen />', () => {
     ).toEqual({ selected: true });
     expect(view.getAllByText(/Próximo show/)).toHaveLength(2);
     expect(
-      view.getByText('Próximo show · sáb, 19 de set. de 2026 · 16h'),
+      view.getByText('Próximo show · sáb. 19 set. 2026 - 16h'),
     ).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Criar banda'));

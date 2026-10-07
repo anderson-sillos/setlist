@@ -35,6 +35,11 @@ jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
+
 jest.mock('@/data/supabase/profileMutations', () => ({
   getUserProfile: jest.fn(),
 }));
@@ -167,7 +172,7 @@ describe('shell de navegação', () => {
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(view.getByLabelText('Perfil e conta')).toBeTruthy();
     expect(view.getByText('Sessão não iniciada')).toBeTruthy();
-    expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();
+    expect(view.getByRole('button', { name: 'Sair da conta' })).toBeTruthy();
     expect(view.queryByRole('tab', { name: 'Ir para Entrar' })).toBeNull();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
@@ -264,20 +269,21 @@ describe('shell de navegação', () => {
     });
     const accountCopyView = view.getByTestId('navigation-account-copy');
     expect(StyleSheet.flatten(accountCopyView.props.style)).toMatchObject({
-      alignItems: 'flex-start',
-      flexDirection: 'column',
+      flex: 1,
+      gap: 2,
+      minWidth: 0,
     });
     const accountCopy = within(accountCopyView);
     expect(accountCopy.getByText('Lucas no perfil')).toBeTruthy();
     expect(accountCopy.getByText('profile-lucas@example.com')).toBeTruthy();
     expect(
       StyleSheet.flatten(accountCopy.getByText('Lucas no perfil').props.style),
-    ).toMatchObject({ textAlign: 'left' });
+    ).toMatchObject({ fontSize: 13, lineHeight: 18 });
     expect(
       StyleSheet.flatten(
         accountCopy.getByText('profile-lucas@example.com').props.style,
       ),
-    ).toMatchObject({ textAlign: 'left' });
+    ).toMatchObject({ fontSize: 11, lineHeight: 14 });
     expect(view.queryByText('Lucas Ribeiro')).toBeNull();
     expect(view.getByTestId('user-avatar-image').props.source).toEqual({
       uri: 'https://img.example.test/lucas.png',
