@@ -65,7 +65,7 @@
 
 ## 11. Revisão integrada multiplataforma
 
-- [x] 11.1 Executar testes automatizados afetados, lint e typecheck; resolver falhas introduzidas nas etapas sem alterar escopo de domínio.
+- [x] 11.1 Executar testes automatizados afetados, lint e typecheck; resolver falhas introduzidas nas etapas sem alterar escopo de domínio. No fechamento, após autorização do responsável para ampliar a cobertura, passaram 643 testes em 96 suítes, lint e tipos; a cobertura de condições atingiu 80,03%, preservando o mínimo de 80%.
 - [x] 11.2 Fazer inspeção visual e funcional em Web, Android e iOS nos fluxos de login, banda, repertório/letra, show/setlist, popup, edição e retorno; incluir fontes ampliadas, teclado, landscape, VoiceOver/TalkBack e preferência de movimento reduzido. **Validação manual concluída com sucesso pelo responsável em 7 de outubro de 2026.**
 - [x] 11.3 Conferir regressões do refresh, cache/memória, atualização restrita à tela e Palco indisponível; validar que estado visual/navegação não altera permissões, requests ou conteúdo. Testes cobrem refetch apenas de consultas antigas/da tela atual, prevenção de duplicidade, memória por seção, disponibilidade atual do Palco e fluxo do aviso de recurso indisponível.
 - [x] 11.4 Atualizar a proposta/catalogação com diferenças observadas durante a implementação e deixar explícitos os itens visuais/interativos que dependem do piloto de usabilidade; verificar referências e decisões antes de concluir a change.
