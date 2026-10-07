@@ -2,7 +2,7 @@
   "expo": {
     "name": "Setlist",
     "slug": "setlist",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "scheme": "setlist",
     "icon": "./assets/icons/app-icon-1024.png",
     "orientation": "default",

@@ -34,6 +34,27 @@ Essa divisão corresponde ao adiamento dos grupos 8, 9 e 10 do plano de tarefas.
 
 ## Decisions
 
+### Versões e distribuição por Release
+
+- A primeira versão pública será `1.0.0` nas três plataformas. `app.json` será
+  a fonte do número; um script sincronizará `package.json` e `package-lock.json`
+  e o CI recusará divergências. O sufixo de candidato pertence à tag Git.
+- O EAS manterá os contadores nativos com incremento automático nos perfis de
+  produção. Android e iOS terão contadores independentes, preservando valores
+  anteriores. O perfil de simulador não incrementará os contadores.
+- Cada candidato será gerado do checkout limpo da mesma tag. O manifesto
+  vinculará versão, commit, builds, artefatos, migrações e validação das três
+  plataformas. Um candidato incompleto permanecerá em preparação/rascunho.
+- O Pages de produção publicará somente tags estáveis de Releases publicadas e
+  conferidas, preservando a versão anterior durante a validação. Não haverá
+  publicação de produção por push na `main`.
+- Sobre o Setlist será uma tela de detalhes acessível no menu, com apresentação
+  breve, versão instalada, build real quando disponível, plataforma, ambiente e
+  commit. Os links legais permanecerão no menu e também na tela Sobre. Clients
+  anteriores sem o módulo de identificação nativa manterão um fallback seguro.
+- Procedimento vigente: `docs/RELEASE_PROCESS.md`; preparação do primeiro
+  candidato: `docs/releases/1.0.0-rc.1.md`.
+
 ### Arquitetura geral e plataformas
 
 ```text

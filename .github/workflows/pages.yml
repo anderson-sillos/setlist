@@ -1,10 +1,14 @@
 name: Publicar GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Tag estável de uma Release publicada e validada (vX.Y.Z)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -18,12 +22,18 @@ concurrency:
 jobs:
   build:
     name: Gerar site estático
+    if: github.event_name == 'workflow_dispatch' || github.event.release.prerelease == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
 
     steps:
       - name: Obter código
         uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.release_tag || github.event.release.tag_name }}
+          fetch-depth: 0
 
       - name: Configurar Node.js
         uses: actions/setup-node@v7
@@ -33,6 +43,25 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
+
+      - name: Conferir tag e registro da Release publicada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm run release:check -- --tag "$RELEASE_TAG"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease > "$RUNNER_TEMP/release.json"
+          node --input-type=module - "$RUNNER_TEMP/release.json" <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const release = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          if (release.isDraft || release.isPrerelease || release.tagName !== process.env.RELEASE_TAG || !/^v\d+\.\d+\.\d+$/.test(release.tagName)) {
+            throw new Error('O Pages de produção exige uma Release estável publicada.');
+          }
+          const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          appendFileSync(process.env.GITHUB_ENV, `SETLIST_RELEASE_COMMIT=${commit}\nSETLIST_RELEASE_TAG=${release.tagName}\n`);
+          NODE
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern release-manifest.json --dir "$RUNNER_TEMP/release-record"
+          npm run release:manifest -- --tag "$RELEASE_TAG" --manifest "$RUNNER_TEMP/release-record/release-manifest.json" --ready
 
       - name: Verificar configuração pública do Supabase
         env:
@@ -71,6 +100,8 @@ jobs:
           cp docs/legal.css pages-site/legal.css
           cp docs/termos.html pages-site/termos/index.html
           cp docs/privacidade.html pages-site/privacidade/index.html
+          cp "$RUNNER_TEMP/release-record/release-manifest.json" pages-site/release.json
+          cp "$RUNNER_TEMP/release-record/release-manifest.json" pages-site/app/release.json
           cp pages-site/index.html pages-site/404.html
           find pages-site -type f -name '*.html' ! -path 'pages-site/docs/*' ! -path 'pages-site/termos/*' ! -path 'pages-site/privacidade/*' -print0 | xargs -0 -r node scripts/prepare-pages-html.mjs
           touch pages-site/.nojekyll

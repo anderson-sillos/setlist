@@ -935,14 +935,31 @@ embutidos no bundle web; nunca use `service_role`, `sb_secret`, Client Secret ou
 outra credencial privada. O workflow falha antes da exportação quando a URL ou
 a chave publicável não estiverem configuradas.
 
-Para publicar manualmente a branch atual e validar o login sem Metro, use:
+O Pages de produção publica a tag de uma Release estável validada. Para repetir
+a publicação de uma Release já publicada, use:
 
 ```bash
-gh workflow run pages.yml --ref feat/supabase-environments
+gh workflow run pages.yml --ref main -f release_tag=v1.0.0
 ```
 
 Depois acompanhe a execução em _Actions → Publicar GitHub Pages_ e abra a URL
 publicada em uma janela anônima, para não reutilizar uma sessão local.
+
+### Controle de versões e Releases
+
+A versão comum de Android, iOS e Web é definida em `app.json`. Use
+`npm run release:version -- X.Y.Z` para sincronizar os arquivos e
+`npm run release:check` para conferir; o CI rejeita divergências. A primeira
+versão pública será `1.0.0`, com candidato `v1.0.0-rc.1`.
+
+O EAS mantém e incrementa os números de build nativos. Os builds e o export Web
+de cada entrega devem usar o commit exato da mesma tag. A tela Sobre o Setlist
+apresenta a versão instalada e os dados disponíveis de build, ambiente e código.
+Os links legais continuam no menu e também na tela Sobre.
+
+O procedimento de tags, builds, validação, manifesto e GitHub Releases está em
+[docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md). A preparação do primeiro
+candidato está em [docs/releases/1.0.0-rc.1.md](docs/releases/1.0.0-rc.1.md).
 
 Para gerar builds internos, autentique a CLI pelo navegador e confirme a conta ativa:
 

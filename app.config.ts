@@ -67,6 +67,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: config.name ?? 'Setlist',
     slug: config.slug ?? 'setlist',
+    extra: {
+      ...config.extra,
+      release: {
+        version: config.version,
+        commit:
+          process.env.EAS_BUILD_GIT_COMMIT_HASH ??
+          process.env.SETLIST_RELEASE_COMMIT ??
+          null,
+        tag: process.env.SETLIST_RELEASE_TAG ?? null,
+      },
+    },
     android: {
       ...config.android,
       intentFilters: hasAppLinkIntentFilter

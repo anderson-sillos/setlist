@@ -396,6 +396,25 @@ export function NavigationPanel({
           rowHeight={rowHeight}
           onNavigate={onNavigate}
         />
+        <GeneralNavigationLink
+          compact={compact}
+          href={
+            {
+              pathname: '/about',
+              params: {
+                returnTo:
+                  bandId && activeSection
+                    ? String(getSectionHref(activeSection))
+                    : '/',
+              },
+            } as Href
+          }
+          icon="info"
+          label="Sobre o Setlist"
+          largeTargets={largeTargets}
+          rowHeight={rowHeight}
+          onNavigate={onNavigate}
+        />
       </View>
 
       <View style={styles.footer}>

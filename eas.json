@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 23.2.0",
-    "appVersionSource": "local"
+    "appVersionSource": "remote"
   },
   "build": {
     "development-android": {
@@ -48,6 +48,7 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "environment": "production",
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production",
@@ -57,9 +58,20 @@
     },
     "production-ios-simulator": {
       "extends": "production",
+      "autoIncrement": false,
       "distribution": "internal",
       "ios": {
         "simulator": true
+      }
+    },
+    "production-android": {
+      "extends": "production",
+      "env": {
+        "SETLIST_NATIVE_GOOGLE_ANDROID": "1",
+        "SETLIST_NATIVE_GOOGLE_IOS": "0"
+      },
+      "android": {
+        "buildType": "app-bundle"
       }
     },
     "production-android-validation": {

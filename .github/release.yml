@@ -1,0 +1,14 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: Funcionalidades e melhorias
+      labels:
+        - enhancement
+    - title: Correções
+      labels:
+        - bug
+    - title: Outras alterações
+      labels:
+        - '*'
