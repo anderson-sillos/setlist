@@ -18,11 +18,7 @@ import {
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
-import {
-  ListControls,
-  OptionMenu,
-  SearchField,
-} from '@/components/ui/ListControls';
+import { OptionMenu, SearchField } from '@/components/ui/ListControls';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useSongs, useUserBands } from '@/data/queries';
 import type { EntityId, Song } from '@/domain';
@@ -171,6 +167,9 @@ export function RepertoireScreen({
       sort: 'title' as RepertoireSort,
     });
   const {
+    beginDrag: beginControlsDrag,
+    beginMomentum: beginControlsMomentum,
+    endMomentum: endControlsMomentum,
     updateVisibility: updateControlsVisibility,
     visible: controlsVisible,
   } = useScrollDirectionVisibility(initialScrollOffset);
@@ -317,31 +316,34 @@ export function RepertoireScreen({
           ListHeaderComponent={
             <View style={{ height: controlsOverlayHeight }} />
           }
+          onMomentumScrollBegin={beginControlsMomentum}
+          onMomentumScrollEnd={endControlsMomentum}
           onScroll={(event) => {
-            updateControlsVisibility(event.nativeEvent.contentOffset.y);
+            const { contentOffset, contentSize, layoutMeasurement } =
+              event.nativeEvent;
+            updateControlsVisibility(
+              contentOffset.y,
+              contentSize.height - layoutMeasurement.height,
+            );
             rememberListScrollOffset(event, rememberScrollOffset);
           }}
+          onScrollBeginDrag={beginControlsDrag}
           refreshControl={getListRefreshControl({
             onRefresh,
             progressViewOffset: controlsOverlayHeight,
             refreshing,
           })}
           renderItem={({ item }) => <SongRow bandId={bandId} song={item} />}
-          scrollEventThrottle={120}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={styles.list}
           testID="repertoire-list"
         />
         <ListControlsOverlay
+          controlsVisible={controlsVisible}
           horizontalPadding={horizontalPadding}
-          onLayout={(event) => {
-            const nextHeight = event.nativeEvent.layout.height;
-            setControlsOverlayHeight((current) =>
-              current === nextHeight ? current : nextHeight,
-            );
-          }}
-        >
-          <ListControls>
+          onExpandedHeightChange={setControlsOverlayHeight}
+          search={
             <View style={styles.searchRow}>
               <View style={styles.searchField}>
                 <SearchField
@@ -353,31 +355,30 @@ export function RepertoireScreen({
               </View>
               <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
             </View>
-            {controlsVisible ? (
-              <View style={styles.controlToolbarEnd}>
-                <OptionMenu
-                  active={state.filter !== 'all'}
-                  accessibilityLabel="Alterar filtros do repertório"
-                  compact
-                  icon="filter"
-                  label="Filtrar"
-                  onChange={(value) => update('filter', value)}
-                  options={repertoireFilters}
-                  value={state.filter}
-                />
-                <OptionMenu
-                  active={state.sort !== 'title'}
-                  accessibilityLabel="Alterar ordenação do repertório"
-                  compact
-                  icon="sort"
-                  label="Ordenar"
-                  onChange={(value) => update('sort', value)}
-                  options={repertoireSorts}
-                  value={state.sort}
-                />
-              </View>
-            ) : null}
-          </ListControls>
+          }
+        >
+          <View style={styles.controlToolbarEnd}>
+            <OptionMenu
+              active={state.filter !== 'all'}
+              accessibilityLabel="Alterar filtros do repertório"
+              compact
+              icon="filter"
+              label="Filtrar"
+              onChange={(value) => update('filter', value)}
+              options={repertoireFilters}
+              value={state.filter}
+            />
+            <OptionMenu
+              active={state.sort !== 'title'}
+              accessibilityLabel="Alterar ordenação do repertório"
+              compact
+              icon="sort"
+              label="Ordenar"
+              onChange={(value) => update('sort', value)}
+              options={repertoireSorts}
+              value={state.sort}
+            />
+          </View>
         </ListControlsOverlay>
       </ContentFade>
     </BandAreaLayout>

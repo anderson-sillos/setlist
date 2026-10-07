@@ -24,7 +24,6 @@ import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
 import {
   ChoiceChips,
   FilterMenu,
-  ListControls,
   OptionMenu,
   SearchField,
 } from '@/components/ui/ListControls';
@@ -132,6 +131,9 @@ export function ShowsScreen({
       status: 'active' as ShowStatusFilter,
     });
   const {
+    beginDrag: beginControlsDrag,
+    beginMomentum: beginControlsMomentum,
+    endMomentum: endControlsMomentum,
     updateVisibility: updateControlsVisibility,
     visible: controlsVisible,
   } = useScrollDirectionVisibility(initialScrollOffset);
@@ -288,78 +290,78 @@ export function ShowsScreen({
     update('status', 'active');
   };
 
-  const controls = (
-    <ListControls>
-      <View style={styles.searchRow}>
-        <View style={styles.searchField}>
-          <SearchField
-            accessibilityLabel="Buscar show por nome ou local"
-            onChangeText={(value) => update('search', value)}
-            placeholder="Buscar show ou local"
-            value={state.search}
-          />
-        </View>
-        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+  const searchControls = (
+    <View style={styles.searchRow}>
+      <View style={styles.searchField}>
+        <SearchField
+          accessibilityLabel="Buscar show por nome ou local"
+          onChangeText={(value) => update('search', value)}
+          placeholder="Buscar show ou local"
+          value={state.search}
+        />
       </View>
-      {controlsVisible ? (
-        <View style={styles.controlToolbar}>
-          <Pressable
-            accessibilityLabel="Abrir calendário para filtrar por data"
-            accessibilityRole="button"
-            onPress={() => setCalendarOpen(true)}
-            style={({ pressed }) => [
-              styles.calendarButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <AppIcon color={colors.text.secondary} name="shows" size={18} />
-            <AppText tone="accent" variant="caption">
-              Calendário
-            </AppText>
-          </Pressable>
-          <FilterMenu
-            active={activeFilterCount > 0}
-            accessibilityLabel="Abrir filtros dos shows"
-            icon="filter"
-            label="Filtros"
-            onClear={() => {
-              update('date', '');
-              update('period', 'upcoming');
-              update('status', 'active');
-            }}
-          >
-            <View style={styles.filterGroup}>
-              <AppText variant="eyebrow">Período</AppText>
-              <ChoiceChips
-                accessibilityLabel="Período dos shows"
-                onChange={(value) => update('period', value)}
-                options={showPeriods}
-                value={state.period}
-              />
-            </View>
-            <View style={styles.filterGroup}>
-              <AppText variant="eyebrow">Status</AppText>
-              <ChoiceChips
-                accessibilityLabel="Estado dos shows"
-                onChange={(value) => update('status', value)}
-                options={showStatuses}
-                value={state.status}
-              />
-            </View>
-          </FilterMenu>
-          <OptionMenu
-            active={state.sort !== 'date-asc'}
-            accessibilityLabel="Alterar ordenação dos shows"
-            compact
-            icon="sort"
-            label="Ordenar"
-            onChange={(value) => update('sort', value)}
-            options={showSorts}
-            value={state.sort}
-          />
-        </View>
-      ) : null}
-      {controlsVisible && (selectedDateLabel || selectedHoliday) ? (
+      <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+    </View>
+  );
+  const controls = (
+    <>
+      <View style={styles.controlToolbar}>
+        <Pressable
+          accessibilityLabel="Abrir calendário para filtrar por data"
+          accessibilityRole="button"
+          onPress={() => setCalendarOpen(true)}
+          style={({ pressed }) => [
+            styles.calendarButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppIcon color={colors.text.secondary} name="shows" size={18} />
+          <AppText tone="accent" variant="caption">
+            Calendário
+          </AppText>
+        </Pressable>
+        <FilterMenu
+          active={activeFilterCount > 0}
+          accessibilityLabel="Abrir filtros dos shows"
+          icon="filter"
+          label="Filtros"
+          onClear={() => {
+            update('date', '');
+            update('period', 'upcoming');
+            update('status', 'active');
+          }}
+        >
+          <View style={styles.filterGroup}>
+            <AppText variant="eyebrow">Período</AppText>
+            <ChoiceChips
+              accessibilityLabel="Período dos shows"
+              onChange={(value) => update('period', value)}
+              options={showPeriods}
+              value={state.period}
+            />
+          </View>
+          <View style={styles.filterGroup}>
+            <AppText variant="eyebrow">Status</AppText>
+            <ChoiceChips
+              accessibilityLabel="Estado dos shows"
+              onChange={(value) => update('status', value)}
+              options={showStatuses}
+              value={state.status}
+            />
+          </View>
+        </FilterMenu>
+        <OptionMenu
+          active={state.sort !== 'date-asc'}
+          accessibilityLabel="Alterar ordenação dos shows"
+          compact
+          icon="sort"
+          label="Ordenar"
+          onChange={(value) => update('sort', value)}
+          options={showSorts}
+          value={state.sort}
+        />
+      </View>
+      {selectedDateLabel || selectedHoliday ? (
         <View style={styles.dateToolbar}>
           {selectedDateLabel ? (
             <Pressable
@@ -384,20 +386,7 @@ export function ShowsScreen({
           ) : null}
         </View>
       ) : null}
-      <OptionSheet
-        closeAccessibilityLabel="Fechar calendário"
-        label="Escolher data"
-        onClose={() => setCalendarOpen(false)}
-        visible={calendarOpen}
-      >
-        <MonthCalendar
-          initialDate={now}
-          onSelectDate={selectDate}
-          selectedDateKey={state.date || undefined}
-          shows={calendarShows}
-        />
-      </OptionSheet>
-    </ListControls>
+    </>
   );
   const hasQuery =
     state.date.length > 0 ||
@@ -433,6 +422,19 @@ export function ShowsScreen({
       userBandsQuery.isPending ? (
         <LoadingFeedback variation={1} />
       ) : null}
+      <OptionSheet
+        closeAccessibilityLabel="Fechar calendário"
+        label="Escolher data"
+        onClose={() => setCalendarOpen(false)}
+        visible={calendarOpen}
+      >
+        <MonthCalendar
+          initialDate={now}
+          onSelectDate={selectDate}
+          selectedDateKey={state.date || undefined}
+          shows={calendarShows}
+        />
+      </OptionSheet>
       <ShowCreationDialog
         calendarShows={calendarShows}
         venueOptions={venueOptions}
@@ -557,10 +559,18 @@ export function ShowsScreen({
           ListHeaderComponent={
             <View style={{ height: controlsOverlayHeight }} />
           }
+          onMomentumScrollBegin={beginControlsMomentum}
+          onMomentumScrollEnd={endControlsMomentum}
           onScroll={(event) => {
-            updateControlsVisibility(event.nativeEvent.contentOffset.y);
+            const { contentOffset, contentSize, layoutMeasurement } =
+              event.nativeEvent;
+            updateControlsVisibility(
+              contentOffset.y,
+              contentSize.height - layoutMeasurement.height,
+            );
             rememberListScrollOffset(event, rememberScrollOffset);
           }}
+          onScrollBeginDrag={beginControlsDrag}
           refreshControl={getListRefreshControl({
             onRefresh,
             progressViewOffset: controlsOverlayHeight,
@@ -574,19 +584,16 @@ export function ShowsScreen({
               show={item}
             />
           )}
-          scrollEventThrottle={120}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={styles.list}
           testID="shows-list"
         />
         <ListControlsOverlay
+          controlsVisible={controlsVisible}
           horizontalPadding={horizontalPadding}
-          onLayout={(event) => {
-            const nextHeight = event.nativeEvent.layout.height;
-            setControlsOverlayHeight((current) =>
-              current === nextHeight ? current : nextHeight,
-            );
-          }}
+          onExpandedHeightChange={setControlsOverlayHeight}
+          search={searchControls}
         >
           {controls}
         </ListControlsOverlay>

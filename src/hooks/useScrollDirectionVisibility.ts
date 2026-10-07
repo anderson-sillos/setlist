@@ -1,57 +1,97 @@
 import { useCallback, useRef, useState } from 'react';
 
-const HIDE_CONTROLS_SCROLL_DISTANCE = 24;
-const SHOW_CONTROLS_SCROLL_DISTANCE = 32;
-const SCROLL_DIRECTION_DEAD_ZONE = 3;
-const TOP_OFFSET_THRESHOLD = 4;
+const HIDE_CONTROLS_SCROLL_DISTANCE = 48;
+const SHOW_CONTROLS_SCROLL_DISTANCE = 24;
+const TOP_OFFSET_THRESHOLD = 8;
+const DIRECTION_NOISE_THRESHOLD = 6;
 
 export function useScrollDirectionVisibility(initialOffset = 0) {
   const [visible, setVisible] = useState(true);
-  const lastStableOffset = useRef(initialOffset);
-  const lastDirection = useRef<-1 | 0 | 1>(0);
-  const directionalDistance = useRef(0);
+  const visibleRef = useRef(true);
+  const directionAnchor = useRef(Math.max(0, initialOffset));
+  const lastOffset = useRef(Math.max(0, initialOffset));
+  const gestureAnchor = useRef(Math.max(0, initialOffset));
+  const lastDirection = useRef<'down' | 'up' | null>(null);
+  const momentumActive = useRef(false);
+
+  const beginDrag = useCallback(() => {
+    momentumActive.current = false;
+    lastDirection.current = null;
+    directionAnchor.current = lastOffset.current;
+    gestureAnchor.current = lastOffset.current;
+  }, []);
+
+  const beginMomentum = useCallback(() => {
+    momentumActive.current = true;
+  }, []);
+
+  const endMomentum = useCallback(() => {
+    momentumActive.current = false;
+    directionAnchor.current = lastOffset.current;
+    gestureAnchor.current = lastOffset.current;
+  }, []);
 
   const updateVisibility = useCallback(
-    (offsetY: number) => {
-      if (offsetY <= TOP_OFFSET_THRESHOLD) {
-        lastStableOffset.current = offsetY;
-        lastDirection.current = 0;
-        directionalDistance.current = 0;
-        setVisible(true);
+    (offsetY: number, maximumOffset = Infinity) => {
+      // Ignore overscroll: a bounce at either end is not a change of intent.
+      const offset = Math.max(0, Math.min(offsetY, Math.max(0, maximumOffset)));
+      lastOffset.current = offset;
+      if (!momentumActive.current || lastDirection.current === null) {
+        const delta = offset - gestureAnchor.current;
+        if (
+          (lastDirection.current === 'down' && delta >= 0) ||
+          (lastDirection.current === 'up' && delta <= 0)
+        ) {
+          gestureAnchor.current = offset;
+        } else if (Math.abs(delta) >= DIRECTION_NOISE_THRESHOLD) {
+          lastDirection.current = delta > 0 ? 'down' : 'up';
+          gestureAnchor.current = offset;
+        }
+      }
+
+      // Inertia keeps the user's last direction, even if native offsets briefly
+      // move backwards. A new drag can deliberately reverse it immediately.
+      if (
+        momentumActive.current &&
+        ((lastDirection.current === 'down' && !visibleRef.current) ||
+          (lastDirection.current === 'up' && visibleRef.current))
+      ) {
         return;
       }
 
-      const movement = offsetY - lastStableOffset.current;
-
-      if (Math.abs(movement) < SCROLL_DIRECTION_DEAD_ZONE) {
+      if (offset <= TOP_OFFSET_THRESHOLD) {
+        directionAnchor.current = offset;
+        if (!visibleRef.current) {
+          visibleRef.current = true;
+          setVisible(true);
+        }
         return;
       }
 
-      lastStableOffset.current = offsetY;
-      const direction: -1 | 1 = movement > 0 ? 1 : -1;
+      // Measure net travel from the furthest point, rather than summing jitter.
+      directionAnchor.current = visibleRef.current
+        ? Math.min(directionAnchor.current, offset)
+        : Math.max(directionAnchor.current, offset);
+      const distance = Math.abs(offset - directionAnchor.current);
+      const threshold = visibleRef.current
+        ? HIDE_CONTROLS_SCROLL_DISTANCE
+        : SHOW_CONTROLS_SCROLL_DISTANCE;
 
-      if (direction !== lastDirection.current) {
-        lastDirection.current = direction;
-        directionalDistance.current = Math.abs(movement);
-      } else {
-        directionalDistance.current += Math.abs(movement);
-      }
-
-      const threshold =
-        direction > 0
-          ? HIDE_CONTROLS_SCROLL_DISTANCE
-          : SHOW_CONTROLS_SCROLL_DISTANCE;
-      const shouldChangeVisibility =
-        directionalDistance.current >= threshold &&
-        (direction > 0 ? visible : !visible);
-
-      if (shouldChangeVisibility) {
-        directionalDistance.current = 0;
-        setVisible(direction < 0);
+      const nextVisible = !visibleRef.current;
+      const momentumAllowsChange =
+        !momentumActive.current ||
+        lastDirection.current === null ||
+        (nextVisible
+          ? lastDirection.current === 'up'
+          : lastDirection.current === 'down');
+      if (distance >= threshold && momentumAllowsChange) {
+        visibleRef.current = !visibleRef.current;
+        directionAnchor.current = offset;
+        setVisible(visibleRef.current);
       }
     },
-    [visible],
+    [],
   );
 
-  return { updateVisibility, visible };
+  return { beginDrag, beginMomentum, endMomentum, updateVisibility, visible };
 }
