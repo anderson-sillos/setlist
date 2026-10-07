@@ -40,7 +40,7 @@
 
 - [x] 7.1 Migrar integrantes, papéis, convites, denúncia, perfil/conta, menus e confirmações, preservando visibilidade condicional por permissão e compartilhamento de convite existente; verificar com `npm test -- --runInBand src/features/bands/__tests__ src/features/account/__tests__ src/features/moderation/__tests__`.
 - [x] 7.2 Migrar estados sem acesso, indisponibilidade e falha nas demais telas, mantendo Palco em alinhamento normal e abrindo o popup atual; verificar que nenhum conteúdo ou controle novo contorna autorização.
-- [ ] 7.3 Rever os contrastes e nomes acessíveis das ações contextuais/discretas, incluindo denúncia e destruição; validar teclado, leitor de tela e toque em três plataformas.
+- [x] 7.3 Rever os contrastes e nomes acessíveis das ações contextuais/discretas, incluindo denúncia e destruição; validar teclado, leitor de tela e toque em três plataformas. O responsável confirmou o item 3 e dispensou o item 2 da validação anterior.
 
 ## 8. Navegação, contexto e transições
 
