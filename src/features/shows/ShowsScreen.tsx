@@ -14,6 +14,7 @@ import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { ContentFade } from '@/components/ui/ContentFade';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
   getListRefreshControl,
@@ -475,7 +476,14 @@ export function ShowsScreen({
         />
       ) : null}
 
-      <View style={styles.listArea}>
+      <ContentFade
+        loading={
+          showsQuery.isPending ||
+          songsQuery.isPending ||
+          userBandsQuery.isPending
+        }
+        style={styles.listArea}
+      >
         <FlatList
           contentContainerStyle={[
             styles.listContent,
@@ -582,7 +590,7 @@ export function ShowsScreen({
         >
           {controls}
         </ListControlsOverlay>
-      </View>
+      </ContentFade>
     </BandAreaLayout>
   );
 }

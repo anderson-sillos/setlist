@@ -11,6 +11,7 @@ import {
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { ContentFade } from '@/components/ui/ContentFade';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
   getListRefreshControl,
@@ -257,7 +258,10 @@ export function RepertoireScreen({
           }}
         />
       ) : null}
-      <View style={styles.listArea}>
+      <ContentFade
+        loading={songsQuery.isPending || userBandsQuery.isPending}
+        style={styles.listArea}
+      >
         <FlatList
           contentContainerStyle={[
             styles.listContent,
@@ -375,7 +379,7 @@ export function RepertoireScreen({
             ) : null}
           </ListControls>
         </ListControlsOverlay>
-      </View>
+      </ContentFade>
     </BandAreaLayout>
   );
 }

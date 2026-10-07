@@ -7,11 +7,17 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, motion, radii, spacing } from '@/theme/tokens';
 import { blurWebFocus } from '@/utils/focus';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
@@ -44,13 +50,22 @@ export function MenuButton({
   label,
   onPress,
 }: MenuButtonProps) {
+  const reducedMotion = useReducedMotionPreference();
+  const pressProgress = useSharedValue(0);
+  const animatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      pressProgress.value,
+      [0, 1],
+      [colors.background.raised, colors.background.pressed],
+    ),
+  }));
   const handlePress = () => {
     blurWebFocus();
     onPress();
   };
 
   return (
-    <Pressable
+    <AnimatedMenuButton
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={active ? { selected: true } : undefined}
@@ -58,7 +73,21 @@ export function MenuButton({
         accessibilityValueText ? { text: accessibilityValueText } : undefined
       }
       onPress={handlePress}
-      style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
+      onPressIn={() => {
+        pressProgress.set(
+          withTiming(1, {
+            duration: reducedMotion ? 0 : motion.short,
+          }),
+        );
+      }}
+      onPressOut={() => {
+        pressProgress.set(
+          withTiming(0, {
+            duration: reducedMotion ? 0 : motion.short,
+          }),
+        );
+      }}
+      style={[styles.menuButton, animatedStyle]}
     >
       {icon ? (
         <AppIcon
@@ -86,7 +115,7 @@ export function MenuButton({
         </View>
       ) : null}
       <AppIcon color={colors.text.secondary} name="chevronDown" size={16} />
-    </Pressable>
+    </AnimatedMenuButton>
   );
 }
 
@@ -231,3 +260,5 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
 });
+
+const AnimatedMenuButton = Animated.createAnimatedComponent(Pressable);

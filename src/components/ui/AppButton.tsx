@@ -1,10 +1,23 @@
-import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  type PressableProps,
+  type PressableStateCallbackType,
+} from 'react-native';
 import { forwardRef, useState, type ComponentRef, type ReactNode } from 'react';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { colors, layout, motion, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { blurWebFocus } from '@/utils/focus';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive';
@@ -30,6 +43,8 @@ export const AppButton = forwardRef<
     onBlur,
     onFocus,
     onPress,
+    onPressIn,
+    onPressOut,
     style,
     variant = 'primary',
     ...props
@@ -37,7 +52,23 @@ export const AppButton = forwardRef<
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  const reducedMotion = useReducedMotionPreference();
+  const pressProgress = useSharedValue(0);
   const contentColor = disabled ? colors.text.disabled : buttonColors[variant];
+  const animatedSurface = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(
+        pressProgress.value,
+        [0, 1],
+        ['rgba(0, 0, 0, 0)', surfaces[variant].pressed],
+      ),
+    };
+  });
+  const animatePress = (pressed: boolean) => {
+    pressProgress.value = withTiming(pressed && !disabled ? 1 : 0, {
+      duration: reducedMotion ? 0 : motion.short,
+    });
+  };
   const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
     blurWebFocus();
     onPress?.(event);
@@ -51,6 +82,14 @@ export const AppButton = forwardRef<
       accessibilityRole="button"
       accessibilityState={{ disabled: Boolean(disabled) }}
       onPress={handlePress}
+      onPressIn={(event) => {
+        animatePress(true);
+        onPressIn?.(event);
+      }}
+      onPressOut={(event) => {
+        animatePress(false);
+        onPressOut?.(event);
+      }}
       onFocus={(event) => {
         setFocused(true);
         onFocus?.(event);
@@ -59,7 +98,7 @@ export const AppButton = forwardRef<
         setFocused(false);
         onBlur?.(event);
       }}
-      style={(state) => [
+      style={(state: PressableStateCallbackType) => [
         styles.base,
         variants[variant],
         disabled && disabledVariants[variant],
@@ -68,12 +107,24 @@ export const AppButton = forwardRef<
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      {leading ??
-        (icon ? <AppIcon color={contentColor} name={icon} size={18} /> : null)}
-      <AppText style={[styles.label, { color: contentColor }]}>{label}</AppText>
+      <AnimatedSurface
+        pointerEvents="none"
+        style={[styles.pressOverlay, animatedSurface]}
+      />
+      <View pointerEvents="box-none" style={styles.content}>
+        {leading ??
+          (icon ? (
+            <AppIcon color={contentColor} name={icon} size={18} />
+          ) : null)}
+        <AppText style={[styles.label, { color: contentColor }]}>
+          {label}
+        </AppText>
+      </View>
     </Pressable>
   );
 });
+
+const AnimatedSurface = Animated.createAnimatedComponent(View);
 
 const styles = StyleSheet.create({
   base: {
@@ -86,6 +137,23 @@ const styles = StyleSheet.create({
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
+  },
+  content: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    position: 'relative',
+    zIndex: 1,
+  },
+  pressOverlay: {
+    borderRadius: radii.md - 1,
+    bottom: 1,
+    left: 1,
+    position: 'absolute',
+    right: 1,
+    top: 1,
+    zIndex: 0,
   },
   label: {
     fontWeight: '700',
@@ -117,15 +185,10 @@ const variants = StyleSheet.create({
 
 const pressedVariants = StyleSheet.create({
   primary: {
-    backgroundColor: colors.action.pressed,
     borderColor: colors.action.pressed,
   },
-  secondary: {
-    backgroundColor: colors.background.pressed,
-  },
-  tertiary: {
-    backgroundColor: colors.background.hover,
-  },
+  secondary: {},
+  tertiary: {},
   destructive: {
     opacity: 0.84,
   },
@@ -141,7 +204,6 @@ const disabledVariants = StyleSheet.create({
     borderColor: colors.border.subtle,
   },
   tertiary: {
-    backgroundColor: 'transparent',
     borderColor: 'transparent',
   },
   destructive: {
@@ -149,6 +211,21 @@ const disabledVariants = StyleSheet.create({
     borderColor: colors.semantic.dangerSurface,
   },
 });
+
+const surfaces: Record<ButtonVariant, { readonly pressed: string }> = {
+  primary: {
+    pressed: colors.action.pressed,
+  },
+  secondary: {
+    pressed: colors.background.pressed,
+  },
+  tertiary: {
+    pressed: colors.background.hover,
+  },
+  destructive: {
+    pressed: colors.semantic.danger,
+  },
+};
 
 const buttonColors: Record<ButtonVariant, string> = {
   primary: colors.text.onAccent,
