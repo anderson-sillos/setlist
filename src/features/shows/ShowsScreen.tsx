@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
   FlatList,
+  Platform,
   Pressable,
   StyleSheet,
   useWindowDimensions,
@@ -265,6 +266,11 @@ export function ShowsScreen({
     setCreationInstance((current) => current + 1);
     setCreationVisible(true);
   };
+  const discardCreationChanges = () => {
+    setCreationVisible(false);
+    setCreationDirty(false);
+    unsavedChanges.discardAndLeave();
+  };
   const activeFilterCount =
     Number(Boolean(state.date)) +
     Number(state.period !== 'all') +
@@ -433,6 +439,15 @@ export function ShowsScreen({
         errorMessage={creationError}
         initialDate={state.date || undefined}
         isSubmitting={creationSubmitting}
+        navigationDiscardPrompt={
+          Platform.OS === 'ios'
+            ? {
+                onContinue: unsavedChanges.continueEditing,
+                onDiscard: discardCreationChanges,
+                visible: unsavedChanges.confirmationVisible,
+              }
+            : undefined
+        }
         onDirtyChange={setCreationDirty}
         onClose={() => {
           if (!creationSubmitting) {
@@ -443,15 +458,13 @@ export function ShowsScreen({
         onSubmit={(form) => void handleCreateShow(form)}
         visible={creationVisible}
       />
-      <UnsavedChangesPrompt
-        onContinue={unsavedChanges.continueEditing}
-        onDiscard={() => {
-          setCreationVisible(false);
-          setCreationDirty(false);
-          unsavedChanges.discardAndLeave();
-        }}
-        visible={unsavedChanges.confirmationVisible}
-      />
+      {Platform.OS !== 'ios' || !creationVisible ? (
+        <UnsavedChangesPrompt
+          onContinue={unsavedChanges.continueEditing}
+          onDiscard={discardCreationChanges}
+          visible={unsavedChanges.confirmationVisible}
+        />
+      ) : null}
       {showsQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {

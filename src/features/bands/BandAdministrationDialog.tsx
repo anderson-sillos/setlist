@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -10,6 +10,10 @@ import {
   View,
 } from 'react-native';
 
+import {
+  UnsavedChangesPrompt,
+  type UnsavedChangesPromptProps,
+} from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -21,28 +25,37 @@ export type BandAdministrationMode = 'delete' | 'rename';
 
 interface BandAdministrationDialogProps {
   readonly band: Band | null;
+  readonly discardPrompt?: UnsavedChangesPromptProps;
   readonly errorMessage: string | null;
   readonly isSubmitting: boolean;
   readonly mode: BandAdministrationMode | null;
   readonly onClose: () => void;
   readonly onDelete: () => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
   readonly onRename: (name: string) => void;
   readonly onModeChange: (mode: BandAdministrationMode) => void;
 }
 
 export function BandAdministrationDialog({
   band,
+  discardPrompt,
   errorMessage,
   isSubmitting,
   mode,
   onClose,
   onModeChange,
   onDelete,
+  onDirtyChange,
   onRename,
 }: BandAdministrationDialogProps) {
   const reducedMotion = useReducedMotionPreference();
   const [name, setName] = useState(band?.name ?? '');
   const [confirmationName, setConfirmationName] = useState('');
+  const hasChanges = mode === 'rename' && !!band && name !== band.name;
+
+  useEffect(() => {
+    onDirtyChange?.(hasChanges);
+  }, [hasChanges, onDirtyChange]);
 
   if (!band || !mode) {
     return null;
@@ -55,6 +68,7 @@ export function BandAdministrationDialog({
     <Modal
       animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
+      testID="band-administration-modal"
       transparent
       visible
     >
@@ -194,6 +208,7 @@ export function BandAdministrationDialog({
           </View>
         </View>
       </KeyboardAvoidingView>
+      {discardPrompt ? <UnsavedChangesPrompt {...discardPrompt} /> : null}
     </Modal>
   );
 }

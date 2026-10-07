@@ -15,7 +15,10 @@ import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import type { Show } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
-import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
+import {
+  UnsavedChangesPrompt,
+  type UnsavedChangesPromptProps,
+} from '@/components/feedback/UnsavedChangesPrompt';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
@@ -41,6 +44,7 @@ interface ShowCreationDialogProps {
   readonly title?: string;
   readonly initialDate?: string;
   readonly isSubmitting: boolean;
+  readonly navigationDiscardPrompt?: UnsavedChangesPromptProps;
   readonly onClose: () => void;
   readonly onDirtyChange?: (dirty: boolean) => void;
   readonly onSubmit: (form: ShowCreationForm) => void;
@@ -72,6 +76,7 @@ export function ShowCreationDialog({
   submitLabel = 'Criar show',
   title = 'Novo show',
   isSubmitting,
+  navigationDiscardPrompt,
   onClose,
   onDirtyChange,
   onSubmit,
@@ -131,10 +136,23 @@ export function ShowCreationDialog({
     form.venue.trim().length > 0 &&
     !isSubmitting;
 
+  const discardPrompt = navigationDiscardPrompt?.visible
+    ? navigationDiscardPrompt
+    : {
+        onContinue: () => setDiscardVisible(false),
+        onDiscard: () => {
+          setDiscardVisible(false);
+          onDirtyChange?.(false);
+          onClose();
+        },
+        visible: discardVisible,
+      };
+
   return (
     <Modal
       animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={requestClose}
+      testID="show-creation-modal"
       transparent
       visible={visible}
     >
@@ -272,15 +290,7 @@ export function ShowCreationDialog({
               shows={calendarShows}
             />
           </OptionSheet>
-          <UnsavedChangesPrompt
-            onContinue={() => setDiscardVisible(false)}
-            onDiscard={() => {
-              setDiscardVisible(false);
-              onDirtyChange?.(false);
-              onClose();
-            }}
-            visible={discardVisible}
-          />
+          <UnsavedChangesPrompt {...discardPrompt} />
           <View style={styles.actions}>
             <AppButton
               disabled={isSubmitting}

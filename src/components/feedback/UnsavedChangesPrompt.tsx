@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
@@ -9,7 +9,7 @@ import { spacing } from '@/theme/tokens';
 const useIsomorphicLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
-interface UnsavedChangesPromptProps {
+export interface UnsavedChangesPromptProps {
   readonly onContinue: () => void;
   readonly onDiscard: () => void;
   readonly testID?: string;
@@ -23,6 +23,33 @@ export function UnsavedChangesPrompt({
   visible,
 }: UnsavedChangesPromptProps) {
   const returnFocusTarget = useRef<HTMLElement | null>(null);
+  const [dismissingForDiscard, setDismissingForDiscard] = useState(false);
+  const pendingDiscard = useRef(false);
+
+  if (!visible && dismissingForDiscard) {
+    setDismissingForDiscard(false);
+  }
+
+  const handleDiscard = () => {
+    returnFocusTarget.current = null;
+
+    if (Platform.OS === 'ios') {
+      // O formulário/rota só pode fechar após o Modal da confirmação sair.
+      // Fechar ambos no mesmo commit pode deixar um modal nativo bloqueando
+      // os toques, mesmo com visible=false no React.
+      pendingDiscard.current = true;
+      setDismissingForDiscard(true);
+      return;
+    }
+
+    onDiscard();
+  };
+
+  const handleDismiss = () => {
+    if (!pendingDiscard.current) return;
+    pendingDiscard.current = false;
+    onDiscard();
+  };
 
   useIsomorphicLayoutEffect(() => {
     if (Platform.OS !== 'web' || !visible || typeof document === 'undefined') {
@@ -59,11 +86,6 @@ export function UnsavedChangesPrompt({
     }
   };
 
-  const handleWebDiscard = () => {
-    returnFocusTarget.current = null;
-    onDiscard();
-  };
-
   // No Web, um Modal oculto mantido montado pode ficar atrás de outro diálogo.
   if (Platform.OS === 'web' && !visible) return null;
 
@@ -72,9 +94,10 @@ export function UnsavedChangesPrompt({
       closeAccessibilityLabel="Continuar editando"
       label="Descartar alterações?"
       onClose={Platform.OS === 'web' ? handleWebContinue : onContinue}
+      onDismiss={handleDismiss}
       showCloseButton={false}
       testID={testID}
-      visible={visible}
+      visible={visible && !dismissingForDiscard}
     >
       <AppText tone="muted">
         As alterações ainda não foram salvas. Você pode continuar editando ou
@@ -90,7 +113,7 @@ export function UnsavedChangesPrompt({
       <AppButton
         accessibilityLabel="Descartar alterações"
         label="Descartar alterações"
-        onPress={Platform.OS === 'web' ? handleWebDiscard : onDiscard}
+        onPress={handleDiscard}
         style={{ marginTop: spacing.sm }}
         variant="destructive"
       />

@@ -44,9 +44,9 @@
 
 ## 8. Navegação, contexto e transições
 
-- [ ] 8.1 Configurar Stacks raiz e aninhados por tipo de tela, com apresentação nativa para detalhe/retorno, retorno da letra em tela cheia ao detalhe da música com entrada pela esquerda, substituição de detalhes pelo destino contextual, transição direcional para troca de seção nos controles nativos, entrada pela esquerda ao voltar a Minhas bandas e fade breve na Web, sem animação de tela inteira em refresh; validar rotas internas, deep links e cancelamento nativo nos fluxos manuais por plataforma.
+- [x] 8.1 Configurar Stacks raiz e aninhados por tipo de tela, com apresentação nativa para detalhe/retorno, retorno da letra em tela cheia ao detalhe da música com entrada pela esquerda, substituição de detalhes pelo destino contextual, transição direcional para troca de seção nos controles nativos, entrada pela esquerda ao voltar a Minhas bandas e fade breve na Web, sem animação de tela inteira em refresh; validar rotas internas, deep links e cancelamento nativo nos fluxos manuais por plataforma. Responsável confirmou a validação manual do fluxo em Web, iOS e Android.
 - [x] 8.2 Unificar a resolução de destino de barra, menu e retorno, usando memória por banda/seção para rota, busca, filtros e rolagem; verificar com `npm test -- --runInBand src/features/navigation/__tests__/navigationMemory-test.tsx src/features/navigation/__tests__/navigationIntegration-test.tsx src/features/navigation/__tests__/navigationRoutes-test.ts`.
-- [ ] 8.3 Fazer Voltar fechar primeiro drawer/menu/popup quando aberto, respeitar histórico do navegador na Web e comportamento do teclado/Voltar do Android; verificar a sequência de retorno em Web, development builds Android e iOS.
+- [x] 8.3 Fazer Voltar fechar primeiro drawer/menu/popup quando aberto, respeitar histórico do navegador na Web e comportamento do teclado/Voltar do Android; verificar a sequência de retorno em Web, development builds Android e iOS. Responsável confirmou que o comportamento já está funcionando; não foi necessária alteração de código.
 
 ## 9. Edições não salvas
 

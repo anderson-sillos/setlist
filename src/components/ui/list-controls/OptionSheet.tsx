@@ -30,6 +30,7 @@ interface OptionSheetProps {
   readonly testID?: string;
   readonly label: string;
   readonly onClose: () => void;
+  readonly onDismiss?: () => void;
   readonly sheetStyle?: StyleProp<ViewStyle>;
   readonly showCloseButton?: boolean;
   readonly visible: boolean;
@@ -94,6 +95,7 @@ export function OptionSheet({
   closeAccessibilityLabel,
   label,
   onClose,
+  onDismiss,
   sheetStyle,
   showCloseButton = true,
   testID,
@@ -109,6 +111,7 @@ export function OptionSheet({
     <Modal
       animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={handleClose}
+      onDismiss={onDismiss}
       transparent
       visible={visible}
     >

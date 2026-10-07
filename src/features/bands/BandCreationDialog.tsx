@@ -10,6 +10,10 @@ import {
   View,
 } from 'react-native';
 
+import {
+  UnsavedChangesPrompt,
+  type UnsavedChangesPromptProps,
+} from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -21,6 +25,7 @@ import { CURRENT_BAND_TERM } from './legalTerm';
 export type BandCreationDialogStatus = 'error' | 'idle' | 'submitting';
 
 interface BandCreationDialogProps {
+  readonly discardPrompt?: UnsavedChangesPromptProps;
   readonly errorMessage: string | null;
   readonly onClose: () => void;
   readonly onDirtyChange: (dirty: boolean) => void;
@@ -33,6 +38,7 @@ interface BandCreationDialogProps {
 }
 
 export function BandCreationDialog({
+  discardPrompt,
   errorMessage,
   onClose,
   onDirtyChange,
@@ -55,6 +61,7 @@ export function BandCreationDialog({
     <Modal
       animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
+      testID="band-creation-modal"
       transparent
       visible={visible}
     >
@@ -186,6 +193,8 @@ export function BandCreationDialog({
           </View>
         </View>
       </KeyboardAvoidingView>
+      {/* No iOS, a confirmação deve ser apresentada pelo Modal já aberto. */}
+      {discardPrompt ? <UnsavedChangesPrompt {...discardPrompt} /> : null}
     </Modal>
   );
 }

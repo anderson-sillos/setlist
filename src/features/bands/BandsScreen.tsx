@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
@@ -103,6 +103,11 @@ export function BandsScreen({
     }
 
     resetCreationDialog();
+  };
+
+  const discardCreationChanges = () => {
+    resetCreationDialog();
+    unsavedChanges.discardAndLeave();
   };
 
   const handleCreateBand = async ({
@@ -208,6 +213,15 @@ export function BandsScreen({
 
       {creationDialogVisible ? (
         <BandCreationDialog
+          discardPrompt={
+            Platform.OS === 'ios'
+              ? {
+                  onContinue: unsavedChanges.continueEditing,
+                  onDiscard: discardCreationChanges,
+                  visible: unsavedChanges.confirmationVisible,
+                }
+              : undefined
+          }
           errorMessage={creationError}
           onClose={closeCreationDialog}
           onDirtyChange={setCreationDirty}
@@ -216,14 +230,13 @@ export function BandsScreen({
           visible
         />
       ) : null}
-      <UnsavedChangesPrompt
-        onContinue={unsavedChanges.continueEditing}
-        onDiscard={() => {
-          resetCreationDialog();
-          unsavedChanges.discardAndLeave();
-        }}
-        visible={unsavedChanges.confirmationVisible}
-      />
+      {Platform.OS !== 'ios' || !creationDialogVisible ? (
+        <UnsavedChangesPrompt
+          onContinue={unsavedChanges.continueEditing}
+          onDiscard={discardCreationChanges}
+          visible={unsavedChanges.confirmationVisible}
+        />
+      ) : null}
 
       <FlatList
         contentContainerStyle={styles.listContent}
