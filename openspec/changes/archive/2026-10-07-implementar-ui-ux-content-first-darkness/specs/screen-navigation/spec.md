@@ -7,7 +7,7 @@ Define como as pessoas avançam e retornam entre áreas e telas do Setlist, pres
 ## ADDED Requirements
 
 ### Requirement: Retorno previsível entre telas
-The system SHALL provide a predictable back path on Web, Android and iOS, preserving valid route history and giving a contextual return action when a screen has no prior in-app destination.
+O sistema SHALL oferecer retorno previsível na Web, Android e iOS, preservando o histórico válido de rotas e oferecendo retorno contextual quando a tela não tiver destino anterior dentro do app.
 
 #### Scenario: Abrir detalhe a partir de uma lista
 - **WHEN** uma pessoa abre o detalhe de uma música ou show e retorna
@@ -22,7 +22,7 @@ The system SHALL provide a predictable back path on Web, Android and iOS, preser
 - **THEN** a camada superior é encerrada antes de navegar para fora da tela
 
 ### Requirement: Preservação do estado da navegação
-The system SHALL preserve valid search, filters, scroll position and last usable route separately for each band and section when switching areas and returning to lists.
+O sistema SHALL preservar busca, filtros, posição de rolagem e última rota utilizável separadamente por banda e seção ao alternar áreas e retornar às listas.
 
 #### Scenario: Retornar à lista de repertório
 - **WHEN** a pessoa retorna de detalhe ou letra para o repertório
@@ -36,8 +36,12 @@ The system SHALL preserve valid search, filters, scroll position and last usable
 - **WHEN** a pessoa perde acesso à banda ou sua sessão termina
 - **THEN** conteúdo preservado não é mostrado como acessível e o fluxo volta para uma área autorizada
 
+#### Scenario: Atualizar controles durante a rolagem
+- **WHEN** controles visuais mudam enquanto a lista está sendo rolada
+- **THEN** a lista não reaplica a posição lembrada nem interrompe a inércia; a restauração fica reservada à próxima abertura da seção
+
 ### Requirement: Destino após criação de banda
-The system SHALL select a newly created band and open its repertoire as the first working area for that band.
+O sistema SHALL selecionar a banda recém-criada e abrir seu Repertório como primeira área de trabalho dessa banda.
 
 #### Scenario: Criar uma banda com sucesso
 - **WHEN** a pessoa conclui a criação de uma banda
@@ -45,7 +49,7 @@ The system SHALL select a newly created band and open its repertoire as the firs
 - **AND** se não houver músicas cadastradas, a lista apresenta a orientação e a ação para adicionar a primeira música
 
 ### Requirement: Transições coerentes entre rotas
-The system SHALL use brief transitions that communicate whether a route is entering, leaving or switching context while keeping content stable and operations independent of animation completion.
+O sistema SHALL usar transições breves que comuniquem entrada, saída ou mudança de contexto, mantendo o conteúdo estável e as operações independentes do término da animação.
 
 #### Scenario: Entrar e retornar de um detalhe
 - **WHEN** uma pessoa abre um detalhe e usa retorno pelo botão ou gesto da plataforma
@@ -74,7 +78,7 @@ The system SHALL use brief transitions that communicate whether a route is enter
 - **THEN** o resultado funcional não aguarda a animação e o estado final exibido corresponde ao resultado real
 
 ### Requirement: Proteção de alterações não salvas
-The system SHALL ask for an explicit discard decision before leaving an editor with unsaved changes by any in-app or platform back path.
+O sistema SHALL solicitar decisão explícita de descarte antes de sair de um editor com alterações não salvas, por qualquer caminho de retorno do app ou da plataforma.
 
 #### Scenario: Tentar sair de edição alterada
 - **WHEN** a pessoa tenta voltar, trocar área, fechar o editor ou usar o gesto de retorno após editar conteúdo
@@ -101,7 +105,7 @@ The system SHALL ask for an explicit discard decision before leaving an editor w
 - **THEN** a proteção reconhece a remoção autorizada da rota e não apresenta o aviso de descarte
 
 ### Requirement: Gestos complementares e sem conflito
-The system SHALL preserve platform/browser navigation gestures and provide a visible single-pointer alternative for each custom gesture. Custom navigation gestures MUST NOT intercept vertical scrolling, pull-to-refresh, text selection, keyboard input, screen-reader navigation or setlist reordering.
+O sistema SHALL preservar gestos de navegação da plataforma/navegador e oferecer alternativa visível operável com um único ponteiro para cada gesto próprio. Gestos próprios de navegação MUST NOT interceptar rolagem vertical, pull-to-refresh, seleção de texto, digitação, navegação por leitor de tela ou reordenação da setlist.
 
 #### Scenario: Usar atualização móvel
 - **WHEN** uma pessoa puxa a lista online no topo para atualizar
@@ -116,7 +120,7 @@ The system SHALL preserve platform/browser navigation gestures and provide a vis
 - **THEN** consegue executar as mesmas tarefas de navegação e reordenação sem gesto de caminho obrigatório
 
 ### Requirement: Deslize entre seções condicionado à validação
-The system MAY provide horizontal section navigation on native devices only after usability evaluation confirms discoverability, expected destinations, cancelability and no harmful conflict with scroll or platform gestures; the visible section controls SHALL remain available.
+O sistema MAY oferecer deslize horizontal de seções no nativo somente após avaliação de usabilidade confirmar descoberta, destinos esperados, cancelamento e ausência de conflito prejudicial com rolagem ou gestos da plataforma; os controles visíveis de seção SHALL permanecer disponíveis.
 
 #### Scenario: Piloto aprovado
 - **WHEN** o piloto demonstra os critérios definidos na avaliação e não há conflito com rolagem, leitura, edição ou sistema
@@ -131,7 +135,7 @@ The system MAY provide horizontal section navigation on native devices only afte
 - **THEN** a seção, rota, consulta, seleção e posição de rolagem permanecem inalteradas
 
 ### Requirement: Redução de movimento e foco de navegação
-The system SHALL respect the user's reduced-motion preference and maintain focus, route identity and operation feedback when transitions are shortened or omitted.
+O sistema SHALL respeitar a preferência de redução de movimento e manter foco, identidade da rota e feedback das operações quando transições forem encurtadas ou omitidas.
 
 #### Scenario: Reduzir movimento
 - **WHEN** a preferência de redução de movimento está ativada no sistema ou navegador

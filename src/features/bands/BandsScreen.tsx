@@ -303,9 +303,7 @@ export function BandsScreen({
                       <AppText tone="muted" variant="caption">
                         {roleLabels[membership.role]}
                       </AppText>
-                      <AppText variant="caption">
-                        {nextShowLabel}
-                      </AppText>
+                      <AppText variant="caption">{nextShowLabel}</AppText>
                     </View>
                   </View>
                   <View style={styles.bandRowNavigation}>

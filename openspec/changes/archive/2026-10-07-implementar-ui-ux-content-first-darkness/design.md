@@ -113,7 +113,7 @@ Cobrir componentes e fluxos com testes automatizados existentes, checagem de tok
 4. Migrar banda/convites/conta/denúncia e estados vazios/de erro; revisar a marca e assets de plataforma.
 5. Integrar proteção de saída, retorno, preservação de estado, transições nativas e preferência de redução de movimento.
 6. Validar a suíte automatizada pertinente e fazer revisão visual/acessível manual por plataforma.
-7. Realizar o piloto de usabilidade. Manter swipe desativado até aprovação; habilitar apenas após cumprir critérios e validar build. Se reprovado, registrar resultado e concluir sem o recurso.
+7. Encerrar esta entrega com o deslize de troca de seções desativado. Em 7 de outubro de 2026, o responsável adiou o piloto de usabilidade para outro momento e dispensou sua execução neste fechamento. Uma avaliação futura deverá registrar os critérios antes de qualquer habilitação; este adiamento não representa aprovação do gesto.
 
 **Rollback:** reverter por etapa de tela/componente; aliases antigos de token só são removidos após zero consumidores. Transição e gesto próprios podem ser desligados sem alterar rotas, APIs ou dados. Manter controles de navegação visíveis durante rollback; o estado de edição não deve depender de animação.
 

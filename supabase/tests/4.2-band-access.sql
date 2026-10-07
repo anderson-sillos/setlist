@@ -178,9 +178,12 @@ do $$
 declare
   test_user_id uuid := '00000000-0000-0000-0000-000000000042';
   test_band_id uuid := '00000000-0000-0000-0000-000000000043';
+  remaining_owner_id uuid := '00000000-0000-0000-0000-000000000044';
 begin
   insert into auth.users (id, aud, role, email)
-  values (test_user_id, 'authenticated', 'authenticated', 'task-4-2@example.test');
+  values
+    (test_user_id, 'authenticated', 'authenticated', 'task-4-2@example.test'),
+    (remaining_owner_id, 'authenticated', 'authenticated', 'task-4-2-remaining@example.test');
 
   insert into public.profiles (id, display_name, email)
   values (test_user_id, 'Teste 4.2', 'task-4-2@example.test')
@@ -192,7 +195,10 @@ begin
   values (test_band_id, 'Banda de teste 4.2');
 
   insert into public.band_members (band_id, user_id, role)
-  values (test_band_id, test_user_id, 'owner');
+  -- Account deletion must leave a usable band with an Owner.
+  values
+    (test_band_id, test_user_id, 'owner'),
+    (test_band_id, remaining_owner_id, 'owner');
 
   insert into public.legal_acceptances (band_id, user_id, term_version)
   values (test_band_id, test_user_id, '2026-09-18');

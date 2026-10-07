@@ -97,9 +97,7 @@ describe('calendário mensal de shows', () => {
         view.getByTestId('calendar-day-2026-09-19').props.style,
       ).backgroundColor,
     ).toBe(colors.background.selected);
-    expect(
-      view.getByTestId('calendar-show-marker-2026-09-19'),
-    ).toBeTruthy();
+    expect(view.getByTestId('calendar-show-marker-2026-09-19')).toBeTruthy();
 
     await fireEvent.press(
       view.getByLabelText(/19 de setembro de 2026, 2 shows/),

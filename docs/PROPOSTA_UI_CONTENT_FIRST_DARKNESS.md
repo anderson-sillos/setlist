@@ -51,19 +51,19 @@ A interface deve continuar comunicando organização de repertórios e shows. S�
 
 A avaliação foi feita sobre os arquivos do projeto, incluindo os tokens, componentes compartilhados, navegação, login, repertório e leitura de letras. Não houve auditoria visual de cada tela em execução.
 
-| Elemento atual                               | Evidência no projeto                                          | Evolução proposta                                               |
-| -------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
-| Fundo geral claro                            | `paper: #F8F7FC`, `surface: #FFFFFF` em `src/theme/tokens.ts` | Conteúdo sobre `#121214`; estrutura externa sobre `#0B0B0D`     |
-| Menu e leitura em azul escuro                | `navy: #0B1020`, `navyRaised: #18213F`                        | Unificar com a escala neutra de superfícies                     |
-| Texto principal escuro                       | `ink: #172033`                                                | Texto principal quase branco `#F4F4F5`                          |
-| Violeta escuro em texto                      | `violetDark: #5B21B6` em `AppText`                            | Texto de ação em `#B692FF`                                      |
-| Botões secundários claros e contorno violeta | `AppButton`                                                   | Controles neutros; violeta reservado à ação principal           |
+| Elemento atual                               | Evidência no projeto                                          | Evolução proposta                                                                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Fundo geral claro                            | `paper: #F8F7FC`, `surface: #FFFFFF` em `src/theme/tokens.ts` | Conteúdo sobre `#121214`; estrutura externa sobre `#0B0B0D`                                                                          |
+| Menu e leitura em azul escuro                | `navy: #0B1020`, `navyRaised: #18213F`                        | Unificar com a escala neutra de superfícies                                                                                          |
+| Texto principal escuro                       | `ink: #172033`                                                | Texto principal quase branco `#F4F4F5`                                                                                               |
+| Violeta escuro em texto                      | `violetDark: #5B21B6` em `AppText`                            | Texto de ação em `#B692FF`                                                                                                           |
+| Botões secundários claros e contorno violeta | `AppButton`                                                   | Controles neutros; violeta reservado à ação principal                                                                                |
 | Cards com borda e padding amplo              | `Card` usa borda de 1 e padding de 24                         | Usar linhas contínuas em listas densas, exceto nas listas de Shows e Repertório, que usam cards por item para identificar o conteúdo |
-| Metadados e setas coloridos                  | Duração e chevron no repertório usam violeta                  | Usar cinza secundário; título fica mais evidente                |
-| Estados por opacidade                        | Botões e linhas usam redução geral de opacidade               | Definir cores de estado e preservar contraste do conteúdo       |
-| Estilos específicos fora dos tokens          | Ex.: `#AAB3CE` no menu lateral                                | Centralizar papéis semânticos de cor                            |
-| Ícones consistentes disponíveis              | `AppIcon` usa `lucide-react-native`                           | Manter família, ajustar hierarquia e slots                      |
-| Logo simples e reconhecível                  | `assets/icons/app-icon.svg` e PNGs derivados                  | Manter desenho e cor original                                   |
+| Metadados e setas coloridos                  | Duração e chevron no repertório usam violeta                  | Usar cinza secundário; título fica mais evidente                                                                                     |
+| Estados por opacidade                        | Botões e linhas usam redução geral de opacidade               | Definir cores de estado e preservar contraste do conteúdo                                                                            |
+| Estilos específicos fora dos tokens          | Ex.: `#AAB3CE` no menu lateral                                | Centralizar papéis semânticos de cor                                                                                                 |
+| Ícones consistentes disponíveis              | `AppIcon` usa `lucide-react-native`                           | Manter família, ajustar hierarquia e slots                                                                                           |
+| Logo simples e reconhecível                  | `assets/icons/app-icon.svg` e PNGs derivados                  | Manter desenho e cor original                                                                                                        |
 
 Esses pontos pedem revisão por componente. Uma troca literal de todas as ocorrências de `surface` ou `violet` produziria conflitos: hoje `surface` representa tanto fundo quanto texto branco, e `violet` identifica marca, ações e informações secundárias.
 
@@ -434,20 +434,20 @@ Operações sensíveis nunca devem depender de distinguir apenas `X`, lixeira ou
 
 #### Tamanhos e peso
 
-| Contexto                            | Tamanho do desenho       | Slot / área interativa                       | Observação                                                                         |
-| ----------------------------------- | ------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Menu lateral Web                    | 20                       | Slot de 24, dentro de linha de 28–32         | Preservar densidade e início comum dos rótulos                                     |
-| Drawer móvel                        | 20–22                    | Slot de 24, linha de pelo menos 48           | Mesmo desenho, alvo maior                                                          |
-| Barra inferior                      | 22                       | Slot de 24; célula com pelo menos 48 × 48    | Rótulo abaixo, sempre visível                                                      |
-| Cabeçalho: menu, voltar e ação principal | 32                   | Botão de 48 × 48                             | Aumentar a visibilidade sem mudar o alvo ou competir com o título                  |
-| Cabeçalho: cancelar                   | 22–24                    | Botão de 48 × 48 no celular                  | Centralizar sem invadir título                                                     |
-| Botão com texto                     | 18–20                    | Slot de 20; altura 48 no celular             | Intervalo de 8 para o rótulo                                                       |
-| Atualizar / denunciar / mais opções | 18–20                    | Slot de 20; alvo 48 no celular, 32–40 na Web | Não aumentar o desenho para aumentar o alvo                                        |
-| Indicador de metadado               | 16, se necessário        | Sem alvo quando decorativo                   | Evitar 10–12 para figura com detalhes; preferir texto para “3:42” em listas densas |
-| Alça de arraste                     | 18–20                    | Região reservada de 48 no celular            | No início da linha, com alternativa acessível para mover                           |
-| Status/check em chip                | 14–16                    | Slot de 16; chip não interativo              | Tamanho pequeno aceito só para forma simples redundante ao texto                   |
-| Estado vazio                        | 32–40                    | Ilustração não interativa                    | Neutro, sem competir com título/CTA                                                |
-| Logo e provedores de login          | Conforme seções 8 e 11.1 | Slot visual próprio                          | Ajustar pelo desenho visível, preservando proporção e requisitos da marca          |
+| Contexto                                 | Tamanho do desenho       | Slot / área interativa                       | Observação                                                                         |
+| ---------------------------------------- | ------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Menu lateral Web                         | 20                       | Slot de 24, dentro de linha de 28–32         | Preservar densidade e início comum dos rótulos                                     |
+| Drawer móvel                             | 20–22                    | Slot de 24, linha de pelo menos 48           | Mesmo desenho, alvo maior                                                          |
+| Barra inferior                           | 22                       | Slot de 24; célula com pelo menos 48 × 48    | Rótulo abaixo, sempre visível                                                      |
+| Cabeçalho: menu, voltar e ação principal | 32                       | Botão de 48 × 48                             | Aumentar a visibilidade sem mudar o alvo ou competir com o título                  |
+| Cabeçalho: cancelar                      | 22–24                    | Botão de 48 × 48 no celular                  | Centralizar sem invadir título                                                     |
+| Botão com texto                          | 18–20                    | Slot de 20; altura 48 no celular             | Intervalo de 8 para o rótulo                                                       |
+| Atualizar / denunciar / mais opções      | 18–20                    | Slot de 20; alvo 48 no celular, 32–40 na Web | Não aumentar o desenho para aumentar o alvo                                        |
+| Indicador de metadado                    | 16, se necessário        | Sem alvo quando decorativo                   | Evitar 10–12 para figura com detalhes; preferir texto para “3:42” em listas densas |
+| Alça de arraste                          | 18–20                    | Região reservada de 48 no celular            | No início da linha, com alternativa acessível para mover                           |
+| Status/check em chip                     | 14–16                    | Slot de 16; chip não interativo              | Tamanho pequeno aceito só para forma simples redundante ao texto                   |
+| Estado vazio                             | 32–40                    | Ilustração não interativa                    | Neutro, sem competir com título/CTA                                                |
+| Logo e provedores de login               | Conforme seções 8 e 11.1 | Slot visual próprio                          | Ajustar pelo desenho visível, preservando proporção e requisitos da marca          |
 
 Partir do traço original de 2 na grade de 24 e usar a mesma estratégia de escala em toda a interface. Avaliar visualmente 18, 20, 22 e 24 nas três plataformas. Não usar o traço de 4,8 do badge atual como padrão, nem ajustar a espessura por estado de seleção.
 
@@ -896,7 +896,7 @@ Os nomes, tamanhos, cores, gestos e tempos desta proposta são recomendações p
 
 ## 18. Registro da implementação da change
 
-Atualizado em 5 de outubro de 2026, durante a change `implementar-ui-ux-content-first-darkness`.
+Atualizado em 7 de outubro de 2026, no encerramento da change `implementar-ui-ux-content-first-darkness`.
 
 - Os tokens semânticos, componentes compartilhados e telas de bandas, repertório, shows, setlist, conta e moderação foram migrados para a paleta escura.
 - O mapa `AppIcon` agora diferencia ações que antes compartilhavam figuras. O logo de interface usa recorte com raio de 25%; os favicons usam cantos transparentes arredondados, enquanto os ícones nativos continuam quadrados para receber a máscara do sistema operacional uma única vez.
@@ -904,4 +904,7 @@ Atualizado em 5 de outubro de 2026, durante a change `implementar-ui-ux-content-
 - Editores de música/letra, setlist e criação de show protegem a navegação com alterações pendentes. Na Web, a navegação interna mostra o aviso do Setlist; fechamento ou recarga da aba usa o aviso nativo do navegador, com texto fora do controle do app.
 - O deslize entre seções permanece desligado. A change não declara aprovação de usabilidade; ele só poderá ser considerado após o piloto Think Aloud documentado no roteiro.
 - Em 7 de outubro de 2026, o item 10.1 aplicou feedback de superfície de 120 ms a botões e acionadores de menu, seleção de filtros em 160 ms e fade único de 160 ms ao conteúdo após a carga inicial de Shows e Repertório. O skeleton permanece estático; a lista e a rolagem continuam no mesmo componente durante o efeito. Popups mantêm o fade nativo de cada plataforma, e callbacks/estados acessíveis mudam sem esperar a animação.
-- Ainda falta inspeção manual de login, bandas, repertório/letra, shows/setlist e retorno em Web, Android e iOS, incluindo leitores de tela, texto ampliado, orientação horizontal e mudança da preferência de movimento reduzido. As capturas/observações devem ser adicionadas após a validação nos dispositivos.
+- Shows e Repertório mantêm a busca disponível e recolhem os controles de filtro/ordenação durante a descida da lista, exibindo-os ao retornar intencionalmente. A animação mantém a área e a posição da lista; pequenos recuos, rebotes e inércia de gestos rápidos não devem alternar continuamente os controles.
+- Em 7 de outubro de 2026, o responsável confirmou o sucesso da inspeção integrada do item 11.2 em Web, Android e iOS, incluindo os fluxos e critérios de acessibilidade previstos na tarefa.
+- O piloto Think Aloud do item 10.4 foi dispensado deste fechamento por decisão do responsável e adiado para outro momento. Não foi executado e não representa aprovação de usabilidade do deslize entre seções, que permanece desativado.
+- A change está arquivada em `openspec/changes/archive/2026-10-07-implementar-ui-ux-content-first-darkness/`; as definições vigentes foram consolidadas nas specs principais `application-ui` e `screen-navigation`.

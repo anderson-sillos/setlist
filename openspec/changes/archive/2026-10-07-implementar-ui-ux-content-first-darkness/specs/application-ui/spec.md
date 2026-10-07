@@ -7,21 +7,21 @@ Define a linguagem visual responsiva do Setlist e o comportamento visual comum d
 ## ADDED Requirements
 
 ### Requirement: Paleta Content-First Darkness
-The system SHALL use canvas `#0B0B0D`, base `#121214`, raised `#1C1C1F`, hover `#28282D`, pressed `#34343B`, selected `#2B203D`, primary text `#F4F4F5`, secondary `#B8B8C2` and muted text `#92929F` in their defined semantic roles.
+O sistema SHALL usar canvas `#0B0B0D`, base `#121214`, superfície elevada `#1C1C1F`, hover `#28282D`, pressionado `#34343B`, selecionado `#2B203D`, texto principal `#F4F4F5`, secundário `#B8B8C2` e discreto `#92929F` nos papéis semânticos definidos.
 
 #### Scenario: Renderizar superfícies e texto
 - **WHEN** uma tela apresenta canvas, conteúdo, agrupamento, texto principal ou metadados
 - **THEN** os papéis usam os valores definidos e a hierarquia não depende de azul-marinho ou superfície clara como padrão
 
 ### Requirement: Cores de ação, borda e foco
-The system SHALL use action `#B692FF`, action hover `#C5AAFF`, action pressed `#A37CF0`, focus `#D0B8FF`, control border `#74747F`, subtle border `#303035`, text on accent `#160D24` and brand violet `#7C3AED` according to their roles.
+O sistema SHALL usar ação `#B692FF`, ação em hover `#C5AAFF`, ação pressionada `#A37CF0`, foco `#D0B8FF`, borda de controle `#74747F`, borda sutil `#303035`, texto sobre destaque `#160D24` e violeta da marca `#7C3AED` nos papéis correspondentes.
 
 #### Scenario: Exibir controles e identidade
 - **WHEN** uma ação, foco, borda de controle ou logo Setlist é apresentado
 - **THEN** a cor corresponde ao papel semântico e o violeta escuro da marca não substitui o violeta claro da ação
 
 ### Requirement: Sistema visual semântico e legível
-The system SHALL present surfaces, text, actions, selection, focus and semantic states with consistent visual roles across screens and platforms.
+O sistema SHALL apresentar superfícies, texto, ações, seleção, foco e estados semânticos com papéis visuais consistentes entre telas e plataformas.
 
 #### Scenario: Ler conteúdo em superfície escura
 - **WHEN** uma pessoa abre uma tela, lista, formulário ou popup
@@ -36,7 +36,7 @@ The system SHALL present surfaces, text, actions, selection, focus and semantic 
 - **THEN** conteúdo e controles podem crescer ou refluem sem cortar rótulos, valores ou ações essenciais
 
 ### Requirement: Componentes compartilhados e feedback
-The system SHALL apply consistent geometry and interaction states to shared buttons, fields, rows, chips, menus, popups and empty, loading, error and success feedback.
+O sistema SHALL aplicar geometria e estados de interação consistentes aos botões, campos, itens, chips, menus, popups e feedbacks de vazio, carregamento, erro e sucesso compartilhados.
 
 #### Scenario: Interagir com um controle comum
 - **WHEN** uma pessoa pressiona, foca ou desabilita um controle compartilhado
@@ -51,7 +51,7 @@ The system SHALL apply consistent geometry and interaction states to shared butt
 - **THEN** a mensagem explica o problema junto ao contexto adequado e o conteúdo digitado continua disponível para correção
 
 ### Requirement: Orientação contextual para conteúdo inicial
-The system SHALL guide band members to the next useful creation step when a band's repertoire or show list is empty, while respecting the member's existing permissions.
+O sistema SHALL orientar integrantes para a próxima criação útil quando o repertório ou a lista de shows estiver vazio, respeitando as permissões existentes da pessoa.
 
 #### Scenario: Repertório sem músicas cadastradas
 - **WHEN** a lista do Repertório está vazia por não haver músicas cadastradas e nenhum filtro ou busca está limitando os resultados
@@ -78,7 +78,7 @@ The system SHALL guide band members to the next useful creation step when a band
 - **THEN** a orientação inicial não substitui a mensagem de nenhum resultado e a pessoa pode limpar a busca ou os filtros
 
 ### Requirement: Navegação visual e conteúdo responsivo
-The system SHALL apply the same visual hierarchy to band, repertoire, song and lyric, show and setlist, member and invitation, and account screens, adapting layout to Web, Android and iOS.
+O sistema SHALL aplicar a mesma hierarquia visual às telas de bandas, repertório, música e letra, shows e setlists, integrantes e convites e conta, adaptando o layout à Web, Android e iOS.
 
 #### Scenario: Consultar repertório ou show
 - **WHEN** uma pessoa abre uma lista de músicas ou shows
@@ -94,7 +94,7 @@ The system SHALL apply the same visual hierarchy to band, repertoire, song and l
 - **THEN** navegação, lista e ações se reorganizam sem ocultar recursos disponíveis nem alterar as permissões
 
 ### Requirement: Iconografia e marca consistentes
-The system SHALL use a coherent icon family with undistorted symbols, stable alignment and labels for actions whose meaning may be ambiguous; the Setlist logo SHALL preserve its note and violet identity with rounded presentation corners.
+O sistema SHALL usar uma família coerente de ícones sem distorção, com alinhamento estável e rótulos para ações ambíguas; o logo Setlist SHALL preservar a nota e a identidade violeta, com cantos arredondados na interface.
 
 #### Scenario: Ação contextual identificada
 - **WHEN** uma ação de fechar, excluir, remover vínculo, atualizar, restaurar ou reabrir é apresentada
@@ -113,7 +113,7 @@ The system SHALL use a coherent icon family with undistorted symbols, stable ali
 - **THEN** nota, cor e proporção são preservadas e o fundo violeta usa cantos arredondados sem borda adicional
 
 ### Requirement: Ações e estados visíveis
-The system SHALL identify important operations with clear text, a visible action hierarchy and feedback tied to the actual operation result.
+O sistema SHALL identificar operações importantes com texto claro, hierarquia visível de ações e feedback ligado ao resultado real da operação.
 
 #### Scenario: Identificar ação principal
 - **WHEN** uma região permite criar, editar ou salvar conteúdo
@@ -126,3 +126,19 @@ The system SHALL identify important operations with clear text, a visible action
 #### Scenario: Concluir operação
 - **WHEN** uma operação conclui ou falha
 - **THEN** a confirmação ou erro permanece perceptível e oferece recuperação quando aplicável
+
+### Requirement: Controles de listas durante a rolagem
+O sistema SHALL recolher os controles de filtro e ordenação de Shows e Repertório ao avançar pela lista e exibi-los novamente ao retornar intencionalmente, preservando a busca, a área de rolagem e a posição do conteúdo.
+
+#### Scenario: Percorrer a lista lentamente
+- **WHEN** a pessoa rola a lista para baixo com movimentos lentos e pequenas variações
+- **THEN** os controles recolhem suavemente sem alternar continuamente nem deslocar a lista, e a busca permanece disponível
+
+#### Scenario: Manter a direção durante a inércia
+- **WHEN** uma rolagem rápida continua por inércia após o gesto
+- **THEN** os controles mantêm o estado correspondente à direção escolhida, sem alternar por pequenos recuos ou rebotes
+- **AND** uma nova rolagem intencional para cima pode exibir os controles antes de a inércia anterior terminar
+
+#### Scenario: Retornar ao topo
+- **WHEN** a pessoa retorna ao topo ou consulta uma lista sem espaço para rolagem
+- **THEN** os controles ficam disponíveis, respeitando a preferência de redução de movimento

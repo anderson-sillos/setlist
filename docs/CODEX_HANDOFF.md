@@ -2,7 +2,22 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
-## Retomada de 7 de outubro de 2026 — descarte de alterações no iOS
+## Encerramento de 7 de outubro de 2026 — Content-First Darkness
+
+- Entrega da interface: PR #28, https://github.com/anderson-sillos/setlist/pull/28, com destino à branch principal `main`. A integração foi explicitamente autorizada pelo responsável nesta sessão; confirmar o estado e o commit de merge no GitHub antes de comunicar a conclusão.
+- A change `implementar-ui-ux-content-first-darkness` está finalizada e arquivada em `openspec/changes/archive/2026-10-07-implementar-ui-ux-content-first-darkness/`. As definições vigentes estão em `openspec/specs/application-ui/spec.md` e `openspec/specs/screen-navigation/spec.md`.
+- Os 37 itens foram encerrados: 36 concluídos e um dispensado deste fechamento. O responsável confirmou o sucesso da revisão integrada Web/Android/iOS do item 11.2 em 7 de outubro de 2026.
+- O piloto Think Aloud do item 10.4 não foi executado. Foi adiado pelo responsável para outro momento e não impede este encerramento. A troca de seções por deslize permanece desativada; considerar sua habilitação somente após avaliação futura, sem tratar o adiamento como aprovação do gesto.
+- Última implementação aprovada antes do fechamento documental: `1906c6d`, com os controles de Shows/Repertório recolhendo e reaparecendo suavemente, busca permanente, espaço reservado estável, proteção contra alternância na inércia e restauração da posição somente ao montar a seção. O usuário aprovou o resultado no Android; 16 testes afetados, tipos, lint e formatação dos arquivos alterados passaram nessa rodada.
+- O commit anterior `a29dfac` estabilizou o fechamento do drawer sem deixar uma camada invisível bloqueando o app e alinhou a data/hora do próximo show em Minhas bandas. Preservar essas correções e as correções de descarte no iOS descritas no registro histórico abaixo.
+- Na preparação da integração, o CI apontou formatação pendente em cinco arquivos e dados de exemplo antigos de pgTAP que deixariam bandas sem integrantes. O fechamento corrige a formatação e mantém um proprietário nas bandas desses exemplos; as regras de banco e os contratos de exclusão de conta permanecem os atuais. Conferir os checks do novo commit antes do merge.
+- A PR #27 já foi integrada à `main` em `8c58603`; o snapshot antigo abaixo sobre PRs abertas, autenticação e builds não representa o estado desta entrega.
+- Próxima frente: retomar as pendências de preparação/publicação nas lojas em `openspec/changes/definir-mvp-setlist/tasks.md`. A conclusão desta change de interface não conclui automaticamente esse plano nem executa o piloto de usabilidade.
+- Operações Git/GitHub continuam exigindo acesso elevado, conforme `AGENTS.md` e a regra permanente abaixo. O GitHub CLI instalado pode ser chamado diretamente em `/Users/anderson.martins/.local/bin/gh` se não estiver no `PATH`.
+
+Os registros abaixo preservam o histórico. Para o estado vigente da interface, usar as specs principais e o arquivo da change indicados acima.
+
+## Registro histórico de 7 de outubro de 2026 — descarte de alterações no iOS
 
 - Branch local: `feat/implementar-ui-ux-content-first-darkness`, base `d154dd2`, referente à PR #28. As correções abaixo estão no diretório de trabalho; não houve commit nem atualização remota nesta rodada. O registro de estado mais antigo abaixo não representa a branch atual.
 - O descarte foi reproduzido no simulador iPhone 16. Ao fechar a confirmação e o formulário/rota no mesmo ciclo, o React ficava com os modais em `visible=false`, mas o iOS mantinha um `RCTFabricModalHostViewController` apresentado. Janelas seguintes existiam na árvore React sem aparecer na captura nativa; o UIKit registrava `which is already presenting <RCTFabricModalHostViewController ...>`.
@@ -15,7 +30,7 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Metro continua apenas na porta 8081. Na retomada do simulador, encerrar e abrir o processo do app foi suficiente para carregar o Metro automaticamente; evitar enviar também o deep link do development client se a conexão já iniciou, para não provocar um segundo carregamento desnecessário.
 - Houve ainda uma coleta anterior com a thread principal presa em `InspectorPackagerConnection::Impl::closeAllConnections` após perder a conexão do depurador. Esse achado é separado do modal retido reproduzido nesta rodada. Não atribuir todos os travamentos a uma única causa nem desfazer navegação/UI validada por suposição.
 
-## Estado atual
+## Snapshot anterior à integração da PR #27 — histórico
 
 - Repositório: `anderson-sillos/setlist`; `origin/main` está em `d37278e`.
 - Branch ativa local: `feat/documentos-legais-retencao`, com o commit base `04548e2` alinhado ao remoto; corresponde à PR #27, aberta como rascunho: https://github.com/anderson-sillos/setlist/pull/27. Não foi feito merge. Neste momento, somente este handoff e `AGENTS.md` estão modificados localmente e ainda não foram commitados.
@@ -36,11 +51,14 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 ## Fontes de verdade
 
+- `openspec/specs/application-ui/spec.md`: sistema visual, componentes, estados e controles de listas.
+- `openspec/specs/screen-navigation/spec.md`: navegação, memória, transições, gestos e proteção de edições.
+- `openspec/changes/archive/2026-10-07-implementar-ui-ux-content-first-darkness/`: proposta, design, decisões e checklist encerrado da entrega de UI/UX.
 - `openspec/changes/definir-mvp-setlist/proposal.md`: motivação, escopo e capacidades.
 - `openspec/changes/definir-mvp-setlist/design.md`: arquitetura, decisões e riscos.
 - `openspec/changes/definir-mvp-setlist/specs/`: contratos de comportamento por capacidade.
 - `openspec/changes/definir-mvp-setlist/tasks.md`: estratégia incremental e checklist de implementação.
-- `openspec/changes/atualizacao-direcionada-dados/`: change ativo para atualizar dados compartilhados apenas nas telas relevantes.
+- `openspec/specs/shared-data-refresh/spec.md`: contrato vigente de atualização de dados compartilhados restrita às telas relevantes.
 
 Antes de implementar, executar:
 

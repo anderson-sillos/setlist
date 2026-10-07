@@ -37,3 +37,9 @@ Nenhuma. `shared-data-refresh` já define preservação de conteúdo e alternati
 - Rotas, histórico, drawers e memória: `src/app/`, `src/features/navigation/`, `expo-router`, Gesture Handler e Reanimated já presentes no projeto.
 - Critérios de foco, toque, movimento reduzido e navegação por teclado/leitor de tela para Web, Android e iOS.
 - Nenhuma mudança de esquema de banco, API, autorização ou dependência é necessária por definição; reavaliar apenas se a implementação revelar necessidade concreta.
+
+## Completion
+
+Change finalizada em 7 de outubro de 2026. O responsável confirmou a validação integrada do item 11.2 em Web, Android e iOS e dispensou o piloto do item 10.4 deste fechamento, para execução em outro momento. Os 37 itens foram encerrados, sendo 36 concluídos e um dispensado com decisão registrada. A troca de seções por deslize permanece desativada; uma avaliação futura continua sendo condição para considerar sua habilitação.
+
+As definições de `application-ui` e `screen-navigation` são consolidadas em `openspec/specs/`, e os artefatos desta entrega ficam no arquivo `openspec/changes/archive/2026-10-07-implementar-ui-ux-content-first-darkness/`.

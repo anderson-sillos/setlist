@@ -55,6 +55,7 @@ begin
   insert into public.band_members (band_id, user_id, role)
   values
     (member_band_id, member_id, 'member'),
+    (member_band_id, other_owner_id, 'owner'),
     (owner_band_id, owner_id, 'owner'),
     (owner_band_id, other_owner_id, 'owner'),
     (blocked_band_id, blocked_owner_id, 'owner'),

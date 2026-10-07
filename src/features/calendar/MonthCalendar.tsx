@@ -202,10 +202,7 @@ export function MonthCalendar({
               ]}
             >
               {isToday ? (
-                <View
-                  style={styles.todayMarker}
-                  testID="calendar-today-marker"
-                >
+                <View style={styles.todayMarker} testID="calendar-today-marker">
                   <AppText style={styles.dayNumber} variant="caption">
                     {day}
                   </AppText>
