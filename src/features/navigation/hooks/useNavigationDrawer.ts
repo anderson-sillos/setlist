@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Animated, PanResponder } from 'react-native';
+import { Animated, PanResponder, Platform } from 'react-native';
 
 import type { NavigationScreenKind } from '@/features/navigation/types';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
@@ -64,6 +64,7 @@ export function useNavigationDrawer({
     () =>
       PanResponder.create({
         onMoveShouldSetPanResponder: (_, gesture) =>
+          Platform.OS !== 'ios' &&
           screenKind === 'main' &&
           !persistentSidebar &&
           gesture.dx > 12 &&

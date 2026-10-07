@@ -24,7 +24,7 @@ export function getStackScreenOptions(
     ...(platform === 'ios' || platform === 'android'
       ? { animationTypeForReplace }
       : {}),
-    fullScreenGestureEnabled: true,
+    fullScreenGestureEnabled: false,
     gestureEnabled: true,
     headerShown: false,
   };

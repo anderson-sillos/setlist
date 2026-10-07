@@ -59,7 +59,7 @@
 
 - [ ] 10.1 Aplicar duração de superfície, camada e navegação proposta a botão, menu, popup, seleção e carregamento sem bloquear operação; verificar foco, estabilidade da lista e resultado antes/depois de cada efeito.
 - [ ] 10.2 Respeitar redução de movimento do sistema e `prefers-reduced-motion` na Web para transições próprias e nativas; alternar preferência durante a sessão e verificar que funções, foco, feedback e cancelamento permanecem disponíveis.
-- [ ] 10.3 Arbitrar o gesto de abertura do drawer com retorno do sistema, scroll, refresh, texto e drag; verificar manualmente conflitos na faixa de borda em iOS, Android com navegação por gesto e botão, e Web/trackpad.
+- [x] 10.3 Arbitrar o gesto de abertura do drawer com retorno do sistema, scroll, refresh, texto e drag; verificar manualmente conflitos na faixa de borda em iOS, Android com navegação por gesto e botão, e Web/trackpad. Responsável confirmou Android OK, validou no iOS a separação entre Voltar pela borda e abertura do menu pelo botão, e confirmou Web OK.
 - [ ] 10.4 Manter deslize de troca de seções desativado por padrão e executar o piloto de Think Aloud previsto no roteiro; entregar registro de descoberta, destino esperado, cancelamento, alternativas e conflitos com rolagem/sistema.
 - [ ] 10.5 Se e somente se os critérios do piloto forem demonstrados, habilitar deslize Shows ↔ Repertório ↔ Banda em área autorizada e testar cancelamento/memória/gestos concorrentes. Se falhar ou não for realizado, registrar decisão, manter desligado e verificar que a troca por botões continua funcional.
 

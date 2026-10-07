@@ -45,7 +45,7 @@ describe('shell de navegação', () => {
   it('usa transições breves e mantém os gestos de navegação', () => {
     expect(rootStackScreenOptions).toMatchObject({
       animation: Platform.OS === 'web' ? 'fade' : 'default',
-      fullScreenGestureEnabled: true,
+      fullScreenGestureEnabled: false,
       gestureEnabled: true,
     });
   });
