@@ -6,6 +6,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { Song } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface SongLifecycleDialogProps {
   readonly errorMessage: string | null;
@@ -28,6 +29,7 @@ export function SongLifecycleDialog({
   song,
   visible,
 }: SongLifecycleDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!song || !visible) {
@@ -35,7 +37,12 @@ export function SongLifecycleDialog({
   }
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType={reducedMotion ? 'none' : 'fade'}
+      onRequestClose={onClose}
+      transparent
+      visible
+    >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
           accessibilityLabel="Fechar opções da música"
@@ -63,7 +70,7 @@ export function SongLifecycleDialog({
                 pressed && styles.pressed,
               ]}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
 
@@ -90,7 +97,7 @@ export function SongLifecycleDialog({
                   <AppButton
                     accessibilityLabel="Restaurar música"
                     disabled={isSubmitting}
-                    icon="renew"
+                    icon="restore"
                     label={isSubmitting ? 'Restaurando…' : 'Restaurar música'}
                     onPress={onRestore}
                     variant="secondary"
@@ -108,7 +115,7 @@ export function SongLifecycleDialog({
                 <AppButton
                   accessibilityLabel="Excluir música"
                   disabled={isSubmitting}
-                  icon="remove"
+                  icon="delete"
                   label="Excluir música"
                   onPress={() => setConfirmDelete(true)}
                   variant="secondary"
@@ -133,9 +140,10 @@ export function SongLifecycleDialog({
               <AppButton
                 accessibilityLabel="Confirmar exclusão da música"
                 disabled={isSubmitting}
-                icon="remove"
+                icon="delete"
                 label={isSubmitting ? 'Excluindo…' : 'Confirmar exclusão'}
                 onPress={onRemove}
+                variant="destructive"
               />
             ) : null}
           </View>
@@ -147,7 +155,7 @@ export function SongLifecycleDialog({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -167,18 +175,18 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxWidth: 520,
     overflow: 'hidden',
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -195,7 +203,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

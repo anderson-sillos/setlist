@@ -9,13 +9,15 @@ interface NavigationIconButtonProps {
   readonly color?: string;
   readonly icon: AppIconName;
   readonly onPress: () => void;
+  readonly size?: number;
 }
 
 export function NavigationIconButton({
   accessibilityLabel,
-  color = colors.ink,
+  color = colors.text.primary,
   icon,
   onPress,
+  size = 24,
 }: NavigationIconButtonProps) {
   return (
     <Pressable
@@ -28,7 +30,7 @@ export function NavigationIconButton({
       }}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <AppIcon color={color} name={icon} />
+      <AppIcon color={color} name={icon} size={size} />
     </Pressable>
   );
 }

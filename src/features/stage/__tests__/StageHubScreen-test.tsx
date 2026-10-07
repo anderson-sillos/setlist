@@ -20,16 +20,18 @@ describe('<StageHubScreen />', () => {
     );
 
     expect(
-      await view.findByLabelText('Abrir Ensaio Aberto no modo palco'),
+      await view.findByLabelText(
+        'Abrir Ensaio Aberto no modo palco. Status: Rascunho',
+      ),
     ).toBeTruthy();
-    expect(view.getByText('sáb, 19 de set. de 2026 · 16h')).toBeTruthy();
+    expect(view.getByText('sáb. 19 set. 2026 - 16h')).toBeTruthy();
     expect(view.getAllByLabelText('Duração 7min').length).toBeGreaterThan(0);
     expect(view.getByText('Estúdio Central')).toBeTruthy();
     expect(
-      view.getByLabelText('Abrir Show do Bairro no modo palco'),
+      view.getByLabelText('Abrir Show do Bairro no modo palco. Status: Pronto'),
     ).toBeTruthy();
     expect(
-      view.queryByLabelText('Abrir Encontro de Inverno no modo palco'),
+      view.queryByLabelText(/Abrir Encontro de Inverno no modo palco/),
     ).toBeNull();
   });
 });

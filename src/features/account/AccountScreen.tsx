@@ -209,7 +209,7 @@ export function AccountScreen({
           </AppText>
           <AppButton
             accessibilityLabel="Abrir exclusão da conta"
-            icon="close"
+            icon="delete"
             label="Excluir minha conta"
             onPress={openDeletion}
             variant="secondary"
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   dangerCard: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     gap: spacing.md,
   },
   profileCard: {

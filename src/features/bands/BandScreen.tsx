@@ -1,9 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  SectionList,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -47,6 +54,7 @@ import {
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import {
   BandAdministrationDialog,
@@ -103,6 +111,11 @@ export function BandScreen({
   >(null);
   const [bandAdministrationSubmitting, setBandAdministrationSubmitting] =
     useState(false);
+  const [bandNameDirty, setBandNameDirty] = useState(false);
+  const unsavedBandName = useUnsavedChangesGuard({
+    dirty: bandAdministrationMode === 'rename' && bandNameDirty,
+    saving: bandAdministrationSubmitting,
+  });
   const [invitationDialogVisible, setInvitationDialogVisible] = useState(false);
   const [invitationError, setInvitationError] = useState<string | null>(null);
   const [invitationSubmitting, setInvitationSubmitting] = useState(false);
@@ -156,6 +169,7 @@ export function BandScreen({
 
   const openBandAdministration = () => {
     setBandAdministrationError(null);
+    setBandNameDirty(false);
     setBandAdministrationMode('rename');
   };
 
@@ -235,13 +249,45 @@ export function BandScreen({
     }
   };
 
+  const resetBandAdministration = () => {
+    setBandAdministrationMode(null);
+    setBandAdministrationError(null);
+    setBandNameDirty(false);
+  };
+
   const closeBandAdministration = () => {
     if (bandAdministrationSubmitting) {
       return;
     }
 
-    setBandAdministrationMode(null);
-    setBandAdministrationError(null);
+    if (bandAdministrationMode === 'rename' && bandNameDirty) {
+      unsavedBandName.requestConfirmation(resetBandAdministration);
+      return;
+    }
+
+    resetBandAdministration();
+  };
+
+  const changeBandAdministrationMode = (mode: BandAdministrationMode) => {
+    if (bandAdministrationSubmitting) return;
+
+    const changeMode = () => {
+      setBandAdministrationError(null);
+      setBandNameDirty(false);
+      setBandAdministrationMode(mode);
+    };
+
+    if (bandAdministrationMode === 'rename' && bandNameDirty) {
+      unsavedBandName.requestConfirmation(changeMode);
+      return;
+    }
+
+    changeMode();
+  };
+
+  const discardBandNameChanges = () => {
+    resetBandAdministration();
+    unsavedBandName.discardAndLeave();
   };
 
   const handleBandRename = async (name: string) => {
@@ -257,7 +303,7 @@ export function BandScreen({
           refetchType: 'all',
         }),
       ]);
-      setBandAdministrationMode(null);
+      resetBandAdministration();
     } catch (error) {
       setBandAdministrationError(
         error instanceof BandAdministrationError
@@ -409,18 +455,32 @@ export function BandScreen({
       />
       <BandAdministrationDialog
         band={bandQuery.data ?? null}
+        discardPrompt={
+          Platform.OS === 'ios'
+            ? {
+                onContinue: unsavedBandName.continueEditing,
+                onDiscard: discardBandNameChanges,
+                visible: unsavedBandName.confirmationVisible,
+              }
+            : undefined
+        }
         errorMessage={bandAdministrationError}
         isSubmitting={bandAdministrationSubmitting}
         key={`${bandQuery.data?.id ?? 'none'}-${bandAdministrationMode ?? 'closed'}`}
         mode={bandAdministrationMode}
         onClose={closeBandAdministration}
         onDelete={() => void handleBandDelete()}
-        onModeChange={(mode) => {
-          setBandAdministrationError(null);
-          setBandAdministrationMode(mode);
-        }}
+        onDirtyChange={setBandNameDirty}
+        onModeChange={changeBandAdministrationMode}
         onRename={(name) => void handleBandRename(name)}
       />
+      {Platform.OS !== 'ios' || bandAdministrationMode === null ? (
+        <UnsavedChangesPrompt
+          onContinue={unsavedBandName.continueEditing}
+          onDiscard={discardBandNameChanges}
+          visible={unsavedBandName.confirmationVisible}
+        />
+      ) : null}
       <BandInvitationDialog
         errorMessage={invitationError}
         invitations={invitationsQuery.data ?? []}
@@ -496,6 +556,8 @@ function MemberRow({
   readonly onManage: () => void;
   readonly onReport: () => void;
 }) {
+  const [actionFocused, setActionFocused] = useState(false);
+
   return (
     <View style={styles.rowFrame}>
       <View style={styles.memberRow}>
@@ -517,39 +579,49 @@ function MemberRow({
         {!current ? (
           <Pressable
             accessibilityLabel={`Denunciar ${member.displayName}`}
+            accessibilityHint="Abre o formulário para informar o motivo da denúncia."
             accessibilityRole="button"
+            onBlur={() => setActionFocused(false)}
+            onFocus={() => setActionFocused(true)}
             onPress={onReport}
             style={({ pressed }) => [
               styles.overflowButton,
+              actionFocused && styles.focusedOverflowButton,
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.muted} name="flag" size={17} />
+            <AppIcon color={colors.text.secondary} name="flag" size={17} />
           </Pressable>
         ) : null}
         {current ? (
           <Pressable
             accessibilityLabel="Sair da banda"
             accessibilityRole="button"
+            onBlur={() => setActionFocused(false)}
+            onFocus={() => setActionFocused(true)}
             onPress={onLeave}
             style={({ pressed }) => [
               styles.overflowButton,
+              actionFocused && styles.focusedOverflowButton,
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.violet} name="logout" />
+            <AppIcon color={colors.text.secondary} name="logout" />
           </Pressable>
         ) : canManage ? (
           <Pressable
             accessibilityLabel={`Administrar ${member.displayName}`}
             accessibilityRole="button"
+            onBlur={() => setActionFocused(false)}
+            onFocus={() => setActionFocused(true)}
             onPress={onManage}
             style={({ pressed }) => [
               styles.overflowButton,
+              actionFocused && styles.focusedOverflowButton,
               pressed && styles.pressed,
             ]}
           >
-            <AppIcon color={colors.violet} name="more" />
+            <AppIcon color={colors.text.secondary} name="more" />
           </Pressable>
         ) : null}
       </View>
@@ -593,7 +665,7 @@ const styles = StyleSheet.create({
   },
   groupHeader: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background.canvas,
     maxWidth: layout.contentMaxWidth,
     paddingBottom: spacing.sm,
     paddingTop: spacing.lg,
@@ -601,8 +673,8 @@ const styles = StyleSheet.create({
   },
   memberRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -615,6 +687,11 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  focusedOverflowButton: {
+    borderColor: colors.border.focus,
+    borderRadius: radii.pill,
+    borderWidth: 2,
   },
   pressed: {
     opacity: 0.72,

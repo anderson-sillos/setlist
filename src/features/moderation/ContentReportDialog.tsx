@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import {
   sendContentReport,
   type ContentReportKind,
 } from '@/data/supabase/contentReports';
 import type { EntityId } from '@/domain';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface ContentReportDialogProps {
   readonly bandId: EntityId;
@@ -34,6 +36,7 @@ function VisibleContentReportDialog({
   targetId,
   targetName,
 }: Omit<ContentReportDialogProps, 'visible'>) {
+  const reducedMotion = useReducedMotionPreference();
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,22 +65,42 @@ function VisibleContentReportDialog({
 
   return (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={handleClose}
       transparent
       visible
     >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
-          accessibilityLabel="Fechar denúncia"
+          accessibilityLabel="Fechar janela de denúncia tocando fora"
           accessibilityRole="button"
+          disabled={isSubmitting}
           onPress={handleClose}
           style={styles.scrim}
         />
         <View style={styles.dialog} testID="content-report-dialog">
-          <AppText accessibilityRole="header" variant="heading">
-            {kind === 'song' ? 'Denunciar música' : 'Denunciar integrante'}
-          </AppText>
+          <View style={styles.header}>
+            <AppText
+              accessibilityRole="header"
+              style={styles.title}
+              variant="heading"
+            >
+              {kind === 'song' ? 'Denunciar música' : 'Denunciar integrante'}
+            </AppText>
+            <Pressable
+              accessibilityLabel="Fechar janela de denúncia"
+              accessibilityRole="button"
+              disabled={isSubmitting}
+              hitSlop={spacing.sm}
+              onPress={handleClose}
+              style={({ pressed }) => [
+                styles.closeButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
+            </Pressable>
+          </View>
           {sent ? (
             <>
               <AppText accessibilityRole="alert">
@@ -98,7 +121,7 @@ function VisibleContentReportDialog({
                 multiline
                 onChangeText={setDescription}
                 placeholder="Explique o que ocorreu"
-                placeholderTextColor={colors.muted}
+                placeholderTextColor={colors.text.muted}
                 style={styles.input}
                 textAlignVertical="top"
                 value={description}
@@ -113,12 +136,14 @@ function VisibleContentReportDialog({
                   disabled={isSubmitting}
                   label="Cancelar"
                   onPress={handleClose}
+                  style={styles.actionButton}
                   variant="secondary"
                 />
                 <AppButton
                   disabled={isSubmitting || description.trim().length < 10}
                   label={isSubmitting ? 'Enviando…' : 'Enviar denúncia'}
                   onPress={() => void handleSubmit()}
+                  style={styles.actionButton}
                 />
               </View>
             </>
@@ -131,25 +156,34 @@ function VisibleContentReportDialog({
 
 const styles = StyleSheet.create({
   actions: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
+    flexWrap: 'nowrap',
+    gap: spacing.sm,
     justifyContent: 'flex-end',
   },
+  actionButton: { paddingHorizontal: spacing.sm },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     gap: spacing.lg,
     maxWidth: 520,
     padding: spacing.xl,
+    paddingHorizontal: spacing.lg,
     width: '100%',
   },
-  errorText: { color: '#b91c1c' },
+  errorText: { color: colors.semantic.danger },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: 120,
     padding: spacing.md,
   },
@@ -158,13 +192,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
+  closeButton: {
+    alignItems: 'center',
+    borderRadius: radii.pill,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  pressed: { opacity: 0.7 },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',
     right: 0,
     top: 0,
   },
+  title: { flex: 1 },
 });

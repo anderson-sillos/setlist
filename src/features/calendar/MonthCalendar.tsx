@@ -115,7 +115,7 @@ export function MonthCalendar({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="back" />
+          <AppIcon color={colors.text.secondary} name="back" />
         </Pressable>
         <AppText
           accessibilityRole="header"
@@ -133,7 +133,7 @@ export function MonthCalendar({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="forward" />
+          <AppIcon color={colors.text.secondary} name="forward" />
         </Pressable>
       </View>
 
@@ -196,27 +196,36 @@ export function MonthCalendar({
               style={({ pressed }) => [
                 styles.dayCell,
                 weekend && styles.weekend,
-                dayShows.length > 0 && styles.eventDay,
                 holiday && styles.holiday,
-                isToday && styles.today,
                 isSelected && styles.selectedDay,
                 pressed && styles.pressed,
               ]}
             >
-              <AppText style={styles.dayNumber} variant="caption">
-                {day}
-              </AppText>
+              {isToday ? (
+                <View style={styles.todayMarker} testID="calendar-today-marker">
+                  <AppText style={styles.dayNumber} variant="caption">
+                    {day}
+                  </AppText>
+                </View>
+              ) : (
+                <AppText style={styles.dayNumber} variant="caption">
+                  {day}
+                </AppText>
+              )}
               {dayShows.length > 0 ? (
-                <View style={styles.showMarker}>
+                <View
+                  style={styles.showMarker}
+                  testID={`calendar-show-marker-${dateKey}`}
+                >
                   {dayShows.length === 1 ? (
                     <AppIcon
-                      color={colors.surface}
+                      color={colors.text.onAccent}
                       name="event"
                       size={11}
                       strokeWidth={2.5}
                     />
                   ) : (
-                    <AppText tone="inverse" variant="caption">
+                    <AppText tone="onAccent" variant="caption">
                       {dayShows.length}
                     </AppText>
                   )}
@@ -244,7 +253,7 @@ const styles = StyleSheet.create({
   },
   monthButton: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.pill,
     borderWidth: 1,
     height: layout.minimumTouchTarget,
@@ -257,7 +266,7 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   calendarGrid: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.lg,
     borderWidth: 1,
     flexDirection: 'row',
@@ -266,7 +275,7 @@ const styles = StyleSheet.create({
   },
   weekday: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     justifyContent: 'center',
     minHeight: 30,
     width: '14.2857%',
@@ -276,8 +285,8 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderTopColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
@@ -286,26 +295,29 @@ const styles = StyleSheet.create({
     width: '14.2857%',
   },
   weekend: {
-    backgroundColor: colors.violetSoft,
-  },
-  eventDay: {
-    backgroundColor: colors.greenSoft,
+    backgroundColor: colors.background.selected,
   },
   holiday: {
-    backgroundColor: '#fff2cc',
+    backgroundColor: colors.semantic.warningSurface,
   },
-  today: {
-    backgroundColor: colors.cyanSoft,
+  todayMarker: {
+    alignItems: 'center',
+    borderColor: colors.text.secondary,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    height: 28,
+    justifyContent: 'center',
+    minWidth: 28,
   },
   selectedDay: {
-    borderBottomColor: colors.violet,
+    borderBottomColor: colors.action.primary,
     borderBottomWidth: 2,
-    borderLeftColor: colors.violet,
+    borderLeftColor: colors.action.primary,
     borderLeftWidth: 2,
     borderRadius: radii.md,
-    borderRightColor: colors.violet,
+    borderRightColor: colors.action.primary,
     borderRightWidth: 2,
-    borderTopColor: colors.violet,
+    borderTopColor: colors.action.primary,
     borderTopWidth: 2,
     overflow: 'hidden',
     zIndex: 1,
@@ -316,7 +328,7 @@ const styles = StyleSheet.create({
   },
   showMarker: {
     alignItems: 'center',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     bottom: 2,
     borderRadius: radii.pill,
     justifyContent: 'center',

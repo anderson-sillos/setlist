@@ -1,12 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
   ErrorFeedback,
   LoadingFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { useShow, useSongs, useUserBands } from '@/data/queries';
 import {
   createShowBlock,
@@ -19,6 +20,7 @@ import {
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { getShowEditHref, getShowHref } from '@/features/navigation/routes';
 import {
   ShowBlockEditorDialog,
@@ -43,13 +45,17 @@ export function ShowSetlistEditorScreen({
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submissionLock = useRef(false);
+  const [dirty, setDirty] = useState(false);
+  const unsavedChanges = useUnsavedChangesGuard({ dirty, saving: submitting });
   const show = showQuery.data;
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const handleSave = async (drafts: readonly ShowBlockDraft[]) => {
-    if (!show) return;
+    if (!show || submissionLock.current) return;
+    submissionLock.current = true;
     setError(null);
     setSubmitting(true);
     try {
@@ -107,6 +113,7 @@ export function ShowSetlistEditorScreen({
           refetchType: 'all',
         }),
       ]);
+      unsavedChanges.allowNextRemoval();
       router.back();
     } catch (saveError) {
       setError(
@@ -115,6 +122,7 @@ export function ShowSetlistEditorScreen({
           : 'Não foi possível salvar a setlist agora. Tente novamente.',
       );
     } finally {
+      submissionLock.current = false;
       setSubmitting(false);
     }
   };
@@ -162,6 +170,11 @@ export function ShowSetlistEditorScreen({
           }
         />
       ) : null}
+      <UnsavedChangesPrompt
+        onContinue={unsavedChanges.continueEditing}
+        onDiscard={unsavedChanges.discardAndLeave}
+        visible={unsavedChanges.confirmationVisible}
+      />
       {show && canEdit && show.status === 'draft' ? (
         <ShowBlockEditorDialog
           addSheetVisible={addSheetVisible}
@@ -170,6 +183,7 @@ export function ShowSetlistEditorScreen({
           initialBlocks={show.blocks}
           isSubmitting={submitting}
           onAddSheetVisibilityChange={setAddSheetVisible}
+          onDirtyChange={setDirty}
           onClose={() => router.back()}
           onSubmit={(drafts) => void handleSave(drafts)}
           songs={songsQuery.data ?? []}

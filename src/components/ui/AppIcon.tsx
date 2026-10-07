@@ -1,44 +1,53 @@
-import { StyleSheet, View } from 'react-native';
-
 import {
+  Archive,
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
-  Archive,
   Ban,
   CalendarCheck,
   CalendarDays,
   CalendarMinus,
   CalendarPlus,
   Check,
+  CircleAlert,
+  CircleDashed,
+  ClipboardList,
+  Clock,
   Copy,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   CirclePlus,
+  CircleX,
   Ellipsis,
   ExternalLink,
+  FileText,
+  FileX2,
   Flag,
-  Hourglass,
-  HourglassCog,
-  LayoutGrid,
+  GripVertical,
   Layers,
-  Maximize2,
+  LayoutGrid,
   ListFilter,
+  ListMusic,
+  ListPlus,
   LogIn,
   LogOut,
+  Maximize2,
+  MicVocal,
   Menu,
   Minus,
-  Music,
   Music2,
   Pencil,
-  Play,
   Plus,
   RefreshCw,
+  RotateCcw,
   Search,
   Share2,
+  Timer,
   Trash2,
-  UserGroup,
+  Undo2,
+  UserMinus,
+  UserPlus,
   UserRound,
   Users,
   X,
@@ -57,17 +66,22 @@ const iconComponents = {
   back: ChevronLeft,
   band: Users,
   bands: LayoutGrid,
+  bandAdd: UserPlus,
   block: Layers,
   check: Check,
+  alert: CircleAlert,
   chevronDown: ChevronDown,
   close: X,
   copy: Copy,
-  duration: Hourglass,
-  dragHandle: Menu,
+  delete: Trash2,
+  duration: Clock,
+  dragHandle: GripVertical,
   edit: Pencil,
-  event: CalendarCheck,
+  event: CalendarDays,
   externalLink: ExternalLink,
   expand: Maximize2,
+  fileText: FileText,
+  fileMissing: FileX2,
   filter: ListFilter,
   flag: Flag,
   forward: ChevronRight,
@@ -77,27 +91,30 @@ const iconComponents = {
   minus: Minus,
   more: Ellipsis,
   music: Music2,
-  planning: HourglassCog,
-  repertoire: Music,
+  musicAdd: ListPlus,
+  planning: ClipboardList,
+  repertoire: ListMusic,
   search: Search,
   shows: CalendarDays,
   showAdd: CalendarPlus,
+  showReady: CalendarCheck,
+  showDraft: CircleDashed,
+  showCancelled: CircleX,
   calendarMinus: CalendarMinus,
-  stage: Play,
+  stage: MicVocal,
   sort: ArrowUpDown,
-  remove: Trash2,
-  renew: RefreshCw,
+  remove: Minus,
+  removeMember: UserMinus,
+  renew: RotateCcw,
+  refresh: RefreshCw,
+  reopen: Undo2,
+  restore: RotateCcw,
   revoke: Ban,
   share: Share2,
+  timer: Timer,
 } satisfies Record<string, LucideIcon>;
 
-const composedIconComponents = {
-  bandAdd: UserGroup,
-  musicAdd: Music2,
-} satisfies Record<string, LucideIcon>;
-
-export type AppIconName =
-  keyof typeof iconComponents | keyof typeof composedIconComponents;
+export type AppIconName = keyof typeof iconComponents;
 
 interface AppIconProps {
   readonly color?: string;
@@ -107,64 +124,12 @@ interface AppIconProps {
 }
 
 export function AppIcon({
-  color = colors.ink,
+  color = colors.text.secondary,
   name,
   size = 24,
   strokeWidth = 2,
 }: AppIconProps) {
-  const ComposedIcon =
-    composedIconComponents[name as keyof typeof composedIconComponents];
-
-  if (ComposedIcon) {
-    const badgeSize = Math.max(12, size * 0.56);
-
-    return (
-      <View style={[styles.composedIcon, { height: size, width: size }]}>
-        <ComposedIcon
-          color={color}
-          height={size}
-          size={size}
-          strokeWidth={strokeWidth}
-          width={size}
-        />
-        <View
-          style={[
-            styles.composedBadge,
-            {
-              borderRadius: badgeSize / 2,
-              height: badgeSize,
-              right: -badgeSize * 0.12,
-              width: badgeSize,
-            },
-          ]}
-        >
-          <Plus
-            color={color}
-            height={badgeSize * 0.86}
-            size={badgeSize * 0.86}
-            strokeWidth={Math.max(4.8, strokeWidth * 2.4)}
-            width={badgeSize * 0.86}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  const Icon = iconComponents[name as keyof typeof iconComponents];
-
-  if (name === 'dragHandle') {
-    return (
-      <View style={styles.dragHandleIcon}>
-        <Icon
-          color={color}
-          height={size}
-          size={size}
-          strokeWidth={strokeWidth}
-          width={size}
-        />
-      </View>
-    );
-  }
+  const Icon = iconComponents[name];
 
   return (
     <Icon
@@ -176,22 +141,3 @@ export function AppIcon({
     />
   );
 }
-
-const styles = StyleSheet.create({
-  composedIcon: {
-    overflow: 'visible',
-    pointerEvents: 'none',
-    position: 'relative',
-  },
-  composedBadge: {
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    bottom: -2,
-    justifyContent: 'center',
-    position: 'absolute',
-  },
-  dragHandleIcon: {
-    pointerEvents: 'none',
-    transform: [{ scaleY: 0.72 }],
-  },
-});

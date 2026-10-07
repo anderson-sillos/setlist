@@ -1,0 +1,344 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="2190" viewBox="0 0 1280 2190" role="img" aria-labelledby="title desc"><title id="title">Setlist: catálogo de ícones propostos e aplicações</title><desc id="desc">Lista visual das figuras propostas, incluindo variantes condicionais, com contexto e rótulos. Tamanhos de desenho nesta prancha são ilustrativos.</desc><metadata>ISC License
+
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+---
+
+The following Lucide icons are derived from the Feather project:
+
+airplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out
+
+The MIT License (MIT) (for the icons listed above)
+
+Copyright (c) 2013-present Cole Bemis
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</metadata><defs><symbol id="CalendarDays" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></symbol><symbol id="ListMusic" viewBox="0 0 24 24"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M11 19H3"/><path d="M21 16V5"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="MicVocal" viewBox="0 0 24 24"><path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12"/><path d="M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"/><circle cx="16" cy="7" r="5"/></symbol><symbol id="Users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol><symbol id="LayoutGrid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol><symbol id="UserRound" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol><symbol id="Menu" viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></symbol><symbol id="ChevronLeft" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="ChevronRight" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="ChevronDown" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="Search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol><symbol id="RefreshCw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="ListFilter" viewBox="0 0 24 24"><path d="M2 5h20"/><path d="M6 12h12"/><path d="M9 19h6"/></symbol><symbol id="ArrowUpDown" viewBox="0 0 24 24"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></symbol><symbol id="Ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol><symbol id="X" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="Flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></symbol><symbol id="Plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="CirclePlus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></symbol><symbol id="CalendarPlus" viewBox="0 0 24 24"><path d="M16 18h6"/><path d="M16 2v3"/><path d="M19 15v6"/><path d="M21 11.5V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h8.3"/><path d="M3 9h18"/><path d="M8 2v3"/></symbol><symbol id="UserPlus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></symbol><symbol id="Pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id="FileText" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="Maximize2" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/></symbol><symbol id="Copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol><symbol id="Share2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></symbol><symbol id="ListPlus" viewBox="0 0 24 24"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M16 19H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></symbol><symbol id="Archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol><symbol id="RotateCcw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="Undo2" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol><symbol id="CalendarX" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="m14 13-4 4"/><path d="m10 13 4 4"/></symbol><symbol id="Ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4.929 4.929 19.07 19.071"/></symbol><symbol id="Trash2" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol><symbol id="UserMinus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" x2="16" y1="11" y2="11"/></symbol><symbol id="Minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="GripVertical" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></symbol><symbol id="ArrowUp" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol><symbol id="ArrowDown" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol><symbol id="Layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></symbol><symbol id="ClipboardList" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol><symbol id="Clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="Timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="Check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="CalendarCheck" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="m9 15 2 2 4-4"/></symbol><symbol id="LogIn" viewBox="0 0 24 24"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></symbol><symbol id="LogOut" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></symbol><symbol id="ExternalLink" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol><symbol id="Music2" viewBox="0 0 24 24"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></symbol><symbol id="LoaderCircle" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></symbol></defs><g font-family="Arial, Helvetica, sans-serif">
+<rect width="1280" height="2190" fill="#0B0B0D"/>
+<text x="32" y="40" fill="#B692FF" font-size="12" font-weight="700">SETLIST / ESTUDO VISUAL 07</text>
+<text x="32" y="84" fill="#F4F4F5" font-size="32" font-weight="700">Catálogo: figura, aplicação e rótulo</text>
+<text x="32" y="115" fill="#B8B8C2" font-size="15" font-weight="400">Referência para implementação futura. A tabela Markdown detalha tamanhos, posição e regras de uso.</text>
+<rect x="32" y="148" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#CalendarDays" x="48" y="164" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="174" fill="#F4F4F5" font-size="16" font-weight="600">CalendarDays</text>
+<text x="252" y="174" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="197" fill="#B8B8C2" font-size="13" font-weight="400">Shows</text>
+<text x="88" y="213" fill="#92929F" font-size="11" font-weight="400">Calendário com dias</text>
+<rect x="32" y="228" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ListMusic" x="48" y="244" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="254" fill="#F4F4F5" font-size="16" font-weight="600">ListMusic</text>
+<text x="252" y="254" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="277" fill="#B8B8C2" font-size="13" font-weight="400">Repertório</text>
+<text x="88" y="293" fill="#92929F" font-size="11" font-weight="400">Lista com nota musical</text>
+<rect x="32" y="308" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#MicVocal" x="48" y="324" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="334" fill="#F4F4F5" font-size="16" font-weight="600">MicVocal</text>
+<text x="252" y="334" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="357" fill="#B8B8C2" font-size="13" font-weight="400">Palco</text>
+<text x="88" y="373" fill="#92929F" font-size="11" font-weight="400">Microfone de palco</text>
+<rect x="32" y="388" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Users" x="48" y="404" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="414" fill="#F4F4F5" font-size="16" font-weight="600">Users</text>
+<text x="252" y="414" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="437" fill="#B8B8C2" font-size="13" font-weight="400">Banda</text>
+<text x="88" y="453" fill="#92929F" font-size="11" font-weight="400">Grupo de pessoas</text>
+<rect x="32" y="468" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#LayoutGrid" x="48" y="484" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="494" fill="#F4F4F5" font-size="16" font-weight="600">LayoutGrid</text>
+<text x="252" y="494" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="517" fill="#B8B8C2" font-size="13" font-weight="400">Minhas bandas</text>
+<text x="88" y="533" fill="#92929F" font-size="11" font-weight="400">Quatro blocos</text>
+<rect x="32" y="548" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#UserRound" x="48" y="564" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="574" fill="#F4F4F5" font-size="16" font-weight="600">UserRound</text>
+<text x="252" y="574" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="597" fill="#B8B8C2" font-size="13" font-weight="400">Perfil e conta</text>
+<text x="88" y="613" fill="#92929F" font-size="11" font-weight="400">Pessoa individual</text>
+<rect x="32" y="628" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Menu" x="48" y="644" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="654" fill="#F4F4F5" font-size="16" font-weight="600">Menu</text>
+<text x="252" y="654" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="677" fill="#B8B8C2" font-size="13" font-weight="400">Abrir menu</text>
+<text x="88" y="693" fill="#92929F" font-size="11" font-weight="400">Três traços horizontais</text>
+<rect x="32" y="708" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ChevronLeft" x="48" y="724" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="734" fill="#F4F4F5" font-size="16" font-weight="600">ChevronLeft</text>
+<text x="252" y="734" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="757" fill="#B8B8C2" font-size="13" font-weight="400">Voltar para detalhes da música, conforme destino</text>
+<text x="88" y="773" fill="#92929F" font-size="11" font-weight="400">Seta curta para a esquerda</text>
+<rect x="32" y="788" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ChevronRight" x="48" y="804" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="814" fill="#F4F4F5" font-size="16" font-weight="600">ChevronRight</text>
+<text x="252" y="814" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="837" fill="#B8B8C2" font-size="13" font-weight="400">Abrir música</text>
+<text x="88" y="853" fill="#92929F" font-size="11" font-weight="400">Seta curta para a direita</text>
+<rect x="32" y="868" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ChevronDown" x="48" y="884" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="894" fill="#F4F4F5" font-size="16" font-weight="600">ChevronDown</text>
+<text x="252" y="894" fill="#92929F" font-size="11" font-weight="400">Navegação</text>
+<text x="88" y="917" fill="#B8B8C2" font-size="13" font-weight="400">Abrir opções</text>
+<text x="88" y="933" fill="#92929F" font-size="11" font-weight="400">Seta curta para baixo</text>
+<rect x="32" y="948" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Search" x="48" y="964" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="974" fill="#F4F4F5" font-size="16" font-weight="600">Search</text>
+<text x="252" y="974" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="997" fill="#B8B8C2" font-size="13" font-weight="400">Buscar no repertório, conforme contexto</text>
+<text x="88" y="1013" fill="#92929F" font-size="11" font-weight="400">Lupa</text>
+<rect x="32" y="1028" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#RefreshCw" x="48" y="1044" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1054" fill="#F4F4F5" font-size="16" font-weight="600">RefreshCw</text>
+<text x="252" y="1054" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="1077" fill="#B8B8C2" font-size="13" font-weight="400">Atualizar repertório, conforme contexto</text>
+<text x="88" y="1093" fill="#92929F" font-size="11" font-weight="400">Duas setas em ciclo</text>
+<rect x="32" y="1108" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ListFilter" x="48" y="1124" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1134" fill="#F4F4F5" font-size="16" font-weight="600">ListFilter</text>
+<text x="252" y="1134" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="1157" fill="#B8B8C2" font-size="13" font-weight="400">Filtros</text>
+<text x="88" y="1173" fill="#92929F" font-size="11" font-weight="400">Linhas de filtro</text>
+<rect x="32" y="1188" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ArrowUpDown" x="48" y="1204" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1214" fill="#F4F4F5" font-size="16" font-weight="600">ArrowUpDown</text>
+<text x="252" y="1214" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="1237" fill="#B8B8C2" font-size="13" font-weight="400">Ordenar: título</text>
+<text x="88" y="1253" fill="#92929F" font-size="11" font-weight="400">Setas para cima e para baixo</text>
+<rect x="32" y="1268" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Ellipsis" x="48" y="1284" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1294" fill="#F4F4F5" font-size="16" font-weight="600">Ellipsis</text>
+<text x="252" y="1294" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="1317" fill="#B8B8C2" font-size="13" font-weight="400">Mais opções de Luzes da Rua, adaptando ao nome real</text>
+<text x="88" y="1333" fill="#92929F" font-size="11" font-weight="400">Três pontos horizontais</text>
+<rect x="32" y="1348" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#X" x="48" y="1364" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1374" fill="#F4F4F5" font-size="16" font-weight="600">X</text>
+<text x="252" y="1374" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="1397" fill="#B8B8C2" font-size="13" font-weight="400">Fechar</text>
+<text x="88" y="1413" fill="#92929F" font-size="11" font-weight="400">Dois traços cruzados</text>
+<rect x="32" y="1428" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Flag" x="48" y="1444" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1454" fill="#F4F4F5" font-size="16" font-weight="600">Flag</text>
+<text x="252" y="1454" fill="#92929F" font-size="11" font-weight="400">Listagem e ações auxiliares</text>
+<text x="88" y="1477" fill="#B8B8C2" font-size="13" font-weight="400">Denunciar conteúdo</text>
+<text x="88" y="1493" fill="#92929F" font-size="11" font-weight="400">Bandeira</text>
+<rect x="32" y="1508" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Plus" x="48" y="1524" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1534" fill="#F4F4F5" font-size="16" font-weight="600">Plus</text>
+<text x="252" y="1534" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="1557" fill="#B8B8C2" font-size="13" font-weight="400">Criar banda</text>
+<text x="88" y="1573" fill="#92929F" font-size="11" font-weight="400">Sinal de mais</text>
+<rect x="32" y="1588" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#CirclePlus" x="48" y="1604" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1614" fill="#F4F4F5" font-size="16" font-weight="600">CirclePlus</text>
+<text x="252" y="1614" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="1637" fill="#B8B8C2" font-size="13" font-weight="400">Adicionar item</text>
+<text x="88" y="1653" fill="#92929F" font-size="11" font-weight="400">Mais dentro de círculo</text>
+<rect x="32" y="1668" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#CalendarPlus" x="48" y="1684" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1694" fill="#F4F4F5" font-size="16" font-weight="600">CalendarPlus</text>
+<text x="252" y="1694" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="1717" fill="#B8B8C2" font-size="13" font-weight="400">Criar show</text>
+<text x="88" y="1733" fill="#92929F" font-size="11" font-weight="400">Calendário com mais</text>
+<rect x="32" y="1748" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#UserPlus" x="48" y="1764" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1774" fill="#F4F4F5" font-size="16" font-weight="600">UserPlus</text>
+<text x="252" y="1774" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="1797" fill="#B8B8C2" font-size="13" font-weight="400">Convidar integrante</text>
+<text x="88" y="1813" fill="#92929F" font-size="11" font-weight="400">Pessoa com mais</text>
+<rect x="32" y="1828" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Pencil" x="48" y="1844" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1854" fill="#F4F4F5" font-size="16" font-weight="600">Pencil</text>
+<text x="252" y="1854" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="1877" fill="#B8B8C2" font-size="13" font-weight="400">Editar música</text>
+<text x="88" y="1893" fill="#92929F" font-size="11" font-weight="400">Lápis</text>
+<rect x="32" y="1908" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#FileText" x="48" y="1924" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="1934" fill="#F4F4F5" font-size="16" font-weight="600">FileText</text>
+<text x="252" y="1934" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="1957" fill="#B8B8C2" font-size="13" font-weight="400">Abrir letra</text>
+<text x="88" y="1973" fill="#92929F" font-size="11" font-weight="400">Documento com linhas</text>
+<rect x="32" y="1988" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Maximize2" x="48" y="2004" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="2014" fill="#F4F4F5" font-size="16" font-weight="600">Maximize2</text>
+<text x="252" y="2014" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="2037" fill="#B8B8C2" font-size="13" font-weight="400">Abrir em tela cheia</text>
+<text x="88" y="2053" fill="#92929F" font-size="11" font-weight="400">Setas para expandir</text>
+<rect x="32" y="2068" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Copy" x="48" y="2084" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="88" y="2094" fill="#F4F4F5" font-size="16" font-weight="600">Copy</text>
+<text x="252" y="2094" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="88" y="2117" fill="#B8B8C2" font-size="13" font-weight="400">Copiar link</text>
+<text x="88" y="2133" fill="#92929F" font-size="11" font-weight="400">Folhas sobrepostas</text>
+<rect x="656" y="148" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Share2" x="672" y="164" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="174" fill="#F4F4F5" font-size="16" font-weight="600">Share2</text>
+<text x="876" y="174" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="712" y="197" fill="#B8B8C2" font-size="13" font-weight="400">Compartilhar convite</text>
+<text x="712" y="213" fill="#92929F" font-size="11" font-weight="400">Pontos conectados</text>
+<rect x="656" y="228" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ListPlus" x="672" y="244" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="254" fill="#F4F4F5" font-size="16" font-weight="600">ListPlus</text>
+<text x="876" y="254" fill="#92929F" font-size="11" font-weight="400">Criação, edição e compartilhamento</text>
+<text x="712" y="277" fill="#B8B8C2" font-size="13" font-weight="400">Adicionar à setlist</text>
+<text x="712" y="293" fill="#92929F" font-size="11" font-weight="400">Lista com mais</text>
+<rect x="656" y="308" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Archive" x="672" y="324" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="334" fill="#F4F4F5" font-size="16" font-weight="600">Archive</text>
+<text x="876" y="334" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="357" fill="#B8B8C2" font-size="13" font-weight="400">Arquivar música</text>
+<text x="712" y="373" fill="#92929F" font-size="11" font-weight="400">Caixa de arquivo</text>
+<rect x="656" y="388" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#RotateCcw" x="672" y="404" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="414" fill="#F4F4F5" font-size="16" font-weight="600">RotateCcw</text>
+<text x="876" y="414" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="437" fill="#B8B8C2" font-size="13" font-weight="400">Restaurar música</text>
+<text x="712" y="453" fill="#92929F" font-size="11" font-weight="400">Seta circular de retorno</text>
+<rect x="656" y="468" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Undo2" x="672" y="484" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="494" fill="#F4F4F5" font-size="16" font-weight="600">Undo2</text>
+<text x="876" y="494" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="517" fill="#B8B8C2" font-size="13" font-weight="400">Reabrir para edição</text>
+<text x="712" y="533" fill="#92929F" font-size="11" font-weight="400">Seta de retorno</text>
+<rect x="656" y="548" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#CalendarX" x="672" y="564" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="574" fill="#F4F4F5" font-size="16" font-weight="600">CalendarX</text>
+<text x="876" y="574" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="597" fill="#B8B8C2" font-size="13" font-weight="400">Cancelar show</text>
+<text x="712" y="613" fill="#92929F" font-size="11" font-weight="400">Calendário com X</text>
+<rect x="656" y="628" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Ban" x="672" y="644" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="654" fill="#F4F4F5" font-size="16" font-weight="600">Ban</text>
+<text x="876" y="654" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="677" fill="#B8B8C2" font-size="13" font-weight="400">Revogar convite</text>
+<text x="712" y="693" fill="#92929F" font-size="11" font-weight="400">Círculo com traço</text>
+<rect x="656" y="708" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Trash2" x="672" y="724" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="734" fill="#F4F4F5" font-size="16" font-weight="600">Trash2</text>
+<text x="876" y="734" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="757" fill="#B8B8C2" font-size="13" font-weight="400">Excluir minha conta</text>
+<text x="712" y="773" fill="#92929F" font-size="11" font-weight="400">Lixeira</text>
+<rect x="656" y="788" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#UserMinus" x="672" y="804" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="814" fill="#F4F4F5" font-size="16" font-weight="600">UserMinus</text>
+<text x="876" y="814" fill="#92929F" font-size="11" font-weight="400">Gestão, remoção e recuperação</text>
+<text x="712" y="837" fill="#B8B8C2" font-size="13" font-weight="400">Remover integrante</text>
+<text x="712" y="853" fill="#92929F" font-size="11" font-weight="400">Pessoa com menos</text>
+<rect x="656" y="868" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Minus" x="672" y="884" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="894" fill="#F4F4F5" font-size="16" font-weight="600">Minus</text>
+<text x="876" y="894" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="917" fill="#B8B8C2" font-size="13" font-weight="400">Diminuir BPM</text>
+<text x="712" y="933" fill="#92929F" font-size="11" font-weight="400">Traço horizontal</text>
+<rect x="656" y="948" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#GripVertical" x="672" y="964" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="974" fill="#F4F4F5" font-size="16" font-weight="600">GripVertical</text>
+<text x="876" y="974" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="997" fill="#B8B8C2" font-size="13" font-weight="400">Arrastar item; alternativa Mover para cima/baixo</text>
+<text x="712" y="1013" fill="#92929F" font-size="11" font-weight="400">Seis pontos em duas colunas</text>
+<rect x="656" y="1028" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ArrowUp" x="672" y="1044" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1054" fill="#F4F4F5" font-size="16" font-weight="600">ArrowUp</text>
+<text x="876" y="1054" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="1077" fill="#B8B8C2" font-size="13" font-weight="400">Mover para cima</text>
+<text x="712" y="1093" fill="#92929F" font-size="11" font-weight="400">Seta para cima</text>
+<rect x="656" y="1108" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ArrowDown" x="672" y="1124" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1134" fill="#F4F4F5" font-size="16" font-weight="600">ArrowDown</text>
+<text x="876" y="1134" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="1157" fill="#B8B8C2" font-size="13" font-weight="400">Mover para baixo</text>
+<text x="712" y="1173" fill="#92929F" font-size="11" font-weight="400">Seta para baixo</text>
+<rect x="656" y="1188" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Layers" x="672" y="1204" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1214" fill="#F4F4F5" font-size="16" font-weight="600">Layers</text>
+<text x="876" y="1214" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="1237" fill="#B8B8C2" font-size="13" font-weight="400">Bloco</text>
+<text x="712" y="1253" fill="#92929F" font-size="11" font-weight="400">Camadas</text>
+<rect x="656" y="1268" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ClipboardList" x="672" y="1284" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1294" fill="#F4F4F5" font-size="16" font-weight="600">ClipboardList</text>
+<text x="876" y="1294" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="1317" fill="#B8B8C2" font-size="13" font-weight="400">Nota de planejamento</text>
+<text x="712" y="1333" fill="#92929F" font-size="11" font-weight="400">Prancheta com lista</text>
+<rect x="656" y="1348" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Clock" x="672" y="1364" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1374" fill="#F4F4F5" font-size="16" font-weight="600">Clock</text>
+<text x="876" y="1374" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="1397" fill="#B8B8C2" font-size="13" font-weight="400">Duração: 3min 42s</text>
+<text x="712" y="1413" fill="#92929F" font-size="11" font-weight="400">Relógio</text>
+<rect x="656" y="1428" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Timer" x="672" y="1444" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1454" fill="#F4F4F5" font-size="16" font-weight="600">Timer</text>
+<text x="876" y="1454" fill="#92929F" font-size="11" font-weight="400">Setlist e metadados</text>
+<text x="712" y="1477" fill="#B8B8C2" font-size="13" font-weight="400">Pausa de 20 segundos, conforme dado real</text>
+<text x="712" y="1493" fill="#92929F" font-size="11" font-weight="400">Cronômetro</text>
+<rect x="656" y="1508" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Check" x="672" y="1524" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1534" fill="#F4F4F5" font-size="16" font-weight="600">Check</text>
+<text x="876" y="1534" fill="#92929F" font-size="11" font-weight="400">Confirmação e sessão</text>
+<text x="712" y="1557" fill="#B8B8C2" font-size="13" font-weight="400">Pronto</text>
+<text x="712" y="1573" fill="#92929F" font-size="11" font-weight="400">Marca de confirmação</text>
+<rect x="656" y="1588" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#CalendarCheck" x="672" y="1604" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1614" fill="#F4F4F5" font-size="16" font-weight="600">CalendarCheck</text>
+<text x="876" y="1614" fill="#92929F" font-size="11" font-weight="400">Confirmação e sessão</text>
+<text x="712" y="1637" fill="#B8B8C2" font-size="13" font-weight="400">Show pronto, quando esse for o significado</text>
+<text x="712" y="1653" fill="#92929F" font-size="11" font-weight="400">Calendário com confirmação</text>
+<rect x="656" y="1668" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#LogIn" x="672" y="1684" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1694" fill="#F4F4F5" font-size="16" font-weight="600">LogIn</text>
+<text x="876" y="1694" fill="#92929F" font-size="11" font-weight="400">Confirmação e sessão</text>
+<text x="712" y="1717" fill="#B8B8C2" font-size="13" font-weight="400">Entrar para continuar</text>
+<text x="712" y="1733" fill="#92929F" font-size="11" font-weight="400">Entrada por uma porta</text>
+<rect x="656" y="1748" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#LogOut" x="672" y="1764" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1774" fill="#F4F4F5" font-size="16" font-weight="600">LogOut</text>
+<text x="876" y="1774" fill="#92929F" font-size="11" font-weight="400">Confirmação e sessão</text>
+<text x="712" y="1797" fill="#B8B8C2" font-size="13" font-weight="400">Sair da conta</text>
+<text x="712" y="1813" fill="#92929F" font-size="11" font-weight="400">Saída por uma porta</text>
+<rect x="656" y="1828" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#ExternalLink" x="672" y="1844" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1854" fill="#F4F4F5" font-size="16" font-weight="600">ExternalLink</text>
+<text x="876" y="1854" fill="#92929F" font-size="11" font-weight="400">Confirmação e sessão</text>
+<text x="712" y="1877" fill="#B8B8C2" font-size="13" font-weight="400">Termos de uso</text>
+<text x="712" y="1893" fill="#92929F" font-size="11" font-weight="400">Seta saindo de um quadrado</text>
+<rect x="656" y="1908" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#Music2" x="672" y="1924" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="1934" fill="#F4F4F5" font-size="16" font-weight="600">Music2</text>
+<text x="876" y="1934" fill="#92929F" font-size="11" font-weight="400">Conteúdo e carregamento</text>
+<text x="712" y="1957" fill="#B8B8C2" font-size="13" font-weight="400">Nome da música</text>
+<text x="712" y="1973" fill="#92929F" font-size="11" font-weight="400">Nota musical individual</text>
+<rect x="656" y="1988" width="592" height="72" rx="10" fill="#121214"/>
+<use href="#LoaderCircle" x="672" y="2004" width="24" height="24" fill="none" stroke="#B8B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="712" y="2014" fill="#F4F4F5" font-size="16" font-weight="600">LoaderCircle</text>
+<text x="876" y="2014" fill="#92929F" font-size="11" font-weight="400">Conteúdo e carregamento</text>
+<text x="712" y="2037" fill="#B8B8C2" font-size="13" font-weight="400">Carregando…</text>
+<text x="712" y="2053" fill="#92929F" font-size="11" font-weight="400">Indicador circular de progresso</text>
+<text x="32" y="2160" fill="#92929F" font-size="12" font-weight="400">49 figuras, incluindo usos opcionais. Não implica criação de funcionalidades. Lucide sob licença ISC.</text>
+</g></svg>

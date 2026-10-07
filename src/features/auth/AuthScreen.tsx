@@ -1,8 +1,9 @@
 import { Link, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
+import { AppLogo } from '@/components/ui/AppLogo';
 import { AppText } from '@/components/ui/AppText';
 import { AppVersionLabel } from '@/components/ui/AppVersionLabel';
 import { Card } from '@/components/ui/Card';
@@ -19,7 +20,8 @@ import {
 } from '@/features/auth/authService';
 import { getInvitePath, getSingleRouteParam } from '@/features/auth/authLinks';
 import { legalUrls } from '@/features/legal/legalUrls';
-import { radii, spacing } from '@/theme/tokens';
+import { spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 type AuthState =
   | { readonly status: 'idle' }
@@ -83,12 +85,7 @@ export function AuthScreen() {
       <View style={styles.authLayout}>
         <View style={styles.header}>
           <View style={styles.brand}>
-            <Image
-              accessibilityLabel="Logo do Setlist"
-              accessibilityRole="image"
-              source={require('../../../assets/icons/app-icon-512.png')}
-              style={styles.logo}
-            />
+            <AppLogo size={64} />
             <AppText accessibilityRole="header" variant="title">
               Setlist
             </AppText>
@@ -137,7 +134,12 @@ export function AuthScreen() {
           </Card>
 
           {inviteToken ? (
-            <Link href={getInvitePath(inviteToken) as Href} replace asChild>
+            <Link
+              href={getInvitePath(inviteToken) as Href}
+              onPress={blurWebFocus}
+              replace
+              asChild
+            >
               <AppButton label="Voltar" variant="secondary" />
             </Link>
           ) : null}
@@ -203,11 +205,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  logo: {
-    borderRadius: radii.lg,
-    height: 88,
-    width: 88,
-  },
   introduction: {
     maxWidth: 460,
     textAlign: 'center',
@@ -221,6 +218,7 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: spacing.md,
+    maxWidth: Platform.OS === 'web' ? 460 : undefined,
     marginBottom: spacing.lg,
     width: '100%',
   },

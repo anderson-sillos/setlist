@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +18,7 @@ import {
   LoadingFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
@@ -52,6 +53,7 @@ import {
 } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { LyricDocumentEditor } from './LyricDocumentEditor';
 import { SongLifecycleDialog } from './SongLifecycleDialog';
 import {
@@ -95,6 +97,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const [fieldErrors, setFieldErrors] = useState<SongEditorErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionLock = useRef(false);
   const [lifecycleDialogVisible, setLifecycleDialogVisible] = useState(false);
   const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   const [lifecycleNotice, setLifecycleNotice] = useState<string | null>(null);
@@ -134,6 +137,15 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     editedLyrics?.songId === (songId ?? null)
       ? editedLyrics.document
       : (song?.lyrics ?? emptyLyricDocument);
+  const initialValues = song ? songToEditorValues(song) : emptySongEditorValues;
+  const initialLyrics = song?.lyrics ?? emptyLyricDocument;
+  const dirty =
+    JSON.stringify(values) !== JSON.stringify(initialValues) ||
+    JSON.stringify(lyrics) !== JSON.stringify(initialLyrics);
+  const unsavedChanges = useUnsavedChangesGuard({
+    dirty,
+    saving: isSubmitting,
+  });
 
   const setField = (field: SongEditorField, value: string) => {
     setEditedValues({
@@ -281,6 +293,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   };
 
   const handleSave = async () => {
+    if (submissionLock.current) return;
     const parsed = parseSongEditorValues(values);
     setFieldErrors(parsed.errors);
     setSubmitError(null);
@@ -289,6 +302,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       return;
     }
 
+    submissionLock.current = true;
     setIsSubmitting(true);
 
     try {
@@ -298,6 +312,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           queryKey: ['bands', bandId, 'songs'],
         });
         await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+        unsavedChanges.allowNextRemoval();
         leaveEditor();
       } else {
         const createdSongId = await createSong({
@@ -309,6 +324,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           queryKey: ['bands', bandId, 'songs'],
         });
         await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+        unsavedChanges.allowNextRemoval();
         router.replace(getSongHref(bandId, createdSongId));
       }
     } catch (error) {
@@ -318,6 +334,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           : 'Não foi possível salvar a música agora. Tente novamente.',
       );
     } finally {
+      submissionLock.current = false;
       setIsSubmitting(false);
     }
   };
@@ -373,6 +390,11 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
             ? 'Aviso ao salvar música'
             : (lifecycleNoticeTitle ?? undefined)
         }
+      />
+      <UnsavedChangesPrompt
+        onContinue={unsavedChanges.continueEditing}
+        onDiscard={unsavedChanges.discardAndLeave}
+        visible={unsavedChanges.confirmationVisible}
       />
       <SongLifecycleDialog
         errorMessage={lifecycleError}
@@ -537,7 +559,7 @@ function SongEditorFieldView({
         multiline={multiline}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.text.muted}
         style={[
           styles.input,
           multiline && styles.multilineInput,
@@ -656,8 +678,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderTopColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -672,14 +694,14 @@ const styles = StyleSheet.create({
     minWidth: 160,
   },
   fieldError: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,

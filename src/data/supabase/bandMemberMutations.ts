@@ -17,7 +17,7 @@ export type LeaveBandInput = {
 };
 
 export type BandMemberMutationErrorCode =
-  'last_owner' | 'permission_denied' | 'request_failed';
+  'last_member' | 'last_owner' | 'permission_denied' | 'request_failed';
 
 export class BandMemberMutationError extends Error {
   readonly code: BandMemberMutationErrorCode;
@@ -30,6 +30,13 @@ export class BandMemberMutationError extends Error {
 }
 
 function mapSupabaseError(message: string): BandMemberMutationError {
+  if (message.includes('BAND_LAST_MEMBER_CANNOT_LEAVE')) {
+    return new BandMemberMutationError(
+      'last_member',
+      'Você é o último integrante. Convide outra pessoa antes de sair ou exclua a banda em Editar banda.',
+    );
+  }
+
   if (
     message.includes('last owner') ||
     message.includes('LAST_OWNER') ||

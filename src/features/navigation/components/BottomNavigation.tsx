@@ -5,7 +5,9 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useSectionTransition } from '@/features/navigation/SectionTransition';
+import { colors, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
 interface BottomNavigationProps {
   readonly activeSection: BandSection;
@@ -18,6 +20,8 @@ export function BottomNavigation({
   getSectionHref,
   onStagePress,
 }: BottomNavigationProps) {
+  const { setSectionTransition } = useSectionTransition();
+
   return (
     <View
       accessibilityRole="tablist"
@@ -35,7 +39,19 @@ export function BottomNavigation({
             }
             accessibilityRole={stage ? 'button' : 'tab'}
             accessibilityState={stage ? undefined : { selected: active }}
-            onPress={stage ? onStagePress : undefined}
+            onPress={
+              stage
+                ? () => {
+                    blurWebFocus();
+                    onStagePress();
+                  }
+                : undefined
+            }
+            onPressIn={
+              active || stage
+                ? undefined
+                : () => setSectionTransition(activeSection, item.section)
+            }
             style={StyleSheet.flatten([
               styles.item,
               active && styles.itemActive,
@@ -46,7 +62,7 @@ export function BottomNavigation({
               testID="bottom-navigation-item-content"
             >
               <AppIcon
-                color={active ? colors.violet : colors.muted}
+                color={active ? colors.action.primary : colors.text.secondary}
                 name={item.icon}
                 size={22}
                 strokeWidth={active ? 2.5 : 2}
@@ -69,6 +85,7 @@ export function BottomNavigation({
           <Link
             href={getSectionHref(item.section)}
             key={item.section}
+            onPress={blurWebFocus}
             replace
             asChild
             disabled={active}
@@ -84,18 +101,24 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   navigation: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderTopColor: colors.line,
+    backgroundColor: 'rgba(11, 11, 13, 0.82)',
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
+    bottom: 0,
+    elevation: 8,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    minHeight: 52,
-    paddingVertical: 2,
+    left: 0,
+    minHeight: 60,
+    paddingVertical: spacing.xs,
+    position: 'absolute',
+    right: 0,
+    zIndex: 2,
   },
   item: {
     alignItems: 'center',
     flexShrink: 1,
-    height: layout.minimumTouchTarget,
+    height: 56,
     justifyContent: 'center',
     minWidth: 0,
     paddingHorizontal: spacing.xs,
@@ -104,17 +127,17 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    gap: 1,
+    gap: spacing.xs,
     justifyContent: 'center',
     width: '100%',
   },
   itemActive: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
     borderRadius: radii.sm,
   },
   label: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: 'center',
     width: '100%',
   },

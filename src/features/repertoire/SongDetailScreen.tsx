@@ -33,12 +33,16 @@ import {
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
-import { colors, layout, spacing } from '@/theme/tokens';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
 import { SongLyricsContent } from './SongLyricsContent';
-import { lyricStatusLabels } from './songPresentation';
+import {
+  lyricStatusIcons,
+  lyricStatusLabels,
+  lyricStatusTones,
+} from './songPresentation';
 
 interface SongDetailScreenProps {
   readonly bandId: EntityId;
@@ -57,6 +61,7 @@ export function SongDetailScreen({
 }: SongDetailScreenProps) {
   const router = useRouter();
   const [reportVisible, setReportVisible] = useState(false);
+  const [reportActionFocused, setReportActionFocused] = useState(false);
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const songQuery = useSong(bandId, songId);
@@ -150,16 +155,10 @@ export function SongDetailScreen({
             </View>
             <View style={styles.summaryLine}>
               <StatusPill
-                tone={
-                  song.lyricStatus === 'synchronized'
-                    ? 'ready'
-                    : song.lyricStatus === 'missing'
-                      ? 'warning'
-                      : 'default'
-                }
-              >
-                {lyricStatusLabels[song.lyricStatus]}
-              </StatusPill>
+                accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                icon={lyricStatusIcons[song.lyricStatus]}
+                tone={lyricStatusTones[song.lyricStatus]}
+              />
               {song.archivedAt ? (
                 <StatusPill tone="warning">Arquivada</StatusPill>
               ) : null}
@@ -168,7 +167,11 @@ export function SongDetailScreen({
                 accessible
                 style={styles.durationMeta}
               >
-                <AppIcon color={colors.violet} name="duration" size={14} />
+                <AppIcon
+                  color={colors.text.secondary}
+                  name="duration"
+                  size={14}
+                />
                 <AppText variant="caption">
                   Duração · {formatSongDuration(song.estimatedDurationMs)}
                 </AppText>
@@ -235,15 +238,19 @@ export function SongDetailScreen({
           </Card>
           <Pressable
             accessibilityLabel="Denunciar música"
+            accessibilityHint="Abre o formulário para informar o motivo da denúncia."
             accessibilityRole="button"
             hitSlop={4}
+            onBlur={() => setReportActionFocused(false)}
+            onFocus={() => setReportActionFocused(true)}
             onPress={() => setReportVisible(true)}
             style={({ pressed }) => [
               styles.reportAction,
+              reportActionFocused && styles.reportActionFocused,
               pressed && styles.reportActionPressed,
             ]}
           >
-            <AppIcon color={colors.muted} name="flag" size={17} />
+            <AppIcon color={colors.text.secondary} name="flag" size={17} />
           </Pressable>
         </View>
       ) : null}
@@ -312,7 +319,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   notes: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     gap: spacing.sm,
     paddingTop: spacing.lg,
@@ -327,6 +334,11 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  reportActionFocused: {
+    borderColor: colors.border.focus,
+    borderRadius: radii.pill,
+    borderWidth: 2,
   },
   reportActionPressed: {
     opacity: 0.6,

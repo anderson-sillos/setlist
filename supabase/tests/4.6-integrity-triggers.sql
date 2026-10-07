@@ -272,6 +272,21 @@ select is(
   'consumption references are anonymized while authorship remains'
 );
 
+-- Keep an Owner while checking anonymization of the original creator.
+insert into auth.users (id, aud, role, email)
+values (
+  '00000000-0000-0000-0000-000000000091',
+  'authenticated',
+  'authenticated',
+  'task-4-6-remaining@example.test'
+);
+insert into public.band_members (band_id, user_id, role)
+values (
+  '00000000-0000-0000-0000-000000000086',
+  '00000000-0000-0000-0000-000000000091',
+  'owner'
+);
+
 delete from auth.users
 where id = '00000000-0000-0000-0000-000000000083';
 delete from auth.users

@@ -129,9 +129,13 @@ export function AutocompleteField({
           }, 150);
         }}
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.text.muted}
         ref={inputRef}
-        style={styles.input}
+        style={[
+          styles.input,
+          Platform.OS !== 'web' && focused && styles.inputFocused,
+          error && styles.inputError,
+        ]}
         value={value}
       />
       {showSuggestions ? (
@@ -185,18 +189,25 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
   },
+  inputFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
+  },
+  inputError: {
+    borderColor: colors.border.error,
+  },
   suggestions: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
     borderRadius: radii.md,
     borderWidth: 1,
     elevation: 4,
@@ -213,9 +224,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   pressed: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.hover,
   },
   error: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
 });

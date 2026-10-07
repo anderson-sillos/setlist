@@ -1,20 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import {
+  FlatList,
+  Platform,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { ContentFade } from '@/components/ui/ContentFade';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import {
   getListRefreshControl,
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
+import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
 import {
   ChoiceChips,
   FilterMenu,
-  ListControls,
   OptionMenu,
   SearchField,
 } from '@/components/ui/ListControls';
@@ -26,19 +35,29 @@ import { getShowDurationMs } from '@/domain/setlistDuration';
 import { getBrazilianNationalHolidays } from '@/features/calendar/brazilianHolidays';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
-import { getBandSectionHref, getShowHref } from '@/features/navigation/routes';
+import {
+  getBandSectionHref,
+  getShowHref,
+  getSongCreateHref,
+} from '@/features/navigation/routes';
 import {
   type BandSectionScreenProps,
   rememberListScrollOffset,
 } from '@/features/navigation/screenTypes';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useScrollDirectionVisibility } from '@/hooks/useScrollDirectionVisibility';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { ShowListRow } from '@/features/shows/ShowListRow';
 import {
   ShowCreationDialog,
   type ShowCreationForm,
 } from '@/features/shows/ShowCreationDialog';
-import { colors, radii, spacing } from '@/theme/tokens';
+import {
+  getContentHorizontalPadding,
+  getNavigationPresentation,
+} from '@/theme/responsive';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatDateFilter, getDateKey } from '@/utils/dateTime';
 import { normalizeForSearch } from '@/utils/text';
 
@@ -73,6 +92,15 @@ export function ShowsScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  const window = useWindowDimensions();
+  const usesBottomNavigation =
+    getNavigationPresentation(
+      viewportWidth ?? window.width,
+      viewportHeight ?? window.height,
+    ) === 'bottom-tabs';
+  const horizontalPadding = getContentHorizontalPadding(
+    viewportWidth ?? window.width,
+  );
   const router = useRouter();
   const queryClient = useQueryClient();
   const showsQuery = useShows(bandId);
@@ -87,7 +115,13 @@ export function ShowsScreen({
   const [creationVisible, setCreationVisible] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
   const [creationSubmitting, setCreationSubmitting] = useState(false);
+  const creationSubmissionLock = useRef(false);
+  const [creationDirty, setCreationDirty] = useState(false);
   const [creationInstance, setCreationInstance] = useState(0);
+  const unsavedChanges = useUnsavedChangesGuard({
+    dirty: creationDirty,
+    saving: creationSubmitting,
+  });
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'shows', {
       date: '',
@@ -96,6 +130,13 @@ export function ShowsScreen({
       sort: 'date-asc' as ShowSort,
       status: 'active' as ShowStatusFilter,
     });
+  const {
+    beginDrag: beginControlsDrag,
+    beginMomentum: beginControlsMomentum,
+    endMomentum: endControlsMomentum,
+    updateVisibility: updateControlsVisibility,
+    visible: controlsVisible,
+  } = useScrollDirectionVisibility(initialScrollOffset);
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
@@ -105,6 +146,10 @@ export function ShowsScreen({
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
   );
+  const hasActiveSongs = (songsQuery.data ?? []).some(
+    (song) => song.archivedAt === null,
+  );
+  const hasRegisteredShows = (showsQuery.data?.length ?? 0) > 0;
   const normalizedSearch = normalizeForSearch(state.search);
   const todayKey = getDateKey(now);
   const shows = useMemo(() => {
@@ -173,7 +218,15 @@ export function ShowsScreen({
       ) ?? null
     );
   }, [state.date]);
+  const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
+    spacing.sm * (selectedDateLabel ? 4 : 3) +
+      layout.minimumTouchTarget * 2 +
+      (selectedDateLabel ? 40 : 0) +
+      1,
+  );
   const handleCreateShow = async (form: ShowCreationForm) => {
+    if (creationSubmissionLock.current) return;
+    creationSubmissionLock.current = true;
     setCreationError(null);
     setCreationSubmitting(true);
 
@@ -190,6 +243,8 @@ export function ShowsScreen({
         refetchType: 'all',
       });
       setCreationVisible(false);
+      setCreationDirty(false);
+      unsavedChanges.allowNextRemoval();
       router.push(getShowHref(bandId, showId));
     } catch (error) {
       setCreationError(
@@ -198,6 +253,7 @@ export function ShowsScreen({
           : 'Não foi possível criar o show agora. Tente novamente.',
       );
     } finally {
+      creationSubmissionLock.current = false;
       setCreationSubmitting(false);
     }
   };
@@ -207,6 +263,16 @@ export function ShowsScreen({
     update('period', 'upcoming');
     update('status', 'active');
     update('sort', 'date-asc');
+  };
+  const openCreateShowDialog = () => {
+    setCreationError(null);
+    setCreationInstance((current) => current + 1);
+    setCreationVisible(true);
+  };
+  const discardCreationChanges = () => {
+    setCreationVisible(false);
+    setCreationDirty(false);
+    unsavedChanges.discardAndLeave();
   };
   const activeFilterCount =
     Number(Boolean(state.date)) +
@@ -224,19 +290,21 @@ export function ShowsScreen({
     update('status', 'active');
   };
 
-  const controls = (
-    <ListControls>
-      <View style={styles.searchRow}>
-        <View style={styles.searchField}>
-          <SearchField
-            accessibilityLabel="Buscar show por nome ou local"
-            onChangeText={(value) => update('search', value)}
-            placeholder="Buscar show ou local"
-            value={state.search}
-          />
-        </View>
-        <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+  const searchControls = (
+    <View style={styles.searchRow}>
+      <View style={styles.searchField}>
+        <SearchField
+          accessibilityLabel="Buscar show por nome ou local"
+          onChangeText={(value) => update('search', value)}
+          placeholder="Buscar show ou local"
+          value={state.search}
+        />
       </View>
+      <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
+    </View>
+  );
+  const controls = (
+    <>
       <View style={styles.controlToolbar}>
         <Pressable
           accessibilityLabel="Abrir calendário para filtrar por data"
@@ -247,7 +315,7 @@ export function ShowsScreen({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="shows" size={18} />
+          <AppIcon color={colors.text.secondary} name="shows" size={18} />
           <AppText tone="accent" variant="caption">
             Calendário
           </AppText>
@@ -293,29 +361,67 @@ export function ShowsScreen({
           value={state.sort}
         />
       </View>
-      <View style={styles.dateToolbar}>
-        {selectedDateLabel ? (
-          <Pressable
-            accessibilityLabel={`Remover filtro de data ${selectedDateLabel}`}
-            accessibilityRole="button"
-            onPress={clearSelectedDate}
-            style={({ pressed }) => [
-              styles.dateChip,
-              pressed && styles.pressed,
-            ]}
-          >
-            <AppText tone="inverse" variant="caption">
-              {selectedDateLabel}
+      {selectedDateLabel || selectedHoliday ? (
+        <View style={styles.dateToolbar}>
+          {selectedDateLabel ? (
+            <Pressable
+              accessibilityLabel={`Remover filtro de data ${selectedDateLabel}`}
+              accessibilityRole="button"
+              onPress={clearSelectedDate}
+              style={({ pressed }) => [
+                styles.dateChip,
+                pressed && styles.pressed,
+              ]}
+            >
+              <AppText tone="onAccent" variant="caption">
+                {selectedDateLabel}
+              </AppText>
+              <AppIcon color={colors.text.onAccent} name="close" size={14} />
+            </Pressable>
+          ) : null}
+          {selectedHoliday ? (
+            <AppText tone="accent" variant="body">
+              {selectedHoliday.name}
             </AppText>
-            <AppIcon color={colors.surface} name="close" size={14} />
-          </Pressable>
-        ) : null}
-        {selectedHoliday ? (
-          <AppText tone="accent" variant="body">
-            {selectedHoliday.name}
-          </AppText>
-        ) : null}
-      </View>
+          ) : null}
+        </View>
+      ) : null}
+    </>
+  );
+  const hasQuery =
+    state.date.length > 0 ||
+    state.search.length > 0 ||
+    state.period !== 'upcoming' ||
+    state.status !== 'active';
+  const isMissingSongsEmptyState = !hasQuery && !hasActiveSongs;
+  const isFirstShowEmptyState =
+    !hasQuery && hasActiveSongs && !hasRegisteredShows;
+
+  return (
+    <BandAreaLayout
+      activeSection="shows"
+      bandId={bandId}
+      currentRoute={getBandSectionHref(bandId, 'shows') as string}
+      headerAction={
+        canCreate
+          ? {
+              accessibilityLabel: 'Criar novo show',
+              icon: 'showAdd',
+              label: 'Novo show',
+              onPress: openCreateShowDialog,
+            }
+          : undefined
+      }
+      scrollable={false}
+      title="Shows"
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    >
+      {showsQuery.isPending ||
+      songsQuery.isPending ||
+      userBandsQuery.isPending ? (
+        <LoadingFeedback variation={1} />
+      ) : null}
       <OptionSheet
         closeAccessibilityLabel="Fechar calendário"
         label="Escolher data"
@@ -329,42 +435,6 @@ export function ShowsScreen({
           shows={calendarShows}
         />
       </OptionSheet>
-    </ListControls>
-  );
-  const hasQuery =
-    state.date.length > 0 ||
-    state.search.length > 0 ||
-    state.period !== 'upcoming' ||
-    state.status !== 'active';
-
-  return (
-    <BandAreaLayout
-      activeSection="shows"
-      bandId={bandId}
-      currentRoute={getBandSectionHref(bandId, 'shows') as string}
-      fixedContent={controls}
-      headerAction={
-        canCreate
-          ? {
-              accessibilityLabel: 'Criar novo show',
-              icon: 'showAdd',
-              label: 'Novo show',
-              onPress: () => {
-                setCreationError(null);
-                setCreationInstance((current) => current + 1);
-                setCreationVisible(true);
-              },
-            }
-          : undefined
-      }
-      scrollable={false}
-      title="Shows"
-      viewportHeight={viewportHeight}
-      viewportWidth={viewportWidth}
-    >
-      {showsQuery.isPending || songsQuery.isPending ? (
-        <LoadingFeedback variation={1} />
-      ) : null}
       <ShowCreationDialog
         calendarShows={calendarShows}
         venueOptions={venueOptions}
@@ -372,6 +442,16 @@ export function ShowsScreen({
         errorMessage={creationError}
         initialDate={state.date || undefined}
         isSubmitting={creationSubmitting}
+        navigationDiscardPrompt={
+          Platform.OS === 'ios'
+            ? {
+                onContinue: unsavedChanges.continueEditing,
+                onDiscard: discardCreationChanges,
+                visible: unsavedChanges.confirmationVisible,
+              }
+            : undefined
+        }
+        onDirtyChange={setCreationDirty}
         onClose={() => {
           if (!creationSubmitting) {
             setCreationVisible(false);
@@ -381,6 +461,13 @@ export function ShowsScreen({
         onSubmit={(form) => void handleCreateShow(form)}
         visible={creationVisible}
       />
+      {Platform.OS !== 'ios' || !creationVisible ? (
+        <UnsavedChangesPrompt
+          onContinue={unsavedChanges.continueEditing}
+          onDiscard={discardCreationChanges}
+          visible={unsavedChanges.confirmationVisible}
+        />
+      ) : null}
       {showsQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
@@ -391,52 +478,140 @@ export function ShowsScreen({
         />
       ) : null}
 
-      <FlatList
-        contentContainerStyle={styles.listContent}
-        contentOffset={{ x: 0, y: initialScrollOffset }}
-        data={shows}
-        keyExtractor={({ id }) => id}
-        refreshControl={getListRefreshControl({ onRefresh, refreshing })}
-        ListEmptyComponent={
-          !showsQuery.isPending &&
-          !songsQuery.isPending &&
-          !showsQuery.isError &&
-          !userBandsQuery.isError &&
-          !songsQuery.isError ? (
-            <ListEmptyState
-              actionLabel={hasQuery ? 'Limpar filtros' : undefined}
-              message={
-                hasQuery
-                  ? 'Nem o roadie encontrou essa. Tente outra busca.'
-                  : 'A agenda ainda está em silêncio. Que tal marcar o próximo show?'
-              }
-              onAction={hasQuery ? clearFilters : undefined}
-              title={
-                hasQuery ? 'Nenhum show encontrado' : 'Nenhum show por aqui'
-              }
+      <ContentFade
+        loading={
+          showsQuery.isPending ||
+          songsQuery.isPending ||
+          userBandsQuery.isPending
+        }
+        style={styles.listArea}
+      >
+        <FlatList
+          contentContainerStyle={[
+            styles.listContent,
+            usesBottomNavigation && styles.listContentWithBottomNavigation,
+          ]}
+          contentOffset={{ x: 0, y: initialScrollOffset }}
+          data={shows}
+          keyExtractor={({ id }) => id}
+          ListEmptyComponent={
+            !showsQuery.isPending &&
+            !songsQuery.isPending &&
+            !showsQuery.isError &&
+            !userBandsQuery.isError &&
+            !userBandsQuery.isPending &&
+            !songsQuery.isError ? (
+              <ListEmptyState
+                actionIcon={
+                  hasQuery
+                    ? undefined
+                    : isMissingSongsEmptyState && canCreate
+                      ? 'musicAdd'
+                      : isFirstShowEmptyState && canCreate
+                        ? 'showAdd'
+                        : undefined
+                }
+                actionLabel={
+                  hasQuery
+                    ? 'Limpar filtros'
+                    : isMissingSongsEmptyState
+                      ? canCreate
+                        ? 'Adicionar música'
+                        : undefined
+                      : isFirstShowEmptyState && canCreate
+                        ? 'Criar primeiro show'
+                        : undefined
+                }
+                message={
+                  hasQuery
+                    ? 'Nem o roadie encontrou essa. Tente outra busca.'
+                    : isMissingSongsEmptyState
+                      ? canCreate
+                        ? 'Cadastre a primeira música do repertório antes de planejar um show.'
+                        : 'O repertório ainda não tem músicas. Peça a um proprietário ou editor para cadastrar a primeira.'
+                      : isFirstShowEmptyState
+                        ? canCreate
+                          ? 'O repertório já tem músicas. Crie o primeiro show para organizar a apresentação.'
+                          : 'O repertório já tem músicas. Peça a um proprietário ou editor para cadastrar o primeiro show.'
+                        : 'A agenda ainda está em silêncio.'
+                }
+                onAction={
+                  hasQuery
+                    ? clearFilters
+                    : isMissingSongsEmptyState && canCreate
+                      ? () => router.push(getSongCreateHref(bandId))
+                      : isFirstShowEmptyState && canCreate
+                        ? openCreateShowDialog
+                        : undefined
+                }
+                title={
+                  hasQuery
+                    ? 'Nenhum show encontrado'
+                    : isMissingSongsEmptyState
+                      ? 'Comece pelo repertório'
+                      : isFirstShowEmptyState
+                        ? 'Cadastre o primeiro show'
+                        : 'Nenhum show por aqui'
+                }
+              />
+            ) : null
+          }
+          ListHeaderComponent={
+            <View style={{ height: controlsOverlayHeight }} />
+          }
+          onMomentumScrollBegin={beginControlsMomentum}
+          onMomentumScrollEnd={endControlsMomentum}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } =
+              event.nativeEvent;
+            updateControlsVisibility(
+              contentOffset.y,
+              contentSize.height - layoutMeasurement.height,
+            );
+            rememberListScrollOffset(event, rememberScrollOffset);
+          }}
+          onScrollBeginDrag={beginControlsDrag}
+          refreshControl={getListRefreshControl({
+            onRefresh,
+            progressViewOffset: controlsOverlayHeight,
+            refreshing,
+          })}
+          renderItem={({ item }) => (
+            <ShowListRow
+              accessibilityLabel={`Abrir show ${item.name}`}
+              durationMs={getShowDurationMs(item, songsById)}
+              href={getShowHref(bandId, item.id)}
+              show={item}
             />
-          ) : null
-        }
-        onScroll={(event) =>
-          rememberListScrollOffset(event, rememberScrollOffset)
-        }
-        renderItem={({ item }) => (
-          <ShowListRow
-            accessibilityLabel={`Abrir show ${item.name}`}
-            durationMs={getShowDurationMs(item, songsById)}
-            href={getShowHref(bandId, item.id)}
-            show={item}
-          />
-        )}
-        scrollEventThrottle={120}
-        showsVerticalScrollIndicator={false}
-        testID="shows-list"
-      />
+          )}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          style={styles.list}
+          testID="shows-list"
+        />
+        <ListControlsOverlay
+          controlsVisible={controlsVisible}
+          horizontalPadding={horizontalPadding}
+          onExpandedHeightChange={setControlsOverlayHeight}
+          search={searchControls}
+        >
+          {controls}
+        </ListControlsOverlay>
+      </ContentFade>
     </BandAreaLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  listArea: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+  },
+  list: {
+    flex: 1,
+    minHeight: 0,
+  },
   searchRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -462,8 +637,8 @@ const styles = StyleSheet.create({
   },
   calendarButton: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -474,7 +649,7 @@ const styles = StyleSheet.create({
   },
   dateChip: {
     alignItems: 'center',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     borderRadius: radii.pill,
     flexDirection: 'row',
     gap: spacing.xs,
@@ -490,6 +665,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxxl,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
+  },
+  listContentWithBottomNavigation: {
+    paddingBottom: spacing.xxxl + layout.minimumTouchTarget,
   },
   pressed: {
     opacity: 0.72,

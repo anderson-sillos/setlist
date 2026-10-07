@@ -14,6 +14,10 @@ import { AppProviders } from '@/providers/AppProviders';
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
+  useNavigation: () => ({
+    addListener: () => jest.fn(),
+    dispatch: jest.fn(),
+  }),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
@@ -59,7 +63,7 @@ describe('<BandsScreen />', () => {
     ).toEqual({ selected: true });
     expect(view.getAllByText(/Próximo show/)).toHaveLength(2);
     expect(
-      view.getByText('Próximo show · sáb, 19 de set. de 2026 · 16h'),
+      view.getByText('Próximo show · sáb. 19 set. 2026 - 16h'),
     ).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Criar banda'));

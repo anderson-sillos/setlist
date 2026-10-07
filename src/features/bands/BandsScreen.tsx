@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -15,6 +16,7 @@ import {
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import type { BandRole, Show } from '@/domain';
 import {
   BandCreationDialog,
@@ -25,7 +27,7 @@ import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { formatShowListDate } from '@/utils/dateTime';
+import { formatCompactShowListDate } from '@/utils/dateTime';
 import { normalizeForSearch } from '@/utils/text';
 
 const roleLabels: Record<BandRole, string> = {
@@ -66,7 +68,12 @@ export function BandsScreen({
   const [creationDialogVisible, setCreationDialogVisible] = useState(false);
   const [creationStatus, setCreationStatus] =
     useState<BandCreationDialogStatus>('idle');
+  const [creationDirty, setCreationDirty] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
+  const unsavedChanges = useUnsavedChangesGuard({
+    dirty: creationDirty,
+    saving: creationStatus === 'submitting',
+  });
   const normalizedSearch = normalizeForSearch(search);
 
   const openBand = async (bandId: string) => {
@@ -77,17 +84,30 @@ export function BandsScreen({
   const openCreationDialog = () => {
     setCreationError(null);
     setCreationStatus('idle');
+    setCreationDirty(false);
     setCreationDialogVisible(true);
   };
 
+  const resetCreationDialog = () => {
+    setCreationDialogVisible(false);
+    setCreationDirty(false);
+    setCreationError(null);
+    setCreationStatus('idle');
+  };
+
   const closeCreationDialog = () => {
-    if (creationStatus === 'submitting') {
+    if (creationStatus === 'submitting') return;
+    if (creationDirty) {
+      unsavedChanges.requestConfirmation(resetCreationDialog);
       return;
     }
 
-    setCreationDialogVisible(false);
-    setCreationError(null);
-    setCreationStatus('idle');
+    resetCreationDialog();
+  };
+
+  const discardCreationChanges = () => {
+    resetCreationDialog();
+    unsavedChanges.discardAndLeave();
   };
 
   const handleCreateBand = async ({
@@ -106,7 +126,7 @@ export function BandsScreen({
         name,
         termVersion: CURRENT_BAND_TERM.version,
       });
-      await Promise.all([
+      void Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['bands', 'user'],
           refetchType: 'all',
@@ -117,7 +137,10 @@ export function BandsScreen({
         }),
       ]).catch(() => undefined);
       setCreationDialogVisible(false);
+      setCreationDirty(false);
       setCreationStatus('idle');
+      await setLastBand(createdBandId);
+      router.push(getBandSectionHref(createdBandId, 'repertoire'));
     } catch (error) {
       setCreationStatus('error');
       setCreationError(
@@ -172,7 +195,7 @@ export function BandsScreen({
       }
       headerAction={{
         accessibilityLabel: 'Criar banda',
-        icon: 'bandAdd',
+        icon: 'add',
         label: 'Criar banda',
         onPress: openCreationDialog,
       }}
@@ -190,11 +213,28 @@ export function BandsScreen({
 
       {creationDialogVisible ? (
         <BandCreationDialog
+          discardPrompt={
+            Platform.OS === 'ios'
+              ? {
+                  onContinue: unsavedChanges.continueEditing,
+                  onDiscard: discardCreationChanges,
+                  visible: unsavedChanges.confirmationVisible,
+                }
+              : undefined
+          }
           errorMessage={creationError}
           onClose={closeCreationDialog}
+          onDirtyChange={setCreationDirty}
           onSubmit={(input) => void handleCreateBand(input)}
           status={creationStatus}
           visible
+        />
+      ) : null}
+      {Platform.OS !== 'ios' || !creationDialogVisible ? (
+        <UnsavedChangesPrompt
+          onContinue={unsavedChanges.continueEditing}
+          onDiscard={discardCreationChanges}
+          visible={unsavedChanges.confirmationVisible}
         />
       ) : null}
 
@@ -215,6 +255,7 @@ export function BandsScreen({
               />
             ) : (
               <ListEmptyState
+                actionIcon="add"
                 actionLabel="Criar banda"
                 message="Crie uma banda ou abra o link de convite que você recebeu."
                 onAction={openCreationDialog}
@@ -225,6 +266,9 @@ export function BandsScreen({
         }
         renderItem={({ item: { band, membership, shows } }) => {
           const nextShow = getNextShow(shows, now);
+          const nextShowLabel = nextShow
+            ? `Próximo show · ${formatCompactShowListDate(nextShow.startsAt)}`
+            : 'Nenhum próximo show';
           const isLastAccessed = band.id === lastBandId;
           return (
             <View style={styles.rowFrame}>
@@ -241,7 +285,7 @@ export function BandsScreen({
                 <View style={styles.bandRowLayout}>
                   <View style={styles.bandRowContent}>
                     <View style={styles.bandAvatar}>
-                      <AppText tone="inverse" variant="heading">
+                      <AppText tone="onAccent" variant="heading">
                         {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
                       </AppText>
                     </View>
@@ -259,15 +303,15 @@ export function BandsScreen({
                       <AppText tone="muted" variant="caption">
                         {roleLabels[membership.role]}
                       </AppText>
-                      <AppText variant="caption">
-                        {nextShow
-                          ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
-                          : 'Nenhum próximo show'}
-                      </AppText>
+                      <AppText variant="caption">{nextShowLabel}</AppText>
                     </View>
                   </View>
                   <View style={styles.bandRowNavigation}>
-                    <AppIcon color={colors.violet} name="forward" size={20} />
+                    <AppIcon
+                      color={colors.text.secondary}
+                      name="forward"
+                      size={20}
+                    />
                   </View>
                 </View>
               </Pressable>
@@ -305,8 +349,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bandRow: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     minHeight: 84,
@@ -332,12 +376,12 @@ const styles = StyleSheet.create({
     minWidth: 20,
   },
   lastAccessedRow: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderWidth: 2,
   },
   bandAvatar: {
     alignItems: 'center',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     borderRadius: radii.pill,
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
@@ -355,7 +399,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   lastAccessedBadge: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,

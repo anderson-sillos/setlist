@@ -2,6 +2,7 @@ import type { PropsWithChildren } from 'react';
 import {
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
   type StyleProp,
   type ScrollViewProps,
@@ -18,13 +19,24 @@ type ScreenProps = PropsWithChildren<
 >;
 
 export function Screen({ children, contentStyle, testID }: ScreenProps) {
+  const { width } = useWindowDimensions();
+  const horizontalPadding = getHorizontalPadding(width);
+
   return (
     <SafeAreaView style={styles.safeArea} testID={testID}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.content, contentStyle]}>{children}</View>
+        <View
+          style={[
+            styles.content,
+            { paddingHorizontal: horizontalPadding },
+            contentStyle,
+          ]}
+        >
+          {children}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -32,7 +44,7 @@ export function Screen({ children, contentStyle, testID }: ScreenProps) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background.base,
     flex: 1,
   },
   scrollContent: {
@@ -45,3 +57,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+
+function getHorizontalPadding(width: number) {
+  if (width >= layout.desktopBreakpoint) return layout.desktopHorizontalMargin;
+  if (width >= layout.tabletBreakpoint) return layout.tabletHorizontalMargin;
+  return layout.phoneHorizontalMargin;
+}

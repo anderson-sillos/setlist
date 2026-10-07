@@ -14,6 +14,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface ProfileDisplayNameDialogProps {
   readonly errorMessage: string | null;
@@ -32,6 +33,7 @@ export function ProfileDisplayNameDialog({
   onSave,
   visible,
 }: ProfileDisplayNameDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [draftName, setDraftName] = useState(initialName);
 
   if (!visible) {
@@ -43,7 +45,12 @@ export function ProfileDisplayNameDialog({
   const canSave = normalizedLength > 0 && normalizedLength <= 120;
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType={reducedMotion ? 'none' : 'fade'}
+      onRequestClose={onClose}
+      transparent
+      visible
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
@@ -78,7 +85,7 @@ export function ProfileDisplayNameDialog({
                   pressed && styles.pressed,
                 ]}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
               </Pressable>
             </View>
 
@@ -100,7 +107,7 @@ export function ProfileDisplayNameDialog({
                   maxLength={240}
                   onChangeText={setDraftName}
                   placeholder="Como devemos chamar você?"
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={colors.text.muted}
                   returnKeyType="done"
                   style={styles.input}
                   value={draftName}
@@ -153,11 +160,11 @@ const styles = StyleSheet.create({
   },
   scrim: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(11, 16, 32, 0.6)',
+    backgroundColor: colors.background.overlay,
   },
   dialog: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderColor: colors.border.subtle,
     borderRadius: radii.lg,
     borderWidth: 1,
     gap: spacing.md,
@@ -189,21 +196,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   characterCount: {
     alignSelf: 'flex-end',
-    color: colors.muted,
+    color: colors.text.secondary,
   },
   errorText: {
-    color: colors.violetDark,
+    color: colors.semantic.danger,
   },
   actions: {
     flexDirection: 'row',

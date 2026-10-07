@@ -25,7 +25,13 @@ describe('calendário mensal de shows', () => {
         view.getByTestId('calendar-day-2026-02-10').props.style,
       ),
     ).toMatchObject({
-      backgroundColor: colors.cyanSoft,
+      backgroundColor: colors.background.raised,
+    });
+    expect(
+      StyleSheet.flatten(view.getByTestId('calendar-today-marker').props.style),
+    ).toMatchObject({
+      borderColor: colors.text.secondary,
+      borderWidth: 1,
     });
 
     await fireEvent.press(
@@ -90,7 +96,8 @@ describe('calendário mensal de shows', () => {
       StyleSheet.flatten(
         view.getByTestId('calendar-day-2026-09-19').props.style,
       ).backgroundColor,
-    ).toBe(colors.greenSoft);
+    ).toBe(colors.background.selected);
+    expect(view.getByTestId('calendar-show-marker-2026-09-19')).toBeTruthy();
 
     await fireEvent.press(
       view.getByLabelText(/19 de setembro de 2026, 2 shows/),

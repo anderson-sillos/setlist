@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1040" height="1480" viewBox="0 0 1040 1480" role="img" aria-labelledby="title desc"><title id="title">Setlist: paleta Content-First Darkness</title><desc id="desc">Amostras individuais com valores hexadecimais, usos e logo atual preservado sobre fundos escuros.</desc>
+<defs>
+<symbol id="logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" ry="6" fill="#7C3AED"/><g transform="translate(4.08 4.08) scale(0.66)" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></g></symbol>
+<symbol id="mark" viewBox="0 0 24 24"><g transform="translate(4.08 4.08) scale(0.66)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></g></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="refresh" viewBox="0 0 24 24"><path d="M20 7a8 8 0 0 0-13-2L3 9m0-6v6h6M4 17a8 8 0 0 0 13 2l4-4m0 6v-6h-6"/></symbol>
+<symbol id="flag" viewBox="0 0 24 24"><path d="M5 21V3c5-3 9 3 14 0v11c-5 3-9-3-14 0"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 8l12-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="18" cy="16" rx="3" ry="3"/></symbol>
+<symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18m-14 4h2m4 0h2"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m3 11v-3a5 5 0 0 0-3-4"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+<symbol id="play" viewBox="0 0 24 24"><path d="m7 4 14 8-14 8z"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="4" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="20" cy="12" r="1"/></symbol>
+<symbol id="drag" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></symbol>
+<symbol id="alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2zM12 9v4m0 4h.01"/></symbol>
+<symbol id="filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+<symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<rect x="0" y="0" width="1040" height="1480" rx="0" fill="#0B0B0D"/>
+<text x="32" y="40" fill="#B692FF" font-size="12" font-weight="700" text-anchor="start">SETLIST  /  ESTUDO VISUAL 01</text>
+<text x="32" y="84" fill="#F4F4F5" font-size="32" font-weight="700" text-anchor="start">A cor sustenta o conteúdo</text>
+<text x="32" y="115" fill="#B8B8C2" font-size="15" font-weight="400" text-anchor="start">Neutros escuros + texto claro + violeta do Setlist em papéis definidos.</text>
+<rect x="32" y="148" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="160" width="208" height="48" rx="6" fill="#0B0B0D" stroke="#74747F" stroke-width="1"/>
+<text x="44" y="231" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Canvas</text>
+<text x="44" y="252" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#0B0B0D</text>
+<text x="44" y="269" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Estrutura e navegação</text>
+<rect x="280" y="148" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="160" width="208" height="48" rx="6" fill="#121214" stroke="#74747F" stroke-width="1"/>
+<text x="292" y="231" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Base</text>
+<text x="292" y="252" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#121214</text>
+<text x="292" y="269" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Conteúdo principal</text>
+<rect x="528" y="148" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="160" width="208" height="48" rx="6" fill="#1C1C1F" stroke="#74747F" stroke-width="1"/>
+<text x="540" y="231" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Elevada</text>
+<text x="540" y="252" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#1C1C1F</text>
+<text x="540" y="269" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Card, campo, popup</text>
+<rect x="776" y="148" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="160" width="208" height="48" rx="6" fill="#28282D"/>
+<text x="788" y="231" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Hover</text>
+<text x="788" y="252" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#28282D</text>
+<text x="788" y="269" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Interação na Web</text>
+<rect x="32" y="296" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="308" width="208" height="48" rx="6" fill="#34343B"/>
+<text x="44" y="379" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Pressionado</text>
+<text x="44" y="400" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#34343B</text>
+<text x="44" y="417" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Resposta ao toque</text>
+<rect x="280" y="296" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="308" width="208" height="48" rx="6" fill="#2B203D"/>
+<text x="292" y="379" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Selecionado</text>
+<text x="292" y="400" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#2B203D</text>
+<text x="292" y="417" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Seleção persistente</text>
+<rect x="528" y="296" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="308" width="208" height="48" rx="6" fill="#303035"/>
+<text x="540" y="379" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Borda sutil</text>
+<text x="540" y="400" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#303035</text>
+<text x="540" y="417" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Divisória decorativa</text>
+<rect x="776" y="296" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="308" width="208" height="48" rx="6" fill="#74747F"/>
+<text x="788" y="379" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Borda de controle</text>
+<text x="788" y="400" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#74747F</text>
+<text x="788" y="417" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Limite de input / botão</text>
+<rect x="32" y="444" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="456" width="208" height="48" rx="6" fill="#F4F4F5"/>
+<text x="44" y="527" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Texto principal</text>
+<text x="44" y="548" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#F4F4F5</text>
+<text x="44" y="565" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Título e letra</text>
+<rect x="280" y="444" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="456" width="208" height="48" rx="6" fill="#B8B8C2"/>
+<text x="292" y="527" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Texto secundário</text>
+<text x="292" y="548" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#B8B8C2</text>
+<text x="292" y="565" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Artista e metadados</text>
+<rect x="528" y="444" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="456" width="208" height="48" rx="6" fill="#92929F"/>
+<text x="540" y="527" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Texto discreto</text>
+<text x="540" y="548" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#92929F</text>
+<text x="540" y="565" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Ajuda e versão</text>
+<rect x="776" y="444" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="456" width="208" height="48" rx="6" fill="#160D24"/>
+<text x="788" y="527" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Sobre ação</text>
+<text x="788" y="548" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#160D24</text>
+<text x="788" y="565" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Texto no violeta claro</text>
+<rect x="32" y="592" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="604" width="208" height="48" rx="6" fill="#7C3AED"/>
+<text x="44" y="675" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Marca original</text>
+<text x="44" y="696" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#7C3AED</text>
+<text x="44" y="713" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Logo preservado</text>
+<rect x="280" y="592" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="604" width="208" height="48" rx="6" fill="#B692FF"/>
+<text x="292" y="675" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Ação principal</text>
+<text x="292" y="696" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#B692FF</text>
+<text x="292" y="713" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Criar, salvar, selecionar</text>
+<rect x="528" y="592" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="604" width="208" height="48" rx="6" fill="#C5AAFF"/>
+<text x="540" y="675" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Ação em hover</text>
+<text x="540" y="696" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#C5AAFF</text>
+<text x="540" y="713" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Botão principal / Web</text>
+<rect x="776" y="592" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="604" width="208" height="48" rx="6" fill="#A37CF0"/>
+<text x="788" y="675" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Ação pressionada</text>
+<text x="788" y="696" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#A37CF0</text>
+<text x="788" y="713" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Botão principal / toque</text>
+<rect x="32" y="740" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="752" width="208" height="48" rx="6" fill="#D0B8FF"/>
+<text x="44" y="823" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Anel de foco</text>
+<text x="44" y="844" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#D0B8FF</text>
+<text x="44" y="861" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Navegação por teclado</text>
+<rect x="280" y="740" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="752" width="208" height="48" rx="6" fill="#73D99F"/>
+<text x="292" y="823" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Sucesso</text>
+<text x="292" y="844" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#73D99F</text>
+<text x="292" y="861" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Check e confirmação</text>
+<rect x="528" y="740" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="752" width="208" height="48" rx="6" fill="#F0C36B"/>
+<text x="540" y="823" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Atenção</text>
+<text x="540" y="844" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#F0C36B</text>
+<text x="540" y="861" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Conteúdo incompleto</text>
+<rect x="776" y="740" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="752" width="208" height="48" rx="6" fill="#FF949D"/>
+<text x="788" y="823" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Erro</text>
+<text x="788" y="844" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#FF949D</text>
+<text x="788" y="861" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Erro e destruição</text>
+<rect x="32" y="888" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="900" width="208" height="48" rx="6" fill="#91C9F7"/>
+<text x="44" y="971" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Informação</text>
+<text x="44" y="992" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#91C9F7</text>
+<text x="44" y="1009" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Orientação contextual</text>
+<rect x="280" y="888" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="900" width="208" height="48" rx="6" fill="#182B20"/>
+<text x="292" y="971" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Fundo de sucesso</text>
+<text x="292" y="992" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#182B20</text>
+<text x="292" y="1009" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Status pronto</text>
+<rect x="528" y="888" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="900" width="208" height="48" rx="6" fill="#302719"/>
+<text x="540" y="971" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Fundo de atenção</text>
+<text x="540" y="992" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#302719</text>
+<text x="540" y="1009" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Aviso discreto</text>
+<rect x="776" y="888" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="900" width="208" height="48" rx="6" fill="#341F24"/>
+<text x="788" y="971" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Fundo de erro</text>
+<text x="788" y="992" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#341F24</text>
+<text x="788" y="1009" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Erro com mensagem</text>
+<rect x="32" y="1036" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="44" y="1048" width="208" height="48" rx="6" fill="#192938"/>
+<text x="44" y="1119" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Fundo informativo</text>
+<text x="44" y="1140" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#192938</text>
+<text x="44" y="1157" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Informação contextual</text>
+<rect x="280" y="1036" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="292" y="1048" width="208" height="48" rx="6" fill="#FFFFFF"/>
+<text x="292" y="1119" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Branco do logo</text>
+<text x="292" y="1140" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#FFFFFF</text>
+<text x="292" y="1157" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Nota original</text>
+<rect x="528" y="1036" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="540" y="1048" width="208" height="48" rx="6" fill="#000000" stroke="#74747F" stroke-width="1"/>
+<text x="540" y="1119" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Overlay</text>
+<text x="540" y="1140" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#000000</text>
+<text x="540" y="1157" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Preto a 72% no popup</text>
+<rect x="776" y="1036" width="232" height="132" rx="12" fill="#1C1C1F"/>
+<rect x="788" y="1048" width="208" height="48" rx="6" fill="#1C1C1F" stroke="#74747F" stroke-width="1"/>
+<text x="788" y="1119" fill="#F4F4F5" font-size="15" font-weight="700" text-anchor="start">Login social</text>
+<text x="788" y="1140" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">#1C1C1F</text>
+<text x="788" y="1157" fill="#92929F" font-size="11" font-weight="400" text-anchor="start">Botões Google e Apple</text>
+<text x="32" y="1230" fill="#F4F4F5" font-size="20" font-weight="700" text-anchor="start">Marca preservada. Controles recebem um violeta mais claro.</text>
+<rect x="32" y="1254" width="308" height="168" rx="16" fill="#121214" stroke="#303035" stroke-width="1"/>
+<use href="#logo" xlink:href="#logo" x="52" y="1276" width="64" height="64" color="#F4F4F5"/>
+<text x="130" y="1316" fill="#F4F4F5" font-size="27" font-weight="700" text-anchor="start">Setlist</text>
+<text x="52" y="1380" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Ícone original no canvas</text>
+<text x="52" y="1404" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Mesma geometria da nota musical</text>
+<rect x="366" y="1254" width="308" height="168" rx="16" fill="#1C1C1F" stroke="#303035" stroke-width="1"/>
+<use href="#logo" xlink:href="#logo" x="386" y="1276" width="64" height="64" color="#F4F4F5"/>
+<text x="464" y="1316" fill="#F4F4F5" font-size="27" font-weight="700" text-anchor="start">Setlist</text>
+<text x="386" y="1380" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Ícone original na superfície</text>
+<text x="386" y="1404" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Mesma geometria da nota musical</text>
+<rect x="700" y="1254" width="308" height="168" rx="16" fill="#121214" stroke="#303035" stroke-width="1"/>
+<use href="#mark" xlink:href="#mark" x="720" y="1276" width="64" height="64" color="#F4F4F5"/>
+<text x="798" y="1316" fill="#F4F4F5" font-size="27" font-weight="700" text-anchor="start">Setlist</text>
+<text x="720" y="1380" fill="#B8B8C2" font-size="13" font-weight="400" text-anchor="start">Estudo monocromático opcional</text>
+<text x="720" y="1404" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Mesma geometria da nota musical</text>
+<text x="32" y="1456" fill="#92929F" font-size="12" font-weight="400" text-anchor="start">Proposta de 04/10/2026. Cores próprias do Setlist; referência visual: Spotify.</text>
+</g>
+</svg>

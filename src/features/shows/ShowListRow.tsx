@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { type Href, Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -5,10 +6,15 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { Show } from '@/domain';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { formatShowListDate } from '@/utils/dateTime';
+import { colors, fontSizes, layout, radii, spacing } from '@/theme/tokens';
+import { formatCompactShowListDate } from '@/utils/dateTime';
 import { formatShowDuration } from '@/utils/duration';
-import { showStatusLabels } from './showPresentation';
+import { blurWebFocus } from '@/utils/focus';
+import {
+  showStatusIcons,
+  showStatusLabels,
+  showStatusTones,
+} from './showPresentation';
 
 interface ShowListRowProps {
   readonly accessibilityLabel: string;
@@ -23,58 +29,78 @@ export function ShowListRow({
   href,
   show,
 }: ShowListRowProps) {
+  const [pressed, setPressed] = useState(false);
+
   return (
     <View style={styles.rowFrame}>
-      <Link href={href} asChild>
+      <Link href={href} onPress={blurWebFocus} asChild>
         <Pressable
-          accessibilityLabel={accessibilityLabel}
+          accessibilityLabel={`${accessibilityLabel}. Status: ${showStatusLabels[show.status]}`}
           accessibilityRole="link"
-          style={({ pressed }) => [
+          onPressIn={() => setPressed(true)}
+          onPressOut={() => setPressed(false)}
+          style={StyleSheet.flatten([
             styles.listRow,
             show.status === 'cancelled' && styles.cancelledRow,
             pressed && styles.pressed,
-          ]}
+          ])}
         >
           <View style={styles.rowLayout}>
-            <View style={styles.rowContent}>
-              <View style={styles.rowTitleLine}>
-                <AppText style={styles.rowTitle} variant="heading">
-                  {show.name}
-                </AppText>
-                <StatusPill
-                  tone={show.status === 'ready' ? 'ready' : 'default'}
-                >
-                  {showStatusLabels[show.status]}
-                </StatusPill>
+            <View style={styles.rowPrimaryContent}>
+              <View style={styles.rowLeadingIcon}>
+                <AppIcon color={colors.text.secondary} name="shows" size={40} />
               </View>
-              <View style={styles.rowMetaLine}>
-                <AppText numberOfLines={1} style={styles.rowDate} tone="muted">
-                  {formatShowListDate(show.startsAt)}
-                </AppText>
-                <View
-                  accessibilityLabel={`Duração ${
-                    durationMs === null
-                      ? 'não informada'
-                      : formatShowDuration(durationMs)
-                  }`}
-                  style={styles.durationMeta}
-                >
-                  <AppIcon color={colors.violet} name="duration" size={12} />
-                  <AppText style={styles.durationValue} tone="accent">
-                    {durationMs === null ? '—' : formatShowDuration(durationMs)}
+              <View style={styles.rowContent}>
+                <View style={styles.rowTitleLine}>
+                  <AppText
+                    numberOfLines={2}
+                    style={styles.rowTitle}
+                    variant="heading"
+                  >
+                    {show.name}
                   </AppText>
+                  <StatusPill
+                    accessible={false}
+                    accessibilityLabel={`Status: ${showStatusLabels[show.status]}`}
+                    icon={showStatusIcons[show.status]}
+                    tone={showStatusTones[show.status]}
+                  />
                 </View>
+                <View style={styles.rowMetaLine}>
+                  <AppText
+                    numberOfLines={1}
+                    style={styles.rowVenue}
+                    variant="metadata"
+                  >
+                    {show.venue}
+                  </AppText>
+                  <View
+                    accessibilityLabel={`Duração ${
+                      durationMs === null
+                        ? 'não informada'
+                        : formatShowDuration(durationMs)
+                    }`}
+                    style={styles.durationMeta}
+                  >
+                    <AppIcon
+                      color={colors.text.secondary}
+                      name="duration"
+                      size={12}
+                    />
+                    <AppText style={styles.durationValue} tone="accent">
+                      {durationMs === null
+                        ? '—'
+                        : formatShowDuration(durationMs)}
+                    </AppText>
+                  </View>
+                </View>
+                <AppText style={styles.rowDate} tone="muted">
+                  {formatCompactShowListDate(show.startsAt)}
+                </AppText>
               </View>
-              <AppText
-                numberOfLines={1}
-                style={styles.rowVenue}
-                variant="caption"
-              >
-                {show.venue}
-              </AppText>
             </View>
             <View style={styles.rowNavigation}>
-              <AppIcon color={colors.violet} name="forward" size={20} />
+              <AppIcon color={colors.text.secondary} name="forward" size={20} />
             </View>
           </View>
         </Pressable>
@@ -91,11 +117,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   listRow: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    minHeight: 82,
+    minHeight: 84,
     padding: spacing.md,
   },
   cancelledRow: {
@@ -107,19 +133,34 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     width: '100%',
   },
+  rowPrimaryContent: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minWidth: 0,
+  },
+  rowLeadingIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    width: 48,
+  },
   rowContent: {
     flex: 1,
     gap: spacing.sm,
     minWidth: 0,
   },
   rowTitleLine: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: spacing.sm,
   },
   rowTitle: {
+    flex: 1,
     flexShrink: 1,
+    minWidth: 0,
   },
   rowMetaLine: {
     alignItems: 'center',
@@ -132,6 +173,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowVenue: {
+    fontSize: fontSizes.body,
     minWidth: 0,
   },
   rowNavigation: {

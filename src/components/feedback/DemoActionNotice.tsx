@@ -2,6 +2,7 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface DemoActionNoticeProps {
   readonly message: string | null;
@@ -16,10 +17,16 @@ export function DemoActionNotice({
   testID = 'demo-action-notice',
   title = 'Demonstração',
 }: DemoActionNoticeProps) {
+  const reducedMotion = useReducedMotionPreference();
   if (!message) return null;
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType={reducedMotion ? 'none' : 'fade'}
+      onRequestClose={onClose}
+      transparent
+      visible
+    >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
           accessibilityLabel={`Fechar popup de ${title.toLocaleLowerCase('pt-BR')}`}
@@ -47,7 +54,7 @@ export function DemoActionNotice({
               pressed && styles.pressed,
             ]}
           >
-            <AppText tone="inverse">Fechar</AppText>
+            <AppText tone="onAccent">Fechar</AppText>
           </Pressable>
         </View>
       </View>
@@ -59,15 +66,17 @@ const styles = StyleSheet.create({
   closeButton: {
     alignItems: 'center',
     alignSelf: 'flex-end',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     borderRadius: radii.md,
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radii.xl,
+    borderWidth: 1,
     gap: spacing.lg,
     maxWidth: 420,
     padding: spacing.xl,
@@ -83,7 +92,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

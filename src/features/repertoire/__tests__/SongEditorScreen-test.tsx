@@ -27,6 +27,7 @@ jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useRouter: () => mockRouter,
+  useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -10,37 +10,52 @@ import {
   View,
 } from 'react-native';
 
+import {
+  UnsavedChangesPrompt,
+  type UnsavedChangesPromptProps,
+} from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import type { Band } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 export type BandAdministrationMode = 'delete' | 'rename';
 
 interface BandAdministrationDialogProps {
   readonly band: Band | null;
+  readonly discardPrompt?: UnsavedChangesPromptProps;
   readonly errorMessage: string | null;
   readonly isSubmitting: boolean;
   readonly mode: BandAdministrationMode | null;
   readonly onClose: () => void;
   readonly onDelete: () => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
   readonly onRename: (name: string) => void;
   readonly onModeChange: (mode: BandAdministrationMode) => void;
 }
 
 export function BandAdministrationDialog({
   band,
+  discardPrompt,
   errorMessage,
   isSubmitting,
   mode,
   onClose,
   onModeChange,
   onDelete,
+  onDirtyChange,
   onRename,
 }: BandAdministrationDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [name, setName] = useState(band?.name ?? '');
   const [confirmationName, setConfirmationName] = useState('');
+  const hasChanges = mode === 'rename' && !!band && name !== band.name;
+
+  useEffect(() => {
+    onDirtyChange?.(hasChanges);
+  }, [hasChanges, onDirtyChange]);
 
   if (!band || !mode) {
     return null;
@@ -50,7 +65,13 @@ export function BandAdministrationDialog({
   const title = mode === 'rename' ? 'Editar nome da banda' : 'Excluir banda';
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType={reducedMotion ? 'none' : 'fade'}
+      onRequestClose={onClose}
+      testID="band-administration-modal"
+      transparent
+      visible
+    >
       <KeyboardAvoidingView
         accessibilityViewIsModal
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -85,7 +106,7 @@ export function BandAdministrationDialog({
                 pressed && styles.pressed,
               ]}
             >
-              <AppIcon color={colors.muted} name="close" size={20} />
+              <AppIcon color={colors.text.secondary} name="close" size={20} />
             </Pressable>
           </View>
 
@@ -109,7 +130,7 @@ export function BandAdministrationDialog({
                     maxLength={120}
                     onChangeText={setName}
                     placeholder="Nome da banda"
-                    placeholderTextColor={colors.muted}
+                    placeholderTextColor={colors.text.muted}
                     style={styles.input}
                     value={name}
                   />
@@ -118,7 +139,7 @@ export function BandAdministrationDialog({
                   <AppButton
                     accessibilityLabel="Excluir banda"
                     disabled={isSubmitting}
-                    icon="close"
+                    icon="delete"
                     label="Excluir banda"
                     onPress={() => {
                       setConfirmationName('');
@@ -143,7 +164,7 @@ export function BandAdministrationDialog({
                     autoFocus
                     onChangeText={setConfirmationName}
                     placeholder={band.name}
-                    placeholderTextColor={colors.muted}
+                    placeholderTextColor={colors.text.muted}
                     style={styles.input}
                     value={confirmationName}
                   />
@@ -178,21 +199,23 @@ export function BandAdministrationDialog({
               <AppButton
                 accessibilityLabel="Confirmar exclusão da banda"
                 disabled={isSubmitting || !canDelete}
-                icon="close"
+                icon="delete"
                 label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
                 onPress={onDelete}
+                variant="destructive"
               />
             )}
           </View>
         </View>
       </KeyboardAvoidingView>
+      {discardPrompt ? <UnsavedChangesPrompt {...discardPrompt} /> : null}
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -211,7 +234,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     maxHeight: '90%',
     maxWidth: 520,
@@ -219,7 +242,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.semantic.danger,
   },
   fieldGroup: {
     gap: spacing.xs,
@@ -234,7 +257,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -242,10 +265,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
@@ -260,7 +283,7 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   scrim: {
-    backgroundColor: 'rgba(11, 16, 32, 0.56)',
+    backgroundColor: colors.background.overlay,
     bottom: 0,
     left: 0,
     position: 'absolute',

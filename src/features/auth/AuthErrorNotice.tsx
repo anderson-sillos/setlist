@@ -27,8 +27,8 @@ export function AuthErrorNotice({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.violetSoft,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.selected,
+    borderColor: colors.action.primary,
     borderRadius: radii.sm,
     borderWidth: 1,
     padding: spacing.md,

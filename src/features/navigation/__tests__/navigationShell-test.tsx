@@ -5,7 +5,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { rootStackScreenOptions } from '@/app/_layout';
 import { demoIds } from '@/data/demo';
@@ -27,12 +27,18 @@ jest.mock('expo-router', () => ({
     showId: 'show-demo-festival',
     songId: 'song-demo-luzes',
   }),
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => ({ navigate: jest.fn(), replace: jest.fn() }),
+  useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
 
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
 
 jest.mock('@/data/supabase/profileMutations', () => ({
   getUserProfile: jest.fn(),
@@ -41,10 +47,10 @@ jest.mock('@/data/supabase/profileMutations', () => ({
 const mockGetUserProfile = jest.mocked(getUserProfile);
 
 describe('shell de navegação', () => {
-  it('troca de tela sem animação e mantém os gestos de navegação', () => {
+  it('usa transições breves e mantém os gestos de navegação', () => {
     expect(rootStackScreenOptions).toMatchObject({
-      animation: 'none',
-      fullScreenGestureEnabled: true,
+      animation: Platform.OS === 'web' ? 'fade' : 'default',
+      fullScreenGestureEnabled: false,
       gestureEnabled: true,
     });
   });
@@ -110,7 +116,7 @@ describe('shell de navegação', () => {
         expect(bottomNavigationStyle).toMatchObject({
           alignItems: 'center',
           justifyContent: 'space-evenly',
-          minHeight: 52,
+          minHeight: 60,
         });
         expect(bottomNavigationStyle.gap).toBeUndefined();
         expect(bottomNavigationStyle.marginHorizontal).toBeUndefined();
@@ -120,7 +126,7 @@ describe('shell de navegação', () => {
         navigationTabs.forEach((tab) => {
           const tabStyle = StyleSheet.flatten(tab.props.style);
           expect(tabStyle).toMatchObject({
-            height: 48,
+            height: 56,
             width: 72,
           });
           expect(tabStyle.flexGrow).toBeUndefined();
@@ -166,7 +172,7 @@ describe('shell de navegação', () => {
     expect(myBandsLink.props.accessibilityState).toEqual({ selected: false });
     expect(view.getByLabelText('Perfil e conta')).toBeTruthy();
     expect(view.getByText('Sessão não iniciada')).toBeTruthy();
-    expect(view.getByRole('button', { name: 'Sair' })).toBeTruthy();
+    expect(view.getByRole('button', { name: 'Sair da conta' })).toBeTruthy();
     expect(view.queryByRole('tab', { name: 'Ir para Entrar' })).toBeNull();
 
     await fireEvent.press(view.getAllByLabelText('Fechar menu geral')[0]);
@@ -263,20 +269,21 @@ describe('shell de navegação', () => {
     });
     const accountCopyView = view.getByTestId('navigation-account-copy');
     expect(StyleSheet.flatten(accountCopyView.props.style)).toMatchObject({
-      alignItems: 'flex-start',
-      flexDirection: 'column',
+      flex: 1,
+      gap: 2,
+      minWidth: 0,
     });
     const accountCopy = within(accountCopyView);
     expect(accountCopy.getByText('Lucas no perfil')).toBeTruthy();
     expect(accountCopy.getByText('profile-lucas@example.com')).toBeTruthy();
     expect(
       StyleSheet.flatten(accountCopy.getByText('Lucas no perfil').props.style),
-    ).toMatchObject({ textAlign: 'left' });
+    ).toMatchObject({ fontSize: 13, lineHeight: 18 });
     expect(
       StyleSheet.flatten(
         accountCopy.getByText('profile-lucas@example.com').props.style,
       ),
-    ).toMatchObject({ textAlign: 'left' });
+    ).toMatchObject({ fontSize: 11, lineHeight: 14 });
     expect(view.queryByText('Lucas Ribeiro')).toBeNull();
     expect(view.getByTestId('user-avatar-image').props.source).toEqual({
       uri: 'https://img.example.test/lucas.png',

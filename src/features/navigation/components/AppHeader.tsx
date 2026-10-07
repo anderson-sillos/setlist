@@ -1,6 +1,6 @@
 import { forwardRef, type ComponentRef } from 'react';
-import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -36,6 +36,7 @@ export function AppHeader({
   title,
 }: AppHeaderProps) {
   const kind = screenKind ?? 'main';
+  const router = useRouter();
 
   return (
     <View style={styles.header} testID="app-header">
@@ -44,17 +45,24 @@ export function AppHeader({
           accessibilityLabel="Abrir menu geral"
           icon="menu"
           onPress={onOpenMenu}
+          size={32}
         />
       ) : null}
 
       {kind === 'detail' && backHref ? (
-        <Link href={backHref} asChild>
-          <HeaderIconButton
-            accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
-            icon="back"
-            role="link"
-          />
-        </Link>
+        <HeaderIconButton
+          accessibilityLabel={`Voltar para ${subtitle ?? 'a tela anterior'}`}
+          icon="back"
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              router.navigate(backHref);
+              return;
+            }
+
+            router.replace(backHref);
+          }}
+          size={32}
+        />
       ) : null}
 
       {kind === 'edit' && editActions ? (
@@ -80,21 +88,27 @@ export function AppHeader({
         <HeaderIconButton
           accessibilityLabel="Salvar edição"
           accessibilityState={{ disabled: editActions.saveDisabled }}
-          color={editActions.saveDisabled ? colors.muted : colors.violet}
+          color={
+            editActions.saveDisabled
+              ? colors.text.secondary
+              : colors.action.primary
+          }
           disabled={editActions.saveDisabled}
           icon="check"
           onPress={editActions.onSave}
+          size={32}
         />
       ) : null}
       {headerAction ? (
         <HeaderIconButton
           accessibilityLabel={headerAction.accessibilityLabel}
-          color={colors.violet}
+          color={colors.action.primary}
           icon={headerAction.icon ?? 'more'}
           onPress={() => {
             blurWebFocus();
             headerAction.onPress();
           }}
+          size={32}
         />
       ) : null}
     </View>
@@ -110,7 +124,7 @@ interface HeaderIconButtonProps {
   readonly disabled?: boolean;
   readonly icon?: AppIconName;
   readonly onPress?: () => void;
-  readonly role?: 'button' | 'link';
+  readonly size?: number;
 }
 
 const HeaderIconButton = forwardRef<
@@ -120,11 +134,11 @@ const HeaderIconButton = forwardRef<
   {
     accessibilityLabel,
     accessibilityState,
-    color = colors.ink,
+    color = colors.text.primary,
     disabled,
     icon,
     onPress,
-    role = 'button',
+    size = 24,
   },
   ref,
 ) {
@@ -132,7 +146,7 @@ const HeaderIconButton = forwardRef<
     <Pressable
       ref={ref}
       accessibilityLabel={accessibilityLabel}
-      accessibilityRole={role}
+      accessibilityRole="button"
       accessibilityState={accessibilityState}
       disabled={disabled}
       hitSlop={8}
@@ -143,7 +157,7 @@ const HeaderIconButton = forwardRef<
         pressed && styles.pressed,
       ]}
     >
-      {icon ? <AppIcon color={color} name={icon} /> : null}
+      {icon ? <AppIcon color={color} name={icon} size={size} /> : null}
     </Pressable>
   );
 });
@@ -151,8 +165,8 @@ const HeaderIconButton = forwardRef<
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,

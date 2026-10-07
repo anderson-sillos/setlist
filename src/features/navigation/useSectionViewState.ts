@@ -10,6 +10,11 @@ export function useSectionViewState<State extends Record<string, string>>(
   defaults: State,
 ) {
   const navigationMemory = useNavigationMemory();
+  // Restore only on mount. Reapplying live memory would interrupt a native fling
+  // whenever another state (such as the list toolbar) causes a render.
+  const [initialScrollOffset] = useState(
+    () => navigationMemory.getSectionMemory(bandId, section).scrollOffset ?? 0,
+  );
   const [state, setState] = useState<State>(() => ({
     ...defaults,
     ...navigationMemory.getSectionMemory(bandId, section).viewState,
@@ -33,8 +38,7 @@ export function useSectionViewState<State extends Record<string, string>>(
   );
 
   return {
-    initialScrollOffset:
-      navigationMemory.getSectionMemory(bandId, section).scrollOffset ?? 0,
+    initialScrollOffset,
     rememberScrollOffset,
     state,
     update,

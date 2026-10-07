@@ -2,7 +2,37 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
-## Estado atual
+## Encerramento de 7 de outubro de 2026 — Content-First Darkness
+
+- Entrega da interface: PR #28, https://github.com/anderson-sillos/setlist/pull/28, com destino à branch principal `main`. A integração foi explicitamente autorizada pelo responsável nesta sessão; confirmar o estado e o commit de merge no GitHub antes de comunicar a conclusão.
+- A change `implementar-ui-ux-content-first-darkness` está finalizada e arquivada em `openspec/changes/archive/2026-10-07-implementar-ui-ux-content-first-darkness/`. As definições vigentes estão em `openspec/specs/application-ui/spec.md` e `openspec/specs/screen-navigation/spec.md`.
+- Os 37 itens foram encerrados: 36 concluídos e um dispensado deste fechamento. O responsável confirmou o sucesso da revisão integrada Web/Android/iOS do item 11.2 em 7 de outubro de 2026.
+- O piloto Think Aloud do item 10.4 não foi executado. Foi adiado pelo responsável para outro momento e não impede este encerramento. A troca de seções por deslize permanece desativada; considerar sua habilitação somente após avaliação futura, sem tratar o adiamento como aprovação do gesto.
+- Última implementação aprovada antes do fechamento documental: `1906c6d`, com os controles de Shows/Repertório recolhendo e reaparecendo suavemente, busca permanente, espaço reservado estável, proteção contra alternância na inércia e restauração da posição somente ao montar a seção. O usuário aprovou o resultado no Android; 16 testes afetados, tipos, lint e formatação dos arquivos alterados passaram nessa rodada.
+- O commit anterior `a29dfac` estabilizou o fechamento do drawer sem deixar uma camada invisível bloqueando o app e alinhou a data/hora do próximo show em Minhas bandas. Preservar essas correções e as correções de descarte no iOS descritas no registro histórico abaixo.
+- Na preparação da integração, o CI apontou formatação pendente em cinco arquivos e dados de exemplo antigos de pgTAP que deixariam bandas sem integrantes. O fechamento corrige a formatação e mantém um proprietário nas bandas desses exemplos; as regras de banco e os contratos de exclusão de conta permanecem os atuais. No commit `e1ec009`, os testes do banco, o smoke test Web, formatação, lint e tipos passaram. A suíte Jest revelou expectativas antigas de quatro arquivos: títulos de blocos sem romanos, data anterior do próximo show, status em texto, orientação de repertório vazio e estilos antigos da conta. Essas expectativas foram atualizadas para a interface validada; o teste do drawer também usa o mock oficial de safe area, pois Jest não emite a medição nativa necessária para renderizar seu conteúdo. Conferir todos os checks do novo commit antes do merge.
+- O responsável autorizou ampliar os testes e concluir o merge após o CI de `630b561` passar nos 621 testes, mas bloquear por cobertura de condições de 79,26%. Foram adicionados 22 cenários de proteção de edição, descarte, aviso de aba, fechamento/animação do drawer, conflitos de gesto, pressão/foco de botões e movimento reduzido. A suíte local completa passou com 643 testes em 96 suítes e cobertura de condições de 80,03%; tipos e lint também passaram. O mínimo de cobertura permanece 80% e a ampliação não altera o comportamento do aplicativo.
+- Após a integração, o responsável solicitou um APK EAS com o perfil `production-android-validation` e a publicação das migrações pendentes no Supabase de produção. O prévio `dry-run` com alvo explícito `setlist-prod` (`tqijocmmiwistinrjpwl`) encontrou somente `20261006120000_prevent_orphan_bands.sql`. O ambiente EAS de produção foi conferido com URL/chave publicável válidas e Google/Apple ativos. O vínculo local com `setlist-dev` (`zncaahgaoqwksdidunza`) foi preservado; as operações de produção usam um diretório isolado e `--project-ref` explícito, sem seed, roles ou reset.
+- A PR #27 já foi integrada à `main` em `8c58603`; o snapshot antigo abaixo sobre PRs abertas, autenticação e builds não representa o estado desta entrega.
+- Próxima frente: retomar as pendências de preparação/publicação nas lojas em `openspec/changes/definir-mvp-setlist/tasks.md`. A conclusão desta change de interface não conclui automaticamente esse plano nem executa o piloto de usabilidade.
+- Operações Git/GitHub continuam exigindo acesso elevado, conforme `AGENTS.md` e a regra permanente abaixo. O GitHub CLI instalado pode ser chamado diretamente em `/Users/anderson.martins/.local/bin/gh` se não estiver no `PATH`.
+
+Os registros abaixo preservam o histórico. Para o estado vigente da interface, usar as specs principais e o arquivo da change indicados acima.
+
+## Registro histórico de 7 de outubro de 2026 — descarte de alterações no iOS
+
+- Branch local: `feat/implementar-ui-ux-content-first-darkness`, base `d154dd2`, referente à PR #28. As correções abaixo estão no diretório de trabalho; não houve commit nem atualização remota nesta rodada. O registro de estado mais antigo abaixo não representa a branch atual.
+- O descarte foi reproduzido no simulador iPhone 16. Ao fechar a confirmação e o formulário/rota no mesmo ciclo, o React ficava com os modais em `visible=false`, mas o iOS mantinha um `RCTFabricModalHostViewController` apresentado. Janelas seguintes existiam na árvore React sem aparecer na captura nativa; o UIKit registrava `which is already presenting <RCTFabricModalHostViewController ...>`.
+- `UnsavedChangesPrompt` agora oculta primeiro sua própria confirmação no iOS e executa `onDiscard` somente no evento nativo `onDismiss`, encaminhado por `OptionSheet`. Isso permite encerrar o formulário ou remover a rota após o término do fechamento da confirmação. Android e Web mantêm o descarte imediato. A posição e o estilo do aviso foram preservados.
+- Preservar também a correção anterior de apresentação: na criação de banda/show, a confirmação de navegação do iOS pertence ao Modal do formulário, para aparecer acima dele. Não voltar à implementação de uma camada inline nem substituir o layout do aviso.
+- Validação no simulador pelo runtime: 10 descartes entre criação de banda, novo show, nova música, edição de música, edição de show e edição de setlist. Incluiu continuar editando, reabrir formulários, retornar às telas anteriores e abrir o menu ao final. Após a correção, não apareceram novos conflitos de apresentação no log UIKit do processo observado. Nenhum formulário foi salvo.
+- Os 13 testes específicos de `UnsavedChangesPrompt`, `ShowCreationDialog` e `useUnsavedChangesGuard` passaram. O caso iOS verifica que o formulário não fecha antes de `onDismiss`; Web/Android verificam o descarte imediato. O usuário confirmou que a correção funcionou e identificou somente a ausência do aviso na edição do nome da banda.
+- A edição do nome agora informa seu estado alterado ao `BandScreen`, que usa `useUnsavedChangesGuard` para Cancelar, X, toque fora, retorno e saída de rota. A troca para a confirmação de exclusão também pede descarte se houver um nome pendente. Sem alteração, o fechamento é direto; durante salvamento a saída permanece bloqueada. No iOS, o aviso pertence ao Modal de administração e utiliza a mesma sequência `onDismiss` já validada.
+- Conferência da edição do nome pelo runtime iOS: aviso centralizado acima do formulário, continuar preserva o texto, descarte fecha sem salvar, reabertura recupera o nome original e cancelamento sem mudanças não mostra aviso. Foram conferidos dois descartes (toque fora e X), além de Cancelar e continuar editando. Tipos e lint dos dois arquivos afetados passaram; não foram adicionados nem executados novos testes nesta correção pontual. Automação de callbacks e capturas nativas não substitui a conferência dos toques pelo usuário.
+- Metro continua apenas na porta 8081. Na retomada do simulador, encerrar e abrir o processo do app foi suficiente para carregar o Metro automaticamente; evitar enviar também o deep link do development client se a conexão já iniciou, para não provocar um segundo carregamento desnecessário.
+- Houve ainda uma coleta anterior com a thread principal presa em `InspectorPackagerConnection::Impl::closeAllConnections` após perder a conexão do depurador. Esse achado é separado do modal retido reproduzido nesta rodada. Não atribuir todos os travamentos a uma única causa nem desfazer navegação/UI validada por suposição.
+
+## Snapshot anterior à integração da PR #27 — histórico
 
 - Repositório: `anderson-sillos/setlist`; `origin/main` está em `d37278e`.
 - Branch ativa local: `feat/documentos-legais-retencao`, com o commit base `04548e2` alinhado ao remoto; corresponde à PR #27, aberta como rascunho: https://github.com/anderson-sillos/setlist/pull/27. Não foi feito merge. Neste momento, somente este handoff e `AGENTS.md` estão modificados localmente e ainda não foram commitados.
@@ -23,11 +53,14 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 
 ## Fontes de verdade
 
+- `openspec/specs/application-ui/spec.md`: sistema visual, componentes, estados e controles de listas.
+- `openspec/specs/screen-navigation/spec.md`: navegação, memória, transições, gestos e proteção de edições.
+- `openspec/changes/archive/2026-10-07-implementar-ui-ux-content-first-darkness/`: proposta, design, decisões e checklist encerrado da entrega de UI/UX.
 - `openspec/changes/definir-mvp-setlist/proposal.md`: motivação, escopo e capacidades.
 - `openspec/changes/definir-mvp-setlist/design.md`: arquitetura, decisões e riscos.
 - `openspec/changes/definir-mvp-setlist/specs/`: contratos de comportamento por capacidade.
 - `openspec/changes/definir-mvp-setlist/tasks.md`: estratégia incremental e checklist de implementação.
-- `openspec/changes/atualizacao-direcionada-dados/`: change ativo para atualizar dados compartilhados apenas nas telas relevantes.
+- `openspec/specs/shared-data-refresh/spec.md`: contrato vigente de atualização de dados compartilhados restrita às telas relevantes.
 
 Antes de implementar, executar:
 

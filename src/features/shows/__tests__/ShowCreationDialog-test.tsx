@@ -1,6 +1,16 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 
 import { ShowCreationDialog } from '@/features/shows/ShowCreationDialog';
+
+function getNativeDismiss(view: Awaited<ReturnType<typeof render>>) {
+  let parent = view.getByTestId('unsaved-changes-prompt').parent;
+  while (parent && typeof parent.props.onDismiss !== 'function') {
+    parent = parent.parent;
+  }
+  if (!parent) throw new Error('Modal da confirmação não encontrado');
+  return parent.props.onDismiss as () => void;
+}
 
 describe('<ShowCreationDialog />', () => {
   const baseProps = {
@@ -36,7 +46,13 @@ describe('<ShowCreationDialog />', () => {
     expect(baseProps.onClose).not.toHaveBeenCalled();
     expect(view.getByText('Descartar alterações?')).toBeTruthy();
 
+    const dismiss = getNativeDismiss(view);
     await fireEvent.press(view.getByLabelText('Descartar alterações'));
+
+    if (Platform.OS === 'ios') {
+      expect(baseProps.onClose).not.toHaveBeenCalled();
+      await act(() => dismiss());
+    }
 
     expect(baseProps.onClose).toHaveBeenCalledTimes(1);
   });
@@ -145,7 +161,13 @@ describe('<ShowCreationDialog />', () => {
       'Novo nome',
     );
     await fireEvent.press(view.getByText('Cancelar'));
+    const dismiss = getNativeDismiss(view);
     await fireEvent.press(view.getByLabelText('Descartar alterações'));
+
+    if (Platform.OS === 'ios') {
+      expect(onClose).not.toHaveBeenCalled();
+      await act(() => dismiss());
+    }
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(view.queryByText('Descartar alterações?')).toBeNull();

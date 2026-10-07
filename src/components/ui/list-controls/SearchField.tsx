@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -10,21 +11,25 @@ export function SearchField({
   placeholder,
   value,
 }: SearchFieldProps) {
+  const [focused, setFocused] = useState(false);
+
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, focused && styles.fieldFocused]}>
       <View
         style={Platform.OS === 'web' ? styles.webSearchIcon : undefined}
         testID="search-field-icon"
       >
-        <AppIcon color={colors.muted} name="search" size={20} />
+        <AppIcon color={colors.text.secondary} name="search" size={20} />
       </View>
       <TextInput
         accessibilityLabel={accessibilityLabel}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={onChangeText}
+        onBlur={() => setFocused(false)}
+        onFocus={() => setFocused(true)}
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.text.muted}
         returnKeyType="search"
         style={styles.input}
         value={value}
@@ -40,7 +45,7 @@ export function SearchField({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="close" size={10} />
+          <AppIcon color={colors.action.primary} name="close" size={10} />
         </Pressable>
       ) : null}
     </View>
@@ -50,8 +55,8 @@ export function SearchField({
 const styles = StyleSheet.create({
   field: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -59,8 +64,12 @@ const styles = StyleSheet.create({
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
   },
+  fieldFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
+  },
   input: {
-    color: colors.ink,
+    color: colors.text.primary,
     flex: 1,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
@@ -72,7 +81,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     alignItems: 'center',
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.hover,
     borderRadius: radii.pill,
     height: 20,
     justifyContent: 'center',

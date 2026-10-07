@@ -1,43 +1,78 @@
 import { Link, type Href } from 'expo-router';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
+import { AppLogo } from '@/components/ui/AppLogo';
 import { AppText } from '@/components/ui/AppText';
 import { AppVersionLabel } from '@/components/ui/AppVersionLabel';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import type { EntityId } from '@/domain';
-import { useAuthSession } from '@/features/auth/AuthSessionProvider';
+import { useBandMembers } from '@/data/queries';
+import type { BandRole, EntityId } from '@/domain';
 import { useCurrentProfile } from '@/features/account/useCurrentProfile';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { legalUrls } from '@/features/legal/legalUrls';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
+import { useSectionTransition } from '@/features/navigation/SectionTransition';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { blurWebFocus } from '@/utils/focus';
 
-const menuItemHeight = 28;
+const roleLabels: Record<BandRole, string> = {
+  editor: 'Editor',
+  member: 'Integrante',
+  owner: 'Proprietário',
+};
 
 interface NavigationPanelProps {
   readonly activeSection?: BandSection;
   readonly bandId?: EntityId;
   readonly bandName?: string;
+  readonly compact?: boolean;
   readonly getSectionHref: (section: BandSection) => Href;
+  readonly largeTargets?: boolean;
   readonly onNavigate?: () => void;
   readonly onLogout?: () => void | Promise<void>;
   readonly onStagePress: () => void;
+  readonly showBrand?: boolean;
 }
 
 function NavigationItemContent({
+  active = false,
+  compact = false,
   icon,
   label,
+  largeTargets = false,
 }: {
+  readonly active?: boolean;
+  readonly compact?: boolean;
   readonly icon: AppIconName;
   readonly label: string;
+  readonly largeTargets?: boolean;
 }) {
   return (
     <View style={styles.sectionContent}>
       <View style={styles.sectionIcon}>
-        <AppIcon color={colors.surface} name={icon} size={20} />
+        <AppIcon
+          color={active ? colors.action.primary : colors.text.secondary}
+          name={icon}
+          size={20}
+        />
       </View>
-      <AppText style={styles.sectionLabel} tone="inverse">
+      <AppText
+        style={[
+          styles.sectionLabel,
+          compact && styles.compactSectionLabel,
+          largeTargets && styles.drawerSectionLabel,
+        ]}
+        tone={active ? 'inverse' : 'muted'}
+      >
         {label}
       </AppText>
     </View>
@@ -46,37 +81,75 @@ function NavigationItemContent({
 
 function SidebarNavigationLink({
   active,
+  compact = false,
   href,
   icon,
   label,
+  largeTargets = false,
+  rowHeight,
   onNavigate,
   onPress,
 }: {
   readonly active: boolean;
+  readonly compact?: boolean;
   readonly href?: Href;
   readonly icon: AppIconName;
   readonly label: string;
+  readonly largeTargets?: boolean;
+  readonly rowHeight: number;
   readonly onNavigate?: () => void;
   readonly onPress?: () => void;
 }) {
+  const baseStyle = [
+    styles.sectionItem,
+    compact && styles.compactItem,
+    largeTargets && styles.drawerItem,
+    { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
+  ];
+  const itemStyle = href
+    ? StyleSheet.flatten([...baseStyle, active && styles.sectionItemActive])
+    : ({ pressed }: { pressed: boolean }) => [
+        ...baseStyle,
+        pressed && styles.pressed,
+        active && styles.sectionItemActive,
+      ];
   const item = (
     <Pressable
       accessibilityLabel={onPress ? `${label}, em breve` : `Ir para ${label}`}
       accessibilityRole={onPress ? 'button' : 'tab'}
       accessibilityState={onPress ? undefined : { selected: active }}
-      onPress={onPress}
+      onPress={
+        onPress
+          ? () => {
+              blurWebFocus();
+              onPress();
+            }
+          : undefined
+      }
       onPressIn={onPress ? undefined : onNavigate}
-      style={StyleSheet.flatten([
-        styles.sectionItem,
-        active && styles.sectionItemActive,
-      ])}
+      style={itemStyle}
     >
-      <NavigationItemContent icon={icon} label={label} />
+      {active ? (
+        <View
+          style={[
+            styles.activeIndicator,
+            compact && styles.compactActiveIndicator,
+            largeTargets && styles.drawerActiveIndicator,
+          ]}
+        />
+      ) : null}
+      <NavigationItemContent
+        active={active}
+        compact={compact}
+        icon={icon}
+        label={label}
+        largeTargets={largeTargets}
+      />
     </Pressable>
   );
 
   return href ? (
-    <Link href={href} replace asChild>
+    <Link href={href} onPress={blurWebFocus} replace asChild>
       {item}
     </Link>
   ) : (
@@ -84,62 +157,113 @@ function SidebarNavigationLink({
   );
 }
 
-function DisabledGeneralItem({ label }: { readonly label: string }) {
-  return (
-    <View
-      accessibilityLabel={`${label}, disponível após a autenticação`}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: true }}
-      accessible
-      style={styles.generalItem}
-    >
-      <AppText style={styles.muted}>{label}</AppText>
-    </View>
-  );
-}
-
 function GeneralNavigationLink({
+  compact = false,
   href,
   icon,
   label,
+  largeTargets = false,
+  rowHeight,
   onNavigate,
 }: {
+  readonly compact?: boolean;
   readonly href: Href;
   readonly icon: AppIconName;
   readonly label: string;
+  readonly largeTargets?: boolean;
+  readonly rowHeight: number;
   readonly onNavigate?: () => void;
 }) {
   return (
-    <Link href={href} replace asChild>
+    <Link href={href} onPress={blurWebFocus} replace asChild>
       <Pressable
         accessibilityLabel={label}
         accessibilityRole="link"
         onPressIn={onNavigate}
-        style={styles.sectionItem}
+        style={StyleSheet.flatten([
+          styles.sectionItem,
+          compact && styles.compactItem,
+          largeTargets && styles.drawerItem,
+          { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
+        ])}
       >
-        <NavigationItemContent icon={icon} label={label} />
+        <NavigationItemContent
+          compact={compact}
+          icon={icon}
+          label={label}
+          largeTargets={largeTargets}
+        />
       </Pressable>
     </Link>
   );
 }
 
 function GeneralNavigationAction({
+  compact = false,
   icon,
   label,
+  largeTargets = false,
+  rowHeight,
   onPress,
 }: {
+  readonly compact?: boolean;
   readonly icon: AppIconName;
   readonly label: string;
+  readonly largeTargets?: boolean;
+  readonly rowHeight: number;
   readonly onPress: () => void;
 }) {
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.sectionItem, pressed && styles.pressed]}
+      onPress={() => {
+        blurWebFocus();
+        onPress();
+      }}
+      style={({ pressed }) => [
+        styles.sectionItem,
+        compact && styles.compactItem,
+        largeTargets && styles.drawerItem,
+        { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
+        pressed && styles.pressed,
+      ]}
     >
-      <NavigationItemContent icon={icon} label={label} />
+      <NavigationItemContent
+        compact={compact}
+        icon={icon}
+        label={label}
+        largeTargets={largeTargets}
+      />
+    </Pressable>
+  );
+}
+
+function FooterLegalLink({
+  label,
+  rowHeight,
+  onPress,
+}: {
+  readonly label: string;
+  readonly rowHeight: number;
+  readonly onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="link"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.legalLink,
+        { height: rowHeight, minHeight: rowHeight },
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={styles.legalIconSlot} />
+      <AppText numberOfLines={1} style={styles.legalLabel}>
+        {label}
+      </AppText>
+      <AppIcon color={colors.text.secondary} name="externalLink" size={16} />
     </Pressable>
   );
 }
@@ -148,13 +272,21 @@ export function NavigationPanel({
   activeSection,
   bandId,
   bandName,
+  compact = false,
   getSectionHref,
+  largeTargets = false,
   onNavigate,
   onLogout,
   onStagePress,
+  showBrand = true,
 }: NavigationPanelProps) {
+  const { setSectionTransition } = useSectionTransition();
   const { session } = useAuthSession();
+  const { fontScale } = useWindowDimensions();
   const profileQuery = useCurrentProfile();
+  const membersQuery = useBandMembers(bandId);
+  const rowHeight =
+    (largeTargets ? 48 : compact ? 28 : 32) * Math.max(1, fontScale);
   const account = session
     ? {
         avatarUrl: profileQuery.data?.avatarUrl,
@@ -174,36 +306,111 @@ export function NavigationPanel({
         email: 'Sessão não iniciada',
         name: 'Visitante',
       };
+  const membership = membersQuery.data?.find(
+    (member) => member.userId === session?.user.id,
+  );
+  const membershipLabel = membership
+    ? roleLabels[membership.role]
+    : membersQuery.isLoading
+      ? 'Carregando papel…'
+      : membersQuery.isError
+        ? 'Papel indisponível'
+        : null;
 
   return (
     <ScrollView contentContainerStyle={styles.panel}>
-      <View style={styles.brand}>
-        <View style={styles.brandMark}>
-          <AppIcon color={colors.surface} name="music" />
+      {showBrand ? (
+        <View style={styles.brand}>
+          <AppLogo size={40} />
+          <View>
+            <AppText tone="inverse" variant="heading">
+              Setlist
+            </AppText>
+            <AppText style={styles.muted} variant="caption">
+              A banda no mesmo compasso
+            </AppText>
+          </View>
         </View>
-        <View>
-          <AppText tone="inverse" variant="heading">
-            Setlist
-          </AppText>
+      ) : null}
+
+      <View style={styles.bandContext}>
+        <AppText style={styles.bandContextName} tone="inverse">
+          {bandId
+            ? (bandName ?? 'Banda selecionada')
+            : 'Nenhuma banda selecionada'}
+        </AppText>
+        {bandId && membershipLabel ? (
           <AppText style={styles.muted} variant="caption">
-            A banda no mesmo compasso
+            {membershipLabel}
           </AppText>
-        </View>
+        ) : null}
       </View>
 
-      <View style={styles.accountSummary}>
+      {bandId ? (
+        <View style={styles.bandNavigation}>
+          <View accessibilityRole="tablist" style={styles.sidebarTabs}>
+            {navigationItems.map((item) => (
+              <SidebarNavigationLink
+                active={activeSection === item.section}
+                compact={compact}
+                href={
+                  item.section === 'stage'
+                    ? undefined
+                    : getSectionHref(item.section)
+                }
+                icon={item.icon}
+                key={item.section}
+                label={item.label}
+                largeTargets={largeTargets}
+                rowHeight={rowHeight}
+                onNavigate={() => {
+                  if (activeSection && item.section !== 'stage') {
+                    setSectionTransition(activeSection, item.section);
+                  }
+                  onNavigate?.();
+                }}
+                onPress={item.section === 'stage' ? onStagePress : undefined}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      <View style={styles.generalNavigation}>
+        <SidebarNavigationLink
+          active={!bandId}
+          compact={compact}
+          href="/"
+          icon="bands"
+          label="Minhas bandas"
+          largeTargets={largeTargets}
+          rowHeight={rowHeight}
+          onNavigate={onNavigate}
+        />
+        <GeneralNavigationLink
+          compact={compact}
+          href="/account"
+          icon="account"
+          label="Perfil e conta"
+          largeTargets={largeTargets}
+          rowHeight={rowHeight}
+          onNavigate={onNavigate}
+        />
+      </View>
+
+      <View style={styles.footer}>
         <View
-          style={styles.accountIdentity}
+          style={[styles.accountIdentity, { minHeight: rowHeight }]}
           testID="navigation-account-identity"
         >
           <UserAvatar
             avatarUrl={account.avatarUrl}
             displayName={account.name}
-            size={36}
+            size={28}
           />
           <View style={styles.accountCopy} testID="navigation-account-copy">
             <AppText
-              numberOfLines={2}
+              numberOfLines={1}
               style={styles.accountName}
               tone="inverse"
             >
@@ -218,77 +425,36 @@ export function NavigationPanel({
             </AppText>
           </View>
         </View>
-      </View>
-
-      <SidebarNavigationLink
-        active={!bandId}
-        href="/"
-        icon="bands"
-        label="Minhas bandas"
-        onNavigate={onNavigate}
-      />
-
-      {bandId ? (
-        <View style={styles.bandNavigation}>
-          <AppText style={styles.muted} variant="eyebrow">
-            {bandName ?? 'Banda selecionada'}
-          </AppText>
-          <View accessibilityRole="tablist" style={styles.sidebarTabs}>
-            {navigationItems.map((item) => (
-              <SidebarNavigationLink
-                active={activeSection === item.section}
-                href={
-                  item.section === 'stage'
-                    ? undefined
-                    : getSectionHref(item.section)
-                }
-                icon={item.icon}
-                key={item.section}
-                label={item.label}
-                onNavigate={onNavigate}
-                onPress={item.section === 'stage' ? onStagePress : undefined}
-              />
-            ))}
-          </View>
-        </View>
-      ) : null}
-
-      <View style={styles.generalNavigation}>
-        <GeneralNavigationLink
-          href="/account"
-          icon="account"
-          label="Perfil e conta"
-          onNavigate={onNavigate}
-        />
-        <GeneralNavigationAction
-          icon="externalLink"
+        <FooterLegalLink
           label="Termos de uso"
+          rowHeight={rowHeight}
           onPress={() => {
             onNavigate?.();
             void Linking.openURL(legalUrls.terms);
           }}
         />
-        <GeneralNavigationAction
-          icon="externalLink"
+        <FooterLegalLink
           label="Política de privacidade"
+          rowHeight={rowHeight}
           onPress={() => {
             onNavigate?.();
             void Linking.openURL(legalUrls.privacy);
           }}
         />
-        <DisabledGeneralItem label="Sobre o Setlist" />
-      </View>
-
-      <View style={styles.footer}>
         <GeneralNavigationAction
+          compact={compact}
           icon="logout"
-          label="Sair"
+          label="Sair da conta"
+          largeTargets={largeTargets}
+          rowHeight={rowHeight}
           onPress={() => {
             onNavigate?.();
             void onLogout?.();
           }}
         />
-        <AppVersionLabel inverse />
+        <View style={styles.versionLabel}>
+          <AppVersionLabel inverse />
+        </View>
       </View>
     </ScrollView>
   );
@@ -306,43 +472,18 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
-  brandMark: {
-    backgroundColor: colors.violet,
-    borderRadius: radii.md,
-    overflow: 'hidden',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
   muted: {
-    color: '#aab3ce',
+    color: colors.text.secondary,
   },
-  accountSummary: {
-    backgroundColor: colors.navyRaised,
+  bandContext: {
+    backgroundColor: colors.background.raised,
     borderRadius: radii.md,
     gap: spacing.xs,
     padding: spacing.md,
   },
-  accountIdentity: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  accountCopy: {
-    alignItems: 'flex-start',
-    flex: 1,
-    flexDirection: 'column',
-    gap: spacing.xs,
-    minWidth: 0,
-  },
-  accountName: {
-    alignSelf: 'stretch',
-    flexShrink: 1,
-    minWidth: 0,
-    textAlign: 'left',
-  },
-  accountEmail: {
-    alignSelf: 'stretch',
-    textAlign: 'left',
+  bandContextName: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   bandNavigation: {
     gap: spacing.sm,
@@ -352,48 +493,124 @@ const styles = StyleSheet.create({
   },
   sectionItem: {
     alignSelf: 'stretch',
-    borderRadius: radii.md,
+    borderRadius: radii.sm,
     justifyContent: 'center',
-    minHeight: menuItemHeight,
+    minHeight: 32,
+    overflow: 'hidden',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
+    position: 'relative',
     width: '100%',
   },
+  compactItem: {
+    minHeight: 28,
+  },
+  drawerItem: {
+    minHeight: 48,
+    paddingVertical: 0,
+  },
   sectionItemActive: {
-    backgroundColor: colors.navyRaised,
+    backgroundColor: colors.background.selected,
+  },
+  activeIndicator: {
+    backgroundColor: colors.action.primary,
+    borderRadius: radii.pill,
+    bottom: 8,
+    left: spacing.sm,
+    position: 'absolute',
+    pointerEvents: 'none',
+    top: 8,
+    width: 2,
+  },
+  compactActiveIndicator: {
+    bottom: 6,
+    top: 6,
+  },
+  drawerActiveIndicator: {
+    bottom: 14,
+    top: 14,
   },
   sectionContent: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
+    width: '100%',
   },
   sectionIcon: {
-    height: 20,
-    marginTop: 2,
-    width: 20,
+    alignItems: 'center',
+    flexBasis: 24,
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 24,
+    justifyContent: 'center',
+    width: 24,
   },
   sectionLabel: {
-    flexShrink: 1,
+    flex: 1,
+    fontSize: 16,
+    lineHeight: 22,
     minWidth: 0,
   },
+  compactSectionLabel: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  drawerSectionLabel: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
   generalNavigation: {
-    borderTopColor: colors.navyRaised,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     gap: 0,
-    paddingTop: spacing.md,
-  },
-  generalItem: {
-    borderRadius: radii.md,
-    justifyContent: 'center',
-    minHeight: menuItemHeight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
   },
   footer: {
-    gap: spacing.xs,
+    gap: 0,
     marginTop: 'auto',
   },
+  accountIdentity: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+  },
+  accountCopy: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  accountName: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  accountEmail: {
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  legalLink: {
+    alignItems: 'center',
+    borderRadius: radii.sm,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minHeight: 28,
+    paddingHorizontal: spacing.md,
+  },
+  legalIconSlot: {
+    height: 24,
+    width: 24,
+  },
+  legalLabel: {
+    color: colors.text.secondary,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    minWidth: 0,
+  },
+  versionLabel: {
+    marginTop: spacing.sm,
+  },
   pressed: {
-    opacity: 0.7,
+    backgroundColor: colors.background.pressed,
   },
 });

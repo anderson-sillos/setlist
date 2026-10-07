@@ -44,8 +44,8 @@ describe('<ShowDetailScreen />', () => {
 
     expect(await view.findByText('Festival da Praça')).toBeTruthy();
     expect(view.getByTestId('show-detail-desktop')).toBeTruthy();
-    expect(view.getByText('Abertura')).toBeTruthy();
-    expect(view.getByText('Segundo Set')).toBeTruthy();
+    expect(view.getByText('I. Abertura')).toBeTruthy();
+    expect(view.getByText('II. Segundo Set')).toBeTruthy();
     expect(view.getByText('Usar a versão curta no bis.')).toBeTruthy();
     expect(view.getAllByText('Luzes da Cidade')).toHaveLength(2);
     expect(view.getByText('sáb, 20 de fev. de 2027 · 21h')).toBeTruthy();

@@ -1,4 +1,5 @@
 import {
+  formatCompactShowListDate,
   formatDateOnly,
   formatDateFilter,
   formatRelativeUpdate,
@@ -15,6 +16,12 @@ describe('formatação de datas e horários', () => {
     );
     expect(formatShowListDate('2026-09-19T21:30:00-03:00')).toBe(
       'sáb, 19 de set. de 2026 · 21h30',
+    );
+  });
+
+  it('usa uma data compacta para a lista de shows', () => {
+    expect(formatCompactShowListDate('2026-10-31T21:45:00-03:00')).toBe(
+      'sáb. 31 out. 2026 - 21h45',
     );
   });
 

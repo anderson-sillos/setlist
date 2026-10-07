@@ -21,7 +21,11 @@ import { useBandNavigationState } from '@/features/navigation/hooks/useBandNavig
 import { useNavigationDrawer } from '@/features/navigation/hooks/useNavigationDrawer';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
 import { StageAvailabilityDialog } from '@/features/stage/StageAvailabilityDialog';
-import { getLayoutMode, getNavigationPresentation } from '@/theme/responsive';
+import {
+  getContentHorizontalPadding,
+  getLayoutMode,
+  getNavigationPresentation,
+} from '@/theme/responsive';
 import { colors, layout, spacing } from '@/theme/tokens';
 
 export type {
@@ -79,6 +83,7 @@ export function AppNavigationShell({
   const layoutMode = getLayoutMode(width);
   const navigationPresentation = getNavigationPresentation(width, height);
   const persistentSidebar = navigationPresentation === 'sidebar';
+  const horizontalPadding = getContentHorizontalPadding(width);
   const { getSectionHref, handleScroll, initialScrollOffset } =
     useBandNavigationState({
       activeSection,
@@ -122,6 +127,7 @@ export function AppNavigationShell({
               activeSection={activeSection}
               bandId={bandId}
               bandName={bandName}
+              compact
               getSectionHref={getSectionHref}
               onLogout={handleLogout}
               onStagePress={handleStagePress}
@@ -151,7 +157,14 @@ export function AppNavigationShell({
 
           {fixedContent ? (
             <View style={styles.fixedContentFrame}>
-              <View style={styles.fixedContent}>{fixedContent}</View>
+              <View
+                style={[
+                  styles.fixedContent,
+                  { paddingHorizontal: horizontalPadding },
+                ]}
+              >
+                {fixedContent}
+              </View>
             </View>
           ) : null}
 
@@ -161,6 +174,7 @@ export function AppNavigationShell({
               contentOffset={{ x: 0, y: initialScrollOffset }}
               keyboardShouldPersistTaps="handled"
               onScroll={handleScroll}
+              style={styles.scrollArea}
               refreshControl={
                 onRefresh
                   ? getListRefreshControl({
@@ -172,7 +186,15 @@ export function AppNavigationShell({
               scrollEventThrottle={120}
               testID="screen-scroll-area"
             >
-              <View style={styles.content}>{children}</View>
+              <View
+                style={[
+                  styles.content,
+                  showBottomNavigation && styles.contentWithBottomNavigation,
+                  { paddingHorizontal: horizontalPadding },
+                ]}
+              >
+                {children}
+              </View>
             </ScrollView>
           ) : (
             <View
@@ -228,7 +250,7 @@ export function AppNavigationShell({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background.canvas,
     flex: 1,
   },
   shellRow: {
@@ -236,37 +258,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   mainArea: {
+    backgroundColor: colors.background.base,
     flex: 1,
     minWidth: 0,
+    position: 'relative',
   },
   scrollContent: {
     flexGrow: 1,
   },
+  scrollArea: {
+    flex: 1,
+    minHeight: 0,
+  },
   fixedContentFrame: {
-    backgroundColor: colors.paper,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: 0,
     zIndex: 2,
   },
   fixedContent: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     maxWidth: layout.contentMaxWidth,
+    paddingVertical: spacing.sm,
     width: '100%',
   },
   content: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
+    backgroundColor: colors.background.base,
     maxWidth: layout.contentMaxWidth,
-    padding: spacing.xl,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.xl,
     width: '100%',
+  },
+  contentWithBottomNavigation: {
+    paddingBottom: 96,
   },
   unscrolledContent: {
     flex: 1,
     minHeight: 0,
   },
   edgeGesture: {
-    bottom: 52,
+    bottom: 68,
     left: 0,
     pointerEvents: 'box-only',
     position: 'absolute',
@@ -275,9 +308,9 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   sidebar: {
-    backgroundColor: colors.navy,
-    flexBasis: 284,
-    maxWidth: 320,
-    minWidth: 260,
+    backgroundColor: colors.background.canvas,
+    flexBasis: 248,
+    maxWidth: 248,
+    minWidth: 224,
   },
 });

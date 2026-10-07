@@ -79,7 +79,13 @@ export function SpinButton({
   };
 
   return (
-    <View style={[styles.container, minWidth !== undefined && { minWidth }]}>
+    <View
+      style={[
+        styles.container,
+        focused && Platform.OS !== 'web' && styles.containerFocused,
+        minWidth !== undefined && { minWidth },
+      ]}
+    >
       <TextInput
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="spinbutton"
@@ -102,7 +108,7 @@ export function SpinButton({
           setDraftValue(value);
         }}
         placeholder="00"
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.text.muted}
         ref={inputRef}
         style={styles.input}
         value={inputValue}
@@ -121,7 +127,7 @@ export function SpinButton({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="add" size={16} />
+          <AppIcon color={colors.action.primary} name="add" size={16} />
         </Pressable>
         <Pressable
           accessibilityLabel={decrementLabel}
@@ -136,7 +142,7 @@ export function SpinButton({
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="minus" size={16} />
+          <AppIcon color={colors.action.primary} name="minus" size={16} />
         </Pressable>
       </View>
     </View>
@@ -146,8 +152,8 @@ export function SpinButton({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -156,8 +162,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingLeft: spacing.xs,
   },
+  containerFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
+  },
   input: {
-    color: colors.ink,
+    color: colors.text.primary,
     flex: 1,
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
@@ -183,6 +193,6 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   pressed: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.hover,
   },
 });

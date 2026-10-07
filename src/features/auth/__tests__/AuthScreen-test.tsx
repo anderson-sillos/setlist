@@ -87,8 +87,8 @@ describe('tela de autenticação', () => {
     };
 
     expect(buttonStyle('auth-google')).toMatchObject({
-      backgroundColor: colors.surface,
-      borderColor: colors.violet,
+      backgroundColor: colors.background.raised,
+      borderColor: colors.border.control,
     });
     expect(
       view.getByRole('button', { name: 'Continuar com Apple' }),

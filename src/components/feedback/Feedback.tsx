@@ -137,6 +137,13 @@ export function ConnectionBanner({
       <AppText
         accessibilityRole={needsConnection ? 'alert' : undefined}
         style={styles.connectionCopy}
+        tone={
+          status === 'required'
+            ? 'warning'
+            : status === 'restored'
+              ? 'success'
+              : 'muted'
+        }
         variant="caption"
       >
         {getFeedbackMessage(connectionMessageKeys[status], variation)}
@@ -180,7 +187,7 @@ export function TemporaryFeedback({
       style={styles.temporary}
       testID="temporary-feedback"
     >
-      <AppText style={styles.temporaryCopy} tone="inverse">
+      <AppText style={styles.temporaryCopy}>
         {getFeedbackMessage(messageKey, variation)}
       </AppText>
       {actionLabel && onAction ? (
@@ -189,7 +196,7 @@ export function TemporaryFeedback({
           onPress={onAction}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <AppText tone="inverse">{actionLabel}</AppText>
+          <AppText tone="accent">{actionLabel}</AppText>
         </Pressable>
       ) : null}
       <Pressable
@@ -198,7 +205,7 @@ export function TemporaryFeedback({
         onPress={onDismiss}
         style={({ pressed }) => pressed && styles.pressed}
       >
-        <AppIcon color={colors.surface} name="close" size={20} />
+        <AppIcon color={colors.text.primary} name="close" size={20} />
       </Pressable>
     </View>
   );
@@ -213,14 +220,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   skeletonRow: {
-    backgroundColor: colors.line,
+    backgroundColor: colors.background.hover,
     borderRadius: radii.md,
     height: 72,
   },
   panel: {
     alignSelf: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.lg,
     borderWidth: 1,
     gap: spacing.sm,
@@ -235,7 +242,7 @@ const styles = StyleSheet.create({
   },
   connectionBanner: {
     alignItems: 'center',
-    backgroundColor: '#fef3c7',
+    backgroundColor: colors.semantic.warningSurface,
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: 40,
@@ -243,7 +250,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   connectionRestored: {
-    backgroundColor: colors.cyanSoft,
+    backgroundColor: colors.semantic.successSurface,
   },
   connectionCopy: {
     flex: 1,
@@ -255,7 +262,7 @@ const styles = StyleSheet.create({
   temporary: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: colors.navyRaised,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.md,
     flexDirection: 'row',
     gap: spacing.md,

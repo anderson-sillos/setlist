@@ -22,6 +22,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { SearchField } from '@/components/ui/list-controls/SearchField';
@@ -29,7 +30,9 @@ import { moveSetlistItem } from '@/domain';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
+import { toRomanNumeral } from '@/utils/romanNumerals';
 
 export type ShowSetlistItemDraft = ShowSetlistItem & {
   readonly isNew?: boolean;
@@ -50,6 +53,7 @@ interface ShowBlockEditorDialogProps {
   readonly isSubmitting: boolean;
   readonly onAddSheetVisibilityChange: (visible: boolean) => void;
   readonly onClose: () => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
   readonly visible: boolean;
@@ -74,6 +78,7 @@ interface ItemDragSession {
   readonly originTopY: number;
   readonly sourceBlockId: EntityId;
   lastDy: number;
+  movementDirection: -1 | 0 | 1;
   targetBlockId: EntityId;
   targetIndex: number;
 }
@@ -85,6 +90,7 @@ interface BlockDragSession {
   readonly originTopY: number;
   readonly sourceIndex: number;
   lastDy: number;
+  movementDirection: -1 | 0 | 1;
   targetIndex: number;
 }
 
@@ -160,10 +166,12 @@ export function ShowBlockEditorDialog({
   isSubmitting,
   onAddSheetVisibilityChange,
   onClose,
+  onDirtyChange,
   onSubmit,
   songs,
   visible,
 }: ShowBlockEditorDialogProps) {
+  const reducedMotion = useReducedMotionPreference();
   const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
     cloneBlocks(initialBlocks),
   );
@@ -212,6 +220,9 @@ export function ShowBlockEditorDialog({
     [initialBlocks],
   );
   const hasChanges = JSON.stringify(blocks) !== initialSnapshot;
+  useEffect(() => {
+    onDirtyChange?.(hasChanges);
+  }, [hasChanges, onDirtyChange]);
   const requestClose = () => {
     if (isSubmitting) return;
     if (hasChanges) {
@@ -227,6 +238,20 @@ export function ShowBlockEditorDialog({
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
   );
+  const songSequenceNumbers = useMemo(() => {
+    const sequenceNumbers = new Map<EntityId, number>();
+    let nextSongNumber = 0;
+
+    blocks.forEach((block) => {
+      block.items.forEach((item) => {
+        if (item.type !== 'song') return;
+        nextSongNumber += 1;
+        sequenceNumbers.set(item.id, nextSongNumber);
+      });
+    });
+
+    return sequenceNumbers;
+  }, [blocks]);
   const filteredSongs = useMemo(() => {
     const query = songSearchText.trim().toLocaleLowerCase('pt-BR');
     if (!query) return songs;
@@ -457,6 +482,7 @@ export function ShowBlockEditorDialog({
       originTopY: itemLayout.y,
       sourceBlockId: blockId,
       lastDy: 0,
+      movementDirection: 0,
       targetBlockId: blockId,
       targetIndex: itemIndex,
     };
@@ -471,6 +497,10 @@ export function ShowBlockEditorDialog({
   const moveItemDrag = (dy: number) => {
     const session = itemDragSessionRef.current;
     if (!session) return;
+    const movement = dy - session.lastDy;
+    if (movement !== 0) {
+      session.movementDirection = movement < 0 ? -1 : 1;
+    }
     session.lastDy = dy;
     const previewTop =
       scrollFrameYRef.current +
@@ -491,7 +521,11 @@ export function ShowBlockEditorDialog({
       session.targetBlockId = destination.targetBlockId;
       session.targetIndex = destination.targetIndex;
     }
-    updateAutoScrollVelocity(previewTop, dragPreview?.height ?? 72);
+    updateAutoScrollVelocity(
+      previewTop,
+      dragPreview?.height ?? 72,
+      session.movementDirection,
+    );
   };
 
   const clearItemDrag = () => {
@@ -638,6 +672,7 @@ export function ShowBlockEditorDialog({
   const updateAutoScrollVelocity = (
     previewTop: number,
     previewHeight: number,
+    movementDirection: -1 | 0 | 1,
   ) => {
     const viewportHeight = scrollViewportHeightRef.current;
     const contentHeight = scrollContentHeightRef.current;
@@ -647,21 +682,23 @@ export function ShowBlockEditorDialog({
     }
 
     const edgeSize = Math.min(72, viewportHeight * 0.2);
-    const previewCenter = previewTop + previewHeight / 2;
     const viewportTop = scrollFrameYRef.current;
     const viewportBottom = viewportTop + viewportHeight;
     let velocity = 0;
 
-    if (previewCenter < viewportTop + edgeSize) {
+    if (movementDirection < 0 && previewTop < viewportTop + edgeSize) {
       const proximity = Math.min(
         1,
-        (viewportTop + edgeSize - previewCenter) / edgeSize,
+        (viewportTop + edgeSize - previewTop) / edgeSize,
       );
       velocity = -Math.max(80, 440 * proximity);
-    } else if (previewCenter > viewportBottom - edgeSize) {
+    } else if (
+      movementDirection > 0 &&
+      previewTop + previewHeight > viewportBottom - edgeSize
+    ) {
       const proximity = Math.min(
         1,
-        (previewCenter - (viewportBottom - edgeSize)) / edgeSize,
+        (previewTop + previewHeight - (viewportBottom - edgeSize)) / edgeSize,
       );
       velocity = Math.max(80, 440 * proximity);
     }
@@ -692,6 +729,7 @@ export function ShowBlockEditorDialog({
       originTopY: blockLayout.y,
       sourceIndex: blockIndex,
       lastDy: 0,
+      movementDirection: 0,
       targetIndex: blockIndex,
     };
     setDraggingBlockId(blockId);
@@ -706,6 +744,10 @@ export function ShowBlockEditorDialog({
   const moveBlockDragPreview = (dy: number) => {
     const session = blockDragSessionRef.current;
     if (!session) return;
+    const movement = dy - session.lastDy;
+    if (movement !== 0) {
+      session.movementDirection = movement < 0 ? -1 : 1;
+    }
     session.lastDy = dy;
     const previewTop =
       scrollFrameYRef.current +
@@ -722,7 +764,11 @@ export function ShowBlockEditorDialog({
         session.originScrollOffset,
       session.blockId,
     );
-    updateAutoScrollVelocity(previewTop, dragPreview?.height ?? 120);
+    updateAutoScrollVelocity(
+      previewTop,
+      dragPreview?.height ?? 120,
+      session.movementDirection,
+    );
   };
 
   const clearBlockDrag = () => {
@@ -820,7 +866,7 @@ export function ShowBlockEditorDialog({
                 onPress={requestClose}
                 style={styles.closeButton}
               >
-                <AppIcon color={colors.muted} name="close" size={20} />
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
               </Pressable>
             </View>
           ) : null}
@@ -886,6 +932,7 @@ export function ShowBlockEditorDialog({
                   onStartBlockDrag={startBlockDrag}
                   onStartItemDrag={startItemDrag}
                   songById={songById}
+                  songSequenceNumbers={songSequenceNumbers}
                 />
               ))}
               {errorMessage ? (
@@ -896,7 +943,6 @@ export function ShowBlockEditorDialog({
             </ScrollView>
             {dragPreview ? (
               <View
-                pointerEvents="none"
                 style={[
                   styles.dragPreview,
                   { height: dragPreview.height, top: dragPreview.top },
@@ -904,7 +950,7 @@ export function ShowBlockEditorDialog({
                 testID="setlist-drag-preview"
               >
                 <AppIcon
-                  color={colors.violet}
+                  color={colors.action.primary}
                   name={dragPreview.icon}
                   size={18}
                 />
@@ -930,32 +976,16 @@ export function ShowBlockEditorDialog({
             />
           </View>
         </View>
-        <OptionSheet
-          closeAccessibilityLabel="Continuar editando a setlist"
-          label="Descartar alterações?"
-          onClose={() => setDiscardVisible(false)}
+        <UnsavedChangesPrompt
+          onContinue={() => setDiscardVisible(false)}
+          onDiscard={() => {
+            setDiscardVisible(false);
+            onDirtyChange?.(false);
+            onClose();
+          }}
           testID="show-block-editor-discard-sheet"
           visible={discardVisible}
-        >
-          <AppText tone="muted">
-            Você fez alterações na setlist. Quer sair sem salvar?
-          </AppText>
-          <AppButton
-            accessibilityLabel="Continuar editando"
-            label="Continuar editando"
-            onPress={() => setDiscardVisible(false)}
-            variant="secondary"
-          />
-          <AppButton
-            accessibilityLabel="Descartar alterações"
-            icon="remove"
-            label="Descartar alterações"
-            onPress={() => {
-              setDiscardVisible(false);
-              onClose();
-            }}
-          />
-        </OptionSheet>
+        />
         <OptionSheet
           closeAccessibilityLabel="Cancelar exclusão do bloco"
           label="Excluir bloco"
@@ -976,9 +1006,10 @@ export function ShowBlockEditorDialog({
           <AppButton
             accessibilityLabel="Confirmar exclusão do bloco"
             disabled={!blockToDelete}
-            icon="remove"
+            icon="delete"
             label="Excluir bloco"
             onPress={deleteBlock}
+            variant="destructive"
           />
         </OptionSheet>
       </KeyboardAvoidingView>
@@ -1014,7 +1045,7 @@ export function ShowBlockEditorDialog({
           />
           <AppButton
             accessibilityLabel="Adicionar separador"
-            icon="remove"
+            icon="minus"
             label="Adicionar separador"
             onPress={addSeparator}
             variant="secondary"
@@ -1111,7 +1142,11 @@ export function ShowBlockEditorDialog({
                       {formatSongDuration(song.estimatedDurationMs)}
                     </AppText>
                     {selected ? (
-                      <AppIcon color={colors.violet} name="check" size={18} />
+                      <AppIcon
+                        color={colors.action.primary}
+                        name="check"
+                        size={18}
+                      />
                     ) : null}
                   </View>
                 </Pressable>
@@ -1127,7 +1162,7 @@ export function ShowBlockEditorDialog({
     <View style={styles.screenRoot}>{content}</View>
   ) : (
     <Modal
-      animationType="fade"
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={requestClose}
       transparent
       visible={visible}
@@ -1163,6 +1198,7 @@ function BlockRow({
   onStartBlockDrag,
   onStartItemDrag,
   songById,
+  songSequenceNumbers,
 }: {
   readonly block: ShowBlockDraft;
   readonly canDelete: boolean;
@@ -1198,7 +1234,10 @@ function BlockRow({
   readonly onStartBlockDrag: (blockId: EntityId) => void;
   readonly onStartItemDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly songById: ReadonlyMap<string, Song>;
+  readonly songSequenceNumbers: ReadonlyMap<EntityId, number>;
 }) {
+  const [deleteFocused, setDeleteFocused] = useState(false);
+
   return (
     <View
       onStartShouldSetResponderCapture={() => {
@@ -1219,24 +1258,35 @@ function BlockRow({
           accessibilityLabel={'Excluir bloco ' + block.name}
           accessibilityRole="button"
           disabled={!canDelete}
+          hitSlop={spacing.sm}
+          onBlur={() => setDeleteFocused(false)}
+          onFocus={() => setDeleteFocused(true)}
           onPress={onDelete}
           style={({ pressed }) => [
             styles.iconButton,
+            deleteFocused && styles.focusedIconButton,
             !canDelete && styles.disabled,
             pressed && styles.pressed,
           ]}
         >
-          <AppIcon color={colors.violet} name="remove" size={17} />
+          <AppIcon color={colors.text.secondary} name="delete" size={17} />
         </Pressable>
         <View style={styles.blockSelect}>
           <View style={styles.blockTitleRow}>
-            <AppIcon color={colors.violet} name="block" size={18} />
+            <AppIcon color={colors.text.secondary} name="block" size={18} />
+            <AppText
+              style={styles.blockSequenceNumber}
+              tone="accent"
+              variant="eyebrow"
+            >
+              {toRomanNumeral(index + 1)}.
+            </AppText>
             <TextInput
               accessibilityLabel={'Nome do bloco ' + (index + 1)}
               onChangeText={onChangeName}
               onFocus={onSelect}
               placeholder="Nome do bloco"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.text.muted}
               style={[styles.blockNameInput, styles.blockNameField]}
               value={block.name}
             />
@@ -1264,7 +1314,7 @@ function BlockRow({
         >
           <View style={[styles.dragHandle, styles.dragIconHitTest]}>
             <AppIcon
-              color={dragging ? colors.violet : colors.muted}
+              color={dragging ? colors.action.primary : colors.text.secondary}
               name="dragHandle"
               size={18}
               strokeWidth={2.5}
@@ -1294,6 +1344,7 @@ function BlockRow({
             onRemove={() => onRemoveItem(item.id)}
             onStartDrag={onStartItemDrag}
             song={item.type === 'song' ? songById.get(item.songId) : undefined}
+            songSequenceNumber={songSequenceNumbers.get(item.id)}
           />
         ))
       )}
@@ -1314,6 +1365,7 @@ function SetlistItemRow({
   onRemove,
   onStartDrag,
   song,
+  songSequenceNumber,
 }: {
   readonly blockId: EntityId;
   readonly dragging: boolean;
@@ -1333,6 +1385,7 @@ function SetlistItemRow({
   readonly onRemove: () => void;
   readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
   readonly song?: Song;
+  readonly songSequenceNumber?: number;
 }) {
   const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
 
@@ -1387,7 +1440,7 @@ function SetlistItemRow({
             onRemove={onRemove}
           />
           <View style={[styles.itemContent, styles.planningItemContent]}>
-            <AppIcon color={colors.violet} name="planning" size={16} />
+            <AppIcon color={colors.text.secondary} name="planning" size={16} />
             <TextInput
               accessibilityLabel={'Descrição do planejamento ' + (index + 1)}
               onChangeText={(description) =>
@@ -1398,7 +1451,7 @@ function SetlistItemRow({
                 )
               }
               placeholder="Ex.: Troca de instrumento"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.text.muted}
               style={[styles.input, styles.planningDescription]}
               value={item.description}
             />
@@ -1534,11 +1587,18 @@ function SetlistItemRow({
       testID={'setlist-item-row-' + item.id}
     >
       <ItemRemoveButton
-        itemLabel={'música ' + (index + 1)}
+        itemLabel={'música ' + (songSequenceNumber ?? index + 1)}
         onRemove={onRemove}
       />
       <View style={styles.itemContent}>
-        <AppIcon color={colors.violet} name="music" size={16} />
+        <AppIcon color={colors.text.secondary} name="music" size={16} />
+        <AppText
+          style={styles.songSequenceNumber}
+          tone="muted"
+          variant="caption"
+        >
+          {songSequenceNumber}.
+        </AppText>
         <View style={styles.itemFields}>
           <AppText>{song?.title ?? 'Música indisponível'}</AppText>
           {song?.originalArtist ? (
@@ -1550,7 +1610,9 @@ function SetlistItemRow({
             Duração · {formatSongDuration(song?.estimatedDurationMs ?? null)}
           </AppText>
           <TextInput
-            accessibilityLabel={'Observação da música ' + (index + 1)}
+            accessibilityLabel={
+              'Observação da música ' + (songSequenceNumber ?? index + 1)
+            }
             onChangeText={(notes) =>
               onChange((current) =>
                 current.type === 'song'
@@ -1559,7 +1621,7 @@ function SetlistItemRow({
               )
             }
             placeholder="Observação opcional para este show"
-            placeholderTextColor={colors.muted}
+            placeholderTextColor={colors.text.muted}
             style={styles.input}
             value={item.notes ?? ''}
           />
@@ -1568,7 +1630,7 @@ function SetlistItemRow({
       <ItemDragHandle
         dragging={dragging}
         itemId={item.id}
-        itemLabel={'música ' + (index + 1)}
+        itemLabel={'música ' + (songSequenceNumber ?? index + 1)}
         onCancelDrag={onCancelDrag}
         onEndDrag={onEndDrag}
         onMoveDrag={onMoveDrag}
@@ -1585,18 +1647,23 @@ function ItemRemoveButton({
   readonly itemLabel: string;
   readonly onRemove: () => void;
 }) {
+  const [focused, setFocused] = useState(false);
+
   return (
     <Pressable
       accessibilityLabel={'Remover ' + itemLabel}
       accessibilityRole="button"
-      hitSlop={spacing.xs}
+      hitSlop={spacing.sm}
+      onBlur={() => setFocused(false)}
+      onFocus={() => setFocused(true)}
       onPress={onRemove}
       style={({ pressed }) => [
         styles.itemRemoveButton,
+        focused && styles.focusedIconButton,
         pressed && styles.pressed,
       ]}
     >
-      <AppIcon color={colors.violet} name="remove" size={17} />
+      <AppIcon color={colors.text.secondary} name="remove" size={17} />
     </Pressable>
   );
 }
@@ -1630,7 +1697,7 @@ function ItemDragHandle({
     >
       <View style={styles.dragIconHitTest}>
         <AppIcon
-          color={dragging ? colors.violet : colors.muted}
+          color={dragging ? colors.action.primary : colors.text.secondary}
           name="dragHandle"
           size={18}
         />
@@ -1735,7 +1802,7 @@ function DragGestureHandle({
 
 const styles = StyleSheet.create({
   actions: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1744,12 +1811,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   activeBlockCard: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderWidth: 2,
   },
   blockCard: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.background.canvas,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     gap: spacing.md,
@@ -1762,11 +1829,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   blockNameInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
   },
@@ -1779,6 +1846,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  blockSequenceNumber: {
+    flexShrink: 0,
   },
   blockNameField: {
     flex: 1,
@@ -1796,12 +1866,12 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   dialog: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
     ...Platform.select({
       android: { elevation: 8 },
       ios: {
-        shadowColor: '#172033',
+        shadowColor: '#08080a',
         shadowOffset: { height: 4, width: 0 },
         shadowOpacity: 0.18,
         shadowRadius: 16,
@@ -1815,7 +1885,7 @@ const styles = StyleSheet.create({
   },
   dragHandle: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: StyleSheet.hairlineWidth,
     height: 32,
@@ -1823,24 +1893,24 @@ const styles = StyleSheet.create({
     width: 32,
   },
   draggingHandle: {
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.background.selected,
   },
   draggingItemRow: {
-    borderColor: colors.violet,
+    borderColor: colors.action.primary,
     borderRadius: radii.sm,
     borderWidth: 2,
     paddingHorizontal: spacing.xs,
   },
   dragPreview: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.action.primary,
     borderRadius: radii.md,
     borderWidth: 2,
     ...Platform.select({
       android: { elevation: 8 },
       ios: {
-        shadowColor: '#172033',
+        shadowColor: '#08080a',
         shadowOffset: { height: 4, width: 0 },
         shadowOpacity: 0.18,
         shadowRadius: 8,
@@ -1905,8 +1975,8 @@ const styles = StyleSheet.create({
   },
   totalDurationBar: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     minHeight: layout.minimumTouchTarget,
@@ -1916,7 +1986,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  errorText: { color: colors.amber },
+  errorText: { color: colors.semantic.danger },
   toolbarCopy: {
     flex: 1,
     gap: spacing.xs,
@@ -1924,7 +1994,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
     gap: spacing.md,
@@ -1934,11 +2004,11 @@ const styles = StyleSheet.create({
   },
   headerCopy: { flex: 1, gap: spacing.xs },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.text.primary,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -1971,9 +2041,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minWidth: 0,
   },
+  songSequenceNumber: {
+    minWidth: 20,
+    paddingTop: 2,
+    textAlign: 'right',
+  },
   itemRow: {
     alignItems: 'flex-start',
-    borderTopColor: colors.line,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,
@@ -1986,9 +2061,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 32,
   },
+  focusedIconButton: {
+    borderColor: colors.border.focus,
+    borderRadius: radii.pill,
+    borderWidth: 2,
+  },
   modalLayer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(25, 20, 45, 0.48)',
+    backgroundColor: colors.background.overlay,
     flex: 1,
     justifyContent: 'center',
     padding: spacing.lg,
@@ -2035,7 +2115,7 @@ const styles = StyleSheet.create({
   },
   screenLayer: {
     alignSelf: 'stretch',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background.raised,
     flex: 1,
     minHeight: 0,
     width: '100%',
@@ -2057,7 +2137,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 0 },
   separator: {
     alignSelf: 'center',
-    borderTopColor: colors.violet,
+    borderTopColor: colors.action.primary,
     borderTopWidth: 2,
     flex: 1,
     marginVertical: spacing.sm,
@@ -2084,7 +2164,7 @@ const styles = StyleSheet.create({
   },
   songOption: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2105,8 +2185,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   songOptionSelected: {
-    backgroundColor: colors.violetSoft,
-    borderColor: colors.violet,
+    backgroundColor: colors.background.selected,
+    borderColor: colors.action.primary,
   },
   songOptions: { gap: spacing.sm, paddingBottom: spacing.md },
   songPickerScroll: { flex: 1, minHeight: 0 },

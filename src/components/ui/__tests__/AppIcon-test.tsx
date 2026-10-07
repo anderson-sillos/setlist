@@ -31,7 +31,7 @@ describe('AppIcon', () => {
   it('aceita personalização visual sem mudar sua semântica decorativa', async () => {
     const view = await render(
       <AppIcon
-        color={colors.violet}
+        color={colors.action.primary}
         name="shows"
         size={20}
         strokeWidth={2.5}
@@ -49,11 +49,31 @@ describe('AppIcon', () => {
     });
   });
   it.each(['bandAdd', 'musicAdd'] as const)(
-    'renderiza a composição de criação %s',
+    'renderiza a figura sem sobreposição decorativa para %s',
     async (name) => {
       const view = await render(<AppIcon name={name} size={24} />);
 
-      expect(view.toJSON()).not.toBeNull();
+      expect(view.toJSON()).toMatchObject({
+        props: { height: 24, width: 24 },
+        type: 'RNSVGSvgView',
+      });
+    },
+  );
+
+  it.each([
+    ['close', 'X'],
+    ['delete', 'Trash2'],
+    ['removeMember', 'UserMinus'],
+    ['remove', 'Minus'],
+    ['refresh', 'RefreshCw'],
+    ['restore', 'RotateCcw'],
+    ['reopen', 'Undo2'],
+  ] as const)(
+    'mantém operação distinta para %s (%s)',
+    async (name, _figure) => {
+      const view = await render(<AppIcon name={name} />);
+
+      expect(view.toJSON()).toMatchObject({ type: 'RNSVGSvgView' });
     },
   );
 

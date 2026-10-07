@@ -80,7 +80,7 @@ export function FilterMenu({
               pressed && styles.pressed,
             ]}
           >
-            <AppText tone="inverse">Concluir</AppText>
+            <AppText tone="onAccent">Concluir</AppText>
           </Pressable>
         </View>
       </OptionSheet>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     alignItems: 'center',
-    backgroundColor: colors.violet,
+    backgroundColor: colors.action.primary,
     borderRadius: radii.md,
     justifyContent: 'center',
     minHeight: layout.minimumTouchTarget,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     alignItems: 'center',
-    borderColor: colors.line,
+    borderColor: colors.border.subtle,
     borderRadius: radii.md,
     borderWidth: 1,
     justifyContent: 'center',

@@ -27,9 +27,14 @@ describe('<RepertoireScreen />', () => {
 
     expect(await view.findByText('Luzes da Cidade')).toBeTruthy();
     expect(view.getByTestId('repertoire-list')).toBeTruthy();
-    expect(view.getAllByText('Letra estática').length).toBeGreaterThan(0);
     expect(
-      view.getAllByText('Sincronização incompleta').length,
+      view.getAllByRole('link', { name: /Status da letra: Letra estática$/ })
+        .length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByRole('link', {
+        name: /Status da letra: Sincronização incompleta$/,
+      }).length,
     ).toBeGreaterThan(0);
     expect(view.getByText('3min38s')).toBeTruthy();
     expect(view.queryByText('Duração')).toBeNull();
@@ -110,7 +115,7 @@ describe('<RepertoireScreen />', () => {
       </AppProviders>,
     );
 
-    expect(await emptyView.findByText('Repertório vazio')).toBeTruthy();
+    expect(await emptyView.findByText('Comece pelo repertório')).toBeTruthy();
     await emptyView.unmount();
 
     const searchView = await render(
@@ -172,7 +177,7 @@ describe('<RepertoireScreen />', () => {
       </AppProviders>,
     );
 
-    await view.findByText('Repertório vazio');
+    await view.findByText('Comece pelo repertório');
     expect(view.getByLabelText('Adicionar música ao repertório')).toBeTruthy();
     await fireEvent.press(
       view.getByLabelText('Adicionar música ao repertório'),
