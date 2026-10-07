@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import {
   Modal,
   Pressable,
@@ -52,6 +52,7 @@ export function MenuButton({
 }: MenuButtonProps) {
   const reducedMotion = useReducedMotionPreference();
   const pressProgress = useSharedValue(0);
+  const pressActive = useRef(false);
   const animatedStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
       pressProgress.value,
@@ -64,6 +65,12 @@ export function MenuButton({
     onPress();
   };
 
+  useEffect(() => {
+    if (reducedMotion) {
+      pressProgress.set(pressActive.current ? 1 : 0);
+    }
+  }, [pressProgress, reducedMotion]);
+
   return (
     <AnimatedMenuButton
       accessibilityLabel={accessibilityLabel}
@@ -74,17 +81,15 @@ export function MenuButton({
       }
       onPress={handlePress}
       onPressIn={() => {
+        pressActive.current = true;
         pressProgress.set(
-          withTiming(1, {
-            duration: reducedMotion ? 0 : motion.short,
-          }),
+          reducedMotion ? 1 : withTiming(1, { duration: motion.short }),
         );
       }}
       onPressOut={() => {
+        pressActive.current = false;
         pressProgress.set(
-          withTiming(0, {
-            duration: reducedMotion ? 0 : motion.short,
-          }),
+          reducedMotion ? 0 : withTiming(0, { duration: motion.short }),
         );
       }}
       style={[styles.menuButton, animatedStyle]}

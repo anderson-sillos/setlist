@@ -17,25 +17,33 @@ export function useNavigationDrawer({
   width,
 }: UseNavigationDrawerOptions) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerClosing, setDrawerClosing] = useState(false);
   const [drawerTranslateX] = useState(() => new Animated.Value(-360));
   const reducedMotion = useReducedMotionPreference();
 
   const openDrawer = useCallback(() => {
+    drawerTranslateX.stopAnimation();
     drawerTranslateX.setValue(reducedMotion ? 0 : -Math.min(width * 0.86, 360));
+    setDrawerClosing(false);
     setDrawerOpen(true);
   }, [drawerTranslateX, reducedMotion, width]);
 
   const closeDrawer = useCallback(() => {
     if (reducedMotion) {
+      drawerTranslateX.stopAnimation();
+      drawerTranslateX.setValue(-Math.min(width * 0.86, 360));
+      setDrawerClosing(false);
       setDrawerOpen(false);
       return;
     }
+    setDrawerClosing(true);
     Animated.timing(drawerTranslateX, {
       duration: motion.layerClose,
       toValue: -Math.min(width * 0.86, 360),
       useNativeDriver: true,
     }).start(({ finished }) => {
       if (finished) {
+        setDrawerClosing(false);
         setDrawerOpen(false);
       }
     });
@@ -47,7 +55,18 @@ export function useNavigationDrawer({
     }
 
     if (reducedMotion) {
+      if (drawerClosing) {
+        drawerTranslateX.stopAnimation(() => {
+          drawerTranslateX.setValue(-Math.min(width * 0.86, 360));
+          setDrawerClosing(false);
+          setDrawerOpen(false);
+        });
+        return;
+      }
       drawerTranslateX.setValue(0);
+      return;
+    }
+    if (drawerClosing) {
       return;
     }
     const animation = Animated.timing(drawerTranslateX, {
@@ -58,7 +77,7 @@ export function useNavigationDrawer({
 
     animation.start();
     return () => animation.stop();
-  }, [drawerOpen, drawerTranslateX, reducedMotion]);
+  }, [drawerClosing, drawerOpen, drawerTranslateX, reducedMotion, width]);
 
   const edgeGesture = useMemo(
     () =>

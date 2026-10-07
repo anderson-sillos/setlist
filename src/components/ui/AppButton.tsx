@@ -5,7 +5,14 @@ import {
   type PressableProps,
   type PressableStateCallbackType,
 } from 'react-native';
-import { forwardRef, useState, type ComponentRef, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentRef,
+  type ReactNode,
+} from 'react';
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -54,6 +61,7 @@ export const AppButton = forwardRef<
   const [focused, setFocused] = useState(false);
   const reducedMotion = useReducedMotionPreference();
   const pressProgress = useSharedValue(0);
+  const pressActive = useRef(false);
   const contentColor = disabled ? colors.text.disabled : buttonColors[variant];
   const animatedSurface = useAnimatedStyle(() => {
     return {
@@ -65,14 +73,22 @@ export const AppButton = forwardRef<
     };
   });
   const animatePress = (pressed: boolean) => {
-    pressProgress.value = withTiming(pressed && !disabled ? 1 : 0, {
-      duration: reducedMotion ? 0 : motion.short,
-    });
+    pressActive.current = pressed;
+    const target = pressed && !disabled ? 1 : 0;
+    pressProgress.set(
+      reducedMotion ? target : withTiming(target, { duration: motion.short }),
+    );
   };
   const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
     blurWebFocus();
     onPress?.(event);
   };
+
+  useEffect(() => {
+    if (reducedMotion || disabled) {
+      pressProgress.set(pressActive.current && !disabled ? 1 : 0);
+    }
+  }, [disabled, pressProgress, reducedMotion]);
 
   return (
     <Pressable

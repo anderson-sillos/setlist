@@ -17,6 +17,9 @@ describe('opções de transição da navegação', () => {
       animation: 'none',
       animationDuration: 0,
     });
-    expect(getStackScreenOptions('ios', true).animation).toBe('none');
+    expect(getStackScreenOptions('ios', true)).toMatchObject({
+      animation: 'none',
+      gestureEnabled: true,
+    });
   });
 });

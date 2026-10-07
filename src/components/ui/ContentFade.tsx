@@ -29,10 +29,16 @@ export function ContentFade({ children, loading, style }: ContentFadeProps) {
       return;
     }
 
+    if (reducedMotion) {
+      opacity.set(1);
+      wasLoading.current = false;
+      return;
+    }
+
     if (wasLoading.current) {
       opacity.set(
         withTiming(1, {
-          duration: reducedMotion ? 0 : motion.surface,
+          duration: motion.surface,
         }),
       );
       wasLoading.current = false;

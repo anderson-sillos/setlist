@@ -26,14 +26,28 @@ export function useReducedMotionPreference() {
       return () => mediaQuery.removeListener(update);
     }
 
-    void AccessibilityInfo.isReduceMotionEnabled()
-      .then(setReducedMotion)
-      .catch(() => undefined);
+    let isActive = true;
+    let receivedNativeChange = false;
     const subscription = AccessibilityInfo.addEventListener(
       'reduceMotionChanged',
-      setReducedMotion,
+      (value) => {
+        receivedNativeChange = true;
+        setReducedMotion(value);
+      },
     );
-    return () => subscription.remove();
+
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then((value) => {
+        if (isActive && !receivedNativeChange) {
+          setReducedMotion(value);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isActive = false;
+      subscription.remove();
+    };
   }, []);
 
   return reducedMotion;
