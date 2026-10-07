@@ -1,7 +1,14 @@
 import type { Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback } from 'react';
-import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import {
+  Animated,
+  Modal,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppLogo } from '@/components/ui/AppLogo';
@@ -43,6 +50,22 @@ export function MobileNavigationDrawer({
 
     onClose();
   }, [onClose]);
+  const closeGesture = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponderCapture: (_, gesture) =>
+          visible &&
+          gesture.dx < -12 &&
+          Math.abs(gesture.dx) > Math.abs(gesture.dy),
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dx <= -60 || gesture.vx <= -0.5) {
+            handleClose();
+          }
+        },
+        onPanResponderTerminationRequest: () => false,
+      }),
+    [handleClose, visible],
+  );
 
   return (
     <Modal
@@ -57,6 +80,7 @@ export function MobileNavigationDrawer({
       <SafeAreaProvider style={styles.provider}>
         <View style={styles.layer}>
           <Animated.View
+            {...closeGesture.panHandlers}
             style={[styles.frame, { transform: [{ translateX }] }]}
           >
             <View pointerEvents="none" style={styles.drawerSurface} />

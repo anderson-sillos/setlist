@@ -29,25 +29,8 @@ export function useNavigationDrawer({
   }, [drawerTranslateX, reducedMotion, width]);
 
   const closeDrawer = useCallback(() => {
-    if (reducedMotion) {
-      drawerTranslateX.stopAnimation();
-      drawerTranslateX.setValue(-Math.min(width * 0.86, 360));
-      setDrawerClosing(false);
-      setDrawerOpen(false);
-      return;
-    }
     setDrawerClosing(true);
-    Animated.timing(drawerTranslateX, {
-      duration: motion.layerClose,
-      toValue: -Math.min(width * 0.86, 360),
-      useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        setDrawerClosing(false);
-        setDrawerOpen(false);
-      }
-    });
-  }, [drawerTranslateX, reducedMotion, width]);
+  }, []);
 
   useEffect(() => {
     if (!drawerOpen) {
@@ -67,7 +50,19 @@ export function useNavigationDrawer({
       return;
     }
     if (drawerClosing) {
-      return;
+      const animation = Animated.timing(drawerTranslateX, {
+        duration: motion.layerClose,
+        toValue: -Math.min(width * 0.86, 360),
+        useNativeDriver: true,
+      });
+
+      animation.start(({ finished }) => {
+        if (finished) {
+          setDrawerClosing(false);
+          setDrawerOpen(false);
+        }
+      });
+      return () => animation.stop();
     }
     const animation = Animated.timing(drawerTranslateX, {
       duration: motion.layerOpen,

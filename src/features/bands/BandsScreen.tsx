@@ -27,7 +27,7 @@ import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { getBandSectionHref } from '@/features/navigation/routes';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { formatShowListDate } from '@/utils/dateTime';
+import { formatCompactShowListDate } from '@/utils/dateTime';
 import { normalizeForSearch } from '@/utils/text';
 
 const roleLabels: Record<BandRole, string> = {
@@ -266,6 +266,9 @@ export function BandsScreen({
         }
         renderItem={({ item: { band, membership, shows } }) => {
           const nextShow = getNextShow(shows, now);
+          const nextShowLabel = nextShow
+            ? `Próximo show · ${formatCompactShowListDate(nextShow.startsAt)}`
+            : 'Nenhum próximo show';
           const isLastAccessed = band.id === lastBandId;
           return (
             <View style={styles.rowFrame}>
@@ -301,9 +304,7 @@ export function BandsScreen({
                         {roleLabels[membership.role]}
                       </AppText>
                       <AppText variant="caption">
-                        {nextShow
-                          ? `Próximo show · ${formatShowListDate(nextShow.startsAt)}`
-                          : 'Nenhum próximo show'}
+                        {nextShowLabel}
                       </AppText>
                     </View>
                   </View>
