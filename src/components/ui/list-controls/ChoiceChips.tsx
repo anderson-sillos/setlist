@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  View,
   type PressableStateCallbackType,
 } from 'react-native';
 import Animated, {
@@ -13,6 +14,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { AppIcon } from '@/components/ui/AppIcon';
 import type { ChoiceChipsProps } from '@/components/ui/list-controls/types';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { colors, fontSizes, motion, radii, spacing } from '@/theme/tokens';
@@ -62,7 +64,7 @@ function ChoiceChip({
     backgroundColor: interpolateColor(
       progress.value,
       [0, 1],
-      [colors.background.base, colors.action.primary],
+      [colors.background.raised, colors.background.selected],
     ),
     borderColor: interpolateColor(
       progress.value,
@@ -74,7 +76,7 @@ function ChoiceChip({
     color: interpolateColor(
       progress.value,
       [0, 1],
-      [colors.text.secondary, colors.text.onAccent],
+      [colors.text.secondary, colors.action.primary],
     ),
   }));
 
@@ -98,7 +100,16 @@ function ChoiceChip({
         pressed && styles.pressed,
       ]}
     >
-      <AnimatedText style={[styles.label, labelStyle]}>{label}</AnimatedText>
+      <View style={styles.content}>
+        {selected ? (
+          <View style={styles.checkSlot}>
+            <AppIcon color={colors.action.primary} name="check" size={16} />
+          </View>
+        ) : null}
+        <AnimatedText numberOfLines={1} style={[styles.label, labelStyle]}>
+          {label}
+        </AnimatedText>
+      </View>
     </AnimatedPressable>
   );
 }
@@ -122,8 +133,21 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.text.secondary,
+    flexShrink: 0,
     fontSize: fontSizes.caption,
     lineHeight: 18,
+  },
+  content: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    gap: spacing.xs,
+  },
+  checkSlot: {
+    flexShrink: 0,
+    height: 16,
+    width: 16,
   },
   pressed: {
     opacity: 0.72,
