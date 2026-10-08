@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
+import { RepertoireCollectionError } from '@/domain';
 import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
 import { AppProviders } from '@/providers/AppProviders';
 
@@ -314,6 +315,142 @@ describe('<RepertoireScreen />', () => {
     expect(mockRouter.push).toHaveBeenCalledWith(
       `/bands/${demoIds.primaryBand}/repertoire/collections/new?songId=${lightsSong.id}&songId=${bridgesSong.id}&returnTo=repertoire`,
     );
+  });
+
+  it('acrescenta somente músicas novas ao final da coleção escolhida', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const appendSpy = jest.spyOn(
+      repositories.repertoireCollections,
+      'appendSongs',
+    );
+    const bridgeSong = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Entre Pontes',
+    );
+    const lightsSong = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Luzes da Cidade',
+    );
+    const neonSong = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Maré de Neon',
+    );
+    if (!bridgeSong || !lightsSong || !neonSong) {
+      throw new Error('Músicas de demonstração não encontradas');
+    }
+
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(
+      view.getByLabelText('Selecionar músicas do repertório'),
+    );
+    await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
+    await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
+    await fireEvent.press(view.getByLabelText('Selecionar Maré de Neon'));
+    expect(view.getByText('3 músicas selecionadas')).toBeTruthy();
+    await fireEvent.press(
+      view.getByLabelText(
+        'Adicionar 3 músicas selecionadas a uma coleção existente',
+      ),
+    );
+    await fireEvent.press(view.getByLabelText('Selecionar coleção Festa'));
+
+    expect(view.getByText('1 música nova será adicionada.')).toBeTruthy();
+    expect(
+      view.getByText(
+        '2 músicas já fazem parte e manterão suas posições atuais.',
+      ),
+    ).toBeTruthy();
+    await fireEvent.press(
+      view.getByLabelText('Confirmar inclusão na coleção Festa'),
+    );
+    expect(
+      await view.findByText(
+        '1 música adicionada à coleção Festa. 2 já faziam parte da coleção.',
+      ),
+    ).toBeTruthy();
+    expect(appendSpy).toHaveBeenCalledWith({
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-festa',
+      songIds: [bridgeSong.id, lightsSong.id, neonSong.id],
+    });
+
+    await fireEvent.press(view.getByLabelText('Concluir inclusão na coleção'));
+    const finalCollectionSongs = (
+      await repositories.repertoireCollections.listSongsByBandId(
+        demoIds.primaryBand,
+      )
+    )
+      .filter(({ collectionId }) => collectionId === 'collection-demo-festa')
+      .sort((left, right) => left.position - right.position);
+    expect(finalCollectionSongs).toEqual([
+      {
+        bandId: demoIds.primaryBand,
+        collectionId: 'collection-demo-festa',
+        position: 0,
+        songId: demoIds.stageSong,
+      },
+      {
+        bandId: demoIds.primaryBand,
+        collectionId: 'collection-demo-festa',
+        position: 1,
+        songId: neonSong.id,
+      },
+      {
+        bandId: demoIds.primaryBand,
+        collectionId: 'collection-demo-festa',
+        position: 2,
+        songId: bridgeSong.id,
+      },
+    ]);
+  });
+
+  it('mantém a coleção sem alterações quando a inclusão falha', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const originalSongs =
+      await repositories.repertoireCollections.listSongsByBandId(
+        demoIds.primaryBand,
+      );
+    jest
+      .spyOn(repositories.repertoireCollections, 'appendSongs')
+      .mockRejectedValue(
+        new RepertoireCollectionError(
+          'request_failed',
+          'Não foi possível atualizar a coleção agora.',
+        ),
+      );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(
+      view.getByLabelText('Selecionar músicas do repertório'),
+    );
+    await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
+    await fireEvent.press(
+      view.getByLabelText(
+        'Adicionar 1 música selecionada a uma coleção existente',
+      ),
+    );
+    await fireEvent.press(view.getByLabelText('Selecionar coleção Festa'));
+    await fireEvent.press(
+      view.getByLabelText('Confirmar inclusão na coleção Festa'),
+    );
+
+    expect(
+      await view.findByText('Não foi possível atualizar a coleção agora.'),
+    ).toBeTruthy();
+    expect(
+      await repositories.repertoireCollections.listSongsByBandId(
+        demoIds.primaryBand,
+      ),
+    ).toEqual(originalSongs);
+    expect(view.getByText('1 música selecionada')).toBeTruthy();
   });
 
   it('leva Owner de uma banda conectada à criação online', async () => {
