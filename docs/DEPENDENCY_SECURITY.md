@@ -11,8 +11,8 @@ release estável.
 
 ### Correção disponível
 
-| Pacote        | Versão anterior | Versão no lockfile | Aviso                                                                              | Situação                                                        |
-| ------------- | --------------- | ------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Pacote        | Versão anterior | Versão no lockfile | Aviso                                                                              | Situação                                             |
+| ------------- | --------------- | ------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | `shell-quote` | `1.10.0`        | `1.12.0`           | [GHSA-pqg4-j6r4-53mv](https://github.com/advisories/GHSA-pqg4-j6r4-53mv) — crítico | Integrado à `main` pela PR #30; alerta #12 encerrado |
 
 O aviso descreve injeção de comandos em `quote()` quando uma string com quebra
@@ -31,11 +31,11 @@ foi conferido como corrigido após a integração da PR #30.
 
 ### Avisos ainda sem versão corrigida
 
-| Alerta                                                                   | Pacote no lockfile | Severidade | Intervalo afetado | Entrada na árvore                                                       | Avaliação atual                                                                                          |
-| ------------------------------------------------------------------------ | ------------------ | ---------- | ----------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9)   | `node-forge@1.4.0` | Alta       | `<=1.4.0`         | `@expo/cli` e `@expo/code-signing-certificates`                         | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados.                                 |
-| [#10](https://github.com/anderson-sillos/setlist/security/dependabot/10) | `braces@3.0.3`     | Alta       | `<=3.0.3`         | `micromatch`, usado pela cadeia Expo/Metro e Jest                       | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados.                                 |
-| [#11](https://github.com/anderson-sillos/setlist/security/dependabot/11) | `sprintf-js@1.0.3` | Moderada   | `<=1.1.3`         | `argparse@1`, via `@istanbuljs/load-nyc-config` na cadeia Jest/Istanbul | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados; sem patch upstream.             |
+| Alerta                                                                   | Pacote no lockfile | Severidade | Intervalo afetado | Entrada na árvore                                                       | Avaliação atual                                                                                 |
+| ------------------------------------------------------------------------ | ------------------ | ---------- | ----------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9)   | `node-forge@1.4.0` | Alta       | `<=1.4.0`         | `@expo/cli` e `@expo/code-signing-certificates`                         | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados.                     |
+| [#10](https://github.com/anderson-sillos/setlist/security/dependabot/10) | `braces@3.0.3`     | Alta       | `<=3.0.3`         | `micromatch`, usado pela cadeia Expo/Metro e Jest                       | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados.                     |
+| [#11](https://github.com/anderson-sillos/setlist/security/dependabot/11) | `sprintf-js@1.0.3` | Moderada   | `<=1.1.3`         | `argparse@1`, via `@istanbuljs/load-nyc-config` na cadeia Jest/Istanbul | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados; sem patch upstream. |
 
 Fontes dos avisos:
 
