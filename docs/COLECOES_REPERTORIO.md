@@ -59,6 +59,17 @@ Na criação ou edição, informe um nome e use a lista **Músicas** para procur
 
 O contador e a revisão **Músicas escolhidas** ficam separados desses resultados. Trocar busca, filtro ou ordenação não apaga escolhas. Tocar numa música alterna sua participação; **Selecionar resultados (N)** acrescenta de uma vez apenas os resultados visíveis naquele momento, na ordem apresentada. A revisão permite remover participações e reordenar por arraste ou pelas setas. A ordem só é persistida ao tocar em **Salvar coleção**, numa única operação. Remover uma música dessa revisão remove apenas o vínculo; o cadastro da música e suas aparições em shows permanecem.
 
+### Organizar músicas diretamente no Repertório
+
+Proprietários e editores podem tocar em **Selecionar músicas** nos controles secundários do Repertório. Nesse modo, tocar numa música marca ou desmarca sua escolha, e a contagem inclui as músicas que ficaram fora dos resultados após uma busca ou filtro. **Selecionar resultados (N)** marca somente as músicas atualmente visíveis. Não é necessário manter o toque pressionado; tocar numa música fora do modo de seleção continua abrindo seu detalhe.
+
+Com músicas escolhidas, há duas ações opcionais:
+
+- **Criar coleção** abre o editor com as músicas escolhidas. Informe o nome, revise ou altere a ordem e salve pelo fluxo habitual. Se houver mudanças pendentes ao sair, o app mostra a confirmação de descarte e retorna ao Repertório quando a tela anterior estiver disponível.
+- **Adicionar à coleção** permite escolher uma coleção existente e confirmar a inclusão. A prévia separa músicas novas das que já pertencem ao destino. As novas entram ao final; as participações existentes não se repetem nem mudam de posição. Em caso de falha, o app mantém as escolhas para tentar novamente.
+
+**Cancelar seleção** encerra o modo, limpa as escolhas locais e restaura a abertura habitual do detalhe ao tocar em uma música. Cancelar antes da confirmação não grava vínculos. Integrantes sem papel de edição continuam consultando o Repertório e as coleções sem ver essas ações de organização.
+
 Para renomear ou organizar uma coleção existente, abra seu detalhe e escolha **Editar coleção**. A exclusão fica no final do editor, pede confirmação e remove a coleção e seus vínculos; não remove músicas nem setlists existentes. Se houver alterações ainda não salvas, a confirmação informa que elas também serão descartadas. Ao detectar uma edição concorrente, o app mantém o rascunho na tela, bloqueia uma nova gravação com a revisão antiga e oferece a saída para revisar a versão atual.
 
 ### Conferência com músicas ativas e arquivadas

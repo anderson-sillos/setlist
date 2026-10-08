@@ -32,7 +32,7 @@
 - [x] 4.1 Acrescentar modo explícito de seleção múltipla para proprietários/editores, com ações secundárias, contagem e cancelamento; verificar preservação de busca/filtros e retorno ao toque habitual sem gravação ao cancelar.
 - [x] 4.2 Conectar as escolhidas à criação de coleção com nome e revisão de ordem; verificar que a criação usa somente as escolhidas e permanece sujeita ao salvamento e descarte padrões.
 - [x] 4.3 Implementar inclusão das escolhidas ao final de coleção existente, sem repetir participações ou alterar a ordem anterior; verificar testes com mistura de músicas novas e já presentes e falha sem mudança parcial.
-- [ ] 4.4 Documentar as duas ações de organização a partir do Repertório em `docs/COLECOES_REPERTORIO.md`; conferir que ambas podem ser descobertas sem pressão longa ou etapa obrigatória.
+- [x] 4.4 Documentar as duas ações de organização a partir do Repertório em `docs/COLECOES_REPERTORIO.md`; conferir que ambas podem ser descobertas sem pressão longa ou etapa obrigatória.
 
 ## 5. Filtro de coleção e contexto da lista
 
