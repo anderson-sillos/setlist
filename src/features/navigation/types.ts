@@ -33,6 +33,7 @@ export interface AppNavigationShellProps extends PropsWithChildren {
   readonly editActions?: EditActions;
   readonly fixedContent?: ReactNode;
   readonly headerAction?: HeaderAction;
+  readonly leadingHeaderAction?: HeaderAction;
   readonly onConnectionRetry?: () => void;
   readonly onRefresh?: () => void | Promise<void>;
   readonly refreshing?: boolean;

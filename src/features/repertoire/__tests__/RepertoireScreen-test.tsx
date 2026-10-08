@@ -76,7 +76,17 @@ async function pressCollectionAction(
   view: Awaited<ReturnType<typeof render>>,
   label: string,
 ) {
-  await pressActionMenu(view, 'Abrir coleções do repertório', label);
+  if (label.startsWith('Adicionar ') && label.includes('selecionada')) {
+    await fireEvent.press(view.getByLabelText(label));
+    return;
+  }
+
+  const selectionMenu = view.queryByLabelText('Abrir opções da seleção');
+  await pressActionMenu(
+    view,
+    selectionMenu ? 'Abrir opções da seleção' : 'Abrir coleções do repertório',
+    label,
+  );
 }
 
 describe('<RepertoireScreen />', () => {
@@ -777,7 +787,7 @@ describe('<RepertoireScreen />', () => {
     }
     if (!parent) throw new Error('Modal de inclusão em coleção não encontrado');
     const dismiss = parent.props.onDismiss as () => void;
-    await fireEvent.press(view.getByLabelText('Criar seleção'));
+    await fireEvent.press(view.getByLabelText('Nova coleção'));
     await act(async () => dismiss());
 
     expect(mockRouter.push).toHaveBeenCalledWith(
@@ -826,10 +836,9 @@ describe('<RepertoireScreen />', () => {
       view.getByLabelText('Selecionar coleção Festa').props.accessibilityState,
     ).toEqual({ selected: true });
 
-    expect(view.getByText('1 música nova será adicionada.')).toBeTruthy();
     expect(
       view.getByText(
-        '2 músicas já fazem parte e manterão suas posições atuais.',
+        '1 música nova será adicionada. 2 já pertencem à coleção.',
       ),
     ).toBeTruthy();
     await fireEvent.press(
@@ -846,7 +855,8 @@ describe('<RepertoireScreen />', () => {
       songIds: [bridgeSong.id, lightsSong.id, neonSong.id],
     });
 
-    await fireEvent.press(view.getByLabelText('Concluir inclusão na coleção'));
+    expect(view.queryByTestId('repertoire-collection-picker')).toBeNull();
+    expect(view.queryByText('3 selecionadas')).toBeNull();
     const finalCollectionSongs = (
       await repositories.repertoireCollections.listSongsByBandId(
         demoIds.primaryBand,

@@ -11,7 +11,7 @@ Bandas precisam reunir músicas do repertório por ocasião, estilo ou intençã
 - Permitir criação, edição, reordenação e exclusão de coleções por proprietários e editores; integrantes poderão consultá-las.
 - Reutilizar busca, filtros e ordenação ao escolher músicas, mantendo as marcações entre consultas e permitindo selecionar explicitamente os resultados visíveis.
 - Oferecer um modo explícito de seleção múltipla no Repertório para criar uma coleção ou acrescentar músicas a uma existente.
-- Permitir iniciar a seleção pelo menu de ações ou mantendo o cartão de uma música pressionado; a música de origem já fica marcada e Coleções, Filtrar e Ordenar permanecem visíveis durante a seleção.
+- Permitir iniciar a seleção pelo menu de ações ou mantendo o cartão de uma música pressionado; a música de origem já fica marcada, Adicionar é a ação principal visível e os filtros permanecem acessíveis durante a seleção.
 - Permitir criar uma coleção diretamente nos diálogos de participações da música e de inclusão em coleção, levando para a criação as músicas que originaram cada ação.
 - Acrescentar ao painel Filtrar, quando existirem coleções, uma dimensão de coleção combinável com os critérios atuais: todas, sem coleção ou uma coleção da banda.
 - Mostrar no detalhe da música as coleções das quais ela participa, com nomes clicáveis que abrem o Repertório filtrado; oferecer gerenciamento secundário dos vínculos a quem pode editar. Músicas sem vínculos não receberão aviso ou incentivo de adesão.

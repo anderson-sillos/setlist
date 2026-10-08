@@ -16,6 +16,7 @@ type AppHeaderProps = Pick<
   | 'bandName'
   | 'editActions'
   | 'headerAction'
+  | 'leadingHeaderAction'
   | 'screenKind'
   | 'subtitle'
   | 'title'
@@ -29,6 +30,7 @@ export function AppHeader({
   bandName,
   editActions,
   headerAction,
+  leadingHeaderAction,
   onOpenMenu,
   persistentSidebar,
   screenKind,
@@ -40,7 +42,18 @@ export function AppHeader({
 
   return (
     <View style={styles.header} testID="app-header">
-      {kind === 'main' && !persistentSidebar ? (
+      {kind === 'main' && leadingHeaderAction ? (
+        <HeaderIconButton
+          accessibilityLabel={leadingHeaderAction.accessibilityLabel}
+          color={colors.text.secondary}
+          icon={leadingHeaderAction.icon ?? 'close'}
+          onPress={() => {
+            blurWebFocus();
+            leadingHeaderAction.onPress();
+          }}
+          size={32}
+        />
+      ) : kind === 'main' && !persistentSidebar ? (
         <NavigationIconButton
           accessibilityLabel="Abrir menu geral"
           icon="menu"

@@ -22,14 +22,21 @@ O sistema SHALL oferecer Coleções como ação secundária identificada no Repe
 - **THEN** encontra uma ação secundária nomeada Coleções junto aos controles do Repertório, inclusive antes da primeira coleção
 - **AND** a ação preserva contraste e alvo interativo acessíveis sem competir com a ação principal de adicionar música
 
-#### Scenario: Abrir ações de coleções sem ampliar a toolbar
+#### Scenario: Acessar coleções e iniciar a seleção
 
 - **WHEN** uma pessoa abre o botão Coleções ao lado de Filtrar e Ordenar
 - **THEN** encontra Ver coleções e, quando pode editar, Selecionar músicas
-- **AND** no modo de seleção, o menu Coleções oferece Adicionar à coleção, Selecionar todos, Limpar seleção e Cancelar seleção
-- **AND** Cancelar seleção limpa as músicas marcadas e encerra o modo, enquanto Limpar seleção apenas desmarca as músicas
-- **AND** a criação com músicas escolhidas fica disponível no diálogo Adicionar a uma coleção, por meio de Criar seleção
-- **AND** o modo de seleção não acrescenta linhas à toolbar
+- **AND** o uso habitual do Repertório mantém Coleções como controle secundário na toolbar
+
+#### Scenario: Encontrar a ação de inclusão durante a seleção
+
+- **WHEN** um proprietário ou editor marca ao menos uma música
+- **THEN** Coleções é substituído por Adicionar, que abre diretamente a escolha do destino
+- **AND** Adicionar fica indisponível sem músicas marcadas ou se as coleções não puderem ser carregadas
+- **AND** o cabeçalho mostra a quantidade, apresenta Cancelar seleção à esquerda e Opções da seleção à direita
+- **AND** o menu Opções da seleção reúne Selecionar todos, Limpar seleção e Cancelar seleção
+- **AND** Limpar seleção desmarca músicas sem sair do modo, enquanto Cancelar seleção encerra o modo e limpa as escolhas
+- **AND** Adicionar, Filtrar e Ordenar permanecem na linha atual da toolbar, sem criar uma faixa adicional
 
 #### Scenario: Usar ações de uma música sem alterar o toque habitual
 
@@ -118,17 +125,17 @@ O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvam
 
 - **WHEN** uma pessoa abre Criar coleção
 - **THEN** encontra o campo de nome e as ações de salvar/cancelar, sem busca, filtros ou lista de músicas
-- **AND** quando veio de Criar seleção em um dos diálogos de organização, vê somente a contagem das músicas que serão incluídas ao salvar
+- **AND** quando veio de Nova coleção em um dos diálogos de organização, vê somente a contagem das músicas que serão incluídas ao salvar
 
-#### Scenario: Criar seleção a partir das coleções da música
+#### Scenario: Criar coleção a partir das coleções da música
 
-- **WHEN** um proprietário ou editor escolhe Criar seleção em Coleções da música
+- **WHEN** um proprietário ou editor escolhe Nova coleção em Coleções da música
 - **THEN** abre a criação somente com o campo de nome e a música atual previamente escolhida
 - **AND** mudanças pendentes nas participações existentes pedem confirmação antes de sair
 
-#### Scenario: Criar seleção a partir da inclusão em coleção
+#### Scenario: Criar coleção a partir da inclusão em coleção
 
-- **WHEN** um proprietário ou editor escolhe Criar seleção em Adicionar a uma coleção
+- **WHEN** um proprietário ou editor escolhe Nova coleção em Adicionar a uma coleção
 - **THEN** abre a criação somente com o campo de nome e todas as músicas selecionadas previamente escolhidas
 - **AND** a ação também fica disponível quando a banda ainda não tem coleções
 - **AND** nenhuma participação existente é alterada antes de salvar a nova coleção
@@ -205,7 +212,7 @@ O sistema SHALL permitir a proprietários e editores ativar explicitamente um mo
 
 #### Scenario: Criar coleção a partir de músicas escolhidas
 
-- **WHEN** uma pessoa escolhe músicas no Repertório, abre Adicionar a uma coleção e escolhe Criar seleção
+- **WHEN** uma pessoa escolhe músicas no Repertório, aciona Adicionar e escolhe Nova coleção
 - **THEN** abre a criação para informar somente o nome e salvar com as músicas previamente escolhidas, preservando sua ordem
 
 #### Scenario: Acrescentar a uma coleção existente
@@ -213,10 +220,12 @@ O sistema SHALL permitir a proprietários e editores ativar explicitamente um mo
 - **WHEN** uma pessoa confirma a inclusão das escolhidas em uma coleção existente
 - **THEN** as músicas que ainda não pertencem a ela são acrescentadas ao final, preservando a ordem anterior
 - **AND** a operação não remove participações de outras músicas
+- **AND** após o sucesso, o seletor fecha, o modo de seleção termina e uma confirmação temporária informa a quantidade e o nome da coleção
+- **AND** após uma falha, o seletor permanece aberto e as músicas continuam marcadas para nova tentativa
 
 #### Scenario: Encerrar o modo de escolha
 
-- **WHEN** uma pessoa aciona o X do cabeçalho ou Cancelar seleção no menu Coleções antes de gravar
+- **WHEN** uma pessoa aciona Cancelar seleção à esquerda do cabeçalho ou no menu Opções da seleção antes de gravar
 - **THEN** a consulta volta ao comportamento habitual de abrir o detalhe ao tocar em uma música
 - **AND** as músicas marcadas são removidas da seleção local
 - **AND** nenhum vínculo de coleção é alterado

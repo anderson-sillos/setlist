@@ -32,7 +32,8 @@ interface ConnectionBannerProps {
   readonly variation?: number;
 }
 
-interface TemporaryFeedbackProps extends MessageSelectionProps {
+interface TemporaryFeedbackProps extends Partial<MessageSelectionProps> {
+  readonly message?: string;
   readonly actionLabel?: string;
   readonly durationMs?: number;
   readonly onAction?: () => void;
@@ -169,11 +170,16 @@ export function ConnectionBanner({
 export function TemporaryFeedback({
   actionLabel,
   durationMs = 5_000,
+  message: messageOverride,
   messageKey,
   onAction,
   onDismiss,
   variation = 0,
 }: TemporaryFeedbackProps) {
+  const message =
+    messageOverride ??
+    (messageKey ? getFeedbackMessage(messageKey, variation) : '');
+
   useEffect(() => {
     if (durationMs <= 0) return undefined;
 
@@ -187,9 +193,7 @@ export function TemporaryFeedback({
       style={styles.temporary}
       testID="temporary-feedback"
     >
-      <AppText style={styles.temporaryCopy}>
-        {getFeedbackMessage(messageKey, variation)}
-      </AppText>
+      <AppText style={styles.temporaryCopy}>{message}</AppText>
       {actionLabel && onAction ? (
         <Pressable
           accessibilityRole="button"

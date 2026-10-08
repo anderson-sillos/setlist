@@ -141,7 +141,7 @@ export function SongCollectionMembershipDialog({
             <AppButton
               disabled={isSaving}
               icon="addCircle"
-              label="Criar seleção"
+              label="Nova coleção"
               onPress={onCreateCollection}
               style={styles.createCollectionButton}
               variant="secondary"

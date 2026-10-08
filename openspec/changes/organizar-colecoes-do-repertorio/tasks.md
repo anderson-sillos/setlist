@@ -75,15 +75,17 @@
 
 - [x] 8.6 Adicionar Exibir letra ao menu de ações somente para músicas com letra, abrir a rota de letra em tela cheia e permitir clique duplo no card na Web sem alterar a navegação imediata por toque em iOS/Android; verificar clique simples/duplo, música sem letra e ação do menu e documentar o atalho.
 
-- [x] 8.7 Adicionar Selecionar ao menu da música e iniciar o mesmo modo por pressão prolongada do cartão, marcando a música de origem; manter Coleções, Filtrar e Ordenar visíveis durante o modo e retomar a ocultação automática ao sair, respeitando as permissões de edição e documentando os gestos.
+- [x] 8.7 Adicionar Selecionar ao menu da música e iniciar o mesmo modo por pressão prolongada do cartão, marcando a música de origem; manter os controles de consulta visíveis durante o modo e retomar a ocultação automática ao sair, respeitando as permissões de edição e documentando os gestos.
 
-- [x] 8.8 Adicionar Criar seleção aos diálogos Coleções da música e Adicionar a uma coleção, levando uma ou várias músicas iniciais para o formulário de nome, com confirmação de descarte quando o primeiro diálogo tiver mudanças pendentes; manter o prompt de descarte acima do modal no iOS, colocar Cancelar à esquerda de Salvar e manter as ações secundárias no padrão visual; no seletor, manter Cancelar e Adicionar em uma linha com o rótulo fixo; documentar o fluxo.
+- [x] 8.8 Adicionar Nova coleção aos diálogos Coleções da música e Adicionar a uma coleção, levando uma ou várias músicas iniciais para o formulário de nome, com confirmação de descarte quando o primeiro diálogo tiver mudanças pendentes; manter o prompt de descarte acima do modal no iOS, colocar Cancelar à esquerda de Salvar e manter as ações secundárias no padrão visual; no seletor, manter Cancelar e Adicionar em uma linha com o rótulo fixo; documentar o fluxo.
 
-- [x] 8.9 Remover a criação de coleção do menu Coleções, tanto no uso normal quanto no modo de seleção, e manter a criação com músicas escolhidas em Adicionar a uma coleção → Criar seleção; atualizar a especificação, o desenho e a documentação de uso.
+- [x] 8.9 Remover a criação de coleção do menu Coleções, tanto no uso normal quanto no modo de seleção, e manter a criação com músicas escolhidas em Adicionar a uma coleção → Nova coleção; atualizar a especificação, o desenho e a documentação de uso.
 
 - [x] 8.10 Acrescentar Cancelar seleção ao menu Coleções no modo de seleção, distinguindo-o de Limpar seleção; cancelar deve limpar as marcações e restaurar o comportamento habitual do Repertório.
 
 - [x] 8.11 Renomear Selecionar resultados (N) para Selecionar todos, mantendo claro para acessibilidade que a ação se limita às músicas visíveis na consulta atual; atualizar a documentação.
+
+- [x] 8.12 Exibir Adicionar diretamente na toolbar durante a seleção, mover Selecionar todos/Limpar seleção/Cancelar seleção para as opções do cabeçalho, encerrar a seleção após inclusão confirmada e padronizar Nova coleção para grupos salvos; atualizar especificação, desenho e documentação.
 
 > Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 
