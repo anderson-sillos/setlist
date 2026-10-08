@@ -27,11 +27,8 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
-import { ListEmptyState } from '@/components/ui/ListEmptyState';
-import { OptionMenu, SearchField } from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
-import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useSaveRepertoireCollection,
   useDeleteRepertoireCollection,
@@ -46,6 +43,7 @@ import type { EditActions } from '@/features/navigation/types';
 import {
   getBandSectionHref,
   getRepertoireCollectionCreateHref,
+  getRepertoireCollectionAddSongsHref,
   getRepertoireCollectionEditHref,
   getRepertoireCollectionHref,
   getRepertoireCollectionsHref,
@@ -53,19 +51,6 @@ import {
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { formatSongDuration } from '@/utils/duration';
-import {
-  filterAndSortRepertoireSongs,
-  repertoireFilters,
-  repertoireSorts,
-  type RepertoireFilter,
-  type RepertoireSort,
-} from './repertoireQuery';
-import {
-  lyricStatusIcons,
-  lyricStatusLabels,
-  lyricStatusTones,
-} from './songPresentation';
 import {
   getCollectionSongInsertionIndex,
   moveCollectionSong,
@@ -222,18 +207,11 @@ function RepertoireCollectionEditorForm({
   const [draggingSongId, setDraggingSongId] = useState<EntityId | null>(null);
   const [selectedSongIds, setSelectedSongIds] =
     useState<readonly EntityId[]>(orderedSongIds);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<RepertoireFilter>('all');
-  const [sort, setSort] = useState<RepertoireSort>('title');
   const initialName = initialCollection?.name ?? '';
   const selectionDirty =
     selectedSongIds.length !== orderedSongIds.length ||
     selectedSongIds.some((songId, index) => orderedSongIds[index] !== songId);
   const dirty = name !== initialName || selectionDirty;
-  const filteredSongs = useMemo(
-    () => filterAndSortRepertoireSongs(songs, search, filter, sort),
-    [filter, search, sort, songs],
-  );
   const songsById = useMemo(
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
@@ -242,14 +220,6 @@ function RepertoireCollectionEditorForm({
     const song = songsById.get(songId);
     return song ? [song] : [];
   });
-  const selectedSongIdSet = useMemo(
-    () => new Set(selectedSongIds),
-    [selectedSongIds],
-  );
-  const allVisibleSongsSelected =
-    filteredSongs.length > 0 &&
-    filteredSongs.every(({ id }) => selectedSongIdSet.has(id));
-
   const toggleSong = (songId: EntityId) => {
     setSelectedSongIds((current) =>
       current.includes(songId)
@@ -320,19 +290,6 @@ function RepertoireCollectionEditorForm({
     });
   };
 
-  const selectVisibleSongs = () => {
-    setSelectedSongIds((current) => {
-      const next = [...current];
-      const selected = new Set(current);
-      filteredSongs.forEach(({ id }) => {
-        if (!selected.has(id)) {
-          next.push(id);
-          selected.add(id);
-        }
-      });
-      return next;
-    });
-  };
   const unsavedChanges = useUnsavedChangesGuard({
     dirty,
     saving: isSubmitting || isDeleting,
@@ -499,8 +456,8 @@ function RepertoireCollectionEditorForm({
           testID="collection-editor-scroll"
         >
           <AppText tone="muted">
-            Reúna músicas do repertório por ocasião ou estilo. As coleções são
-            opcionais e podem começar vazias.
+            Escolha um nome para a coleção. Inclua músicas pelas ações do
+            Repertório.
           </AppText>
           <View style={styles.field}>
             <AppText variant="caption">Nome da coleção</AppText>
@@ -531,237 +488,143 @@ function RepertoireCollectionEditorForm({
               </AppText>
             </View>
           </View>
-          <View style={styles.songSection}>
-            <View style={styles.songSectionHeading}>
-              <AppText variant="heading">Músicas</AppText>
-              <AppText tone="muted">
-                {selectedSongIds.length === 1
-                  ? '1 escolhida'
-                  : `${selectedSongIds.length} escolhidas`}
-              </AppText>
-            </View>
-            <View style={styles.searchRow}>
-              <SearchField
-                accessibilityLabel="Buscar música por título ou artista"
-                onChangeText={setSearch}
-                placeholder="Buscar música ou artista/banda"
-                value={search}
-              />
-            </View>
-            <View style={styles.controls}>
-              <OptionMenu
-                active={filter !== 'all'}
-                accessibilityLabel="Alterar filtros da seleção de músicas"
-                compact
-                icon="filter"
-                label="Filtrar"
-                onChange={setFilter}
-                options={repertoireFilters}
-                value={filter}
-              />
-              <OptionMenu
-                active={sort !== 'title'}
-                accessibilityLabel="Alterar ordenação das músicas"
-                compact
-                icon="sort"
-                label="Ordenar"
-                onChange={setSort}
-                options={repertoireSorts}
-                value={sort}
-              />
+          {!collectionId && selectedSongIds.length > 0 ? (
+            <AppText tone="muted" variant="caption">
+              {selectedSongIds.length === 1
+                ? '1 música selecionada será incluída.'
+                : `${selectedSongIds.length} músicas selecionadas serão incluídas.`}
+            </AppText>
+          ) : null}
+          {collectionId ? (
+            <View style={styles.songSection}>
               <AppButton
-                disabled={filteredSongs.length === 0 || allVisibleSongsSelected}
-                icon="check"
-                label={`Selecionar resultados (${filteredSongs.length})`}
-                onPress={selectVisibleSongs}
+                icon="musicAdd"
+                label="Adicionar músicas no Repertório"
+                onPress={() => {
+                  const openRepertoire = () =>
+                    router.replace(
+                      getRepertoireCollectionAddSongsHref(bandId, collectionId),
+                    );
+                  if (dirty) unsavedChanges.requestConfirmation(openRepertoire);
+                  else openRepertoire();
+                }}
                 variant="secondary"
               />
-            </View>
-            {filteredSongs.length ? (
-              <View style={styles.songList}>
-                {filteredSongs.map((song) => {
-                  const selected = selectedSongIdSet.has(song.id);
-                  return (
-                    <Pressable
-                      accessibilityLabel={`${selected ? 'Remover seleção de' : 'Selecionar'} ${song.title}`}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: selected }}
-                      key={song.id}
-                      onPress={() => toggleSong(song.id)}
-                      style={({ pressed }) => [
-                        styles.songOption,
-                        pressed && styles.songOptionPressed,
-                      ]}
-                    >
-                      <Card
-                        style={styles.songOptionCard}
-                        tone={selected ? 'accent' : 'default'}
-                      >
-                        <View style={styles.songOptionIcon}>
-                          {selected ? (
+              <Card style={styles.selectionReview}>
+                <AppText variant="heading">
+                  Músicas escolhidas ({selectedSongs.length})
+                </AppText>
+                {selectedSongs.length ? (
+                  <>
+                    <AppText tone="muted" variant="caption">
+                      Arraste pela alça ou use as setas para ordenar.
+                    </AppText>
+                    <View style={styles.selectedSongList}>
+                      {selectedSongs.map((song, index) => (
+                        <View
+                          key={song.id}
+                          onLayout={(event) =>
+                            registerSongLayout(song.id, event)
+                          }
+                          style={[
+                            styles.selectedSongRow,
+                            draggingSongId === song.id &&
+                              styles.selectedSongDragging,
+                          ]}
+                          testID={`collection-song-row-${song.id}`}
+                        >
+                          <AppText style={styles.selectedPosition} tone="muted">
+                            {index + 1}
+                          </AppText>
+                          <CollectionSongDragHandle
+                            accessibilityLabel={`Arraste para reordenar ${song.title}`}
+                            dragging={draggingSongId === song.id}
+                            onCancel={clearSongDrag}
+                            onEnd={finishSongDrag}
+                            onMove={moveSongDrag}
+                            onStart={() => startSongDrag(song.id)}
+                            testID={`collection-song-drag-${song.id}`}
+                          />
+                          <AppText
+                            numberOfLines={2}
+                            style={styles.selectedSongTitle}
+                          >
+                            {song.title}
+                          </AppText>
+                          <Pressable
+                            accessibilityLabel={`Mover ${song.title} para cima`}
+                            accessibilityRole="button"
+                            accessibilityState={{ disabled: index === 0 }}
+                            disabled={index === 0 || isSubmitting || isDeleting}
+                            onPress={() => moveSongBy(song.id, -1)}
+                            style={styles.orderButton}
+                            testID={`collection-song-up-${song.id}`}
+                          >
                             <AppIcon
-                              color={colors.action.primary}
-                              name="check"
-                              size={20}
+                              color={
+                                index === 0
+                                  ? colors.text.disabled
+                                  : colors.text.secondary
+                              }
+                              name="moveUp"
+                              size={16}
                             />
-                          ) : (
+                          </Pressable>
+                          <Pressable
+                            accessibilityLabel={`Mover ${song.title} para baixo`}
+                            accessibilityRole="button"
+                            accessibilityState={{
+                              disabled: index === selectedSongs.length - 1,
+                            }}
+                            disabled={
+                              index === selectedSongs.length - 1 ||
+                              isSubmitting ||
+                              isDeleting
+                            }
+                            onPress={() => moveSongBy(song.id, 1)}
+                            style={styles.orderButton}
+                            testID={`collection-song-down-${song.id}`}
+                          >
+                            <AppIcon
+                              color={
+                                index === selectedSongs.length - 1
+                                  ? colors.text.disabled
+                                  : colors.text.secondary
+                              }
+                              name="moveDown"
+                              size={16}
+                            />
+                          </Pressable>
+                          <Pressable
+                            accessibilityLabel={`Remover ${song.title} da coleção`}
+                            accessibilityRole="button"
+                            accessibilityState={{
+                              disabled: isSubmitting || isDeleting,
+                            }}
+                            disabled={isSubmitting || isDeleting}
+                            onPress={() => toggleSong(song.id)}
+                            style={styles.orderButton}
+                            testID={`collection-song-remove-${song.id}`}
+                          >
                             <AppIcon
                               color={colors.text.secondary}
-                              name="music"
-                              size={20}
+                              name="remove"
+                              size={18}
                             />
-                          )}
+                          </Pressable>
                         </View>
-                        <View style={styles.songOptionCopy}>
-                          <View style={styles.songOptionTitle}>
-                            <AppText variant="heading">{song.title}</AppText>
-                            <StatusPill
-                              accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
-                              icon={lyricStatusIcons[song.lyricStatus]}
-                              tone={lyricStatusTones[song.lyricStatus]}
-                            />
-                            {song.archivedAt !== null ? (
-                              <StatusPill
-                                accessibilityLabel="Música arquivada"
-                                icon="archive"
-                                tone="warning"
-                              />
-                            ) : null}
-                          </View>
-                          <View style={styles.songOptionMeta}>
-                            <AppText numberOfLines={1} tone="muted">
-                              {song.originalArtist ??
-                                'Artista/Banda não informado'}
-                            </AppText>
-                            <AppText tone="muted" variant="caption">
-                              {song.estimatedDurationMs === null
-                                ? 'Duração não informada'
-                                : formatSongDuration(song.estimatedDurationMs)}
-                            </AppText>
-                          </View>
-                        </View>
-                      </Card>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : (
-              <ListEmptyState
-                message="Tente mudar a busca ou os filtros para encontrar músicas."
-                title="Nenhuma música encontrada"
-              />
-            )}
-            <Card style={styles.selectionReview}>
-              <AppText variant="heading">
-                Músicas escolhidas ({selectedSongs.length})
-              </AppText>
-              {selectedSongs.length ? (
-                <>
-                  <AppText tone="muted" variant="caption">
-                    Arraste pela alça ou use as setas para ordenar.
+                      ))}
+                    </View>
+                  </>
+                ) : (
+                  <AppText tone="muted">
+                    Esta coleção ainda não tem músicas. Adicione pelo
+                    Repertório.
                   </AppText>
-                  <View style={styles.selectedSongList}>
-                    {selectedSongs.map((song, index) => (
-                      <View
-                        key={song.id}
-                        onLayout={(event) => registerSongLayout(song.id, event)}
-                        style={[
-                          styles.selectedSongRow,
-                          draggingSongId === song.id &&
-                            styles.selectedSongDragging,
-                        ]}
-                        testID={`collection-song-row-${song.id}`}
-                      >
-                        <AppText style={styles.selectedPosition} tone="muted">
-                          {index + 1}
-                        </AppText>
-                        <CollectionSongDragHandle
-                          accessibilityLabel={`Arraste para reordenar ${song.title}`}
-                          dragging={draggingSongId === song.id}
-                          onCancel={clearSongDrag}
-                          onEnd={finishSongDrag}
-                          onMove={moveSongDrag}
-                          onStart={() => startSongDrag(song.id)}
-                          testID={`collection-song-drag-${song.id}`}
-                        />
-                        <AppText
-                          numberOfLines={2}
-                          style={styles.selectedSongTitle}
-                        >
-                          {song.title}
-                        </AppText>
-                        <Pressable
-                          accessibilityLabel={`Mover ${song.title} para cima`}
-                          accessibilityRole="button"
-                          accessibilityState={{ disabled: index === 0 }}
-                          disabled={index === 0 || isSubmitting || isDeleting}
-                          onPress={() => moveSongBy(song.id, -1)}
-                          style={styles.orderButton}
-                          testID={`collection-song-up-${song.id}`}
-                        >
-                          <AppIcon
-                            color={
-                              index === 0
-                                ? colors.text.disabled
-                                : colors.text.secondary
-                            }
-                            name="moveUp"
-                            size={16}
-                          />
-                        </Pressable>
-                        <Pressable
-                          accessibilityLabel={`Mover ${song.title} para baixo`}
-                          accessibilityRole="button"
-                          accessibilityState={{
-                            disabled: index === selectedSongs.length - 1,
-                          }}
-                          disabled={
-                            index === selectedSongs.length - 1 ||
-                            isSubmitting ||
-                            isDeleting
-                          }
-                          onPress={() => moveSongBy(song.id, 1)}
-                          style={styles.orderButton}
-                          testID={`collection-song-down-${song.id}`}
-                        >
-                          <AppIcon
-                            color={
-                              index === selectedSongs.length - 1
-                                ? colors.text.disabled
-                                : colors.text.secondary
-                            }
-                            name="moveDown"
-                            size={16}
-                          />
-                        </Pressable>
-                        <Pressable
-                          accessibilityLabel={`Remover ${song.title} da coleção`}
-                          accessibilityRole="button"
-                          accessibilityState={{
-                            disabled: isSubmitting || isDeleting,
-                          }}
-                          disabled={isSubmitting || isDeleting}
-                          onPress={() => toggleSong(song.id)}
-                          style={styles.orderButton}
-                          testID={`collection-song-remove-${song.id}`}
-                        >
-                          <AppIcon
-                            color={colors.text.secondary}
-                            name="remove"
-                            size={18}
-                          />
-                        </Pressable>
-                      </View>
-                    ))}
-                  </View>
-                </>
-              ) : (
-                <AppText tone="muted">
-                  Nenhuma música escolhida. Você pode salvar a coleção vazia.
-                </AppText>
-              )}
-            </Card>
-          </View>
+                )}
+              </Card>
+            </View>
+          ) : null}
           {initialCollection ? (
             <Card style={styles.dangerZone}>
               <AppText variant="heading">Excluir coleção</AppText>
@@ -1008,60 +871,6 @@ const styles = StyleSheet.create({
   },
   songSection: {
     gap: spacing.md,
-  },
-  songSectionHeading: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-  },
-  searchRow: {
-    width: '100%',
-  },
-  controls: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  songList: {
-    gap: spacing.sm,
-  },
-  songOption: {
-    borderRadius: radii.lg,
-  },
-  songOptionPressed: {
-    opacity: 0.72,
-  },
-  songOptionCard: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.md,
-    minHeight: 76,
-    padding: spacing.md,
-  },
-  songOptionIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 28,
-  },
-  songOptionCopy: {
-    flex: 1,
-    gap: spacing.xs,
-    minWidth: 0,
-  },
-  songOptionTitle: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  songOptionMeta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'space-between',
   },
   selectionReview: {
     alignSelf: 'center',

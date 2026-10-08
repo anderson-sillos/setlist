@@ -51,7 +51,9 @@ Na lista, cada cartão mostra o nome, a quantidade de músicas consultáveis, a 
 
 No detalhe da música, as coleções vinculadas aparecem como etiquetas abaixo de tom e BPM; tocar numa etiqueta abre o Repertório da mesma banda já filtrado por ela. Proprietários e editores também encontram **Organizar coleções** no cartão de informações, mesmo quando a música ainda não participa de nenhuma. Marque ou desmarque as coleções desejadas e salve para atualizar os vínculos em conjunto. Novas participações entram ao final da coleção e não mudam a ordem das outras músicas. Se tentar fechar ou sair com mudanças pendentes, o app oferece continuar editando ou descartar; se outra pessoa alterar uma coleção durante a edição, os dados escolhidos permanecem na janela para uma nova tentativa.
 
-Na criação ou edição, informe um nome e use a lista **Músicas** para procurar por título ou artista. Os filtros e a ordenação são os mesmos do Repertório:
+Na criação, informe apenas o **Nome da coleção** e salve. A coleção pode começar vazia. Se a criação veio de **Criar com selecionadas** no Repertório, uma contagem discreta informa as músicas que serão incluídas; não há outra lista de seleção nesse formulário.
+
+Para incluir músicas, use **Coleções → Selecionar músicas** no Repertório ou **Adicionar músicas** no detalhe de uma coleção vazia. Essa última ação abre o Repertório em seleção, sem restringir os resultados à coleção vazia, e deixa a coleção de destino marcada na confirmação de inclusão. Busca, status e ordenação permanecem disponíveis:
 
 - **Todas** lista músicas ativas, independentemente do estado da letra.
 - **Pendentes** lista músicas ativas cuja letra não está sincronizada.
@@ -59,7 +61,7 @@ Na criação ou edição, informe um nome e use a lista **Músicas** para procur
 - **Arquivadas** lista somente músicas arquivadas.
 - A ordenação pode usar título, artista/banda, atualização recente ou duração.
 
-O contador e a revisão **Músicas escolhidas** ficam separados desses resultados. Trocar busca, filtro ou ordenação não apaga escolhas. Tocar numa música alterna sua participação; **Selecionar resultados (N)** acrescenta de uma vez apenas os resultados visíveis naquele momento, na ordem apresentada. A revisão permite remover participações e reordenar por arraste ou pelas setas. A ordem só é persistida ao tocar em **Salvar coleção**, numa única operação. Remover uma música dessa revisão remove apenas o vínculo; o cadastro da música e suas aparições em shows permanecem.
+A edição de uma coleção existente permite renomear, remover participações e reordenar por arraste ou pelas setas. **Adicionar músicas no Repertório** abre a seleção na lista habitual; se houver alterações pendentes no editor, a saída pede confirmação de descarte. A ordem é persistida somente ao tocar em **Salvar coleção**. Remover uma participação não exclui a música nem suas aparições em shows.
 
 ### Organizar músicas diretamente no Repertório
 
@@ -67,7 +69,7 @@ Proprietários e editores podem abrir **Coleções → Selecionar músicas** no 
 
 No menu **Coleções**, **Limpar seleção** desmarca as músicas sem sair desse modo. Com músicas escolhidas, há duas ações opcionais:
 
-- **Criar com selecionadas** abre o editor com as músicas escolhidas. Informe o nome, revise ou altere a ordem e salve pelo fluxo habitual. Se houver mudanças pendentes ao sair, o app mostra a confirmação de descarte e retorna ao Repertório quando a tela anterior estiver disponível.
+- **Criar com selecionadas** abre o editor com as músicas escolhidas. Informe o nome e salve; as músicas já escolhidas mantêm sua ordem, que pode ser alterada depois na edição da coleção. Se houver mudanças pendentes ao sair, o app mostra a confirmação de descarte e retorna ao Repertório quando a tela anterior estiver disponível.
 - **Adicionar à coleção** permite escolher uma coleção existente e confirmar a inclusão. A prévia separa músicas novas das que já pertencem ao destino. As novas entram ao final; as participações existentes não se repetem nem mudam de posição. Em caso de falha, o app mantém as escolhas para tentar novamente.
 
 **Cancelar seleção** encerra o modo, limpa as escolhas locais e restaura a abertura habitual do detalhe ao tocar em uma música. Cancelar antes da confirmação não grava vínculos. Integrantes sem papel de edição continuam consultando o Repertório e as coleções sem ver essas ações de organização.
@@ -94,7 +96,7 @@ Para renomear ou organizar uma coleção existente, abra seu detalhe e escolha *
 
 ### Conferência com músicas ativas e arquivadas
 
-O cenário automatizado usa o repertório de demonstração. Crie **Ativas e arquivadas**, escolha **Luzes da Cidade**, use a busca para encontrar e acrescentar **Entre Pontes**, depois troque o filtro para **Arquivadas** e acrescente **Rota Antiga**. Ao voltar para **Todas** e mudar a ordenação, o contador permanece em três. Salvar mantém a ordem escolhida — Luzes da Cidade, Entre Pontes e Rota Antiga — e o resumo identifica uma música arquivada. A verificação também confirma que Rota Antiga continua cadastrada no repertório.
+Use o repertório de demonstração. Em **Coleções → Selecionar músicas**, escolha **Luzes da Cidade**, use a busca para encontrar e acrescentar **Entre Pontes**, depois troque o filtro para **Arquivadas** e acrescente **Rota Antiga**. Ao voltar para **Todas** e mudar a ordenação, o contador permanece em três. Use **Criar com selecionadas**, informe **Ativas e arquivadas** e salve. A criação mantém a ordem escolhida — Luzes da Cidade, Entre Pontes e Rota Antiga — e o resumo identifica uma música arquivada. A verificação também confirma que Rota Antiga continua cadastrada no repertório.
 
 ## Migrações e validação
 

@@ -188,7 +188,7 @@ describe('telas de consulta de coleções do repertório', () => {
     expect(view.getByText(/A coleção pode continuar vazia/)).toBeTruthy();
     await fireEvent.press(view.getByText('Adicionar músicas'));
     expect(mockRouter.push).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa/edit`,
+      `/bands/${demoIds.primaryBand}/repertoire?addToCollectionId=collection-demo-festa`,
     );
   });
 });

@@ -110,6 +110,7 @@ interface CollectionAppendResult {
 }
 
 interface RepertoireScreenProps extends BandSectionScreenProps {
+  readonly initialAppendCollectionId?: EntityId;
   readonly initialCollectionId?: EntityId;
 }
 
@@ -253,6 +254,7 @@ function SongRow({
 
 export function RepertoireScreen({
   bandId,
+  initialAppendCollectionId,
   initialCollectionId,
   viewportHeight,
   viewportWidth,
@@ -261,6 +263,7 @@ export function RepertoireScreen({
     <RepertoireScreenContent
       key={bandId}
       bandId={bandId}
+      initialAppendCollectionId={initialAppendCollectionId}
       initialCollectionId={initialCollectionId}
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
@@ -270,6 +273,7 @@ export function RepertoireScreen({
 
 function RepertoireScreenContent({
   bandId,
+  initialAppendCollectionId,
   initialCollectionId,
   viewportHeight,
   viewportWidth,
@@ -313,7 +317,21 @@ function RepertoireScreenContent({
     spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
   );
   const [selectionState, setSelectionState] =
-    useState<RepertoireSelectionState>(() => emptySelectionState(bandId));
+    useState<RepertoireSelectionState>(() => ({
+      ...emptySelectionState(bandId),
+      active: Boolean(initialAppendCollectionId),
+    }));
+  const appliedAppendRoute = useRef<EntityId | null>(null);
+  useEffect(() => {
+    if (
+      !initialAppendCollectionId ||
+      appliedAppendRoute.current === initialAppendCollectionId
+    )
+      return;
+    appliedAppendRoute.current = initialAppendCollectionId;
+    setSelectionState({ ...emptySelectionState(bandId), active: true });
+    update('collection', 'all');
+  }, [bandId, initialAppendCollectionId, update]);
   const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
   const [targetCollectionId, setTargetCollectionId] = useState<EntityId | null>(
     null,
@@ -493,7 +511,11 @@ function RepertoireScreenContent({
     setAppendResult(null);
   };
   const openCollectionPicker = () => {
-    setTargetCollectionId(null);
+    setTargetCollectionId(
+      collectionsQuery.data?.find(
+        ({ collection }) => collection.id === initialAppendCollectionId,
+      )?.collection.id ?? null,
+    );
     setAppendError(null);
     setAppendResult(null);
     setCollectionPickerVisible(true);

@@ -90,11 +90,11 @@ As mutações invalidam lista, detalhe e participações da banda afetada. Mudan
 
 ### 6. Escolha de músicas independente da consulta
 
-Extrair ou reutilizar a lógica de busca, filtros e ordenação do Repertório no seletor de coleção. Manter o conjunto de IDs escolhidos separado dos resultados atuais. A quantidade sempre considera todas as escolhas, e a revisão permite remover músicas que ficaram fora da consulta atual.
+A seleção de novas participações fica somente no Repertório, usando sua busca, filtros e ordenação. A criação de coleção pede apenas o nome; se veio de músicas já escolhidas, mostra uma contagem discreta e mantém os IDs recebidos até salvar. O editor de coleção existente permite renomear, reordenar e remover participações, sem duplicar o seletor de músicas. A ação Adicionar músicas abre o Repertório em seleção e identifica a coleção de destino, removendo apenas a restrição de coleção da consulta. Manter o conjunto de IDs escolhidos separado dos resultados atuais. A quantidade sempre considera todas as escolhas, e a revisão permite remover músicas que ficaram fora da consulta atual.
 
 **Selecionar os resultados** informa a quantidade e atua somente sobre os resultados atuais. As músicas adicionadas em cada confirmação seguem a ordem exibida naquele momento; as já presentes mantêm sua posição. A revisão da coleção permite reordenar antes de salvar, com gesto de arrastar e controles acessíveis de subir/descer.
 
-No modo de seleção do Repertório, preservar os critérios de consulta e trocar explicitamente o comportamento do toque para marcar. Criar coleção abre o editor com as escolhidas. Acrescentar a uma existente usa uma operação atômica de inclusão ao final, sem substituir a composição existente. Cancelar a seleção não grava.
+No modo de seleção do Repertório, preservar os critérios de consulta e trocar explicitamente o comportamento do toque para marcar. Criar coleção abre apenas o formulário de nome com a contagem das músicas já escolhidas. Acrescentar a uma existente usa uma operação atômica de inclusão ao final, sem substituir a composição existente. Cancelar a seleção não grava.
 
 **Alternativa considerada:** derivar as músicas escolhidas dos cards atualmente renderizados ou aplicar automaticamente filtros como composição. Isso perderia escolhas entre consultas e tornaria mudanças de filtro destrutivas ou ambíguas.
 

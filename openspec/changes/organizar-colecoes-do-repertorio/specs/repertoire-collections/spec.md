@@ -82,12 +82,24 @@ O sistema SHALL manter músicas de uma coleção como referências únicas ao re
 
 ### Requirement: Cadastro e administração de coleções
 
-O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvamento explícito, nome não vazio de até 120 caracteres e nome único na banda após ignorar diferenças de caixa e espaços nas extremidades. Coleções SHALL poder ser salvas vazias; exclusão SHALL exigir confirmação e preservar músicas e shows.
+O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvamento explícito, nome não vazio de até 120 caracteres e nome único na banda após ignorar diferenças de caixa e espaços nas extremidades. A criação SHALL pedir somente o nome, mantendo as músicas previamente escolhidas no Repertório quando existirem. A inclusão de novas músicas SHALL utilizar a seleção e as ações do Repertório. Coleções SHALL poder ser salvas vazias; exclusão SHALL exigir confirmação e preservar músicas e shows.
 
 #### Scenario: Criar uma coleção válida
 
 - **WHEN** um proprietário ou editor salva uma coleção com nome válido e músicas autorizadas
 - **THEN** o serviço registra a coleção, seus vínculos e sua ordem, informando sucesso após a confirmação da gravação
+
+#### Scenario: Criar sem duplicar a seleção de músicas
+
+- **WHEN** uma pessoa abre Criar coleção
+- **THEN** encontra o campo de nome e as ações de salvar/cancelar, sem busca, filtros ou lista de músicas
+- **AND** quando veio de Criar com selecionadas no Repertório, vê somente a contagem das músicas que serão incluídas ao salvar
+
+#### Scenario: Incluir músicas numa coleção vazia
+
+- **WHEN** uma pessoa aciona Adicionar músicas no detalhe de uma coleção vazia
+- **THEN** abre o Repertório em modo de seleção, sem restrição de resultados à coleção vazia
+- **AND** a confirmação de inclusão identifica essa coleção como destino inicialmente escolhido
 
 #### Scenario: Nome inválido ou duplicado
 
@@ -156,7 +168,7 @@ O sistema SHALL permitir a proprietários e editores ativar explicitamente um mo
 #### Scenario: Criar coleção a partir de músicas escolhidas
 
 - **WHEN** uma pessoa escolhe músicas no Repertório e solicita criar uma coleção
-- **THEN** abre a criação com aquelas músicas preenchidas para informar o nome, revisar a ordem e salvar
+- **THEN** abre a criação para informar somente o nome e salvar com as músicas previamente escolhidas, preservando sua ordem
 
 #### Scenario: Acrescentar a uma coleção existente
 

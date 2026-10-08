@@ -160,8 +160,13 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       </AppProviders>,
     );
 
-    expect(await view.findByText('Músicas escolhidas (1)')).toBeTruthy();
-    expect(view.getAllByText('Luzes da Cidade').length).toBeGreaterThan(0);
+    expect(
+      await view.findByText('1 música selecionada será incluída.'),
+    ).toBeTruthy();
+    expect(view.queryByText('Luzes da Cidade')).toBeNull();
+    expect(
+      view.queryByLabelText('Buscar música por título ou artista'),
+    ).toBeNull();
     await fireEvent.changeText(
       view.getByLabelText('Nome da coleção'),
       'Festa selecionada',
@@ -195,7 +200,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       </AppProviders>,
     );
 
-    await view.findByText('Músicas escolhidas (1)');
+    await view.findByText('1 música selecionada será incluída.');
     await fireEvent.changeText(
       view.getByLabelText('Nome da coleção'),
       'Festa via repertório',
@@ -528,99 +533,42 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     ).toEqual({ disabled: false });
   });
 
-  it('mantém escolhas entre buscas e filtros e seleciona apenas resultados visíveis', async () => {
+  it('pede apenas o nome na criação e deixa a inclusão de músicas para o Repertório', async () => {
     const repositories = createInMemoryRepositories(demoRepositoryData, {
-      createId: () => 'collection-demo-active-and-archived',
+      createId: () => 'collection-name-only',
     });
     const view = await render(
       <AppProviders repositories={repositories}>
         <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
       </AppProviders>,
     );
-
-    await view.findByLabelText('Selecionar Luzes da Cidade');
-    await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
-    await fireEvent.changeText(
-      view.getByLabelText('Buscar música por título ou artista'),
-      'pontes',
-    );
-    expect(await view.findByText('Entre Pontes')).toBeTruthy();
-    await fireEvent.press(
-      view.getByRole('button', { name: 'Selecionar resultados (1)' }),
-    );
-
+    const nameField = await view.findByLabelText('Nome da coleção');
     expect(
-      view.getByLabelText('Remover Luzes da Cidade da coleção'),
-    ).toBeTruthy();
-    expect(view.getByLabelText('Remover Entre Pontes da coleção')).toBeTruthy();
-    expect(view.queryByLabelText('Remover Maré de Neon da coleção')).toBeNull();
-
-    await fireEvent.changeText(
-      view.getByLabelText('Buscar música por título ou artista'),
-      'coletivo atlântico',
-    );
-    expect(await view.findByText('Maré de Neon')).toBeTruthy();
-    expect(view.getByText('2 escolhidas')).toBeTruthy();
-
-    await fireEvent.changeText(
-      view.getByLabelText('Buscar música por título ou artista'),
-      '',
-    );
-    await fireEvent.press(
-      view.getByLabelText('Alterar filtros da seleção de músicas'),
-    );
-    await fireEvent.press(view.getByText('Arquivadas'));
-    expect(await view.findByText('Rota Antiga')).toBeTruthy();
-    expect(view.getByText('2 escolhidas')).toBeTruthy();
-    await fireEvent.press(
-      view.getByRole('button', { name: 'Selecionar resultados (1)' }),
-    );
-    expect(view.getByLabelText('Remover Rota Antiga da coleção')).toBeTruthy();
-
-    await fireEvent.press(
-      view.getByLabelText('Alterar filtros da seleção de músicas'),
-    );
-    await fireEvent.press(view.getByText('Todas'));
-    await fireEvent.press(view.getByLabelText('Alterar ordenação das músicas'));
-    await fireEvent.press(view.getByText('Maior duração'));
-    expect(view.getAllByRole('checkbox')[0]?.props.accessibilityLabel).toBe(
-      'Selecionar Maré de Neon',
-    );
-    expect(view.getByText('3 escolhidas')).toBeTruthy();
-
-    await fireEvent.changeText(
-      view.getByLabelText('Nome da coleção'),
-      'Ativas e arquivadas',
-    );
+      view.queryByLabelText('Buscar música por título ou artista'),
+    ).toBeNull();
+    expect(view.queryAllByRole('checkbox')).toHaveLength(0);
+    expect(view.queryByText(/Músicas escolhidas/)).toBeNull();
+    await fireEvent.changeText(nameField, 'Festival');
     await fireEvent.press(view.getByLabelText('Salvar coleção'));
     await waitFor(() =>
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-active-and-archived`,
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-name-only`,
       ),
     );
-
-    const savedCollection = (
-      await repositories.repertoireCollections.listByBandId(demoIds.primaryBand)
-    ).find(({ name }) => name === 'Ativas e arquivadas');
-    expect(savedCollection).toBeTruthy();
-    const savedMemberships = (
+    const saved = await repositories.repertoireCollections.listByBandId(
+      demoIds.primaryBand,
+    );
+    expect(saved.find(({ id }) => id === 'collection-name-only')?.name).toBe(
+      'Festival',
+    );
+    const memberships =
       await repositories.repertoireCollections.listSongsByBandId(
         demoIds.primaryBand,
-      )
-    )
-      .filter(({ collectionId }) => collectionId === savedCollection?.id)
-      .sort((left, right) => left.position - right.position);
-    expect(savedMemberships.map(({ songId }) => songId)).toEqual([
-      'song-demo-luzes',
-      'song-demo-pontes',
-      'song-demo-rota-antiga',
-    ]);
-    const savedSongs = await repositories.songs.listByBandId(
-      demoIds.primaryBand,
-      { includeArchived: true },
-    );
+      );
     expect(
-      savedSongs.find(({ id }) => id === 'song-demo-rota-antiga')?.archivedAt,
-    ).not.toBeNull();
+      memberships.filter(
+        ({ collectionId }) => collectionId === 'collection-name-only',
+      ),
+    ).toEqual([]);
   });
 });

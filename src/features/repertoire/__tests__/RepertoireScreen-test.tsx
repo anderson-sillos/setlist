@@ -681,12 +681,14 @@ describe('<RepertoireScreen />', () => {
 
     const view = await render(
       <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+        <RepertoireScreen
+          bandId={demoIds.primaryBand}
+          initialAppendCollectionId="collection-demo-festa"
+        />
       </AppProviders>,
     );
 
     await view.findByText('Luzes da Cidade');
-    await pressCollectionAction(view, 'Selecionar músicas do repertório');
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
     await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
     await fireEvent.press(view.getByLabelText('Selecionar Maré de Neon'));
@@ -695,7 +697,9 @@ describe('<RepertoireScreen />', () => {
       view,
       'Adicionar 3 músicas selecionadas a uma coleção existente',
     );
-    await fireEvent.press(view.getByLabelText('Selecionar coleção Festa'));
+    expect(
+      view.getByLabelText('Selecionar coleção Festa').props.accessibilityState,
+    ).toEqual({ selected: true });
 
     expect(view.getByText('1 música nova será adicionada.')).toBeTruthy();
     expect(

@@ -1701,3 +1701,19 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      usou `--forceExit` por causa dos handles já registrados. As tarefas 8.1/8.2
      continuam abertas para a conferência completa nas três plataformas e de
      acessibilidade. A PR #32 deve permanecer aberta.
+
+130. A tarefa 3.8 simplifica a criação de coleção conforme solicitado: apenas
+     nome e salvamento/cancelamento, com contagem discreta quando vier de músicas
+     previamente selecionadas. O seletor duplicado foi removido do editor;
+     novas inclusões acontecem pela seleção e ações do Repertório. O editor
+     existente mantém renomeação, ordem, remoção e exclusão. Adicionar músicas
+     no detalhe vazio ou no editor abre o Repertório com `addToCollectionId`,
+     ativa a seleção, remove a restrição de coleção da consulta e pré-seleciona
+     o destino na confirmação. Sair do editor com mudanças continua sujeito
+     à confirmação compartilhada de descarte.
+     A criação simples foi conferida no iPhone 16; evidência em
+     `/private/tmp/setlist-collection-create-name-only.png`. Os 39 testes de
+     Repertório, consulta e editor de coleções passaram; lint, TypeScript,
+     formatação e OpenSpec estrito também passaram. Nenhuma coleção de teste
+     foi criada no Supabase conectado. A change tem 42/44 tarefas concluídas;
+     8.1 e 8.2 continuam pendentes. A PR #32 permanece aberta para validação.

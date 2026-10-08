@@ -27,6 +27,10 @@
 - [x] 3.6 Integrar a proteção compartilhada de alterações não salvas e bloquear envios concorrentes; verificar continuar, descartar, falhar e salvar sem aviso indevido, incluindo confirmação acima do editor e navegação responsiva após o fechamento.
 - [x] 3.7 Documentar consulta, edição e organização no seletor em `docs/COLECOES_REPERTORIO.md`; conferir os passos usando uma coleção com músicas ativas e arquivadas.
 
+- [x] 3.8 Simplificar a criação para informar somente o nome, preservar as músicas previamente escolhidas no Repertório sem outro seletor e concentrar novas inclusões no Repertório; direcionar Adicionar músicas para seleção com destino pré-selecionado e manter renomeação/ordem/remoção no editor existente. Conferir criação vazia/com selecionadas, salvamento e descarte.
+
+> O seletor originalmente entregue em 3.4 foi substituído no editor pelo refinamento 3.8 solicitado pelo responsável; busca, filtros e escolha múltipla ficam no Repertório. A revisão de ordem/remoção permanece na edição de coleções existentes.
+
 ## 4. Organização a partir do Repertório
 
 - [x] 4.1 Acrescentar modo explícito de seleção múltipla para proprietários/editores, com ações secundárias, contagem e cancelamento; verificar preservação de busca/filtros e retorno ao toque habitual sem gravação ao cancelar.
@@ -74,3 +78,5 @@
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.
 
 > Evidências de 4.5: barra com Coleções/Filtrar/Ordenar, seleção com contagem e X no cabeçalho, toque habitual no cartão abrindo o detalhe e abertura do diálogo de participações após o menu fechar foram conferidos no iPhone 16. Screenshots em `/private/tmp/setlist-collections-menu-normal.png`, `/private/tmp/setlist-collections-selection-after.png`, `/private/tmp/setlist-collections-membership-after.png` e `/private/tmp/setlist-song-card-detail-after.png`. Os 38 testes existentes de Repertório/Detalhe e os 8 de rolagem/overlay passaram; lint, TypeScript e formatação passaram. A conferência completa de 8.1/8.2 permanece pendente.
+
+> Evidências de 3.8: criação com apenas o nome conferida no iPhone 16 (`/private/tmp/setlist-collection-create-name-only.png`). Os 39 testes de Repertório, consulta e editor de coleções passaram, incluindo criação vazia, IDs previamente selecionados, descarte, inclusão com destino pré-selecionado e manutenção de ordem/remoção. Lint, TypeScript e formatação passaram. Não foram criadas coleções de teste no Supabase conectado.

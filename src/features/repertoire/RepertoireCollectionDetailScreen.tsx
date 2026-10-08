@@ -16,6 +16,7 @@ import { useRepertoireCollection, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
+  getRepertoireCollectionAddSongsHref,
   getRepertoireCollectionEditHref,
   getRepertoireCollectionHref,
   getRepertoireCollectionsHref,
@@ -164,7 +165,7 @@ export function RepertoireCollectionDetailScreen({
             </View>
           ) : (
             <ListEmptyState
-              actionIcon={canEdit ? 'edit' : undefined}
+              actionIcon={canEdit ? 'musicAdd' : undefined}
               actionLabel={canEdit ? 'Adicionar músicas' : undefined}
               message={
                 canEdit
@@ -175,7 +176,10 @@ export function RepertoireCollectionDetailScreen({
                 canEdit
                   ? () =>
                       router.push(
-                        getRepertoireCollectionEditHref(bandId, collectionId),
+                        getRepertoireCollectionAddSongsHref(
+                          bandId,
+                          collectionId,
+                        ),
                       )
                   : undefined
               }
