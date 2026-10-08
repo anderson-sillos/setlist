@@ -17,6 +17,14 @@ preparação do release.
 - Tela Sobre o Setlist compacta, com versão do código/instalada, build, ambiente,
   commit quando disponível, links legais e acesso ao código-fonte no GitHub.
 
+### Segurança
+
+- Atualização da dependência transitiva `shell-quote` de `1.10.0` para `1.12.0`,
+  corrigindo o alerta crítico `GHSA-pqg4-j6r4-53mv`.
+- Registro das dependências `node-forge`, `braces` e `sprintf-js` que continuam
+  afetadas por avisos sem versão corrigida publicada, com ações de acompanhamento
+  em `docs/DEPENDENCY_SECURITY.md`.
+
 ### Distribuição
 
 - Versão comum controlada no `app.json` e conferida no CI.
