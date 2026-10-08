@@ -45,7 +45,7 @@ Por exemplo, “Festa” e “Acústico” podem apontar para a mesma música. S
 
 ## Consulta, edição e organização no app
 
-O acesso às coleções fica na ação secundária **Coleções** do Repertório. A função é opcional: as telas habituais de músicas e shows continuam disponíveis sem criar ou usar coleções. Integrantes ativos podem consultar a lista e os detalhes; somente proprietários e editores veem as ações para criar, editar e excluir.
+O botão **Coleções** fica ao lado de **Filtrar** e **Ordenar** no Repertório, com o mesmo tamanho e aparência. Seu menu reúne **Ver coleções**, **Criar coleção** e **Selecionar músicas**, respeitando as permissões de edição. A função é opcional: as telas habituais de músicas e shows continuam disponíveis sem criar ou usar coleções. Integrantes ativos podem consultar a lista e os detalhes; somente proprietários e editores veem as ações para criar, editar e excluir.
 
 Na lista, cada cartão mostra o nome, a quantidade de músicas consultáveis, a duração conhecida e, quando aplicável, quantas estão arquivadas. Abrir um cartão mostra as músicas na ordem da coleção, com indicação das arquivadas. Tocar numa música abre seu cadastro no Repertório. Uma coleção vazia continua válida e seu detalhe oferece **Adicionar músicas** a quem pode editar.
 
@@ -63,14 +63,18 @@ O contador e a revisão **Músicas escolhidas** ficam separados desses resultado
 
 ### Organizar músicas diretamente no Repertório
 
-Proprietários e editores podem tocar em **Selecionar músicas** nos controles secundários do Repertório. Nesse modo, tocar numa música marca ou desmarca sua escolha, e a contagem inclui as músicas que ficaram fora dos resultados após uma busca ou filtro. **Selecionar resultados (N)** marca somente as músicas atualmente visíveis. Não é necessário manter o toque pressionado; tocar numa música fora do modo de seleção continua abrindo seu detalhe.
+Proprietários e editores podem abrir **Coleções → Selecionar músicas** no Repertório. A contagem aparece no cabeçalho com um **X** para cancelar, sem acrescentar uma faixa de botões à lista. Nesse modo, tocar numa música marca ou desmarca sua escolha, e a contagem inclui as músicas que ficaram fora dos resultados após uma busca ou filtro. **Selecionar resultados (N)** marca somente as músicas atualmente visíveis. Não é necessário manter o toque pressionado; tocar numa música fora do modo de seleção continua abrindo seu detalhe.
 
-Com músicas escolhidas, há duas ações opcionais:
+No menu **Coleções**, **Limpar seleção** desmarca as músicas sem sair desse modo. Com músicas escolhidas, há duas ações opcionais:
 
-- **Criar coleção** abre o editor com as músicas escolhidas. Informe o nome, revise ou altere a ordem e salve pelo fluxo habitual. Se houver mudanças pendentes ao sair, o app mostra a confirmação de descarte e retorna ao Repertório quando a tela anterior estiver disponível.
+- **Criar com selecionadas** abre o editor com as músicas escolhidas. Informe o nome, revise ou altere a ordem e salve pelo fluxo habitual. Se houver mudanças pendentes ao sair, o app mostra a confirmação de descarte e retorna ao Repertório quando a tela anterior estiver disponível.
 - **Adicionar à coleção** permite escolher uma coleção existente e confirmar a inclusão. A prévia separa músicas novas das que já pertencem ao destino. As novas entram ao final; as participações existentes não se repetem nem mudam de posição. Em caso de falha, o app mantém as escolhas para tentar novamente.
 
 **Cancelar seleção** encerra o modo, limpa as escolhas locais e restaura a abertura habitual do detalhe ao tocar em uma música. Cancelar antes da confirmação não grava vínculos. Integrantes sem papel de edição continuam consultando o Repertório e as coleções sem ver essas ações de organização.
+
+O botão de **três pontos verticais** de cada música oferece **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme as permissões. Tocar no restante do cartão continua abrindo o detalhe; no modo de seleção, esse toque marca ou desmarca a música. A organização pelo menu utiliza o mesmo diálogo de participações disponível no detalhe, com salvamento e confirmação de descarte. No iOS, o menu fecha completamente antes de abrir o diálogo ou a tela de destino.
+
+Uma falha na consulta opcional de coleções não impede a consulta das músicas. O erro e a nova tentativa aparecem nas ações de coleções; se houver dados anteriores, o filtro e os resultados são preservados.
 
 ### Filtrar o Repertório por coleção
 

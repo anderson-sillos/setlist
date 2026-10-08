@@ -1674,3 +1674,30 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      passou (`status: success`, zero coleções para a banda aberta); acesso
      anônimo continua negado por projeto, com `401 / 42501`.
      Produção não foi alterada. A tarefa 8.5 registra a conferência.
+
+129. O refinamento aprovado de UX de Coleções foi implementado na tarefa 4.5:
+     botão neutro Coleções junto de Filtrar/Ordenar, com consulta, criação e
+     seleção no menu; contagem e X no cabeçalho durante a seleção, sem novas
+     linhas na toolbar; ações por música com `EllipsisVertical`. O toque no
+     restante do cartão mantém a abertura dos detalhes. Edição e organização
+     respeitam owner/editor; a gestão de participações utiliza o mesmo hook e
+     diálogo no Repertório e no detalhe, preservando proteção de descarte e
+     revisões capturadas ao abrir. O menu aguarda `onDismiss` no iOS antes de
+     executar navegação ou abrir outro diálogo. Falhas na consulta opcional de
+     coleções ficam localizadas nas ações do recurso; a lista e filtros com
+     dados anteriores continuam disponíveis.
+
+     Xcode está em `/Volumes/Macintosh HD - Dados/Applications/Xcode.app`.
+     Para acessar o simulador, usar `DEVELOPER_DIR` apontando para seu diretório
+     `Contents/Developer`, sem mudar `xcode-select` global. A apresentação normal
+     e em seleção, os três pontos, a abertura de participações e o toque habitual
+     abrindo detalhes foram conferidos no iPhone 16. Evidências locais estão em
+     `/private/tmp/setlist-collections-menu-normal.png`,
+     `/private/tmp/setlist-collections-selection-after.png`,
+     `/private/tmp/setlist-collections-membership-after.png` e
+     `/private/tmp/setlist-song-card-detail-after.png`.
+     Os 38 testes existentes de Repertório/Detalhe e 8 de rolagem/overlay passaram,
+     além de lint, TypeScript, formatação e OpenSpec estrito. A execução do Jest
+     usou `--forceExit` por causa dos handles já registrados. As tarefas 8.1/8.2
+     continuam abertas para a conferência completa nas três plataformas e de
+     acessibilidade. A PR #32 deve permanecer aberta.

@@ -34,7 +34,7 @@
 - [x] 4.3 Implementar inclusão das escolhidas ao final de coleção existente, sem repetir participações ou alterar a ordem anterior; verificar testes com mistura de músicas novas e já presentes e falha sem mudança parcial.
 - [x] 4.4 Documentar as duas ações de organização a partir do Repertório em `docs/COLECOES_REPERTORIO.md`; conferir que ambas podem ser descobertas sem pressão longa ou etapa obrigatória.
 
-- [ ] 4.5 Aplicar o refinamento de UX aprovado: reunir manutenção e seleção no menu Coleções, manter a toolbar compacta com contagem/cancelamento no cabeçalho, acrescentar ações por música com três pontos verticais preservando o toque no cartão e compartilhar o gerenciamento de participações; conferir a apresentação e o fechamento antes da ação no simulador iOS.
+- [x] 4.5 Aplicar o refinamento de UX aprovado: reunir manutenção e seleção no menu Coleções, manter a toolbar compacta com contagem/cancelamento no cabeçalho, acrescentar ações por música com três pontos verticais preservando o toque no cartão e compartilhar o gerenciamento de participações; conferir a apresentação e o fechamento antes da ação no simulador iOS.
 
 ## 5. Filtro de coleção e contexto da lista
 
@@ -72,3 +72,5 @@
 > Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.
+
+> Evidências de 4.5: barra com Coleções/Filtrar/Ordenar, seleção com contagem e X no cabeçalho, toque habitual no cartão abrindo o detalhe e abertura do diálogo de participações após o menu fechar foram conferidos no iPhone 16. Screenshots em `/private/tmp/setlist-collections-menu-normal.png`, `/private/tmp/setlist-collections-selection-after.png`, `/private/tmp/setlist-collections-membership-after.png` e `/private/tmp/setlist-song-card-detail-after.png`. Os 38 testes existentes de Repertório/Detalhe e os 8 de rolagem/overlay passaram; lint, TypeScript e formatação passaram. A conferência completa de 8.1/8.2 permanece pendente.

@@ -33,7 +33,9 @@ Os contratos de interface, navegação e atualização existem em `openspec/spec
 
 Usar rotas sob `repertoire/collections` para lista, consulta e edição de coleções, mantendo Repertório como seção ativa. O segmento estático `collections` deve ser distinguido das rotas de detalhe de música. Retornos diretos ou sem histórico devem resolver para o Repertório da mesma banda.
 
-Adicionar a ação nomeada **Coleções** aos controles secundários do Repertório, com tratamento neutro. A criação de música permanece como ação principal do cabeçalho. A seleção múltipla será outra ação secundária explícita, disponível apenas a proprietários e editores.
+Adicionar o botão **Coleções** ao lado de Filtrar e Ordenar, com o mesmo tratamento neutro e dimensão. Seu menu reúne **Ver coleções**, **Criar coleção** e **Selecionar músicas**, limitando as duas últimas ações a proprietários e editores. A criação de música permanece como ação principal do cabeçalho fora do modo de seleção. Nesse modo, o cabeçalho apresenta a contagem e um X para cancelar, e o menu Coleções reúne criação com selecionadas, inclusão em coleção existente, seleção dos resultados atuais e limpeza da seleção. Nenhuma linha de ações é acrescentada à toolbar.
+
+Cada música oferece um botão de três pontos verticais (`EllipsisVertical`), separado da área que abre o detalhe. Seu menu apresenta **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme o papel da pessoa. A organização utiliza o mesmo editor de participações do detalhe da música. O menu fecha antes de executar a ação; no iOS, aguarda o `onDismiss` nativo antes de navegar ou abrir outro diálogo.
 
 O filtro de coleção e a opção **Adicionar coleção** no setlist aparecem quando houver coleções. No detalhe da música, as etiquetas aparecem somente quando existem vínculos; o gerenciamento continua acessível como ação secundária a quem pode editar, inclusive sem vínculos.
 
@@ -102,7 +104,7 @@ Manter a dimensão de coleção independente da situação da letra: `all`, `una
 
 Adicionar o critério ao estado de consulta por banda em `useSectionViewState.ts`, seguindo o padrão existente de recuperação ao montar a seção. A etiqueta no detalhe da música deve aplicar o ID de coleção ao retornar ao Repertório e deixar o filtro identificável nos controles.
 
-Somente uma atualização bem-sucedida pode concluir que a coleção filtrada foi excluída. Nesse caso, remover o critério de coleção e manter os demais. Uma falha de rede não deve apagar o filtro nem os últimos resultados válidos.
+Somente uma atualização bem-sucedida pode concluir que a coleção filtrada foi excluída. Nesse caso, remover o critério de coleção e manter os demais. Uma falha de rede não deve apagar o filtro nem os últimos resultados válidos. Se a consulta opcional falhar sem dados anteriores, manter a lista geral de músicas utilizável sem persistir a remoção do filtro; mostrar o erro e a opção de nova tentativa somente ao acessar as ações de coleções.
 
 **Alternativa considerada:** seleção de várias coleções com operadores de união/interseção. A escolha de uma coleção por vez cobre o uso inicial com menos decisões e mantém o significado dos resultados claro.
 

@@ -14,6 +14,7 @@ import {
   LoadingFeedback,
   TemporaryFeedback,
 } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
@@ -31,7 +32,10 @@ import {
   OptionMenu,
   SearchField,
 } from '@/components/ui/ListControls';
-import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
+import {
+  MenuButton,
+  OptionSheet,
+} from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useAppendRepertoireCollectionSongs,
@@ -47,6 +51,7 @@ import {
   getRepertoireCollectionCreateHref,
   getRepertoireCollectionsHref,
   getSongCreateHref,
+  getSongEditHref,
   getSongHref,
 } from '@/features/navigation/routes';
 import {
@@ -75,9 +80,17 @@ import {
   lyricStatusLabels,
   lyricStatusTones,
 } from './songPresentation';
+import {
+  RepertoireActionMenu,
+  useRepertoireActionMenu,
+  type RepertoireAction,
+} from './RepertoireActionMenu';
+import { SongCollectionMembershipDialog } from './SongCollectionMembershipDialog';
+import { useSongCollectionMembership } from './useSongCollectionMembership';
 
 interface SongRowProps {
   readonly bandId: EntityId;
+  readonly onOpenActions: (song: Song) => void;
   readonly onToggleSelection: (songId: EntityId) => void;
   readonly selected: boolean;
   readonly selectionMode: boolean;
@@ -108,6 +121,7 @@ function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
 
 function SongRow({
   bandId,
+  onOpenActions,
   onToggleSelection,
   selected,
   selectionMode,
@@ -133,7 +147,12 @@ function SongRow({
         pressed && styles.pressed,
       ])}
     >
-      <View style={styles.rowLayout}>
+      <View
+        style={[
+          styles.rowLayout,
+          !selectionMode && styles.rowLayoutWithActions,
+        ]}
+      >
         <View style={styles.rowPrimaryContent}>
           <View style={styles.rowLeadingIcon}>
             <AppIcon color={colors.text.secondary} name="music" size={40} />
@@ -176,7 +195,12 @@ function SongRow({
             </View>
           </View>
         </View>
-        <View style={styles.rowNavigation}>
+        <View
+          style={[
+            styles.rowNavigation,
+            !selectionMode && styles.rowActionsSpace,
+          ]}
+        >
           {selectionMode ? (
             <View
               style={[
@@ -188,9 +212,7 @@ function SongRow({
                 <AppIcon color={colors.text.onAccent} name="check" size={14} />
               ) : null}
             </View>
-          ) : (
-            <AppIcon color={colors.text.secondary} name="forward" size={20} />
-          )}
+          ) : null}
         </View>
       </View>
     </Pressable>
@@ -209,6 +231,22 @@ function SongRow({
           {row}
         </Link>
       )}
+      {!selectionMode ? (
+        <Pressable
+          accessibilityLabel={`Ações da música ${song.title}`}
+          accessibilityRole="button"
+          onPress={() => {
+            blurWebFocus();
+            onOpenActions(song);
+          }}
+          style={({ pressed }) => [
+            styles.songActionsButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppIcon name="moreVertical" size={24} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -289,7 +327,10 @@ function RepertoireScreenContent({
       : emptySelectionState(bandId);
   const { active: selectionMode, selectedSongIds } = currentSelectionState;
   const collectionFilter =
-    state.collection === 'removed' ? 'all' : state.collection;
+    (collectionsQuery.isError && collectionsQuery.data === undefined) ||
+    state.collection === 'removed'
+      ? 'all'
+      : state.collection;
   const collectionFilterOptions = useMemo(
     () => [
       { label: 'Todas as coleções', value: 'all' },
@@ -374,6 +415,12 @@ function RepertoireScreenContent({
   )?.membership;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
+  const actionMenu = useRepertoireActionMenu();
+  const collectionMembership = useSongCollectionMembership({
+    bandId,
+    canEdit: canCreate,
+    collections: collectionsQuery.data ?? [],
+  });
   const activeSelectionMode = canCreate && selectionMode;
   const selectedSongCount = selectedSongIds.size;
   const targetCollection = collectionsQuery.data?.find(
@@ -497,6 +544,109 @@ function RepertoireScreenContent({
       ),
     );
   };
+  const clearSongSelection = () => {
+    updateSelectionState((current) => ({
+      ...current,
+      selectedSongIds: new Set(),
+    }));
+  };
+  const collectionsUnavailable =
+    collectionsQuery.isPending || collectionsQuery.isError;
+  const collectionActions: RepertoireAction[] = activeSelectionMode
+    ? [
+        {
+          accessibilityLabel: `Criar coleção com ${selectedSongCount} músicas selecionadas`,
+          disabled: selectedSongCount === 0,
+          icon: 'addCircle',
+          label: 'Criar com selecionadas',
+          onPress: createCollectionFromSelection,
+        },
+        {
+          accessibilityLabel: `Adicionar ${selectedSongCount} ${selectedSongCount === 1 ? 'música selecionada' : 'músicas selecionadas'} a uma coleção existente`,
+          disabled:
+            selectedSongCount === 0 ||
+            collectionsUnavailable ||
+            !collectionsQuery.data?.length,
+          icon: 'repertoire',
+          label: 'Adicionar à coleção',
+          onPress: openCollectionPicker,
+        },
+        {
+          accessibilityLabel: `Selecionar ${songs.length} resultado${songs.length === 1 ? '' : 's'} atual${songs.length === 1 ? '' : 'is'}`,
+          disabled: songs.length === 0 || allVisibleSongsSelected,
+          icon: 'check',
+          label: `Selecionar resultados (${songs.length})`,
+          onPress: selectVisibleSongs,
+        },
+        {
+          disabled: selectedSongCount === 0,
+          icon: 'minus',
+          label: 'Limpar seleção',
+          onPress: clearSongSelection,
+        },
+      ]
+    : [
+        {
+          icon: 'repertoire',
+          label: 'Ver coleções',
+          onPress: () => router.push(getRepertoireCollectionsHref(bandId)),
+        },
+        ...(canCreate
+          ? [
+              {
+                icon: 'addCircle' as const,
+                label: 'Criar coleção',
+                onPress: () =>
+                  router.push(getRepertoireCollectionCreateHref(bandId)),
+              },
+              {
+                accessibilityLabel: 'Selecionar músicas do repertório',
+                icon: 'check' as const,
+                label: 'Selecionar músicas',
+                onPress: beginSongSelection,
+              },
+            ]
+          : []),
+      ];
+  const actionSong =
+    actionMenu.target !== 'collections' ? actionMenu.target : null;
+  const songActions: RepertoireAction[] = actionSong
+    ? [
+        {
+          icon: 'info',
+          label: 'Ver detalhes',
+          onPress: () => router.push(getSongHref(bandId, actionSong.id)),
+        },
+        ...(canCreate
+          ? [
+              {
+                icon: 'edit' as const,
+                label: 'Editar música',
+                onPress: () =>
+                  router.push(getSongEditHref(bandId, actionSong.id)),
+              },
+              {
+                disabled: collectionsUnavailable,
+                icon: 'repertoire' as const,
+                label: 'Organizar em coleções',
+                onPress: () => collectionMembership.open(actionSong),
+              },
+            ]
+          : []),
+      ]
+    : [];
+  const menuUsesCollections = actionMenu.target === 'collections' || canCreate;
+  const menuActions =
+    actionMenu.target === 'collections' ? collectionActions : songActions;
+  if (menuUsesCollections && collectionsQuery.isError) {
+    menuActions.push({
+      icon: 'refresh',
+      label: 'Tentar carregar coleções novamente',
+      onPress: () => {
+        void collectionsQuery.refetch();
+      },
+    });
+  }
 
   return (
     <BandAreaLayout
@@ -504,44 +654,70 @@ function RepertoireScreenContent({
       bandId={bandId}
       currentRoute={getBandSectionHref(bandId, 'repertoire') as string}
       headerAction={
-        canCreate
+        activeSelectionMode
           ? {
-              accessibilityLabel: 'Adicionar música ao repertório',
-              icon: 'musicAdd',
-              label: 'Adicionar música',
-              onPress: () => router.push(getSongCreateHref(bandId)),
+              accessibilityLabel: 'Cancelar seleção de músicas',
+              icon: 'close',
+              label: 'Cancelar seleção',
+              onPress: cancelSongSelection,
             }
-          : undefined
+          : canCreate
+            ? {
+                accessibilityLabel: 'Adicionar música ao repertório',
+                icon: 'musicAdd',
+                label: 'Adicionar música',
+                onPress: () => router.push(getSongCreateHref(bandId)),
+              }
+            : undefined
       }
       scrollable={false}
-      title="Repertório"
+      title={
+        activeSelectionMode
+          ? `${selectedSongCount} ${selectedSongCount === 1 ? 'selecionada' : 'selecionadas'}`
+          : 'Repertório'
+      }
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {songsQuery.isPending ||
-      collectionsQuery.isPending ||
-      userBandsQuery.isPending ? (
-        <LoadingFeedback />
+      <RepertoireActionMenu
+        {...actionMenu.menuProps}
+        actions={menuActions}
+        feedback={
+          menuUsesCollections && collectionsQuery.isError ? (
+            <AppText tone="muted" variant="caption">
+              Não foi possível carregar as coleções. As músicas continuam
+              disponíveis.
+            </AppText>
+          ) : undefined
+        }
+        title={
+          actionMenu.target === 'collections'
+            ? 'Coleções'
+            : (actionSong?.title ?? 'Ações da música')
+        }
+      />
+      <SongCollectionMembershipDialog {...collectionMembership.dialogProps} />
+      <UnsavedChangesPrompt
+        onContinue={collectionMembership.guard.continueEditing}
+        onDiscard={collectionMembership.guard.discardAndLeave}
+        visible={collectionMembership.guard.confirmationVisible}
+      />
+      {collectionMembership.saved ? (
+        <TemporaryFeedback
+          messageKey="collection-memberships-saved"
+          onDismiss={collectionMembership.dismissSaved}
+        />
       ) : null}
-      {songsQuery.isError ||
-      collectionsQuery.isError ||
-      userBandsQuery.isError ? (
+      {songsQuery.isPending ? <LoadingFeedback /> : null}
+      {songsQuery.isError || userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void songsQuery.refetch();
-            void collectionsQuery.refetch();
             void userBandsQuery.refetch();
           }}
         />
       ) : null}
-      <ContentFade
-        loading={
-          songsQuery.isPending ||
-          collectionsQuery.isPending ||
-          userBandsQuery.isPending
-        }
-        style={styles.listArea}
-      >
+      <ContentFade loading={songsQuery.isPending} style={styles.listArea}>
         <FlatList
           contentContainerStyle={[
             styles.listContent,
@@ -553,8 +729,6 @@ function RepertoireScreenContent({
           ListEmptyComponent={
             !songsQuery.isPending &&
             !songsQuery.isError &&
-            !collectionsQuery.isPending &&
-            !collectionsQuery.isError &&
             !userBandsQuery.isPending &&
             !userBandsQuery.isError ? (
               <ListEmptyState
@@ -622,6 +796,7 @@ function RepertoireScreenContent({
           renderItem={({ item }) => (
             <SongRow
               bandId={bandId}
+              onOpenActions={actionMenu.open}
               onToggleSelection={toggleSongSelection}
               selected={selectedSongIds.has(item.id)}
               selectionMode={activeSelectionMode}
@@ -652,68 +827,17 @@ function RepertoireScreenContent({
           }
         >
           <View style={styles.controlToolbarEnd}>
-            {canCreate ? (
-              selectionMode ? (
-                <>
-                  <AppText
-                    accessibilityLiveRegion="polite"
-                    style={styles.selectionCount}
-                    tone="muted"
-                  >
-                    {selectedSongCount === 1
-                      ? '1 música selecionada'
-                      : `${selectedSongCount} músicas selecionadas`}
-                  </AppText>
-                  <AppButton
-                    accessibilityLabel={`Selecionar ${songs.length} resultado${songs.length === 1 ? '' : 's'} atual${songs.length === 1 ? '' : 'is'}`}
-                    disabled={songs.length === 0 || allVisibleSongsSelected}
-                    icon="check"
-                    label={`Selecionar resultados (${songs.length})`}
-                    onPress={selectVisibleSongs}
-                    variant="secondary"
-                  />
-                  <AppButton
-                    accessibilityLabel={`Criar coleção com ${selectedSongCount} músicas selecionadas`}
-                    disabled={selectedSongCount === 0}
-                    icon="addCircle"
-                    label="Criar coleção"
-                    onPress={createCollectionFromSelection}
-                    variant="secondary"
-                  />
-                  {collectionsQuery.data?.length ? (
-                    <AppButton
-                      accessibilityLabel={`Adicionar ${selectedSongCount} ${selectedSongCount === 1 ? 'música selecionada' : 'músicas selecionadas'} a uma coleção existente`}
-                      disabled={selectedSongCount === 0}
-                      icon="addCircle"
-                      label="Adicionar à coleção"
-                      onPress={openCollectionPicker}
-                      variant="secondary"
-                    />
-                  ) : null}
-                  <AppButton
-                    accessibilityLabel="Cancelar seleção de músicas"
-                    icon="close"
-                    label="Cancelar seleção"
-                    onPress={cancelSongSelection}
-                    variant="tertiary"
-                  />
-                </>
-              ) : (
-                <AppButton
-                  accessibilityLabel="Selecionar músicas do repertório"
-                  icon="check"
-                  label="Selecionar músicas"
-                  onPress={beginSongSelection}
-                  variant="tertiary"
-                />
-              )
-            ) : null}
-            <AppButton
+            <MenuButton
+              active={activeSelectionMode}
               accessibilityLabel="Abrir coleções do repertório"
+              accessibilityValueText={
+                activeSelectionMode
+                  ? `${selectedSongCount} músicas selecionadas`
+                  : undefined
+              }
               icon="repertoire"
               label="Coleções"
-              onPress={() => router.push(getRepertoireCollectionsHref(bandId))}
-              variant="tertiary"
+              onPress={() => actionMenu.open('collections')}
             />
             <FilterMenu
               active={state.filter !== 'all' || collectionFilter !== 'all'}
@@ -970,6 +1094,19 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     width: '100%',
   },
+  rowLayoutWithActions: { gap: 0 },
+  rowActionsSpace: { width: layout.minimumTouchTarget },
+  songActionsButton: {
+    alignItems: 'center',
+    bottom: spacing.md + spacing.xs,
+    borderRadius: radii.pill,
+    justifyContent: 'center',
+    minHeight: layout.minimumTouchTarget,
+    position: 'absolute',
+    right: spacing.md,
+    top: spacing.md + spacing.xs,
+    width: layout.minimumTouchTarget,
+  },
   rowPrimaryContent: {
     alignItems: 'center',
     flex: 1,
@@ -1025,9 +1162,6 @@ const styles = StyleSheet.create({
   selectionIndicatorSelected: {
     backgroundColor: colors.action.primary,
     borderColor: colors.action.primary,
-  },
-  selectionCount: {
-    marginHorizontal: spacing.sm,
   },
   collectionPickerSheet: {
     maxHeight: '90%',

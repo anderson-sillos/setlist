@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -11,8 +11,26 @@ const mockRouter = { push: jest.fn(), replace: jest.fn() };
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
+  useNavigation: () => ({
+    addListener: jest.fn(() => jest.fn()),
+    dispatch: jest.fn(),
+  }),
   useRouter: () => mockRouter,
 }));
+
+async function pressCollectionAction(
+  view: Awaited<ReturnType<typeof render>>,
+  label: string,
+) {
+  await fireEvent.press(view.getByLabelText('Abrir coleções do repertório'));
+  let parent = view.getByTestId('repertoire-action-menu').parent;
+  while (parent && typeof parent.props.onDismiss !== 'function')
+    parent = parent.parent;
+  if (!parent) throw new Error('Modal de ações do repertório não encontrado');
+  const dismiss = parent.props.onDismiss as () => void;
+  await fireEvent.press(view.getByLabelText(label));
+  if (dismiss) await act(async () => dismiss());
+}
 
 describe('<RepertoireScreen />', () => {
   beforeEach(() => {
@@ -417,8 +435,12 @@ describe('<RepertoireScreen />', () => {
     expect(view.getByText('Maré de Neon')).toBeTruthy();
 
     listCollections.mockRejectedValue(new Error('Falha de conexão'));
-    view.getByTestId('repertoire-list').props.refreshControl.props.onRefresh();
-    await view.findByTestId('feedback-error');
+    await act(async () => {
+      await view
+        .getByTestId('repertoire-list')
+        .props.refreshControl.props.onRefresh();
+    });
+    expect(view.queryByTestId('feedback-error')).toBeNull();
 
     expect(view.getByText('Maré de Neon')).toBeTruthy();
     expect(view.queryByTestId('collection-filter-removal-notice')).toBeNull();
@@ -496,7 +518,7 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Luzes da Cidade');
-    await fireEvent.press(view.getByLabelText('Abrir coleções do repertório'));
+    await pressCollectionAction(view, 'Ver coleções');
 
     expect(mockRouter.push).toHaveBeenCalledWith(
       `/bands/${demoIds.primaryBand}/repertoire/collections`,
@@ -519,10 +541,9 @@ describe('<RepertoireScreen />', () => {
       'rota',
     );
     expect(view.getByText('Rota Antiga')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
 
-    await fireEvent.press(
-      view.getByLabelText('Selecionar músicas do repertório'),
-    );
+    await pressCollectionAction(view, 'Selecionar músicas do repertório');
 
     expect(
       view.getByLabelText('Buscar música por título ou artista').props.value,
@@ -532,9 +553,9 @@ describe('<RepertoireScreen />', () => {
         .accessibilityState,
     ).toEqual({ selected: true });
     expect(view.getByLabelText('Selecionar Rota Antiga')).toBeTruthy();
-    expect(view.getByText('0 músicas selecionadas')).toBeTruthy();
-    await fireEvent.press(view.getByLabelText('Selecionar 1 resultado atual'));
-    expect(view.getByText('1 música selecionada')).toBeTruthy();
+    expect(view.getByText('0 selecionadas')).toBeTruthy();
+    await pressCollectionAction(view, 'Selecionar 1 resultado atual');
+    expect(view.getByText('1 selecionada')).toBeTruthy();
   });
 
   it('retorna ao toque habitual e não grava ao cancelar a seleção', async () => {
@@ -559,28 +580,27 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Luzes da Cidade');
-    await fireEvent.press(
-      view.getByLabelText('Selecionar músicas do repertório'),
-    );
+    await pressCollectionAction(view, 'Selecionar músicas do repertório');
     await fireEvent.changeText(
       view.getByLabelText('Buscar música por título ou artista'),
       'pontes',
     );
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
-    expect(view.getByText('1 música selecionada')).toBeTruthy();
+    expect(view.getByText('1 selecionada')).toBeTruthy();
 
     await fireEvent.changeText(
       view.getByLabelText('Buscar música por título ou artista'),
       'luzes',
     );
-    expect(view.getByText('1 música selecionada')).toBeTruthy();
+    expect(view.getByText('1 selecionada')).toBeTruthy();
     await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
-    expect(view.getByText('2 músicas selecionadas')).toBeTruthy();
+    expect(view.getByText('2 selecionadas')).toBeTruthy();
 
     await fireEvent.press(view.getByLabelText('Cancelar seleção de músicas'));
+    expect(view.getByLabelText('Abrir coleções do repertório')).toBeTruthy();
     expect(
-      view.getByLabelText('Selecionar músicas do repertório'),
-    ).toBeTruthy();
+      view.queryByLabelText('Selecionar músicas do repertório'),
+    ).toBeNull();
     expect(
       view.getByLabelText('Buscar música por título ou artista').props.value,
     ).toBe('luzes');
@@ -627,13 +647,12 @@ describe('<RepertoireScreen />', () => {
     }
 
     await view.findByText('Luzes da Cidade');
-    await fireEvent.press(
-      view.getByLabelText('Selecionar músicas do repertório'),
-    );
+    await pressCollectionAction(view, 'Selecionar músicas do repertório');
     await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
-    await fireEvent.press(
-      view.getByLabelText('Criar coleção com 2 músicas selecionadas'),
+    await pressCollectionAction(
+      view,
+      'Criar coleção com 2 músicas selecionadas',
     );
 
     expect(mockRouter.push).toHaveBeenCalledWith(
@@ -667,17 +686,14 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Luzes da Cidade');
-    await fireEvent.press(
-      view.getByLabelText('Selecionar músicas do repertório'),
-    );
+    await pressCollectionAction(view, 'Selecionar músicas do repertório');
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
     await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
     await fireEvent.press(view.getByLabelText('Selecionar Maré de Neon'));
-    expect(view.getByText('3 músicas selecionadas')).toBeTruthy();
-    await fireEvent.press(
-      view.getByLabelText(
-        'Adicionar 3 músicas selecionadas a uma coleção existente',
-      ),
+    expect(view.getByText('3 selecionadas')).toBeTruthy();
+    await pressCollectionAction(
+      view,
+      'Adicionar 3 músicas selecionadas a uma coleção existente',
     );
     await fireEvent.press(view.getByLabelText('Selecionar coleção Festa'));
 
@@ -752,14 +768,11 @@ describe('<RepertoireScreen />', () => {
     );
 
     await view.findByText('Luzes da Cidade');
-    await fireEvent.press(
-      view.getByLabelText('Selecionar músicas do repertório'),
-    );
+    await pressCollectionAction(view, 'Selecionar músicas do repertório');
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
-    await fireEvent.press(
-      view.getByLabelText(
-        'Adicionar 1 música selecionada a uma coleção existente',
-      ),
+    await pressCollectionAction(
+      view,
+      'Adicionar 1 música selecionada a uma coleção existente',
     );
     await fireEvent.press(view.getByLabelText('Selecionar coleção Festa'));
     await fireEvent.press(
@@ -774,7 +787,9 @@ describe('<RepertoireScreen />', () => {
         demoIds.primaryBand,
       ),
     ).toEqual(originalSongs);
-    expect(view.getByText('1 música selecionada')).toBeTruthy();
+    expect(
+      view.getByText('1 selecionada', { includeHiddenElements: true }),
+    ).toBeTruthy();
   });
 
   it('leva Owner de uma banda conectada à criação online', async () => {

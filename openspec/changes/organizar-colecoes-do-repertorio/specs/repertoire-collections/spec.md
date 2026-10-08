@@ -22,6 +22,20 @@ O sistema SHALL oferecer Coleções como ação secundária identificada no Repe
 - **THEN** encontra uma ação secundária nomeada Coleções junto aos controles do Repertório, inclusive antes da primeira coleção
 - **AND** a ação preserva contraste e alvo interativo acessíveis sem competir com a ação principal de adicionar música
 
+#### Scenario: Abrir ações de coleções sem ampliar a toolbar
+
+- **WHEN** uma pessoa abre o botão Coleções ao lado de Filtrar e Ordenar
+- **THEN** encontra Ver coleções e, quando pode editar, Criar coleção e Selecionar músicas
+- **AND** no modo de seleção, a contagem e o cancelamento ficam no cabeçalho existente e as ações de organização permanecem no menu Coleções
+- **AND** o modo de seleção não acrescenta linhas à toolbar
+
+#### Scenario: Usar ações de uma música sem alterar o toque habitual
+
+- **WHEN** uma pessoa toca nos três pontos verticais de uma música do Repertório
+- **THEN** abre um menu com Ver detalhes e, quando pode editar, Editar música e Organizar em coleções
+- **AND** tocar nas demais áreas do cartão continua abrindo os detalhes fora do modo de seleção
+- **AND** uma ação que abre outro diálogo aguarda o fechamento do menu, incluindo sua conclusão nativa no iOS
+
 ### Requirement: Coleções compartilhadas e isoladas por banda
 
 O sistema SHALL vincular cada coleção a uma única banda e permitir consulta somente a seus integrantes ativos. Proprietários e editores SHALL poder gerenciar coleções e vínculos; o serviço SHALL negar gravações a integrantes sem esse papel, pessoas externas e contas suspensas.
