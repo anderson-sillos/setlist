@@ -15,7 +15,7 @@
 - [x] 2.2 Implementar adaptadores Supabase e em memória, dados de demonstração e fábricas de teste; verificar os mesmos cenários de criação, ordem, várias participações, nomes duplicados e exclusão nos testes de contrato aplicáveis.
 - [x] 2.3 Implementar consultas por banda e operações de mutação em `src/data/queries.ts`, com vínculos em lote e resumo derivado das músicas consultáveis; verificar testes de quantidade, duração não informada, metadados atualizados e ausência de consulta por card.
 - [x] 2.4 Integrar invalidações e limpeza de cache às mudanças de música, coleção, sessão e banda; verificar testes que atualizam somente os dados afetados e impedem exibição de vínculos antigos após troca de contexto ou ocultação.
-- [ ] 2.5 Documentar o contrato e a origem das informações derivadas em `docs/COLECOES_REPERTORIO.md`; verificar que os exemplos não duplicam cadastros de música nem dependem de snapshots de letra.
+- [x] 2.5 Documentar o contrato e a origem das informações derivadas em `docs/COLECOES_REPERTORIO.md`; verificar que os exemplos não duplicam cadastros de música nem dependem de snapshots de letra.
 
 ## 3. Consulta e edição de coleções
 

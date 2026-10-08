@@ -30,6 +30,19 @@ Edições e exclusões exigem o `updated_at` que o cliente leu. Inclusões e mud
 
 Vínculos de músicas moderadas permanecem no banco durante uma edição feita por alguém que não pode consultá-las. O serviço preserva esses vínculos sem os devolver ao cliente. Músicas arquivadas continuam vinculadas e visíveis a quem pode consultar o repertório, mas a composição de novas setlists deve excluí-las. Setlists existentes são independentes da coleção.
 
+## Contrato dos repositórios e origem dos resumos
+
+`RepertoireCollectionRepository` oferece consultas por banda e operações para salvar nome e ordem, acrescentar músicas, definir as coleções de uma música e excluir uma coleção. Edições existentes e exclusões recebem a revisão `updatedAt` que foi lida; a gestão das participações de uma música recebe as revisões de todas as coleções afetadas. O adaptador Supabase envia as escritas às RPCs e converte seus erros em códigos do domínio. O adaptador em memória aplica as mesmas regras de nomes, revisões, participações e ordem, com relógio e gerador de identificadores substituíveis nos testes.
+
+`useRepertoireCollections` busca, em lote, as coleções, os vínculos consultáveis e os registros atuais das músicas da banda. A tela não faz uma consulta individual por cartão. O resumo é calculado a partir desses registros atuais:
+
+- `songCount` inclui músicas ativas e arquivadas que podem ser consultadas.
+- `activeSongCount` e `archivedSongCount` distinguem as situações atuais do repertório.
+- `estimatedDurationMs` soma somente as durações informadas; `songsWithoutDurationCount` identifica os registros sem duração. Se nenhuma música tiver duração, o total é `null`, não zero.
+- Nome, artista, tom, BPM, duração e situação vêm do cadastro atual da música. Não são copiados para o vínculo nem mantidos em snapshots dentro da coleção.
+
+Por exemplo, “Festa” e “Acústico” podem apontar para a mesma música. Se o título ou o tom dessa música mudar, as duas coleções passam a exibir o valor atualizado na próxima consulta. A letra continua somente no cadastro da música; criar ou editar uma coleção não duplica a letra nem depende de um snapshot dela.
+
 ## Migrações e validação
 
 1. Aplique `20261008100000_create_repertoire_collections.sql` para criar tabelas, restrições, índices e políticas RLS.
