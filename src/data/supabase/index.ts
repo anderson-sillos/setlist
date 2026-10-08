@@ -36,6 +36,10 @@ export {
   SupabaseSongRepository,
 } from '@/data/supabase/songRepository';
 export {
+  createSupabaseRepertoireCollectionRepository,
+  SupabaseRepertoireCollectionRepository,
+} from '@/data/supabase/repertoireCollectionRepository';
+export {
   createSupabaseShowRepository,
   SupabaseShowRepository,
 } from '@/data/supabase/showRepository';

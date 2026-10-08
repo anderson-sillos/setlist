@@ -16,6 +16,7 @@ import {
   leaveBand,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
+import type { RepertoireCollectionRepository } from '@/domain';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
 import { AppProviders } from '@/providers/AppProviders';
@@ -37,6 +38,20 @@ jest.mock('@react-native-community/netinfo', () => ({
 jest.mock('@/data/supabase/contentReports', () => ({
   sendContentReport: jest.fn(),
 }));
+
+const unusedCollectionRepository: RepertoireCollectionRepository = {
+  appendSongs: async () => {
+    throw new Error('Este teste não usa coleções.');
+  },
+  delete: async () => undefined,
+  findById: async () => null,
+  listByBandId: async () => [],
+  listSongsByBandId: async () => [],
+  save: async () => {
+    throw new Error('Este teste não usa coleções.');
+  },
+  setSongCollections: async () => undefined,
+};
 
 jest.mock('@/data/supabase/bandAdministrationMutations', () => {
   const actual = jest.requireActual(
@@ -120,6 +135,7 @@ function createMutableBandRepositories() {
       listForUser: async () => (band ? [{ band, membership: owner }] : []),
       listMembers: async () => (band ? [owner, member] : []),
     },
+    repertoireCollections: unusedCollectionRepository,
     shows: {
       findById: async () => null,
       listByBandId: async () => [],
@@ -155,6 +171,7 @@ function createNewBandRepositories() {
       listMembers: async (bandId) =>
         band?.id === bandId && owner ? [owner] : [],
     },
+    repertoireCollections: unusedCollectionRepository,
     shows: {
       findById: async () => null,
       listByBandId: async () => [],
