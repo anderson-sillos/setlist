@@ -281,6 +281,7 @@ declare
   affected_collection_ids uuid[] := '{}'::uuid[];
   affected_collection_count integer;
   available_collection_count integer;
+  expected_revision_count integer;
   current_position integer;
 begin
   if current_user_id is null then
@@ -315,6 +316,10 @@ begin
     ) <> cardinality(desired_collection_ids) then
     raise exception 'COLLECTION_REVISIONS_INVALID' using errcode = 'P0001';
   end if;
+
+  select count(*)::integer
+  into expected_revision_count
+  from jsonb_object_keys(p_expected_revisions);
 
   select coalesce(array_agg(affected.id order by affected.id), '{}'::uuid[])
   into affected_collection_ids
@@ -360,7 +365,7 @@ begin
     and collections.band_id = p_band_id;
 
   if available_collection_count <> affected_collection_count
-    or jsonb_object_length(p_expected_revisions) <> affected_collection_count then
+    or expected_revision_count <> affected_collection_count then
     raise exception 'COLLECTION_NOT_FOUND' using errcode = 'P0001';
   end if;
 
