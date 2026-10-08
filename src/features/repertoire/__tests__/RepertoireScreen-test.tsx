@@ -181,6 +181,77 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Sem coleção')).toBeNull();
   });
 
+  it('restaura o filtro ao voltar do detalhe e mantém estado separado por banda durante o refresh', async () => {
+    function RepertoireHarness({
+      bandId,
+      visible = true,
+    }: {
+      readonly bandId: string;
+      readonly visible?: boolean;
+    }) {
+      return (
+        <AppProviders>
+          {visible ? <RepertoireScreen bandId={bandId} /> : null}
+        </AppProviders>
+      );
+    }
+
+    const view = await render(
+      <RepertoireHarness bandId={demoIds.primaryBand} />,
+    );
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByLabelText('Festa'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+
+    const list = view.getByTestId('repertoire-list');
+    await fireEvent.scroll(list, {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 240 },
+        contentSize: { height: 1600, width: 380 },
+        layoutMeasurement: { height: 700, width: 380 },
+      },
+    });
+    const refreshControl = list.props.refreshControl;
+    expect(refreshControl).toBeTruthy();
+    await fireEvent(refreshControl, 'refresh');
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+
+    await view.rerender(
+      <RepertoireHarness bandId={demoIds.primaryBand} visible={false} />,
+    );
+    await view.rerender(
+      <RepertoireHarness bandId={demoIds.primaryBand} visible />,
+    );
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+    expect(view.getByTestId('repertoire-list').props.contentOffset).toEqual({
+      x: 0,
+      y: 240,
+    });
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    expect(view.getByLabelText('Festa').props.accessibilityState).toEqual({
+      checked: true,
+    });
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+
+    await view.rerender(<RepertoireHarness bandId={demoIds.secondaryBand} />);
+    expect(await view.findByText('Maré Serena')).toBeTruthy();
+    expect(
+      view.getByLabelText('Alterar filtros do repertório').props
+        .accessibilityState?.selected,
+    ).toBeUndefined();
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    expect(view.queryByLabelText('Coleção das músicas')).toBeNull();
+    await fireEvent.press(view.getByLabelText('Fechar filtros'));
+
+    await view.rerender(<RepertoireHarness bandId={demoIds.primaryBand} />);
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+  });
+
   it('apresenta estados vazios e permite limpar uma busca sem resultado', async () => {
     const emptyRepositories = createInMemoryRepositories({
       ...demoRepositoryData,

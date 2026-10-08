@@ -94,11 +94,6 @@ interface CollectionAppendResult {
 
 type RepertoireCollectionFilter = 'all' | 'none' | EntityId;
 
-interface RepertoireCollectionFilterState {
-  readonly bandId: EntityId;
-  readonly value: RepertoireCollectionFilter;
-}
-
 function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
   return { active: false, bandId, selectedSongIds: new Set() };
 }
@@ -215,6 +210,21 @@ export function RepertoireScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
+  return (
+    <RepertoireScreenContent
+      key={bandId}
+      bandId={bandId}
+      viewportHeight={viewportHeight}
+      viewportWidth={viewportWidth}
+    />
+  );
+}
+
+function RepertoireScreenContent({
+  bandId,
+  viewportHeight,
+  viewportWidth,
+}: BandSectionScreenProps) {
   const window = useWindowDimensions();
   const usesBottomNavigation =
     getNavigationPresentation(
@@ -237,6 +247,7 @@ export function RepertoireScreen({
   ]);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'repertoire', {
+      collection: 'all' as RepertoireCollectionFilter,
       filter: 'all' as RepertoireFilter,
       search: '',
       sort: 'title' as RepertoireSort,
@@ -253,11 +264,6 @@ export function RepertoireScreen({
   );
   const [selectionState, setSelectionState] =
     useState<RepertoireSelectionState>(() => emptySelectionState(bandId));
-  const [collectionFilterState, setCollectionFilterState] =
-    useState<RepertoireCollectionFilterState>(() => ({
-      bandId,
-      value: 'all',
-    }));
   const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
   const [targetCollectionId, setTargetCollectionId] = useState<EntityId | null>(
     null,
@@ -270,10 +276,7 @@ export function RepertoireScreen({
       ? selectionState
       : emptySelectionState(bandId);
   const { active: selectionMode, selectedSongIds } = currentSelectionState;
-  const collectionFilter =
-    collectionFilterState.bandId === bandId
-      ? collectionFilterState.value
-      : 'all';
+  const collectionFilter = state.collection;
   const collectionFilterOptions = useMemo(
     () => [
       { label: 'Todas as coleções', value: 'all' },
@@ -345,10 +348,10 @@ export function RepertoireScreen({
     update('search', '');
     update('filter', 'all');
     update('sort', 'title');
-    setCollectionFilterState({ bandId, value: 'all' });
+    update('collection', 'all');
   };
   const updateCollectionFilter = (value: RepertoireCollectionFilter) => {
-    setCollectionFilterState({ bandId, value });
+    update('collection', value);
   };
   const updateSelectionState = (
     updateState: (
