@@ -8,7 +8,12 @@ import {
   UnavailableFeedback,
 } from '@/components/feedback';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
-import { useShow, useSongs, useUserBands } from '@/data/queries';
+import {
+  useRepertoireCollections,
+  useShow,
+  useSongs,
+  useUserBands,
+} from '@/data/queries';
 import {
   createShowBlock,
   deleteShowBlock,
@@ -40,8 +45,9 @@ export function ShowSetlistEditorScreen({
   const queryClient = useQueryClient();
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongs(bandId, true);
+  const collectionsQuery = useRepertoireCollections(bandId);
   const userBandsQuery = useUserBands();
-  useScreenDataRefresh([userBandsQuery, songsQuery]);
+  useScreenDataRefresh([userBandsQuery, songsQuery, collectionsQuery]);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -128,7 +134,10 @@ export function ShowSetlistEditorScreen({
   };
 
   const loading =
-    showQuery.isPending || songsQuery.isPending || userBandsQuery.isPending;
+    showQuery.isPending ||
+    songsQuery.isPending ||
+    collectionsQuery.isPending ||
+    userBandsQuery.isPending;
   const unavailable =
     !loading &&
     !showQuery.isError &&
@@ -141,22 +150,30 @@ export function ShowSetlistEditorScreen({
       bandId={bandId}
       contentStyle={{ flex: 1, minHeight: 0 }}
       currentRoute={getShowEditHref(bandId, showId) as string}
-      headerAction={{
-        accessibilityLabel: 'Adicionar à setlist',
-        icon: 'addCircle',
-        label: 'Adicionar item',
-        onPress: () => setAddSheetVisible(true),
-      }}
+      headerAction={
+        show && canEdit && show.status === 'draft'
+          ? {
+              accessibilityLabel: 'Adicionar à setlist',
+              icon: 'addCircle',
+              label: 'Adicionar item',
+              onPress: () => setAddSheetVisible(true),
+            }
+          : undefined
+      }
       screenKind="edit"
       scrollable={false}
       title="Editar setlist"
     >
       {loading ? <LoadingFeedback /> : null}
-      {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
+      {showQuery.isError ||
+      songsQuery.isError ||
+      collectionsQuery.isError ||
+      userBandsQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showQuery.refetch();
             void songsQuery.refetch();
+            void collectionsQuery.refetch();
             void userBandsQuery.refetch();
           }}
         />
@@ -182,6 +199,7 @@ export function ShowSetlistEditorScreen({
           fullScreen
           initialBlocks={show.blocks}
           isSubmitting={submitting}
+          collections={collectionsQuery.data ?? []}
           onAddSheetVisibilityChange={setAddSheetVisible}
           onDirtyChange={setDirty}
           onClose={() => router.back()}

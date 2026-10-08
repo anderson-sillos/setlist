@@ -26,6 +26,7 @@ import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { SearchField } from '@/components/ui/list-controls/SearchField';
+import type { RepertoireCollectionSummary } from '@/data/queries';
 import { moveSetlistItem } from '@/domain';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
@@ -47,6 +48,7 @@ export interface ShowBlockDraft {
 
 interface ShowBlockEditorDialogProps {
   readonly addSheetVisible: boolean;
+  readonly collections?: readonly RepertoireCollectionSummary[];
   readonly errorMessage: string | null;
   readonly fullScreen?: boolean;
   readonly initialBlocks: readonly ShowBlockDraft[];
@@ -160,6 +162,7 @@ function moveBlock(
 
 export function ShowBlockEditorDialog({
   addSheetVisible,
+  collections = [],
   errorMessage,
   fullScreen = false,
   initialBlocks,
@@ -210,6 +213,7 @@ export function ShowBlockEditorDialog({
   const [dragPreview, setDragPreview] = useState<DragPreview | null>(null);
   const [deleteBlockId, setDeleteBlockId] = useState<EntityId | null>(null);
   const [songSheetVisible, setSongSheetVisible] = useState(false);
+  const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
   const [selectedSongIds, setSelectedSongIds] = useState<readonly EntityId[]>(
     [],
   );
@@ -361,6 +365,33 @@ export function ShowBlockEditorDialog({
     setSelectedSongIds([]);
     setSongSearchText('');
     setSongSheetVisible(false);
+    onAddSheetVisibilityChange(false);
+  };
+
+  const addCollectionSongs = (collection: RepertoireCollectionSummary) => {
+    if (!activeBlock) return;
+    const eligibleSongs = collection.songs.filter(
+      (song) => song.archivedAt === null,
+    );
+    if (eligibleSongs.length === 0) return;
+
+    updateBlock(activeBlock.id, (block) => ({
+      ...block,
+      items: [
+        ...block.items,
+        ...eligibleSongs.map((song, index) => ({
+          id: createDraftId(
+            'collection-' + collection.collection.id + '-' + song.id,
+            block.items.length + index,
+          ),
+          isNew: true,
+          notes: null,
+          songId: song.id,
+          type: 'song' as const,
+        })),
+      ],
+    }));
+    setCollectionPickerVisible(false);
     onAddSheetVisibilityChange(false);
   };
 
@@ -833,7 +864,7 @@ export function ShowBlockEditorDialog({
   const content = (
     <>
       <KeyboardAvoidingView
-        accessibilityViewIsModal
+        accessibilityViewIsModal={!fullScreen}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={fullScreen ? styles.screenLayer : styles.modalLayer}
       >
@@ -1034,8 +1065,22 @@ export function ShowBlockEditorDialog({
               setSongSearchText('');
               setSongSheetVisible(true);
             }}
+            testID="show-add-songs-action"
             variant="secondary"
           />
+          {collections.length > 0 ? (
+            <AppButton
+              accessibilityLabel="Adicionar coleção"
+              icon="repertoire"
+              label="Adicionar coleção"
+              onPress={() => {
+                onAddSheetVisibilityChange(false);
+                setCollectionPickerVisible(true);
+              }}
+              testID="show-add-collection-action"
+              variant="secondary"
+            />
+          ) : null}
           <AppButton
             accessibilityLabel="Adicionar anotação"
             icon="planning"
@@ -1057,6 +1102,37 @@ export function ShowBlockEditorDialog({
             onPress={addBlock}
             variant="secondary"
           />
+        </View>
+      </OptionSheet>
+      <OptionSheet
+        closeAccessibilityLabel="Fechar coleções"
+        label="Adicionar coleção"
+        onClose={() => setCollectionPickerVisible(false)}
+        showCloseButton
+        testID="show-collection-picker-sheet"
+        visible={collectionPickerVisible}
+      >
+        <AppText tone="muted">
+          As músicas entram no final de “{activeBlock?.name ?? 'nenhum bloco'}”.
+        </AppText>
+        <View style={styles.optionList}>
+          {collections.map((collection) => {
+            const eligibleCount = collection.songs.filter(
+              (song) => song.archivedAt === null,
+            ).length;
+            return (
+              <AppButton
+                accessibilityLabel={`Adicionar coleção ${collection.collection.name}`}
+                disabled={!activeBlock || eligibleCount === 0}
+                icon="repertoire"
+                key={collection.collection.id}
+                label={collection.collection.name}
+                onPress={() => addCollectionSongs(collection)}
+                testID={`show-add-collection-${collection.collection.id}`}
+                variant="secondary"
+              />
+            );
+          })}
         </View>
       </OptionSheet>
       <OptionSheet

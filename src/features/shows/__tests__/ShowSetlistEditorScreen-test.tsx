@@ -8,7 +8,8 @@ import {
   replaceShowBlockItems,
 } from '@/data/supabase';
 
-import { demoIds } from '@/data/demo';
+import { demoIds, demoRepositoryData } from '@/data/demo';
+import { createInMemoryRepositories } from '@/data/in-memory';
 import { ShowSetlistEditorScreen } from '@/features/shows/ShowSetlistEditorScreen';
 import { AppProviders } from '@/providers/AppProviders';
 
@@ -48,6 +49,38 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(view.getByLabelText('Nome do bloco 1')).toBeTruthy();
 
     expect(view.getByLabelText('Adicionar à setlist')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+    expect(view.getByTestId('show-add-collection-action')).toBeTruthy();
+    await fireEvent.press(view.getByTestId('show-add-collection-action'));
+    expect(view.getByTestId('show-collection-picker-sheet')).toBeTruthy();
+    expect(
+      view.getByTestId(
+        `show-add-collection-${demoRepositoryData.repertoireCollections[1].id}`,
+      ),
+    ).toBeTruthy();
+  });
+
+  it('mantém as opções habituais quando a banda não tem coleções', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollections: [],
+      repertoireCollectionSongs: [],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+
+    expect(view.getByTestId('show-add-songs-action')).toBeTruthy();
+    expect(view.getByLabelText('Adicionar anotação')).toBeTruthy();
+    expect(view.queryByTestId('show-add-collection-action')).toBeNull();
   });
 
   it('não permite editar setlist de show que já saiu de rascunho', async () => {
@@ -82,6 +115,23 @@ describe('<ShowSetlistEditorScreen />', () => {
       await view.findByText('Você não pode editar esta setlist'),
     ).toBeTruthy();
     expect(view.queryByTestId('show-block-editor-dialog')).toBeNull();
+  });
+
+  it('não oferece inclusão de coleção para integrante sem papel de edição', async () => {
+    const view = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    expect(
+      await view.findByText('Você não pode editar esta setlist'),
+    ).toBeTruthy();
+    expect(view.queryByTestId('show-block-editor-dialog')).toBeNull();
+    expect(view.queryByTestId('show-add-collection-action')).toBeNull();
   });
   it('salva setlist sem mudanças de bloco e sincroniza seus itens', async () => {
     const view = await render(
