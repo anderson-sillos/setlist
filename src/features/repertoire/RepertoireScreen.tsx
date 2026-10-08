@@ -10,6 +10,7 @@ import {
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
+import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { ContentFade } from '@/components/ui/ContentFade';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
@@ -25,6 +26,7 @@ import type { EntityId, Song } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
+  getRepertoireCollectionsHref,
   getSongCreateHref,
   getSongHref,
 } from '@/features/navigation/routes';
@@ -358,6 +360,13 @@ export function RepertoireScreen({
           }
         >
           <View style={styles.controlToolbarEnd}>
+            <AppButton
+              accessibilityLabel="Abrir coleções do repertório"
+              icon="repertoire"
+              label="Coleções"
+              onPress={() => router.push(getRepertoireCollectionsHref(bandId))}
+              variant="tertiary"
+            />
             <OptionMenu
               active={state.filter !== 'all'}
               accessibilityLabel="Alterar filtros do repertório"

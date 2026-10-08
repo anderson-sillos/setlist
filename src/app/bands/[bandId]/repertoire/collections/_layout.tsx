@@ -1,16 +1,18 @@
 import { Stack } from 'expo-router';
 import { Platform } from 'react-native';
 
-import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { getStackScreenOptions } from '@/features/navigation/stackOptions';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
-export default function RepertoireLayout() {
+export default function RepertoireCollectionsLayout() {
   const reducedMotion = useReducedMotionPreference();
+
   return (
     <Stack screenOptions={getStackScreenOptions(Platform.OS, reducedMotion)}>
       <Stack.Screen name="index" options={{ animationTypeForReplace: 'pop' }} />
+      <Stack.Screen name="new" options={{ animationTypeForReplace: 'pop' }} />
       <Stack.Screen
-        name="collections"
+        name="[collectionId]"
         options={{ animationTypeForReplace: 'pop' }}
       />
     </Stack>

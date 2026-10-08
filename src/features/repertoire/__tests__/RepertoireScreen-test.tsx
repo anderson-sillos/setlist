@@ -163,6 +163,22 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Adicionar música ao repertório')).toBeNull();
   });
 
+  it('oferece acesso opcional às coleções também para pessoas Member', async () => {
+    const view = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Abrir coleções do repertório'));
+
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      `/bands/${demoIds.primaryBand}/repertoire/collections`,
+    );
+    expect(view.queryByLabelText('Adicionar música ao repertório')).toBeNull();
+  });
+
   it('leva Owner de uma banda conectada à criação online', async () => {
     const bandId = 'band-live';
     const repositories = createInMemoryRepositories({

@@ -35,6 +35,28 @@ export function getSongEditHref(bandId: EntityId, songId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/repertoire/${encodeURIComponent(songId)}/edit` as Href;
 }
 
+export function getRepertoireCollectionsHref(bandId: EntityId): Href {
+  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections` as Href;
+}
+
+export function getRepertoireCollectionHref(
+  bandId: EntityId,
+  collectionId: EntityId,
+): Href {
+  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/${encodeURIComponent(collectionId)}` as Href;
+}
+
+export function getRepertoireCollectionCreateHref(bandId: EntityId): Href {
+  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/new` as Href;
+}
+
+export function getRepertoireCollectionEditHref(
+  bandId: EntityId,
+  collectionId: EntityId,
+): Href {
+  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/${encodeURIComponent(collectionId)}/edit` as Href;
+}
+
 export function getStageHref(bandId: EntityId, showId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/shows/${encodeURIComponent(showId)}/stage` as Href;
 }
