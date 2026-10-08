@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 const HIDE_CONTROLS_SCROLL_DISTANCE = 48;
 const SHOW_CONTROLS_SCROLL_DISTANCE = 24;
@@ -21,7 +27,7 @@ export function useScrollDirectionVisibility(
     if (autoHideEnabled) return;
 
     visibleRef.current = true;
-    setVisible(true);
+    startTransition(() => setVisible(true));
     directionAnchor.current = lastOffset.current;
     gestureAnchor.current = lastOffset.current;
     lastDirection.current = null;
