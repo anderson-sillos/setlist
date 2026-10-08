@@ -40,7 +40,7 @@
 - [x] 5.2 Persistir o critério de coleção no estado de consulta por banda e restaurar o contexto ao retornar; verificar testes de ida ao detalhe, troca de banda e atualização manual sem resetar a lista durante a rolagem.
 - [x] 5.3 Tratar exclusão da coleção filtrada somente após consulta bem-sucedida, com retorno ao critério geral e informação discreta; verificar manutenção dos demais filtros e preservação do critério/dados em falha de rede.
 - [x] 5.4 Integrar os controles novos sem deslocar a área de rolagem ou alterar a ocultação da toolbar; verificar os testes de `ListControlsOverlay` e de direção da rolagem e a ausência da dimensão de coleção em banda sem coleções.
-- [ ] 5.5 Documentar o significado e a combinação dos filtros em `docs/COLECOES_REPERTORIO.md`; conferir os exemplos Todas as coleções, Sem coleção e Festa + Sincronizadas.
+- [x] 5.5 Documentar o significado e a combinação dos filtros em `docs/COLECOES_REPERTORIO.md`; conferir os exemplos Todas as coleções, Sem coleção e Festa + Sincronizadas.
 
 ## 6. Participações no detalhe da música
 

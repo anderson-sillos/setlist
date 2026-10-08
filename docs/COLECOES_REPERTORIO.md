@@ -70,6 +70,14 @@ Com músicas escolhidas, há duas ações opcionais:
 
 **Cancelar seleção** encerra o modo, limpa as escolhas locais e restaura a abertura habitual do detalhe ao tocar em uma música. Cancelar antes da confirmação não grava vínculos. Integrantes sem papel de edição continuam consultando o Repertório e as coleções sem ver essas ações de organização.
 
+### Filtrar o Repertório por coleção
+
+Quando a banda tem ao menos uma coleção, o painel **Filtrar** mostra o grupo **Coleção**. **Todas as coleções** deixa esse critério sem restrição; **Sem coleção** mostra músicas que não pertencem a nenhuma coleção; as demais opções mostram somente as músicas da coleção escolhida. Em bandas sem coleções, o grupo não é exibido.
+
+O filtro de coleção é combinado aos outros critérios: uma música precisa corresponder à busca e aos filtros de status e coleção selecionados. Por exemplo, **Festa** com **Sincronizadas** mostra apenas músicas sincronizadas que pertencem a Festa. A ordenação escolhida continua sendo aplicada aos resultados. **Sem coleção** também respeita o status: músicas arquivadas só aparecem quando **Arquivadas** está selecionado.
+
+Se a coleção usada no filtro for excluída, o app aguarda a consulta atualizada confirmar a exclusão, volta a **Todas as coleções** e mostra um aviso temporário. Busca, status e ordenação permanecem. Se a atualização falhar, o critério e os dados carregados continuam disponíveis para tentar novamente.
+
 Para renomear ou organizar uma coleção existente, abra seu detalhe e escolha **Editar coleção**. A exclusão fica no final do editor, pede confirmação e remove a coleção e seus vínculos; não remove músicas nem setlists existentes. Se houver alterações ainda não salvas, a confirmação informa que elas também serão descartadas. Ao detectar uma edição concorrente, o app mantém o rascunho na tela, bloqueia uma nova gravação com a revisão antiga e oferece a saída para revisar a versão atual.
 
 ### Conferência com músicas ativas e arquivadas
