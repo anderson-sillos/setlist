@@ -5,6 +5,7 @@ create or replace function public.order_repertoire_collection_songs(
 )
 returns void
 language plpgsql
+security definer
 set search_path = pg_catalog, public, auth
 as $$
 declare
@@ -48,7 +49,11 @@ begin
   delete from public.repertoire_collection_songs as links
   where links.band_id = p_band_id
     and links.collection_id = p_collection_id
-    and not public.is_song_moderated(links.song_id)
+    and not exists (
+      select 1
+      from public.moderated_songs as moderated
+      where moderated.song_id = links.song_id
+    )
     and not (links.song_id = any(ordered_song_ids));
 
   update public.repertoire_collection_songs as links
@@ -86,7 +91,11 @@ begin
     from public.repertoire_collection_songs as links
     where links.band_id = p_band_id
       and links.collection_id = p_collection_id
-      and public.is_song_moderated(links.song_id)
+      and exists (
+        select 1
+        from public.moderated_songs as moderated
+        where moderated.song_id = links.song_id
+      )
   )
   update public.repertoire_collection_songs as links
   set position = requested_count + hidden_links.hidden_position::integer - 1

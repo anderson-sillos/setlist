@@ -1,6 +1,6 @@
 begin;
 
-select plan(25);
+select plan(26);
 
 do $$
 declare
@@ -103,6 +103,11 @@ select set_config(
   '00000000-0000-0000-0000-000000009602',
   true
 );
+select is(
+  public.is_song_moderated('00000000-0000-0000-0000-000000009624'),
+  true,
+  'A função de moderação reconhece a música oculta no contexto autenticado'
+);
 
 select lives_ok(
   $$
@@ -143,6 +148,7 @@ select is(
   ],
   'Reordenação reflete somente a escolha confirmada'
 );
+reset role;
 select ok(
   exists (
     select 1
@@ -153,6 +159,7 @@ select ok(
   ),
   'Edição preserva vínculo de música oculta e sua posição relativa'
 );
+set local role authenticated;
 
 select throws_ok(
   $$
@@ -295,8 +302,8 @@ select is(
     from public.repertoire_collection_songs
     where collection_id = '00000000-0000-0000-0000-000000009631'
   ),
-  5,
-  'Gerenciar uma música não remove vínculos de outras músicas'
+  4,
+  'Contagem não inclui a música oculta por moderação'
 );
 select is(
   (
@@ -305,7 +312,7 @@ select is(
     where collection_id = '00000000-0000-0000-0000-000000009632'
       and song_id = '00000000-0000-0000-0000-000000009623'
   ),
-  1,
+  0,
   'Gerenciar participação preserva ordem das outras músicas da coleção'
 );
 
@@ -336,6 +343,7 @@ select is(
   1,
   'Remoção de participação mantém os outros vínculos da coleção'
 );
+reset role;
 select is(
   (
     select position
@@ -346,6 +354,7 @@ select is(
   3,
   'Remover outra música preserva a participação moderada'
 );
+set local role authenticated;
 select throws_ok(
   $$
     select public.set_song_repertoire_collections(
@@ -353,6 +362,10 @@ select throws_ok(
       '00000000-0000-0000-0000-000000009623',
       array['00000000-0000-0000-0000-000000009632'::uuid],
       jsonb_build_object(
+        '00000000-0000-0000-0000-000000009631',
+        (select updated_at
+         from public.repertoire_collections
+         where id = '00000000-0000-0000-0000-000000009631'),
         '00000000-0000-0000-0000-000000009632',
         '2000-01-01 00:00:00+00'
       )
