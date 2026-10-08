@@ -143,7 +143,7 @@ export function SongCollectionMembershipDialog({
               icon="addCircle"
               label="Criar seleção"
               onPress={onCreateCollection}
-              variant="tertiary"
+              variant="secondary"
             />
             <AppButton
               accessibilityLabel="Salvar coleções da música"

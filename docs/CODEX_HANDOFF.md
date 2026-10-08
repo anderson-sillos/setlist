@@ -1730,3 +1730,9 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      passaram; testes automatizados não foram executados. A change está em
      45/47 tarefas concluídas; 8.1/8.2 e a PR #32 permanecem abertos para
      validação manual.
+132. Refinamento dos diálogos de coleção (8.8): as ações secundárias “Criar
+     seleção” e “Cancelar” usam agora o estilo secondary padrão dos diálogos;
+     “Salvar” e “Adicionar” preservam a hierarquia primária. No seletor sem
+     coleções, “Criar seleção” continua primário por ser o próximo passo
+     disponível. Prettier e `git diff --check` passaram; não rodei testes.
+     A change permanece com 45/47 tarefas concluídas e a PR #32 aberta.

@@ -1195,13 +1195,13 @@ function RepertoireScreenContent({
                     icon="addCircle"
                     label="Criar seleção"
                     onPress={createCollectionFromPicker}
-                    variant="tertiary"
+                    variant="secondary"
                   />
                   <AppButton
                     label="Cancelar"
                     disabled={appendSongs.isPending}
                     onPress={closeCollectionPicker}
-                    variant="tertiary"
+                    variant="secondary"
                   />
                   <AppButton
                     accessibilityLabel={
@@ -1235,7 +1235,7 @@ function RepertoireScreenContent({
                 <AppButton
                   label="Cancelar"
                   onPress={closeCollectionPicker}
-                  variant="tertiary"
+                  variant="secondary"
                 />
                 <AppButton
                   disabled={selectedSongCount === 0}
