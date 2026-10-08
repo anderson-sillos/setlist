@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import {
   KeyboardAvoidingView,
@@ -8,7 +8,14 @@ import {
   StyleSheet,
   TextInput,
   View,
+  type LayoutChangeEvent,
 } from 'react-native';
+import {
+  PanGestureHandler,
+  State,
+  type PanGestureHandlerGestureEvent,
+  type PanGestureHandlerStateChangeEvent,
+} from 'react-native-gesture-handler';
 
 import {
   ErrorFeedback,
@@ -22,10 +29,12 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { OptionMenu, SearchField } from '@/components/ui/ListControls';
+import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useSaveRepertoireCollection,
+  useDeleteRepertoireCollection,
   useRepertoireCollections,
   useSongs,
   useUserBands,
@@ -56,6 +65,11 @@ import {
   lyricStatusLabels,
   lyricStatusTones,
 } from './songPresentation';
+import {
+  getCollectionSongInsertionIndex,
+  moveCollectionSong,
+  type CollectionSongLayout,
+} from './collectionSongOrder';
 
 interface RepertoireCollectionEditorScreenProps {
   readonly bandId: EntityId;
@@ -169,11 +183,28 @@ function RepertoireCollectionEditorForm({
 }: RepertoireCollectionEditorFormProps) {
   const router = useRouter();
   const saveCollection = useSaveRepertoireCollection(bandId);
+  const deleteCollection = useDeleteRepertoireCollection(bandId);
   const submissionLock = useRef(false);
+  const deletionLock = useRef(false);
+  const songLayoutsRef = useRef(new Map<EntityId, CollectionSongLayout>());
+  const dragSessionRef = useRef<{
+    readonly originCenterY: number;
+    readonly originScrollOffset: number;
+    readonly songId: EntityId;
+    targetIndex: number;
+  } | null>(null);
+  const scrollOffsetRef = useRef(0);
   const [name, setName] = useState(initialCollection?.name ?? '');
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [revisionConflict, setRevisionConflict] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmationVisible, setDeleteConfirmationVisible] =
+    useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteRevisionConflict, setDeleteRevisionConflict] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [draggingSongId, setDraggingSongId] = useState<EntityId | null>(null);
   const [selectedSongIds, setSelectedSongIds] =
     useState<readonly EntityId[]>(orderedSongIds);
   const [search, setSearch] = useState('');
@@ -212,6 +243,68 @@ function RepertoireCollectionEditorForm({
     );
   };
 
+  const registerSongLayout = (songId: EntityId, event: LayoutChangeEvent) => {
+    const { height, y } = event.nativeEvent.layout;
+    songLayoutsRef.current.set(songId, { height, songId, y });
+  };
+
+  const startSongDrag = (songId: EntityId) => {
+    const layout = songLayoutsRef.current.get(songId);
+    const index = selectedSongIds.indexOf(songId);
+    if (!layout || index < 0) return;
+
+    dragSessionRef.current = {
+      originCenterY: layout.y + layout.height / 2,
+      originScrollOffset: scrollOffsetRef.current,
+      songId,
+      targetIndex: index,
+    };
+    setDraggingSongId(songId);
+  };
+
+  const moveSongDrag = (translationY: number) => {
+    const session = dragSessionRef.current;
+    if (!session) return;
+    const layouts = selectedSongIds.flatMap((id) => {
+      const layout = songLayoutsRef.current.get(id);
+      return layout ? [layout] : [];
+    });
+    if (layouts.length !== selectedSongIds.length) return;
+
+    const targetCenterY =
+      session.originCenterY +
+      translationY +
+      scrollOffsetRef.current -
+      session.originScrollOffset;
+    session.targetIndex = getCollectionSongInsertionIndex(
+      layouts,
+      session.songId,
+      targetCenterY,
+    );
+  };
+
+  const clearSongDrag = () => {
+    dragSessionRef.current = null;
+    setDraggingSongId(null);
+  };
+
+  const finishSongDrag = () => {
+    const session = dragSessionRef.current;
+    if (session) {
+      setSelectedSongIds((current) =>
+        moveCollectionSong(current, session.songId, session.targetIndex),
+      );
+    }
+    clearSongDrag();
+  };
+
+  const moveSongBy = (songId: EntityId, offset: -1 | 1) => {
+    setSelectedSongIds((current) => {
+      const index = current.indexOf(songId);
+      return moveCollectionSong(current, songId, index + offset);
+    });
+  };
+
   const selectVisibleSongs = () => {
     setSelectedSongIds((current) => {
       const next = [...current];
@@ -227,7 +320,7 @@ function RepertoireCollectionEditorForm({
   };
   const unsavedChanges = useUnsavedChangesGuard({
     dirty,
-    saving: isSubmitting,
+    saving: isSubmitting || isDeleting,
   });
 
   const leaveEditor = () => {
@@ -248,7 +341,7 @@ function RepertoireCollectionEditorForm({
   };
 
   const handleSave = async () => {
-    if (submissionLock.current) {
+    if (submissionLock.current || deletionLock.current) {
       return;
     }
 
@@ -280,6 +373,7 @@ function RepertoireCollectionEditorForm({
     setIsSubmitting(true);
     setFieldError(null);
     setSubmitError(null);
+    setRevisionConflict(false);
 
     try {
       const savedCollection = await saveCollection.mutateAsync({
@@ -301,6 +395,7 @@ function RepertoireCollectionEditorForm({
           setFieldError(error.message);
         } else {
           setSubmitError(error.message);
+          setRevisionConflict(error.code === 'stale_revision');
         }
       } else {
         setSubmitError(
@@ -313,10 +408,45 @@ function RepertoireCollectionEditorForm({
     }
   };
 
+  const handleDelete = async () => {
+    if (!initialCollection || deletionLock.current || submissionLock.current) {
+      return;
+    }
+
+    deletionLock.current = true;
+    setIsDeleting(true);
+    setDeleteError(null);
+    setDeleteRevisionConflict(false);
+    try {
+      await deleteCollection.mutateAsync({
+        collectionId: initialCollection.id,
+        expectedUpdatedAt: initialCollection.updatedAt,
+      });
+      unsavedChanges.allowNextRemoval();
+      router.replace(getRepertoireCollectionsHref(bandId));
+    } catch (error) {
+      setDeleteError(
+        error instanceof RepertoireCollectionError
+          ? error.message
+          : 'Não foi possível excluir a coleção agora. Tente novamente.',
+      );
+      setDeleteRevisionConflict(
+        error instanceof RepertoireCollectionError &&
+          error.code === 'stale_revision',
+      );
+    } finally {
+      deletionLock.current = false;
+      setIsDeleting(false);
+    }
+  };
+
   const editActions: EditActions = {
     onCancel: requestLeave,
     onSave: () => void handleSave(),
-    saveDisabled: isSubmitting || (Boolean(collectionId) && !dirty),
+    saveDisabled:
+      isSubmitting ||
+      isDeleting ||
+      (Boolean(collectionId) && (!dirty || revisionConflict)),
   };
 
   return (
@@ -338,6 +468,10 @@ function RepertoireCollectionEditorForm({
         <ScrollView
           contentContainerStyle={styles.formContent}
           keyboardShouldPersistTaps="handled"
+          onScroll={(event) => {
+            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
           testID="collection-editor-scroll"
         >
           <AppText tone="muted">
@@ -498,25 +632,105 @@ function RepertoireCollectionEditorForm({
                 Músicas escolhidas ({selectedSongs.length})
               </AppText>
               {selectedSongs.length ? (
-                <View style={styles.selectedSongList}>
-                  {selectedSongs.map((song, index) => (
-                    <View key={song.id} style={styles.selectedSongRow}>
-                      <AppText style={styles.selectedPosition} tone="muted">
-                        {index + 1}
-                      </AppText>
-                      <AppText style={styles.selectedSongTitle}>
-                        {song.title}
-                      </AppText>
-                      <AppButton
-                        accessibilityLabel={`Remover ${song.title} da coleção`}
-                        icon="remove"
-                        label="Remover"
-                        onPress={() => toggleSong(song.id)}
-                        variant="tertiary"
-                      />
-                    </View>
-                  ))}
-                </View>
+                <>
+                  <AppText tone="muted" variant="caption">
+                    Arraste pela alça ou use as setas para ordenar.
+                  </AppText>
+                  <View style={styles.selectedSongList}>
+                    {selectedSongs.map((song, index) => (
+                      <View
+                        key={song.id}
+                        onLayout={(event) => registerSongLayout(song.id, event)}
+                        style={[
+                          styles.selectedSongRow,
+                          draggingSongId === song.id &&
+                            styles.selectedSongDragging,
+                        ]}
+                        testID={`collection-song-row-${song.id}`}
+                      >
+                        <AppText style={styles.selectedPosition} tone="muted">
+                          {index + 1}
+                        </AppText>
+                        <CollectionSongDragHandle
+                          accessibilityLabel={`Arraste para reordenar ${song.title}`}
+                          dragging={draggingSongId === song.id}
+                          onCancel={clearSongDrag}
+                          onEnd={finishSongDrag}
+                          onMove={moveSongDrag}
+                          onStart={() => startSongDrag(song.id)}
+                          testID={`collection-song-drag-${song.id}`}
+                        />
+                        <AppText
+                          numberOfLines={2}
+                          style={styles.selectedSongTitle}
+                        >
+                          {song.title}
+                        </AppText>
+                        <Pressable
+                          accessibilityLabel={`Mover ${song.title} para cima`}
+                          accessibilityRole="button"
+                          accessibilityState={{ disabled: index === 0 }}
+                          disabled={index === 0 || isSubmitting || isDeleting}
+                          onPress={() => moveSongBy(song.id, -1)}
+                          style={styles.orderButton}
+                          testID={`collection-song-up-${song.id}`}
+                        >
+                          <AppIcon
+                            color={
+                              index === 0
+                                ? colors.text.disabled
+                                : colors.text.secondary
+                            }
+                            name="moveUp"
+                            size={16}
+                          />
+                        </Pressable>
+                        <Pressable
+                          accessibilityLabel={`Mover ${song.title} para baixo`}
+                          accessibilityRole="button"
+                          accessibilityState={{
+                            disabled: index === selectedSongs.length - 1,
+                          }}
+                          disabled={
+                            index === selectedSongs.length - 1 ||
+                            isSubmitting ||
+                            isDeleting
+                          }
+                          onPress={() => moveSongBy(song.id, 1)}
+                          style={styles.orderButton}
+                          testID={`collection-song-down-${song.id}`}
+                        >
+                          <AppIcon
+                            color={
+                              index === selectedSongs.length - 1
+                                ? colors.text.disabled
+                                : colors.text.secondary
+                            }
+                            name="moveDown"
+                            size={16}
+                          />
+                        </Pressable>
+                        <Pressable
+                          accessibilityLabel={`Remover ${song.title} da coleção`}
+                          accessibilityRole="button"
+                          accessibilityState={{
+                            disabled: isSubmitting || isDeleting,
+                          }}
+                          disabled={isSubmitting || isDeleting}
+                          onPress={() => toggleSong(song.id)}
+                          style={styles.orderButton}
+                          testID={`collection-song-remove-${song.id}`}
+                        >
+                          <AppIcon
+                            color={colors.text.secondary}
+                            name="remove"
+                            size={18}
+                          />
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                </>
               ) : (
                 <AppText tone="muted">
                   Nenhuma música escolhida. Você pode salvar a coleção vazia.
@@ -524,29 +738,207 @@ function RepertoireCollectionEditorForm({
               )}
             </Card>
           </View>
+          {initialCollection ? (
+            <Card style={styles.dangerZone}>
+              <AppText variant="heading">Excluir coleção</AppText>
+              <AppText tone="muted">
+                Remove a coleção e suas participações. As músicas e os shows
+                existentes permanecem no repertório.
+              </AppText>
+              <AppButton
+                accessibilityLabel="Excluir coleção"
+                disabled={isSubmitting || isDeleting}
+                icon="delete"
+                label="Excluir coleção"
+                onPress={() => {
+                  setDeleteError(null);
+                  setDeleteRevisionConflict(false);
+                  setDeleteConfirmationVisible(true);
+                }}
+                variant="destructive"
+              />
+            </Card>
+          ) : null}
           {submitError ? (
-            <AppText accessibilityRole="alert" style={styles.fieldError}>
-              {submitError}
-            </AppText>
+            <View style={styles.conflictNotice}>
+              <AppText accessibilityRole="alert" style={styles.fieldError}>
+                {submitError}
+              </AppText>
+              {revisionConflict && collectionId ? (
+                <AppButton
+                  label="Descartar edição e revisar versão atual"
+                  onPress={() => {
+                    unsavedChanges.allowNextRemoval();
+                    router.replace(
+                      getRepertoireCollectionHref(bandId, collectionId),
+                    );
+                  }}
+                  variant="secondary"
+                />
+              ) : null}
+            </View>
           ) : null}
         </ScrollView>
         <View style={styles.footer}>
           <AppButton
-            disabled={isSubmitting}
+            disabled={isSubmitting || isDeleting}
             label="Cancelar"
             onPress={requestLeave}
             variant="secondary"
           />
           <AppButton
             accessibilityLabel="Salvar coleção"
-            disabled={isSubmitting || (Boolean(collectionId) && !dirty)}
+            disabled={
+              isSubmitting ||
+              isDeleting ||
+              (Boolean(collectionId) && (!dirty || revisionConflict))
+            }
             icon="check"
             label={isSubmitting ? 'Salvando…' : 'Salvar coleção'}
             onPress={() => void handleSave()}
           />
         </View>
       </KeyboardAvoidingView>
+      <OptionSheet
+        closeAccessibilityLabel="Cancelar exclusão da coleção"
+        label="Excluir coleção"
+        onClose={() => {
+          if (!deletionLock.current) {
+            setDeleteError(null);
+            setDeleteConfirmationVisible(false);
+          }
+        }}
+        testID="collection-delete-confirmation"
+        visible={deleteConfirmationVisible}
+      >
+        <AppText>
+          A coleção e suas participações serão removidas definitivamente. As
+          músicas e os shows existentes não serão excluídos.
+        </AppText>
+        {dirty ? (
+          <AppText tone="warning">
+            As alterações desta edição também serão descartadas.
+          </AppText>
+        ) : null}
+        {deleteError ? (
+          <View style={styles.conflictNotice}>
+            <AppText accessibilityRole="alert" style={styles.fieldError}>
+              {deleteError}
+            </AppText>
+            {deleteRevisionConflict && collectionId ? (
+              <AppButton
+                label="Sair e revisar coleção atual"
+                onPress={() => {
+                  setDeleteConfirmationVisible(false);
+                  unsavedChanges.allowNextRemoval();
+                  router.replace(
+                    getRepertoireCollectionHref(bandId, collectionId),
+                  );
+                }}
+                variant="secondary"
+              />
+            ) : null}
+          </View>
+        ) : null}
+        <AppButton
+          accessibilityLabel="Cancelar exclusão"
+          disabled={isDeleting}
+          label="Cancelar"
+          onPress={() => setDeleteConfirmationVisible(false)}
+          variant="secondary"
+        />
+        <AppButton
+          accessibilityLabel="Confirmar exclusão definitiva da coleção"
+          disabled={isDeleting || deleteRevisionConflict}
+          icon="delete"
+          label={isDeleting ? 'Excluindo…' : 'Excluir definitivamente'}
+          onPress={() => void handleDelete()}
+          variant="destructive"
+        />
+      </OptionSheet>
     </RepertoireCollectionEditorFrame>
+  );
+}
+
+interface CollectionSongDragHandleProps {
+  readonly accessibilityLabel: string;
+  readonly dragging: boolean;
+  readonly onCancel: () => void;
+  readonly onEnd: () => void;
+  readonly onMove: (translationY: number) => void;
+  readonly onStart: () => void;
+  readonly testID: string;
+}
+
+function CollectionSongDragHandle({
+  accessibilityLabel,
+  dragging,
+  onCancel,
+  onEnd,
+  onMove,
+  onStart,
+  testID,
+}: CollectionSongDragHandleProps) {
+  const callbacksRef = useRef({ onCancel, onEnd, onMove, onStart });
+  const dragStartedRef = useRef(false);
+
+  useEffect(() => {
+    callbacksRef.current = { onCancel, onEnd, onMove, onStart };
+  }, [onCancel, onEnd, onMove, onStart]);
+
+  const startDrag = () => {
+    if (dragStartedRef.current) return;
+    dragStartedRef.current = true;
+    callbacksRef.current.onStart();
+  };
+
+  const onGestureEvent = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
+    if (nativeEvent.state !== State.ACTIVE) return;
+    startDrag();
+    callbacksRef.current.onMove(nativeEvent.translationY);
+  };
+
+  const onHandlerStateChange = ({
+    nativeEvent,
+  }: PanGestureHandlerStateChangeEvent) => {
+    if (nativeEvent.state === State.ACTIVE) {
+      startDrag();
+      return;
+    }
+    if (!dragStartedRef.current || nativeEvent.oldState !== State.ACTIVE)
+      return;
+
+    dragStartedRef.current = false;
+    if (nativeEvent.state === State.END) {
+      callbacksRef.current.onEnd();
+    } else {
+      callbacksRef.current.onCancel();
+    }
+  };
+
+  return (
+    <PanGestureHandler
+      activeOffsetY={[-4, 4]}
+      onGestureEvent={onGestureEvent}
+      onHandlerStateChange={onHandlerStateChange}
+      shouldCancelWhenOutside={false}
+      testID={`gesture-${testID}`}
+    >
+      <View
+        accessible
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        collapsable={false}
+        style={styles.dragHandle}
+        testID={testID}
+      >
+        <AppIcon
+          color={dragging ? colors.action.primary : colors.text.secondary}
+          name="dragHandle"
+          size={18}
+        />
+      </View>
+    </PanGestureHandler>
   );
 }
 
@@ -659,7 +1051,12 @@ const styles = StyleSheet.create({
   selectedSongRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.xs,
+    minHeight: layout.minimumTouchTarget,
+  },
+  selectedSongDragging: {
+    backgroundColor: colors.background.raised,
+    borderRadius: radii.sm,
   },
   selectedPosition: {
     fontVariant: ['tabular-nums'],
@@ -669,6 +1066,31 @@ const styles = StyleSheet.create({
   selectedSongTitle: {
     flex: 1,
     minWidth: 0,
+  },
+  dragHandle: {
+    alignItems: 'center',
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: 32,
+  },
+  orderButton: {
+    alignItems: 'center',
+    borderRadius: radii.sm,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: 36,
+  },
+  dangerZone: {
+    alignSelf: 'center',
+    gap: spacing.md,
+    maxWidth: layout.contentMaxWidth,
+    width: '100%',
+  },
+  conflictNotice: {
+    alignSelf: 'center',
+    gap: spacing.md,
+    maxWidth: layout.contentMaxWidth,
+    width: '100%',
   },
   input: {
     backgroundColor: colors.background.raised,

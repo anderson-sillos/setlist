@@ -1,5 +1,9 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
-
+import {
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { RepertoireCollectionError } from '@/domain';
@@ -117,6 +121,184 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
       );
     });
+  });
+
+  it('reordena e remove participações sem excluir músicas do repertório', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const saveSpy = jest.spyOn(repositories.repertoireCollections, 'save');
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          collectionId="collection-demo-festa"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Nome da coleção');
+    await fireEvent.press(
+      view.getByLabelText('Mover Luzes da Cidade para baixo'),
+    );
+    await fireEvent.press(
+      view.getByLabelText('Remover Luzes da Cidade da coleção'),
+    );
+    await fireEvent.press(view.getByLabelText('Salvar coleção'));
+
+    await waitFor(() => {
+      expect(saveSpy).toHaveBeenCalledWith({
+        bandId: demoIds.primaryBand,
+        collectionId: 'collection-demo-festa',
+        expectedUpdatedAt: '2026-09-08T12:05:00.000Z',
+        name: 'Festa',
+        orderedSongIds: ['song-demo-mare-neon'],
+      });
+    });
+    await expect(
+      repositories.songs.listByBandId(demoIds.primaryBand),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'song-demo-luzes' }),
+        expect.objectContaining({ id: 'song-demo-mare-neon' }),
+      ]),
+    );
+  });
+
+  it('só exclui a coleção após confirmação e mantém as músicas', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const deleteSpy = jest.spyOn(repositories.repertoireCollections, 'delete');
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          collectionId="collection-demo-festa"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Nome da coleção');
+    await fireEvent.press(view.getByLabelText('Excluir coleção'));
+    expect(view.getByTestId('collection-delete-confirmation')).toBeTruthy();
+    expect(
+      view.getByText(/As músicas e os shows existentes não serão excluídos/),
+    ).toBeTruthy();
+    await fireEvent.press(
+      within(view.getByTestId('collection-delete-confirmation')).getByLabelText(
+        'Cancelar exclusão',
+      ),
+    );
+    expect(deleteSpy).not.toHaveBeenCalled();
+
+    await fireEvent.press(view.getByLabelText('Excluir coleção'));
+    await fireEvent.press(
+      view.getByLabelText('Confirmar exclusão definitiva da coleção'),
+    );
+
+    await waitFor(() => {
+      expect(deleteSpy).toHaveBeenCalledWith({
+        bandId: demoIds.primaryBand,
+        collectionId: 'collection-demo-festa',
+        expectedUpdatedAt: '2026-09-08T12:05:00.000Z',
+      });
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        `/bands/${demoIds.primaryBand}/repertoire/collections`,
+      );
+    });
+    await expect(
+      repositories.songs.listByBandId(demoIds.primaryBand),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'song-demo-luzes' }),
+        expect.objectContaining({ id: 'song-demo-mare-neon' }),
+      ]),
+    );
+  });
+
+  it('preserva a edição e oferece revisar os dados após conflito de revisão', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    jest
+      .spyOn(repositories.repertoireCollections, 'save')
+      .mockRejectedValueOnce(
+        new RepertoireCollectionError(
+          'stale_revision',
+          'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.',
+        ),
+      );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          collectionId="collection-demo-festa"
+        />
+      </AppProviders>,
+    );
+
+    const nameField = await view.findByLabelText('Nome da coleção');
+    await fireEvent.changeText(nameField, 'Festa revisada');
+    await fireEvent.press(view.getByLabelText('Salvar coleção'));
+
+    expect(
+      await view.findByText(
+        'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.',
+      ),
+    ).toBeTruthy();
+    expect(view.getByLabelText('Nome da coleção').props.value).toBe(
+      'Festa revisada',
+    );
+    expect(
+      view.getByLabelText('Salvar coleção').props.accessibilityState,
+    ).toEqual({ disabled: true });
+    await fireEvent.press(
+      view.getByRole('button', {
+        name: 'Descartar edição e revisar versão atual',
+      }),
+    );
+    expect(mockRouter.replace).toHaveBeenCalledWith(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
+    );
+  });
+
+  it('permite revisar a versão atual quando a exclusão encontra uma revisão nova', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    jest
+      .spyOn(repositories.repertoireCollections, 'delete')
+      .mockRejectedValueOnce(
+        new RepertoireCollectionError(
+          'stale_revision',
+          'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.',
+        ),
+      );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          collectionId="collection-demo-festa"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Nome da coleção');
+    await fireEvent.press(view.getByLabelText('Excluir coleção'));
+    await fireEvent.press(
+      view.getByLabelText('Confirmar exclusão definitiva da coleção'),
+    );
+
+    expect(
+      await within(
+        view.getByTestId('collection-delete-confirmation'),
+      ).findByText(
+        'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.',
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByLabelText('Confirmar exclusão definitiva da coleção').props
+        .accessibilityState,
+    ).toEqual({ disabled: true });
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Sair e revisar coleção atual' }),
+    );
+    expect(mockRouter.replace).toHaveBeenCalledWith(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
+    );
   });
 
   it('preserva o texto após falha e permite tentar novamente', async () => {

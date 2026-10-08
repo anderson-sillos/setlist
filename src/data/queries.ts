@@ -15,6 +15,7 @@ import type {
   SetSongRepertoireCollectionsInput,
   Song,
 } from '@/domain';
+import { RepertoireCollectionError } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
 
@@ -256,6 +257,11 @@ export function useSaveRepertoireCollection(bandId: EntityId) {
     mutationFn: (input: Omit<SaveRepertoireCollectionInput, 'bandId'>) =>
       repositories.repertoireCollections.save({ ...input, bandId }),
     onSuccess: () => invalidateRepertoireCollectionData(queryClient, bandId),
+    onError: (error) =>
+      error instanceof RepertoireCollectionError &&
+      error.code === 'stale_revision'
+        ? invalidateRepertoireCollectionData(queryClient, bandId)
+        : undefined,
   });
 }
 
@@ -296,6 +302,11 @@ export function useDeleteRepertoireCollection(bandId: EntityId) {
     mutationFn: (input: Omit<DeleteRepertoireCollectionInput, 'bandId'>) =>
       repositories.repertoireCollections.delete({ ...input, bandId }),
     onSuccess: () => invalidateRepertoireCollectionData(queryClient, bandId),
+    onError: (error) =>
+      error instanceof RepertoireCollectionError &&
+      error.code === 'stale_revision'
+        ? invalidateRepertoireCollectionData(queryClient, bandId)
+        : undefined,
   });
 }
 

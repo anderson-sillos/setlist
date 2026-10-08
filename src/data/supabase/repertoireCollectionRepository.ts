@@ -76,7 +76,7 @@ function mapError(error: { code?: string; message: string }) {
   ) {
     code = 'stale_revision';
     userMessage =
-      'A coleção foi alterada por outra pessoa. Atualize os dados antes de salvar.';
+      'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.';
   } else if (message.includes('COLLECTION_NOT_FOUND')) {
     code = 'not_found';
     userMessage = 'A coleção não existe mais nesta banda.';

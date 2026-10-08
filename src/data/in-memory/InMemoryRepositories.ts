@@ -463,7 +463,7 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
       permission_denied: 'Seu papel não permite alterar coleções desta banda.',
       request_failed: 'Não foi possível atualizar a coleção agora.',
       stale_revision:
-        'A coleção foi alterada por outra pessoa. Atualize os dados antes de salvar.',
+        'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.',
       unavailable_song:
         'Uma ou mais músicas não estão disponíveis neste repertório.',
     };
