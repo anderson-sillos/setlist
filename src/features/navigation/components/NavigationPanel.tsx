@@ -1,6 +1,7 @@
 import { Link, type Href } from 'expo-router';
 import {
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,7 +22,7 @@ import { legalUrls } from '@/features/legal/legalUrls';
 import { navigationItems } from '@/features/navigation/navigationItems';
 import type { BandSection } from '@/features/navigation/routes';
 import { useSectionTransition } from '@/features/navigation/SectionTransition';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { blurWebFocus } from '@/utils/focus';
 
 const roleLabels: Record<BandRole, string> = {
@@ -45,12 +46,14 @@ interface NavigationPanelProps {
 
 function NavigationItemContent({
   active = false,
+  badge,
   compact = false,
   icon,
   label,
   largeTargets = false,
 }: {
   readonly active?: boolean;
+  readonly badge?: string;
   readonly compact?: boolean;
   readonly icon: AppIconName;
   readonly label: string;
@@ -75,12 +78,25 @@ function NavigationItemContent({
       >
         {label}
       </AppText>
+      {badge ? (
+        <View style={styles.itemBadge}>
+          <AppText
+            accessible={false}
+            numberOfLines={1}
+            style={styles.itemBadgeLabel}
+            tone="muted"
+          >
+            {badge}
+          </AppText>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 function SidebarNavigationLink({
   active,
+  comingSoon = false,
   compact = false,
   href,
   icon,
@@ -91,6 +107,7 @@ function SidebarNavigationLink({
   onPress,
 }: {
   readonly active: boolean;
+  readonly comingSoon?: boolean;
   readonly compact?: boolean;
   readonly href?: Href;
   readonly icon: AppIconName;
@@ -124,9 +141,11 @@ function SidebarNavigationLink({
               blurWebFocus();
               onPress();
             }
-          : undefined
+          : Platform.OS === 'android'
+            ? onNavigate
+            : undefined
       }
-      onPressIn={onPress ? undefined : onNavigate}
+      onPressIn={onPress || Platform.OS === 'android' ? undefined : onNavigate}
       style={itemStyle}
     >
       {active ? (
@@ -140,6 +159,7 @@ function SidebarNavigationLink({
       ) : null}
       <NavigationItemContent
         active={active}
+        badge={comingSoon ? 'Em breve' : undefined}
         compact={compact}
         icon={icon}
         label={label}
@@ -179,7 +199,8 @@ function GeneralNavigationLink({
       <Pressable
         accessibilityLabel={label}
         accessibilityRole="link"
-        onPressIn={onNavigate}
+        onPress={Platform.OS === 'android' ? onNavigate : undefined}
+        onPressIn={Platform.OS === 'android' ? undefined : onNavigate}
         style={StyleSheet.flatten([
           styles.sectionItem,
           compact && styles.compactItem,
@@ -239,6 +260,67 @@ function GeneralNavigationAction({
   );
 }
 
+function AccountNavigationLink({
+  account,
+  compact,
+  largeTargets,
+  rowHeight,
+  onNavigate,
+}: {
+  readonly account: {
+    readonly avatarUrl?: string | null;
+    readonly email: string;
+    readonly name: string;
+  };
+  readonly compact: boolean;
+  readonly largeTargets: boolean;
+  readonly rowHeight: number;
+  readonly onNavigate?: () => void;
+}) {
+  return (
+    <Link href="/account" onPress={blurWebFocus} replace asChild>
+      <Pressable
+        accessibilityHint={`Conta de ${account.name}, ${account.email}. Abrir perfil e configurações da conta.`}
+        accessibilityLabel="Perfil e conta"
+        accessibilityRole="link"
+        onPress={Platform.OS === 'android' ? onNavigate : undefined}
+        onPressIn={Platform.OS === 'android' ? undefined : onNavigate}
+        style={StyleSheet.flatten([
+          styles.sectionItem,
+          styles.accountIdentity,
+          { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
+        ])}
+        testID="navigation-account-identity"
+      >
+        <View style={styles.sectionIcon}>
+          <UserAvatar
+            avatarUrl={account.avatarUrl}
+            displayName={account.name}
+            size={28}
+          />
+        </View>
+        <View style={styles.accountCopy} testID="navigation-account-copy">
+          <AppText
+            numberOfLines={1}
+            style={[
+              styles.accountName,
+              compact && styles.compactSectionLabel,
+              largeTargets && styles.drawerSectionLabel,
+            ]}
+            tone="inverse"
+          >
+            {account.name}
+          </AppText>
+          <AppText numberOfLines={1} style={styles.accountEmail} tone="muted">
+            {account.email}
+          </AppText>
+        </View>
+        <AppIcon color={colors.text.secondary} name="forward" size={16} />
+      </Pressable>
+    </Link>
+  );
+}
+
 function FooterLegalLink({
   label,
   rowHeight,
@@ -285,8 +367,13 @@ export function NavigationPanel({
   const { fontScale } = useWindowDimensions();
   const profileQuery = useCurrentProfile();
   const membersQuery = useBandMembers(bandId);
+  const menuFontScale = Math.max(1, fontScale);
   const rowHeight =
-    (largeTargets ? 48 : compact ? 28 : 32) * Math.max(1, fontScale);
+    (largeTargets ? layout.minimumTouchTarget : compact ? 28 : 32) *
+    menuFontScale;
+  const legalRowHeight =
+    (largeTargets ? layout.minimumTouchTarget : 28) * menuFontScale;
+  const accountRowHeight = Math.max(rowHeight, 40 * menuFontScale);
   const account = session
     ? {
         avatarUrl: profileQuery.data?.avatarUrl,
@@ -318,7 +405,9 @@ export function NavigationPanel({
         : null;
 
   return (
-    <ScrollView contentContainerStyle={styles.panel}>
+    <ScrollView
+      contentContainerStyle={[styles.panel, largeTargets && styles.drawerPanel]}
+    >
       {showBrand ? (
         <View style={styles.brand}>
           <AppLogo size={40} />
@@ -333,14 +422,25 @@ export function NavigationPanel({
         </View>
       ) : null}
 
-      <View style={styles.bandContext}>
-        <AppText style={styles.bandContextName} tone="inverse">
+      <View
+        style={[styles.bandContext, largeTargets && styles.drawerBandContext]}
+      >
+        <AppText
+          style={[
+            styles.bandContextName,
+            largeTargets && styles.drawerBandContextName,
+          ]}
+          tone="inverse"
+        >
           {bandId
             ? (bandName ?? 'Banda selecionada')
             : 'Nenhuma banda selecionada'}
         </AppText>
         {bandId && membershipLabel ? (
-          <AppText style={styles.muted} variant="caption">
+          <AppText
+            style={[styles.muted, largeTargets && styles.drawerBandContextRole]}
+            variant="caption"
+          >
             {membershipLabel}
           </AppText>
         ) : null}
@@ -352,6 +452,7 @@ export function NavigationPanel({
             {navigationItems.map((item) => (
               <SidebarNavigationLink
                 active={activeSection === item.section}
+                comingSoon={item.section === 'stage'}
                 compact={compact}
                 href={
                   item.section === 'stage'
@@ -377,6 +478,13 @@ export function NavigationPanel({
       ) : null}
 
       <View style={styles.generalNavigation}>
+        <AccountNavigationLink
+          account={account}
+          compact={compact}
+          largeTargets={largeTargets}
+          rowHeight={accountRowHeight}
+          onNavigate={onNavigate}
+        />
         <SidebarNavigationLink
           active={!bandId}
           compact={compact}
@@ -387,47 +495,31 @@ export function NavigationPanel({
           rowHeight={rowHeight}
           onNavigate={onNavigate}
         />
+      </View>
+
+      <View style={styles.footer}>
         <GeneralNavigationLink
           compact={compact}
-          href="/account"
-          icon="account"
-          label="Perfil e conta"
+          href={
+            {
+              pathname: '/about',
+              params: {
+                returnTo:
+                  bandId && activeSection
+                    ? String(getSectionHref(activeSection))
+                    : '/',
+              },
+            } as Href
+          }
+          icon="info"
+          label="Sobre o Setlist"
           largeTargets={largeTargets}
           rowHeight={rowHeight}
           onNavigate={onNavigate}
         />
-      </View>
-
-      <View style={styles.footer}>
-        <View
-          style={[styles.accountIdentity, { minHeight: rowHeight }]}
-          testID="navigation-account-identity"
-        >
-          <UserAvatar
-            avatarUrl={account.avatarUrl}
-            displayName={account.name}
-            size={28}
-          />
-          <View style={styles.accountCopy} testID="navigation-account-copy">
-            <AppText
-              numberOfLines={1}
-              style={styles.accountName}
-              tone="inverse"
-            >
-              {account.name}
-            </AppText>
-            <AppText
-              numberOfLines={1}
-              style={[styles.muted, styles.accountEmail]}
-              variant="caption"
-            >
-              {account.email}
-            </AppText>
-          </View>
-        </View>
         <FooterLegalLink
           label="Termos de uso"
-          rowHeight={rowHeight}
+          rowHeight={legalRowHeight}
           onPress={() => {
             onNavigate?.();
             void Linking.openURL(legalUrls.terms);
@@ -435,7 +527,7 @@ export function NavigationPanel({
         />
         <FooterLegalLink
           label="Política de privacidade"
-          rowHeight={rowHeight}
+          rowHeight={legalRowHeight}
           onPress={() => {
             onNavigate?.();
             void Linking.openURL(legalUrls.privacy);
@@ -452,7 +544,12 @@ export function NavigationPanel({
             void onLogout?.();
           }}
         />
-        <View style={styles.versionLabel}>
+        <View
+          style={[
+            styles.versionLabel,
+            largeTargets && styles.drawerVersionLabel,
+          ]}
+        >
           <AppVersionLabel inverse />
         </View>
       </View>
@@ -465,6 +562,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: spacing.lg,
     padding: spacing.lg,
+  },
+  drawerPanel: {
+    gap: spacing.md,
+    paddingVertical: spacing.md,
   },
   brand: {
     alignItems: 'center',
@@ -484,6 +585,17 @@ const styles = StyleSheet.create({
   bandContextName: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  drawerBandContext: {
+    gap: 2,
+    minHeight: 56,
+    paddingVertical: 9,
+  },
+  drawerBandContextName: {
+    lineHeight: 20,
+  },
+  drawerBandContextRole: {
+    lineHeight: 16,
   },
   bandNavigation: {
     gap: spacing.sm,
@@ -506,7 +618,7 @@ const styles = StyleSheet.create({
     minHeight: 28,
   },
   drawerItem: {
-    minHeight: 48,
+    minHeight: layout.minimumTouchTarget,
     paddingVertical: 0,
   },
   sectionItemActive: {
@@ -559,12 +671,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+  itemBadge: {
+    backgroundColor: colors.background.raised,
+    borderRadius: radii.sm,
+    flexShrink: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  itemBadgeLabel: {
+    fontSize: 11,
+    lineHeight: 16,
+  },
   generalNavigation: {
     borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     gap: 0,
   },
   footer: {
+    borderTopColor: colors.border.subtle,
+    borderTopWidth: 1,
     gap: 0,
     marginTop: 'auto',
   },
@@ -581,8 +706,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   accountName: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 22,
   },
   accountEmail: {
     fontSize: 11,
@@ -609,6 +734,9 @@ const styles = StyleSheet.create({
   },
   versionLabel: {
     marginTop: spacing.sm,
+  },
+  drawerVersionLabel: {
+    marginTop: spacing.xs,
   },
   pressed: {
     backgroundColor: colors.background.pressed,

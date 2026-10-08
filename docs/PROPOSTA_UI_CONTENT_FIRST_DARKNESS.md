@@ -508,15 +508,15 @@ Itens que abrem seções expõem o estado da seção atual de acordo com a semâ
 
 ### 9.11 Proposta visual do menu lateral
 
-A sexta prancha mostra o menu completo em **Web com linhas compactas** e **drawer móvel com alvos maiores**. Ambos usam os mesmos nomes e figuras da barra inferior, incluindo `ListMusic` para Repertório e `MicVocal` para Palco. A organização mantém o contexto da banda e separa os destinos gerais das seções de trabalho.
+A sexta prancha ilustra a organização original do menu em Web e drawer móvel. As medidas abaixo incorporam os refinamentos de densidade e a avaliação de UX aprovados em 7 de outubro de 2026. Ambos usam os mesmos nomes e figuras da barra inferior, incluindo `ListMusic` para Repertório e `MicVocal` para Palco. A organização mantém o contexto da banda e separa os destinos gerais das seções de trabalho.
 
 #### Estrutura e agrupamentos
 
-1. **Marca:** logo original com 32 + nome Setlist, alinhados à esquerda.
+1. **Marca:** logo original com 40 + nome Setlist, alinhados à esquerda; no drawer, na mesma linha do botão Fechar.
 2. **Contexto:** nome da banda selecionada e papel do usuário em um agrupamento neutro. Quando não houver banda, apresentar o estado correspondente, sem inventar um contexto.
-3. **Seções da banda:** Shows, Repertório, Palco e Banda, na ordem atual. Gap entre linhas: zero; usar espaçamento apenas entre grupos.
-4. **Destinos gerais:** Minhas bandas e Perfil e conta, com o mesmo início de ícone e texto das seções anteriores.
-5. **Rodapé:** identificação compacta da conta quando pertinente, links para Termos de uso e Política de privacidade, Sair da conta e versão discreta. O rodapé participa da rolagem quando a altura não permitir mantê-lo na parte inferior.
+3. **Seções da banda:** Shows, Repertório, Palco e Banda, na ordem atual. Gap entre linhas: zero; usar espaçamento apenas entre grupos. Palco inclui a indicação neutra “Em breve”, sem simular disponibilidade ou seleção.
+4. **Destinos gerais:** primeiro, um único acesso ao perfil identificado por avatar, nome, e-mail e seta à direita; em seguida, Minhas bandas. Essa ordem apresenta a identidade da pessoa antes das bandas relacionadas à conta. Toda a linha do perfil abre `/account`; seu nome acessível é “Perfil e conta”. Avatar e símbolos compartilham uma coluna de 24, mantendo o mesmo início dos textos. A identificação da pessoa não ocupa uma linha separada do acesso ao perfil.
+5. **Rodapé:** Sobre o Setlist, links para Termos de uso e Política de privacidade, Sair da conta e versão discreta. Um separador sutil distingue esse grupo. Termos e privacidade continuam diretamente acessíveis no menu e na tela Sobre. O rodapé participa da rolagem quando a altura não permitir mantê-lo na parte inferior.
 
 O protótipo do YouTube continua fora do menu da versão publicável. Documentos externos podem mostrar `ExternalLink` ao final do rótulo; não reservar um ícone grande à esquerda para cada documento se isso aumentar o ruído do rodapé.
 
@@ -525,15 +525,19 @@ O protótipo do YouTube continua fora do menu da versão publicável. Documentos
 | Elemento              | Web / desktop                                        | Drawer móvel                                 |
 | --------------------- | ---------------------------------------------------- | -------------------------------------------- |
 | Largura de referência | 224–248                                              | Aproximadamente 280–320, limitado à viewport |
-| Padding lateral       | 16                                                   | 16                                           |
-| Linha de navegação    | 28–32 de altura, com crescimento para texto ampliado | Pelo menos 48                                |
+| Padding lateral       | 16                                                   | 16; padding vertical do conteúdo de 12       |
+| Linha de navegação    | 28–32 de altura, com crescimento para texto ampliado | 48, com crescimento para texto ampliado      |
+| Links legais          | 28 de altura                                         | 48, com crescimento para texto ampliado      |
+| Acesso ao perfil      | Pelo menos 40 para nome e e-mail                     | 48, com crescimento para texto ampliado      |
 | Slot do símbolo       | 24; desenho de 20                                    | 24; desenho de 20–22                         |
 | Gap ícone / rótulo    | 12                                                   | 12                                           |
-| Fonte da navegação    | 14–15 / entrelinha 20                                | 15–16 / entrelinha 22                        |
-| Espaço entre grupos   | 16–24                                                | 16–24                                        |
+| Fonte da navegação    | 16 / entrelinha 22; compacta: 14 / entrelinha 20     | 16 / entrelinha 22                           |
+| Espaço entre grupos   | 16–24                                                | 12                                           |
 | Raio da linha ativa   | 8                                                    | 8                                            |
 
-Na prancha desktop, a primeira coluna é a do símbolo; todos os rótulos começam na segunda coluna, incluindo Minhas bandas e Perfil e conta. O item Palco usa exatamente o mesmo layout. Um contorno ou fundo ativo não adiciona padding que mova o texto lateralmente.
+Na prancha desktop, a primeira coluna é a do símbolo; todos os rótulos começam na segunda coluna, incluindo Minhas bandas e o nome da pessoa no acesso ao perfil. O item Palco usa exatamente o mesmo layout, com “Em breve” à direita. Um contorno ou fundo ativo não adiciona padding que mova o texto lateralmente.
+
+Refinamento aprovado em 7 de outubro de 2026 após incluir Sobre o Setlist: o cabeçalho móvel usa altura mínima de 64, preservando logo de 40 e botão Fechar com área de toque de 48. O contexto da banda usa altura mínima de 56, padding vertical de 9 e gap de 2 entre nome e papel, com entrelinhas de 20 e 16. A margem acima da versão passa a 4. As fontes dos itens de navegação continuam em 16 no drawer; links legais continuam em 13. Após avaliar a versão com linhas de 32 e links de 28, a revisão de UX restaura áreas interativas de 48 no celular e conserva a densidade compacta no desktop. O nome da pessoa acompanha a fonte da navegação; o e-mail usa 11. O indicador do item ativo usa recuos verticais de 14 no drawer e de 6–8 no desktop. “Em breve” usa fonte 11, entrelinha 16 e superfície neutra. As alturas acompanham o aumento da fonte; áreas seguras e rolagem permanecem disponíveis quando o conteúdo exceder a tela.
 
 #### Cores e estados
 
@@ -542,11 +546,13 @@ Na prancha desktop, a primeira coluna é a do símbolo; todos os rótulos começ
 - Ativo: fundo `#2B203D`, símbolo `#B692FF`, texto `#F4F4F5` e indicador violeta na margem interna, sem mudar a posição do conteúdo.
 - Hover Web: `#28282D`; pressão: `#34343B`; foco: anel `#D0B8FF`.
 - Rodapé: texto secundário; versão `#92929F`, sem card de destaque ou preenchimento violeta.
-- Palco abre o popup e conserva a seleção anterior. O hover ou toque não simula ativação permanente.
+- Palco mostra “Em breve”, abre o popup e conserva a seleção anterior. O hover ou toque não simula ativação permanente.
 
 No drawer, o fundo externo escurecido ajuda a perceber o limite do menu. Fechar permanece no canto superior direito; a seleção de um destino disponível fecha o drawer conforme o fluxo de navegação. Considerar áreas seguras, foco modal e retorno ao controle que abriu o menu.
 
-As linhas compactas da Web não devem ser reutilizadas diretamente no drawer. Em dispositivos com toque ou uso híbrido, disponibilizar densidade adequada à interação. A versão compacta preserva o espaçamento já validado; a versão móvel reserva espaço para toque sem aumentar o desenho dos símbolos.
+Refinamento dos gestos Android em 7 de outubro de 2026: na raiz das seções, a abertura aceita um deslize para a direita iniciado na faixa esquerda de 24. No fechamento, o painel acompanha o dedo para a esquerda; movimentos curtos e rápidos podem concluir a ação, enquanto arrastes curtos lentos ou cancelados restauram a posição aberta. A captura horizontal deve funcionar no cabeçalho, nos itens e na área rolável. A rolagem vertical mantém o menu aberto. Os links só confirmam sua ação ao concluir um toque, evitando fechamento ou navegação no início de um arraste. X, fundo externo e Voltar continuam disponíveis. O gesto de abertura permanece desativado no iOS e nas telas de detalhes/edição.
+
+As áreas de toque do drawer correspondem às linhas de 48, incluindo os links legais; não ampliar alvos sobre itens vizinhos. O rodapé permanece ancorado na parte inferior quando houver espaço. A ampliação das linhas e a unificação do acesso ao perfil distribuem melhor o conteúdo entre a navegação principal e o rodapé, preservando o alinhamento das colunas.
 
 ## 10. Matriz de estados
 
@@ -684,15 +690,15 @@ As recomendações abaixo são propostas de produto. Tempos, áreas e limiares s
 
 ### 14.2 Gestos recomendados e alternativas visíveis
 
-| Intenção                      | iOS                                                                                            | Android                                                                              | Web                                                                          | Alternativa visível                                        |
-| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Voltar de detalhe ou leitura  | Retorno do navegador nativo, preferencialmente iniciado na borda esquerda, acompanhando o dedo | Botão/gesto Voltar do sistema; validar retorno preditivo quando suportado pelo build | Histórico do navegador e Voltar do app; preservar gestos do browser/trackpad | Voltar no cabeçalho, com destino acessível                 |
-| Trocar Shows/Repertório/Banda | Candidato: deslize horizontal em região definida da tela principal                             | Mesmo candidato, preservando bordas do sistema                                       | Menu/barra; gesto personalizado fica fora do primeiro corte Web              | Itens de navegação                                         |
-| Abrir menu lateral            | Botão Menu; gesto de borda apenas na raiz da seção, quando não disputar retorno                | Botão Menu como padrão; rever o gesto de borda existente diante do Voltar do sistema | Botão em viewport compacta; menu persistente no desktop                      | Abrir menu                                                 |
-| Fechar menu lateral           | Deslize para a esquerda dentro do painel, fundo externo ou Fechar                              | Mesmo fechamento local; Voltar fecha o painel antes de navegar                       | Fechar, fundo externo ou Escape                                              | Fechar no painel                                           |
-| Atualizar lista               | Puxar para baixo no topo, preservando o fluxo atual                                            | Mesmo comportamento validado                                                         | Botão à direita da busca                                                     | Atualizar por ação acessível; avaliar opção no menu nativo |
-| Reordenar setlist             | Arrastar pela alça; linha acompanha o dedo                                                     | Mesmo gesto; rolagem da lista fora da alça                                           | Arraste por mouse quando disponível, teclado e opções textuais               | Mover para cima / Mover para baixo                         |
-| Consultar ações de um item    | Mais opções; pressão longa como atalho opcional                                                | Mesmo comportamento                                                                  | Mais opções e teclado                                                        | Mais opções com nome do item                               |
+| Intenção                      | iOS                                                                                            | Android                                                                                                          | Web                                                                          | Alternativa visível                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Voltar de detalhe ou leitura  | Retorno do navegador nativo, preferencialmente iniciado na borda esquerda, acompanhando o dedo | Botão/gesto Voltar do sistema; validar retorno preditivo quando suportado pelo build                             | Histórico do navegador e Voltar do app; preservar gestos do browser/trackpad | Voltar no cabeçalho, com destino acessível                 |
+| Trocar Shows/Repertório/Banda | Candidato: deslize horizontal em região definida da tela principal                             | Mesmo candidato, preservando bordas do sistema                                                                   | Menu/barra; gesto personalizado fica fora do primeiro corte Web              | Itens de navegação                                         |
+| Abrir menu lateral            | Botão Menu; gesto de borda apenas na raiz da seção, quando não disputar retorno                | Botão Menu ou deslize para a direita na faixa esquerda de 24 dp, somente na raiz da seção                        | Botão em viewport compacta; menu persistente no desktop                      | Abrir menu                                                 |
+| Fechar menu lateral           | Deslize para a esquerda dentro do painel, fundo externo ou Fechar                              | Painel acompanha o dedo para a esquerda; cancelamento restaura a posição; Voltar fecha o painel antes de navegar | Fechar, fundo externo ou Escape                                              | Fechar no painel                                           |
+| Atualizar lista               | Puxar para baixo no topo, preservando o fluxo atual                                            | Mesmo comportamento validado                                                                                     | Botão à direita da busca                                                     | Atualizar por ação acessível; avaliar opção no menu nativo |
+| Reordenar setlist             | Arrastar pela alça; linha acompanha o dedo                                                     | Mesmo gesto; rolagem da lista fora da alça                                                                       | Arraste por mouse quando disponível, teclado e opções textuais               | Mover para cima / Mover para baixo                         |
+| Consultar ações de um item    | Mais opções; pressão longa como atalho opcional                                                | Mesmo comportamento                                                                                              | Mais opções e teclado                                                        | Mais opções com nome do item                               |
 
 O retorno por gesto do iOS depende de existir destino anterior no Stack; entrada por link direto deve oferecer retorno contextual no cabeçalho. O Voltar preditivo do Android precisa ser validado no conjunto de versões do app: não é garantido pelas propriedades de gesto do Stack. [Expo — navegação Stack](https://docs.expo.dev/router/advanced/stack/), [Android — retorno preditivo](https://developer.android.com/guide/navigation/custom-back/predictive-back-gesture).
 

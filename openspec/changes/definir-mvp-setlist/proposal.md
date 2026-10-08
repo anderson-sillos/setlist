@@ -16,6 +16,7 @@ Bandas precisam organizar repertórios e shows e, durante uma apresentação, ac
 - Informar quando músicas ou pacotes baixados possuem atualizações disponíveis, sem manter histórico ou múltiplas versões de uma música.
 - Exigir, na criação da banda e antes da primeira edição por cada Owner ou Editor, o aceite de um termo de responsabilidade sobre os direitos das letras cadastradas.
 - Manter o reconhecimento automático da música e a sincronização automática entre aparelhos fora do MVP.
+- Controlar uma versão comum entre Android, iOS e Web, vincular builds a tags e commits e registrar cada entrega em GitHub Releases; oferecer uma tela Sobre com identificação da versão e links legais.
 
 ## Capabilities
 
@@ -27,6 +28,7 @@ Bandas precisam organizar repertórios e shows e, durante uma apresentação, ac
 - `show-setlists`: cadastro de shows, estados, blocos e ordenação das músicas da setlist.
 - `stage-mode`: apresentação da letra sincronizada com cronômetro manual independente em cada aparelho.
 - `offline-shows`: download, atualização e remoção de pacotes de shows para uso offline nos aplicativos móveis.
+- `release-management`: identificação comum de versões, contadores de build, processo de release, publicação Web por tag e tela Sobre o Setlist.
 
 ### Modified Capabilities
 

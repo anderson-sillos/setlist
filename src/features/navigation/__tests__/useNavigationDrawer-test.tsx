@@ -175,7 +175,7 @@ describe('useNavigationDrawer', () => {
       platform: 'android',
       screenKind: 'main',
       persistentSidebar: false,
-      dx: 10,
+      dx: 7,
       dy: 3,
       expected: false,
     },
@@ -215,16 +215,61 @@ describe('useNavigationDrawer', () => {
     await act(() =>
       gesture.onPanResponderRelease?.(
         {} as GestureResponderEvent,
-        { dx: 39 } as PanResponderGestureState,
+        { dx: 47, dy: 0, vx: 0 } as PanResponderGestureState,
       ),
     );
     expect(result.current.drawerOpen).toBe(false);
     await act(() =>
       gesture.onPanResponderRelease?.(
         {} as GestureResponderEvent,
-        { dx: 40 } as PanResponderGestureState,
+        { dx: 48, dy: 0, vx: 0 } as PanResponderGestureState,
       ),
     );
     expect(result.current.drawerOpen).toBe(true);
+  });
+
+  it('aceita uma abertura curta rápida sem aceitar um pequeno arraste lento', async () => {
+    const { result } = await renderHook(() => useNavigationDrawer(options));
+    await act(() =>
+      gesture.onPanResponderRelease?.(
+        {} as GestureResponderEvent,
+        { dx: 24, dy: 2, vx: 0.1 } as PanResponderGestureState,
+      ),
+    );
+    expect(result.current.drawerOpen).toBe(false);
+    await act(() =>
+      gesture.onPanResponderRelease?.(
+        {} as GestureResponderEvent,
+        { dx: 24, dy: 2, vx: 0.4 } as PanResponderGestureState,
+      ),
+    );
+    expect(result.current.drawerOpen).toBe(true);
+  });
+
+  it('reconhece a abertura Android nativamente e rejeita uma conclusão cancelada', async () => {
+    const { result } = await renderHook(() => useNavigationDrawer(options));
+    expect(result.current.androidEdgeGesture.config).toMatchObject({
+      activeOffsetXEnd: 8,
+      enabled: true,
+      failOffsetYEnd: 18,
+      failOffsetYStart: -18,
+      maxPointers: 1,
+      runOnJS: true,
+    });
+    await act(() =>
+      result.current.androidEdgeGesture.handlers.onEnd?.(
+        { translationX: 80, translationY: 0, velocityX: 350 } as never,
+        false,
+      ),
+    );
+    expect(result.current.drawerOpen).toBe(false);
+    await act(() =>
+      result.current.androidEdgeGesture.handlers.onEnd?.(
+        { translationX: 24, translationY: 2, velocityX: 350 } as never,
+        true,
+      ),
+    );
+    expect(result.current.drawerOpen).toBe(true);
+    expect(result.current.androidEdgeGesture.config.enabled).toBe(false);
   });
 });

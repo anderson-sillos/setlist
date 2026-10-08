@@ -8,6 +8,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { GestureDetector } from 'react-native-gesture-handler';
 
 import { ConnectionBanner } from '@/components/feedback';
 import { getListRefreshControl } from '@/components/ui/ScreenDataRefresh';
@@ -19,6 +20,7 @@ import { signOut } from '@/features/auth/authService';
 import { useLastBandSelection } from '@/features/bands/LastBandSelection';
 import { useBandNavigationState } from '@/features/navigation/hooks/useBandNavigationState';
 import { useNavigationDrawer } from '@/features/navigation/hooks/useNavigationDrawer';
+import { androidDrawerGesture } from '@/features/navigation/drawerGestures';
 import type { AppNavigationShellProps } from '@/features/navigation/types';
 import { StageAvailabilityDialog } from '@/features/stage/StageAvailabilityDialog';
 import {
@@ -91,8 +93,15 @@ export function AppNavigationShell({
       currentRoute,
       screenKind,
     });
-  const { closeDrawer, drawerOpen, drawerTranslateX, edgeGesture, openDrawer } =
-    useNavigationDrawer({ persistentSidebar, screenKind, width });
+  const {
+    androidEdgeGesture,
+    closeDrawer,
+    drawerClosing,
+    drawerOpen,
+    drawerTranslateX,
+    edgeGesture,
+    openDrawer,
+  } = useNavigationDrawer({ persistentSidebar, screenKind, width });
   const handleStagePress = useCallback(() => {
     if (drawerOpen && Platform.OS === 'ios') {
       stageDialogPending.current = true;
@@ -114,6 +123,20 @@ export function AppNavigationShell({
     !persistentSidebar &&
     Boolean(bandId && activeSection) &&
     screenKind !== 'edit';
+
+  const drawerEdge = (
+    <View
+      {...(Platform.OS === 'android' ? {} : edgeGesture.panHandlers)}
+      accessibilityElementsHidden
+      collapsable={false}
+      importantForAccessibility="no-hide-descendants"
+      style={[
+        styles.edgeGesture,
+        Platform.OS === 'android' && { width: androidDrawerGesture.edgeWidth },
+      ]}
+      testID="drawer-edge-gesture"
+    />
+  );
 
   return (
     <SafeAreaView
@@ -214,13 +237,13 @@ export function AppNavigationShell({
           ) : null}
 
           {!persistentSidebar && screenKind === 'main' ? (
-            <View
-              {...edgeGesture.panHandlers}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={styles.edgeGesture}
-              testID="drawer-edge-gesture"
-            />
+            Platform.OS === 'android' ? (
+              <GestureDetector gesture={androidEdgeGesture}>
+                {drawerEdge}
+              </GestureDetector>
+            ) : (
+              drawerEdge
+            )
           ) : null}
         </View>
       </View>
@@ -230,6 +253,7 @@ export function AppNavigationShell({
           activeSection={activeSection}
           bandId={bandId}
           bandName={bandName}
+          closing={drawerClosing}
           getSectionHref={getSectionHref}
           onClose={closeDrawer}
           onDismiss={handleDrawerDismiss}

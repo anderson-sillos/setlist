@@ -1,8 +1,7 @@
-import Constants from 'expo-constants';
 import { StyleSheet } from 'react-native';
 
-import appConfig from '../../../app.json';
 import { AppText } from '@/components/ui/AppText';
+import { getAppReleaseInfo } from '@/config/appRelease';
 
 interface AppVersionLabelProps {
   readonly align?: 'center' | 'left';
@@ -15,7 +14,7 @@ export function AppVersionLabel({
   compact = false,
   inverse = false,
 }: AppVersionLabelProps) {
-  const version = Constants.expoConfig?.version ?? appConfig.expo.version;
+  const { version } = getAppReleaseInfo();
 
   return (
     <AppText

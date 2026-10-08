@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { reportAppReleaseDiagnostics } from '@/config/appReleaseDiagnostics';
 import { AuthGate } from '@/features/auth/AuthGate';
 import { AuthSessionProvider } from '@/features/auth/AuthSessionProvider';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
@@ -41,6 +42,9 @@ function RootStack({ reducedMotion }: { readonly reducedMotion: boolean }) {
 
 export default function RootLayout() {
   const reducedMotion = useReducedMotionPreference();
+  useEffect(() => {
+    reportAppReleaseDiagnostics();
+  }, []);
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.title = 'Setlist';

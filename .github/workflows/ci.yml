@@ -38,6 +38,9 @@ jobs:
       - name: Verificar formatação
         run: npm run format:check
 
+      - name: Conferir versão comum de Android, iOS e Web
+        run: npm run release:check
+
       - name: Executar lint
         run: npm run lint
 
