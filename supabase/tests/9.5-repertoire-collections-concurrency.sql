@@ -96,7 +96,7 @@ end;
 $$;
 
 select is(
-  extensions.dblink_connect(
+  extensions.dblink_connect_u(
     'collection_append_slow',
     'dbname=' || current_database()
   ),
@@ -104,7 +104,7 @@ select is(
   'Conexão concorrente lenta abre'
 );
 select is(
-  extensions.dblink_connect(
+  extensions.dblink_connect_u(
     'collection_append_fast',
     'dbname=' || current_database()
   ),
