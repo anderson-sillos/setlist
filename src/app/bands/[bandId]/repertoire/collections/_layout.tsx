@@ -10,7 +10,15 @@ export default function RepertoireCollectionsLayout() {
   return (
     <Stack screenOptions={getStackScreenOptions(Platform.OS, reducedMotion)}>
       <Stack.Screen name="index" options={{ animationTypeForReplace: 'pop' }} />
-      <Stack.Screen name="new" options={{ animationTypeForReplace: 'pop' }} />
+      <Stack.Screen
+        name="new"
+        options={{
+          animation: reducedMotion ? 'none' : 'fade',
+          animationTypeForReplace: 'pop',
+          contentStyle: { backgroundColor: 'transparent' },
+          presentation: 'transparentModal',
+        }}
+      />
       <Stack.Screen
         name="[collectionId]"
         options={{ animationTypeForReplace: 'pop' }}

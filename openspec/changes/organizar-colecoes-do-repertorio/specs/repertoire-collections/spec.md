@@ -127,6 +127,13 @@ O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvam
 - **THEN** encontra o campo de nome e as ações de salvar/cancelar, sem busca, filtros ou lista de músicas
 - **AND** quando veio de Nova coleção em um dos diálogos de organização, vê somente a contagem das músicas que serão incluídas ao salvar
 
+#### Scenario: Apresentar nova coleção em uma janela de edição
+
+- **WHEN** um proprietário ou editor inicia a criação de uma coleção
+- **THEN** o formulário abre em uma janela modal centralizada sobre a tela de origem, em vez de ocupar a tela inteira
+- **AND** a janela preserva o nome, a contagem de músicas selecionadas, o salvamento explícito e a proteção contra descarte
+- **AND** fechar ou cancelar retorna ao contexto que abriu a janela
+
 #### Scenario: Criar coleção a partir das coleções da música
 
 - **WHEN** um proprietário ou editor escolhe Nova coleção em Coleções da música

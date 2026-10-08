@@ -77,6 +77,7 @@ export function RepertoireCollectionEditorScreen({
   initialSongIds = [],
   returnToRepertoire = false,
 }: RepertoireCollectionEditorScreenProps) {
+  const router = useRouter();
   const collectionsQuery = useRepertoireCollections(bandId);
   const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
@@ -98,24 +99,39 @@ export function RepertoireCollectionEditorScreen({
     userBandsQuery.isPending;
   const isError =
     collectionsQuery.isError || songsQuery.isError || userBandsQuery.isError;
+  const closeCreateDialog = () => {
+    if (returnToRepertoire) {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace(getBandSectionHref(bandId, 'repertoire'));
+      }
+      return;
+    }
 
-  if (isLoading) {
-    return (
+    router.replace(getRepertoireCollectionsHref(bandId));
+  };
+  const renderEditorFrame = (children: ReactNode) =>
+    collectionId ? (
       <RepertoireCollectionEditorFrame
         bandId={bandId}
         collectionId={collectionId}
       >
-        <LoadingFeedback />
+        {children}
       </RepertoireCollectionEditorFrame>
+    ) : (
+      <RepertoireCollectionCreationOverlay onClose={closeCreateDialog}>
+        {children}
+      </RepertoireCollectionCreationOverlay>
     );
+
+  if (isLoading) {
+    return renderEditorFrame(<LoadingFeedback />);
   }
 
   if (isError) {
-    return (
-      <RepertoireCollectionEditorFrame
-        bandId={bandId}
-        collectionId={collectionId}
-      >
+    return renderEditorFrame(
+      <>
         <ErrorFeedback
           onRetry={() => {
             void collectionsQuery.refetch();
@@ -124,18 +140,13 @@ export function RepertoireCollectionEditorScreen({
           }}
         />
         <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
-      </RepertoireCollectionEditorFrame>
+      </>,
     );
   }
 
   if (!canEdit || (collectionId && !summary)) {
-    return (
-      <RepertoireCollectionEditorFrame
-        bandId={bandId}
-        collectionId={collectionId}
-      >
-        <UnavailableFeedback title="Seu papel não permite editar coleções ou a coleção está indisponível" />
-      </RepertoireCollectionEditorFrame>
+    return renderEditorFrame(
+      <UnavailableFeedback title="Seu papel não permite editar coleções ou a coleção está indisponível" />,
     );
   }
 
@@ -429,6 +440,92 @@ function RepertoireCollectionEditorForm({
       isDeleting ||
       (Boolean(collectionId) && (!dirty || revisionConflict)),
   };
+
+  if (!collectionId) {
+    return (
+      <RepertoireCollectionCreationOverlay onClose={requestLeave}>
+        <UnsavedChangesPrompt
+          onContinue={unsavedChanges.continueEditing}
+          onDiscard={unsavedChanges.discardAndLeave}
+          visible={unsavedChanges.confirmationVisible}
+        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.creationDialogBody}
+          testID="collection-editor-keyboard-layout"
+        >
+          <ScrollView
+            contentContainerStyle={styles.creationFormContent}
+            keyboardShouldPersistTaps="handled"
+            testID="collection-editor-scroll"
+          >
+            <AppText tone="muted">
+              Escolha um nome para a coleção. Inclua músicas pelas ações do
+              Repertório.
+            </AppText>
+            <View style={styles.field}>
+              <AppText variant="caption">Nome da coleção</AppText>
+              <TextInput
+                accessibilityLabel="Nome da coleção"
+                autoCapitalize="words"
+                maxLength={240}
+                onChangeText={(value) => {
+                  setName(value);
+                  setFieldError(null);
+                  setSubmitError(null);
+                }}
+                placeholder="Ex.: Festa, Acústico"
+                placeholderTextColor={colors.text.muted}
+                style={styles.input}
+                value={name}
+              />
+              <View style={styles.fieldFooter}>
+                {fieldError ? (
+                  <AppText accessibilityRole="alert" style={styles.fieldError}>
+                    {fieldError}
+                  </AppText>
+                ) : (
+                  <View />
+                )}
+                <AppText tone="muted" variant="caption">
+                  {Array.from(name).length}/120
+                </AppText>
+              </View>
+            </View>
+            {selectedSongIds.length > 0 ? (
+              <AppText tone="muted" variant="caption">
+                {selectedSongIds.length === 1
+                  ? '1 música selecionada será incluída.'
+                  : `${selectedSongIds.length} músicas selecionadas serão incluídas.`}
+              </AppText>
+            ) : null}
+            {submitError ? (
+              <AppText accessibilityRole="alert" style={styles.fieldError}>
+                {submitError}
+              </AppText>
+            ) : null}
+          </ScrollView>
+          <View style={styles.creationFooter}>
+            <AppButton
+              disabled={isSubmitting || isDeleting}
+              label="Cancelar"
+              onPress={requestLeave}
+              style={styles.creationActionButton}
+              variant="secondary"
+            />
+            <AppButton
+              accessibilityLabel="Salvar coleção"
+              disabled={isSubmitting || isDeleting}
+              icon="check"
+              label={isSubmitting ? 'Salvando…' : 'Salvar coleção'}
+              onPress={() => void handleSave()}
+              style={styles.creationActionButton}
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </RepertoireCollectionCreationOverlay>
+    );
+  }
 
   return (
     <RepertoireCollectionEditorFrame
@@ -854,7 +951,125 @@ function RepertoireCollectionEditorFrame({
   );
 }
 
+interface RepertoireCollectionCreationOverlayProps {
+  readonly children: ReactNode;
+  readonly onClose: () => void;
+}
+
+function RepertoireCollectionCreationOverlay({
+  children,
+  onClose,
+}: RepertoireCollectionCreationOverlayProps) {
+  return (
+    <View style={styles.creationOverlay} testID="collection-create-overlay">
+      <Pressable
+        accessibilityLabel="Fechar janela de nova coleção"
+        accessibilityRole="button"
+        onPress={onClose}
+        style={styles.creationScrim}
+      />
+      <View
+        accessibilityViewIsModal
+        style={styles.creationDialog}
+        testID="collection-create-dialog"
+      >
+        <View style={styles.creationHeader}>
+          <AppText accessibilityRole="header" variant="heading">
+            Nova coleção
+          </AppText>
+          <Pressable
+            accessibilityLabel="Fechar janela de nova coleção"
+            accessibilityRole="button"
+            hitSlop={spacing.sm}
+            onPress={onClose}
+            style={({ pressed }) => [
+              styles.creationCloseButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon color={colors.text.secondary} name="close" size={20} />
+          </Pressable>
+        </View>
+        <View style={styles.creationDialogContent}>{children}</View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  creationActionButton: {
+    flex: 1,
+    minWidth: 0,
+  },
+  creationCloseButton: {
+    alignItems: 'center',
+    borderRadius: radii.pill,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  creationDialog: {
+    backgroundColor: colors.background.raised,
+    borderRadius: radii.lg,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: '#08080a',
+        shadowOffset: { height: 4, width: 0 },
+        shadowOpacity: 0.18,
+        shadowRadius: 16,
+      },
+      web: { boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)' },
+    }),
+    height: 360,
+    maxHeight: '90%',
+    maxWidth: 520,
+    minHeight: 280,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  creationDialogBody: {
+    flex: 1,
+    minHeight: 0,
+  },
+  creationDialogContent: {
+    flex: 1,
+    minHeight: 0,
+  },
+  creationFooter: {
+    alignItems: 'center',
+    backgroundColor: colors.background.raised,
+    borderTopColor: colors.border.subtle,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    gap: spacing.md,
+    justifyContent: 'flex-end',
+    padding: spacing.lg,
+  },
+  creationFormContent: {
+    gap: spacing.lg,
+    padding: spacing.xl,
+  },
+  creationHeader: {
+    alignItems: 'center',
+    borderBottomColor: colors.border.subtle,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+  },
+  creationOverlay: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  creationScrim: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: colors.background.overlay,
+  },
   editor: {
     flex: 1,
     minHeight: 0,
@@ -868,6 +1083,9 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: spacing.xs,
+  },
+  pressed: {
+    opacity: 0.72,
   },
   songSection: {
     gap: spacing.md,

@@ -87,6 +87,8 @@
 
 - [x] 8.12 Exibir Adicionar diretamente na toolbar durante a seleção, mover Selecionar todos/Limpar seleção/Cancelar seleção para as opções do cabeçalho, encerrar a seleção após inclusão confirmada e padronizar Nova coleção para grupos salvos; atualizar especificação, desenho e documentação.
 
+- [x] 8.13 Apresentar Nova coleção em uma janela modal centralizada sobre a tela de origem, mantendo formulário simples, contexto de retorno e proteção de alterações não salvas; atualizar especificação, desenho e documentação.
+
 > Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.
