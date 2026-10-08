@@ -712,15 +712,6 @@ function RepertoireScreenContent({
     closeCollectionPicker();
     cancelSongSelection();
   };
-  const createCollectionFromSelection = () => {
-    router.push(
-      getRepertoireCollectionCreateHref(
-        bandId,
-        Array.from(selectedSongIds),
-        true,
-      ),
-    );
-  };
   const clearSongSelection = () => {
     updateSelectionState((current) => ({
       ...current,
@@ -732,13 +723,6 @@ function RepertoireScreenContent({
   const collectionActions: RepertoireAction[] = activeSelectionMode
     ? [
         {
-          accessibilityLabel: `Criar coleção com ${selectedSongCount} músicas selecionadas`,
-          disabled: selectedSongCount === 0,
-          icon: 'addCircle',
-          label: 'Criar com selecionadas',
-          onPress: createCollectionFromSelection,
-        },
-        {
           accessibilityLabel: `Adicionar ${selectedSongCount} ${selectedSongCount === 1 ? 'música selecionada' : 'músicas selecionadas'} a uma coleção existente`,
           disabled: selectedSongCount === 0 || collectionsUnavailable,
           icon: 'repertoire',
@@ -746,10 +730,10 @@ function RepertoireScreenContent({
           onPress: openCollectionPicker,
         },
         {
-          accessibilityLabel: `Selecionar ${songs.length} resultado${songs.length === 1 ? '' : 's'} atual${songs.length === 1 ? '' : 'is'}`,
+          accessibilityLabel: `Selecionar todas as músicas visíveis (${songs.length})`,
           disabled: songs.length === 0 || allVisibleSongsSelected,
           icon: 'check',
-          label: `Selecionar resultados (${songs.length})`,
+          label: 'Selecionar todos',
           onPress: selectVisibleSongs,
         },
         {
@@ -757,6 +741,12 @@ function RepertoireScreenContent({
           icon: 'minus',
           label: 'Limpar seleção',
           onPress: clearSongSelection,
+        },
+        {
+          accessibilityLabel: 'Cancelar seleção de músicas',
+          icon: 'close',
+          label: 'Cancelar seleção',
+          onPress: cancelSongSelection,
         },
       ]
     : [
@@ -767,12 +757,6 @@ function RepertoireScreenContent({
         },
         ...(canCreate
           ? [
-              {
-                icon: 'addCircle' as const,
-                label: 'Criar coleção',
-                onPress: () =>
-                  router.push(getRepertoireCollectionCreateHref(bandId)),
-              },
               {
                 accessibilityLabel: 'Selecionar músicas do repertório',
                 icon: 'check' as const,

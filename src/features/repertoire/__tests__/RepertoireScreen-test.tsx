@@ -668,7 +668,10 @@ describe('<RepertoireScreen />', () => {
     ).toEqual({ selected: true });
     expect(view.getByLabelText('Selecionar Rota Antiga')).toBeTruthy();
     expect(view.getByText('0 selecionadas')).toBeTruthy();
-    await pressCollectionAction(view, 'Selecionar 1 resultado atual');
+    await pressCollectionAction(
+      view,
+      'Selecionar todas as músicas visíveis (1)',
+    );
     expect(view.getByText('1 selecionada')).toBeTruthy();
   });
 
@@ -766,8 +769,16 @@ describe('<RepertoireScreen />', () => {
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
     await pressCollectionAction(
       view,
-      'Criar coleção com 2 músicas selecionadas',
+      'Adicionar 2 músicas selecionadas a uma coleção existente',
     );
+    let parent = view.getByTestId('repertoire-collection-picker').parent;
+    while (parent && typeof parent.props.onDismiss !== 'function') {
+      parent = parent.parent;
+    }
+    if (!parent) throw new Error('Modal de inclusão em coleção não encontrado');
+    const dismiss = parent.props.onDismiss as () => void;
+    await fireEvent.press(view.getByLabelText('Criar seleção'));
+    await act(async () => dismiss());
 
     expect(mockRouter.push).toHaveBeenCalledWith(
       `/bands/${demoIds.primaryBand}/repertoire/collections/new?songId=${lightsSong.id}&songId=${bridgesSong.id}&returnTo=repertoire`,

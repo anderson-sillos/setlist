@@ -25,8 +25,10 @@ O sistema SHALL oferecer Coleções como ação secundária identificada no Repe
 #### Scenario: Abrir ações de coleções sem ampliar a toolbar
 
 - **WHEN** uma pessoa abre o botão Coleções ao lado de Filtrar e Ordenar
-- **THEN** encontra Ver coleções e, quando pode editar, Criar coleção e Selecionar músicas
-- **AND** no modo de seleção, a contagem e o cancelamento ficam no cabeçalho existente e as ações de organização permanecem no menu Coleções
+- **THEN** encontra Ver coleções e, quando pode editar, Selecionar músicas
+- **AND** no modo de seleção, o menu Coleções oferece Adicionar à coleção, Selecionar todos, Limpar seleção e Cancelar seleção
+- **AND** Cancelar seleção limpa as músicas marcadas e encerra o modo, enquanto Limpar seleção apenas desmarca as músicas
+- **AND** a criação com músicas escolhidas fica disponível no diálogo Adicionar a uma coleção, por meio de Criar seleção
 - **AND** o modo de seleção não acrescenta linhas à toolbar
 
 #### Scenario: Usar ações de uma música sem alterar o toque habitual
@@ -116,7 +118,7 @@ O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvam
 
 - **WHEN** uma pessoa abre Criar coleção
 - **THEN** encontra o campo de nome e as ações de salvar/cancelar, sem busca, filtros ou lista de músicas
-- **AND** quando veio de Criar com selecionadas no Repertório, vê somente a contagem das músicas que serão incluídas ao salvar
+- **AND** quando veio de Criar seleção em um dos diálogos de organização, vê somente a contagem das músicas que serão incluídas ao salvar
 
 #### Scenario: Criar seleção a partir das coleções da música
 
@@ -185,9 +187,9 @@ O sistema SHALL oferecer busca por título ou artista, filtros Todas, Pendentes,
 - **THEN** todas as músicas escolhidas permanecem marcadas, inclusive as temporariamente fora dos resultados
 - **AND** a contagem total e a revisão das escolhidas permanecem disponíveis
 
-#### Scenario: Selecionar resultados visíveis
+#### Scenario: Selecionar todos os resultados visíveis
 
-- **WHEN** uma pessoa aciona Selecionar os resultados com uma quantidade apresentada
+- **WHEN** uma pessoa aciona Selecionar todos
 - **THEN** são acrescentadas somente as músicas dos resultados atuais, sem repetir músicas já marcadas
 - **AND** o controle não seleciona músicas ocultas pela busca ou pelos filtros
 
@@ -203,7 +205,7 @@ O sistema SHALL permitir a proprietários e editores ativar explicitamente um mo
 
 #### Scenario: Criar coleção a partir de músicas escolhidas
 
-- **WHEN** uma pessoa escolhe músicas no Repertório e solicita criar uma coleção
+- **WHEN** uma pessoa escolhe músicas no Repertório, abre Adicionar a uma coleção e escolhe Criar seleção
 - **THEN** abre a criação para informar somente o nome e salvar com as músicas previamente escolhidas, preservando sua ordem
 
 #### Scenario: Acrescentar a uma coleção existente
@@ -214,8 +216,9 @@ O sistema SHALL permitir a proprietários e editores ativar explicitamente um mo
 
 #### Scenario: Encerrar o modo de escolha
 
-- **WHEN** uma pessoa cancela a escolha múltipla no Repertório antes de gravar
+- **WHEN** uma pessoa aciona o X do cabeçalho ou Cancelar seleção no menu Coleções antes de gravar
 - **THEN** a consulta volta ao comportamento habitual de abrir o detalhe ao tocar em uma música
+- **AND** as músicas marcadas são removidas da seleção local
 - **AND** nenhum vínculo de coleção é alterado
 
 #### Scenario: Abrir a letra pelas ações da música

@@ -1746,3 +1746,19 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      usado pelos diálogos de criação/edição. Cancelar e Salvar ficam juntos,
      nessa ordem, em uma linha; Criar seleção permanece numa linha própria.
      Prettier e `git diff --check` passaram; testes não foram executados.
+135. O menu do botão Coleções não oferece mais criação direta, inclusive
+     durante a seleção de músicas. Para criar a partir das selecionadas, abrir
+     Adicionar à coleção e escolher Criar seleção; a lista de coleções continua
+     oferecendo sua ação de criação. Código, requisito, desenho, documentação e
+     o teste existente de criação foram alinhados. Não houve commit conforme
+     pedido; testes não foram executados.
+136. Durante a seleção de músicas, o menu Coleções oferece agora Cancelar
+     seleção separadamente de Limpar seleção. A primeira ação limpa as escolhas
+     e sai do modo; a segunda mantém o modo ativo. OpenSpec, design e guia de
+     uso foram alinhados. A change está em 47/49 tarefas concluídas; 8.1/8.2
+     continuam pendentes. Não houve commit; testes não foram executados.
+137. No modo de seleção, “Selecionar resultados (N)” foi renomeado para
+     “Selecionar todos”; o rótulo acessível informa que a ação seleciona somente
+     as músicas visíveis na consulta atual. Especificação, desenho, guia e a
+     expectativa do teste existente foram alinhados. A change está em 48/50
+     tarefas concluídas. Não houve commit; testes não foram executados.
