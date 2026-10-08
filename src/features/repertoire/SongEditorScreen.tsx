@@ -37,6 +37,7 @@ import {
 } from '@/data/supabase/songLifecycleMutations';
 import {
   useCurrentBandTermAcceptance,
+  repertoireCollectionQueryKeys,
   useSong,
   useUserBands,
   useUserRepertoireSongs,
@@ -188,10 +189,15 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   };
 
   const invalidateSongQueries = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ['bands', bandId, 'songs'],
-    });
-    await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['bands', bandId, 'songs'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: repertoireCollectionQueryKeys.byBand(bandId),
+      }),
+      queryClient.invalidateQueries({ queryKey: ['songs', 'user'] }),
+    ]);
   };
 
   const handleLifecycleError = (error: unknown) => {
@@ -308,10 +314,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       if (songId) {
         await updateSong({ bandId, lyrics, song: parsed.song, songId });
-        await queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'songs'],
-        });
-        await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+        await invalidateSongQueries();
         unsavedChanges.allowNextRemoval();
         leaveEditor();
       } else {
@@ -320,10 +323,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           lyrics,
           song: parsed.song,
         });
-        await queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'songs'],
-        });
-        await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+        await invalidateSongQueries();
         unsavedChanges.allowNextRemoval();
         router.replace(getSongHref(bandId, createdSongId));
       }

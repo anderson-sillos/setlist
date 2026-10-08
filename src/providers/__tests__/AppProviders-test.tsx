@@ -38,12 +38,14 @@ function DataProbe() {
 
 function SongCacheProbe({
   queryFn,
+  queryKey,
 }: {
   readonly queryFn: () => Promise<string[]>;
+  readonly queryKey: readonly string[];
 }) {
   const { data } = useQuery({
     queryFn,
-    queryKey: ['bands', 'cache-test', 'songs'],
+    queryKey,
   });
 
   return <AppText>{data?.join(',') ?? 'sem dados'}</AppText>;
@@ -87,7 +89,10 @@ describe('<AppProviders />', () => {
       .mockResolvedValueOnce([]);
     const view = await render(
       <AppProviders>
-        <SongCacheProbe queryFn={queryFn} />
+        <SongCacheProbe
+          queryFn={queryFn}
+          queryKey={['bands', 'cache-test', 'songs']}
+        />
       </AppProviders>,
     );
 
@@ -102,6 +107,30 @@ describe('<AppProviders />', () => {
     await waitFor(() =>
       expect(view.queryByText('LETRA_PRIVADA_ANTIGA')).toBeNull(),
     );
+    expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('descarta coleções antigas quando a conexão volta', async () => {
+    const queryFn = jest
+      .fn<Promise<string[]>, []>()
+      .mockResolvedValueOnce(['FESTA_ANTIGA'])
+      .mockResolvedValueOnce([]);
+    const view = await render(
+      <AppProviders>
+        <SongCacheProbe
+          queryFn={queryFn}
+          queryKey={['bands', 'cache-test', 'repertoire-collections']}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('FESTA_ANTIGA')).toBeTruthy();
+    await act(async () => {
+      mockNetworkListener?.({ isConnected: false, isInternetReachable: false });
+      mockNetworkListener?.({ isConnected: true, isInternetReachable: true });
+    });
+
+    await waitFor(() => expect(view.queryByText('FESTA_ANTIGA')).toBeNull());
     expect(queryFn).toHaveBeenCalledTimes(2);
   });
 });
