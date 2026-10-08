@@ -20,6 +20,50 @@ jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(() => jest.fn()),
 }));
 
+jest.mock('@/components/feedback/UnsavedChangesPrompt', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable, Text, View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    UnsavedChangesPrompt: ({
+      onContinue,
+      onDiscard,
+      testID = 'unsaved-changes-prompt',
+      visible,
+    }: {
+      readonly onContinue: () => void;
+      readonly onDiscard: () => void;
+      readonly testID?: string;
+      readonly visible: boolean;
+    }) =>
+      visible
+        ? React.createElement(
+            View,
+            { testID },
+            React.createElement(
+              Pressable,
+              {
+                accessibilityLabel: 'Continuar editando',
+                accessibilityRole: 'button',
+                onPress: onContinue,
+              },
+              React.createElement(Text, null, 'Continuar editando'),
+            ),
+            React.createElement(
+              Pressable,
+              {
+                accessibilityLabel: 'Descartar alterações',
+                accessibilityRole: 'button',
+                onPress: onDiscard,
+              },
+              React.createElement(Text, null, 'Descartar alterações'),
+            ),
+          )
+        : null,
+  };
+});
+
 jest.mock('@/data/supabase/contentReports', () => ({
   sendContentReport: jest.fn(),
 }));
@@ -39,17 +83,6 @@ const mockNavigation = {
   },
   dispatch: mockDispatch,
 };
-
-function getPromptNativeDismiss(
-  view: Awaited<ReturnType<typeof render>>,
-): () => void {
-  let parent = view.getByTestId('unsaved-changes-prompt').parent;
-  while (parent && typeof parent.props.onDismiss !== 'function') {
-    parent = parent.parent;
-  }
-  if (!parent) throw new Error('Modal de alterações não salvas não encontrado');
-  return parent.props.onDismiss as () => void;
-}
 
 describe('<SongDetailScreen />', () => {
   beforeEach(() => {
@@ -319,9 +352,7 @@ describe('<SongDetailScreen />', () => {
 
       await fireEvent.press(view.getByText('Cancelar'));
       expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
-      const dismissPrompt = getPromptNativeDismiss(view);
       await fireEvent.press(view.getByLabelText('Descartar alterações'));
-      await act(async () => dismissPrompt());
 
       expect(
         view.queryByTestId('song-collection-membership-dialog'),
