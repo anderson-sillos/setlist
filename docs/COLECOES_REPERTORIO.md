@@ -19,12 +19,12 @@ O cliente tem apenas permissão de leitura direta. Escritas passam pelas RPCs e 
 
 As funções da migração `20261008101000_manage_repertoire_collections.sql` mantêm cada alteração dentro de uma transação:
 
-| RPC | Uso |
-| --- | --- |
-| `save_repertoire_collection` | Cria uma coleção vazia ou salva nome e ordem completa na revisão esperada. A substituição da ordem e a preservação de vínculos moderados acontecem na mesma transação. |
-| `append_repertoire_collection_songs` | Acrescenta músicas no fim, mantém a ordem existente e torna reenvios idempotentes. |
-| `set_song_repertoire_collections` | Atualiza, em lote, as participações de uma música. Recebe as revisões de todas as coleções afetadas; inclusões entram no final e remoções preservam a ordem relativa das demais músicas. |
-| `delete_repertoire_collection` | Exclui a coleção na revisão esperada e remove seus vínculos por cascata, sem apagar músicas ou setlists. |
+| RPC                                  | Uso                                                                                                                                                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `save_repertoire_collection`         | Cria uma coleção vazia ou salva nome e ordem completa na revisão esperada. A substituição da ordem e a preservação de vínculos moderados acontecem na mesma transação.                   |
+| `append_repertoire_collection_songs` | Acrescenta músicas no fim, mantém a ordem existente e torna reenvios idempotentes.                                                                                                       |
+| `set_song_repertoire_collections`    | Atualiza, em lote, as participações de uma música. Recebe as revisões de todas as coleções afetadas; inclusões entram no final e remoções preservam a ordem relativa das demais músicas. |
+| `delete_repertoire_collection`       | Exclui a coleção na revisão esperada e remove seus vínculos por cascata, sem apagar músicas ou setlists.                                                                                 |
 
 Edições e exclusões exigem o `updated_at` que o cliente leu. Inclusões e mudanças de participação atualizam a revisão das coleções afetadas. Uma revisão antiga resulta em `COLLECTION_CHANGED`; o cliente deve atualizar os dados e pedir que a pessoa reaplique a mudança, sem substituir silenciosamente a edição concorrente.
 
