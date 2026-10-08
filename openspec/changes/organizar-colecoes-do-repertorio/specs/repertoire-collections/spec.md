@@ -32,9 +32,32 @@ O sistema SHALL oferecer Coleções como ação secundária identificada no Repe
 #### Scenario: Usar ações de uma música sem alterar o toque habitual
 
 - **WHEN** uma pessoa toca nos três pontos verticais de uma música do Repertório
-- **THEN** abre um menu com Ver detalhes e, quando pode editar, Editar música e Organizar em coleções
+- **THEN** abre um menu com Ver detalhes e, quando pode editar, Selecionar, Editar música e Organizar em coleções
 - **AND** tocar nas demais áreas do cartão continua abrindo os detalhes fora do modo de seleção
 - **AND** uma ação que abre outro diálogo aguarda o fechamento do menu, incluindo sua conclusão nativa no iOS
+
+#### Scenario: Selecionar uma música pelas ações individuais
+
+- **WHEN** um proprietário ou editor escolhe Selecionar no menu de uma música
+- **THEN** o Repertório ativa o modo de seleção e marca essa música imediatamente
+- **AND** músicas que já estavam selecionadas continuam marcadas
+
+#### Scenario: Restringir seleção aos papéis de edição
+
+- **WHEN** um integrante sem papel de proprietário ou editor abre as ações da música ou mantém seu cartão pressionado
+- **THEN** não encontra a ação Selecionar e o gesto não ativa o modo de seleção
+
+#### Scenario: Iniciar a seleção mantendo um cartão pressionado
+
+- **WHEN** um proprietário ou editor mantém pressionado o cartão de uma música fora do modo de seleção
+- **THEN** o Repertório ativa o modo de seleção e marca essa música imediatamente
+- **AND** soltar o cartão não abre os detalhes nem remove a marcação inicial
+
+#### Scenario: Manter os controles visíveis durante a seleção
+
+- **WHEN** uma pessoa rola a lista enquanto o modo de seleção está ativo
+- **THEN** Coleções, Filtrar e Ordenar permanecem visíveis
+- **AND** ao cancelar a seleção, a ocultação automática volta a responder à rolagem normalmente
 
 ### Requirement: Coleções compartilhadas e isoladas por banda
 

@@ -65,7 +65,9 @@ A edição de uma coleção existente permite renomear, remover participações 
 
 ### Organizar músicas diretamente no Repertório
 
-Proprietários e editores podem abrir **Coleções → Selecionar músicas** no Repertório. A contagem aparece no cabeçalho com um **X** para cancelar, sem acrescentar uma faixa de botões à lista. Nesse modo, tocar numa música marca ou desmarca sua escolha, e a contagem inclui as músicas que ficaram fora dos resultados após uma busca ou filtro. **Selecionar resultados (N)** marca somente as músicas atualmente visíveis. Não é necessário manter o toque pressionado; tocar numa música fora do modo de seleção continua abrindo seu detalhe.
+Proprietários e editores podem abrir **Coleções → Selecionar músicas** no Repertório. Também podem iniciar pelo menu de três pontos de uma música, escolhendo **Selecionar**, ou mantendo o cartão pressionado. Nessas duas ações, a música de origem já fica marcada. A contagem aparece no cabeçalho com um **X** para cancelar, sem acrescentar uma faixa de botões à lista. Nesse modo, tocar numa música marca ou desmarca sua escolha, e a contagem inclui as músicas que ficaram fora dos resultados após uma busca ou filtro. **Selecionar resultados (N)** marca somente as músicas atualmente visíveis. Ao iniciar pela pressão prolongada, soltar o cartão não abre os detalhes nem remove a marcação inicial.
+
+Enquanto o modo de seleção estiver ativo, **Coleções**, **Filtrar** e **Ordenar** permanecem visíveis durante a rolagem. Ao cancelar ou concluir a seleção, a ocultação automática da barra volta a funcionar a partir da posição atual da lista.
 
 No menu **Coleções**, **Limpar seleção** desmarca as músicas sem sair desse modo. Com músicas escolhidas, há duas ações opcionais:
 
@@ -74,7 +76,7 @@ No menu **Coleções**, **Limpar seleção** desmarca as músicas sem sair desse
 
 **Cancelar seleção** encerra o modo, limpa as escolhas locais e restaura a abertura habitual do detalhe ao tocar em uma música. Cancelar antes da confirmação não grava vínculos. Integrantes sem papel de edição continuam consultando o Repertório e as coleções sem ver essas ações de organização.
 
-O botão de **três pontos verticais** de cada música oferece **Exibir letra** quando existe letra, além de **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme as permissões. **Exibir letra** abre a letra em tela cheia. Na Web, clique duplo no cartão com letra também abre essa tela; clique simples continua abrindo os detalhes. No iOS e Android, o toque simples continua imediato e o menu oferece o atalho à letra. No modo de seleção, tocar no cartão marca ou desmarca a música. A organização pelo menu utiliza o mesmo diálogo de participações disponível no detalhe, com salvamento e confirmação de descarte. No iOS, o menu fecha completamente antes de abrir o diálogo ou a tela de destino.
+O botão de **três pontos verticais** de cada música oferece **Selecionar**, **Exibir letra** quando existe letra, além de **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme as permissões. **Selecionar** ativa o modo de seleção e marca a música imediatamente. **Exibir letra** abre a letra em tela cheia. Na Web, clique duplo no cartão com letra também abre essa tela; clique simples continua abrindo os detalhes. No iOS e Android, o toque simples continua imediato e o menu oferece o atalho à letra. No modo de seleção, tocar no cartão marca ou desmarca a música. A organização pelo menu utiliza o mesmo diálogo de participações disponível no detalhe, com salvamento e confirmação de descarte. No iOS, o menu fecha completamente antes de abrir o diálogo ou a tela de destino.
 
 Uma falha na consulta opcional de coleções não impede a consulta das músicas. O erro e a nova tentativa aparecem nas ações de coleções; se houver dados anteriores, o filtro e os resultados são preservados.
 

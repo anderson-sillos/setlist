@@ -95,6 +95,7 @@ import { useSongCollectionMembership } from './useSongCollectionMembership';
 interface SongRowProps {
   readonly bandId: EntityId;
   readonly onOpenActions: (song: Song) => void;
+  readonly onSelectSong?: (songId: EntityId) => void;
   readonly onToggleSelection: (songId: EntityId) => void;
   readonly selected: boolean;
   readonly selectionMode: boolean;
@@ -127,6 +128,7 @@ function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
 function SongRow({
   bandId,
   onOpenActions,
+  onSelectSong,
   onToggleSelection,
   selected,
   selectionMode,
@@ -135,15 +137,36 @@ function SongRow({
   const [pressed, setPressed] = useState(false);
   const router = useRouter();
   const singleClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressLinkPress = useRef(false);
+  const suppressLinkPressTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const cancelPendingClick = () => {
     if (singleClickTimer.current === null) return;
     clearTimeout(singleClickTimer.current);
     singleClickTimer.current = null;
   };
-  useEffect(() => cancelPendingClick, []);
+  useEffect(
+    () => () => {
+      cancelPendingClick();
+      if (suppressLinkPressTimer.current !== null) {
+        clearTimeout(suppressLinkPressTimer.current);
+      }
+    },
+    [],
+  );
   const handleSongPress = (
     event: GestureResponderEvent | ReactMouseEvent<HTMLAnchorElement>,
   ) => {
+    if (suppressLinkPress.current) {
+      suppressLinkPress.current = false;
+      if (suppressLinkPressTimer.current !== null) {
+        clearTimeout(suppressLinkPressTimer.current);
+        suppressLinkPressTimer.current = null;
+      }
+      event.preventDefault();
+      return;
+    }
     blurWebFocus();
     if (Platform.OS !== 'web' || song.lyricStatus === 'missing') return;
 
@@ -195,6 +218,13 @@ function SongRow({
       router.push(getSongHref(bandId, song.id));
     }, 320);
   };
+  const handleSongLongPress = () => {
+    if (selectionMode || !onSelectSong) return;
+    cancelPendingClick();
+    suppressLinkPress.current = true;
+    blurWebFocus();
+    onSelectSong(song.id);
+  };
 
   const row = (
     <Pressable
@@ -203,11 +233,41 @@ function SongRow({
           ? `${selected ? 'Remover seleção de' : 'Selecionar'} ${song.title}`
           : `Abrir música ${song.title}. Status da letra: ${lyricStatusLabels[song.lyricStatus]}`
       }
+      accessibilityHint={
+        !selectionMode && onSelectSong
+          ? 'Mantenha pressionado para iniciar a seleção de músicas'
+          : undefined
+      }
       accessibilityRole={selectionMode ? 'checkbox' : 'link'}
       accessibilityState={selectionMode ? { checked: selected } : undefined}
-      onPress={selectionMode ? () => onToggleSelection(song.id) : undefined}
+      onLongPress={
+        selectionMode || !onSelectSong ? undefined : handleSongLongPress
+      }
+      onPress={
+        selectionMode
+          ? () => {
+              if (suppressLinkPress.current) {
+                suppressLinkPress.current = false;
+                if (suppressLinkPressTimer.current !== null) {
+                  clearTimeout(suppressLinkPressTimer.current);
+                  suppressLinkPressTimer.current = null;
+                }
+                return;
+              }
+              onToggleSelection(song.id);
+            }
+          : undefined
+      }
       onPressIn={() => setPressed(true)}
-      onPressOut={() => setPressed(false)}
+      onPressOut={() => {
+        setPressed(false);
+        if (suppressLinkPress.current) {
+          suppressLinkPressTimer.current = setTimeout(() => {
+            suppressLinkPress.current = false;
+            suppressLinkPressTimer.current = null;
+          }, 250);
+        }
+      }}
       style={StyleSheet.flatten([
         styles.listRow,
         selected && selectionMode && styles.selectedListRow,
@@ -373,13 +433,6 @@ function RepertoireScreenContent({
       sort: 'title' as RepertoireSort,
     });
   const appliedRouteCollectionId = useRef<EntityId | null>(null);
-  const {
-    beginDrag: beginControlsDrag,
-    beginMomentum: beginControlsMomentum,
-    endMomentum: endControlsMomentum,
-    updateVisibility: updateControlsVisibility,
-    visible: controlsVisible,
-  } = useScrollDirectionVisibility(initialScrollOffset);
   const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
     spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
   );
@@ -500,13 +553,20 @@ function RepertoireScreenContent({
   )?.membership;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
+  const activeSelectionMode = canCreate && selectionMode;
+  const {
+    beginDrag: beginControlsDrag,
+    beginMomentum: beginControlsMomentum,
+    endMomentum: endControlsMomentum,
+    updateVisibility: updateControlsVisibility,
+    visible: controlsVisible,
+  } = useScrollDirectionVisibility(initialScrollOffset, !activeSelectionMode);
   const actionMenu = useRepertoireActionMenu();
   const collectionMembership = useSongCollectionMembership({
     bandId,
     canEdit: canCreate,
     collections: collectionsQuery.data ?? [],
   });
-  const activeSelectionMode = canCreate && selectionMode;
   const selectedSongCount = selectedSongIds.size;
   const targetCollection = collectionsQuery.data?.find(
     ({ collection }) => collection.id === targetCollectionId,
@@ -569,6 +629,13 @@ function RepertoireScreenContent({
   };
   const beginSongSelection = () => {
     updateSelectionState((current) => ({ ...current, active: true }));
+  };
+  const selectSongAndBeginSelection = (songId: EntityId) => {
+    updateSelectionState((current) => {
+      const selectedSongIds = new Set(current.selectedSongIds);
+      selectedSongIds.add(songId);
+      return { ...current, active: true, selectedSongIds };
+    });
   };
   const closeCollectionPicker = () => {
     if (appendLock.current) return;
@@ -701,6 +768,15 @@ function RepertoireScreenContent({
     actionMenu.target !== 'collections' ? actionMenu.target : null;
   const songActions: RepertoireAction[] = actionSong
     ? [
+        ...(canCreate
+          ? [
+              {
+                icon: 'check' as const,
+                label: 'Selecionar',
+                onPress: () => selectSongAndBeginSelection(actionSong.id),
+              },
+            ]
+          : []),
         ...(actionSong.lyricStatus !== 'missing'
           ? [
               {
@@ -896,6 +972,7 @@ function RepertoireScreenContent({
             <SongRow
               bandId={bandId}
               onOpenActions={actionMenu.open}
+              onSelectSong={canCreate ? selectSongAndBeginSelection : undefined}
               onToggleSelection={toggleSongSelection}
               selected={selectedSongIds.has(item.id)}
               selectionMode={activeSelectionMode}
