@@ -46,6 +46,27 @@ export interface ShowBlockDraft {
   readonly name: string;
 }
 
+export interface CollectionPreviewValidationRequest {
+  readonly collectionId: EntityId;
+  readonly expectedSongs: readonly Pick<
+    Song,
+    'estimatedDurationMs' | 'id' | 'originalArtist' | 'title'
+  >[];
+  readonly expectedUpdatedAt: RepertoireCollectionSummary['collection']['updatedAt'];
+}
+
+export type CollectionPreviewValidationResult =
+  | {
+      readonly collection: RepertoireCollectionSummary;
+      readonly message: string;
+      readonly status: 'changed';
+    }
+  | {
+      readonly collection: RepertoireCollectionSummary;
+      readonly status: 'ready';
+    }
+  | { readonly message: string; readonly status: 'unavailable' };
+
 interface ShowBlockEditorDialogProps {
   readonly addSheetVisible: boolean;
   readonly collections?: readonly RepertoireCollectionSummary[];
@@ -56,6 +77,9 @@ interface ShowBlockEditorDialogProps {
   readonly onAddSheetVisibilityChange: (visible: boolean) => void;
   readonly onClose: () => void;
   readonly onDirtyChange?: (dirty: boolean) => void;
+  readonly onValidateCollection?: (
+    request: CollectionPreviewValidationRequest,
+  ) => Promise<CollectionPreviewValidationResult>;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
   readonly visible: boolean;
@@ -170,6 +194,7 @@ export function ShowBlockEditorDialog({
   onAddSheetVisibilityChange,
   onClose,
   onDirtyChange,
+  onValidateCollection,
   onSubmit,
   songs,
   visible,
@@ -183,6 +208,7 @@ export function ShowBlockEditorDialog({
   const itemLayoutsRef = useRef(new Map<EntityId, ItemLayout>());
   const itemDragSessionRef = useRef<ItemDragSession | null>(null);
   const blockDragSessionRef = useRef<BlockDragSession | null>(null);
+  const collectionValidationLockRef = useRef(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const scrollFrameYRef = useRef(0);
   const scrollOffsetYRef = useRef(0);
@@ -216,6 +242,11 @@ export function ShowBlockEditorDialog({
   const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
   const [collectionPreviewVisible, setCollectionPreviewVisible] =
     useState(false);
+  const [isValidatingCollection, setIsValidatingCollection] = useState(false);
+  const [collectionValidationMessage, setCollectionValidationMessage] =
+    useState<string | null>(null);
+  const [previewCollectionOverride, setPreviewCollectionOverride] =
+    useState<RepertoireCollectionSummary | null>(null);
   const [previewCollectionId, setPreviewCollectionId] =
     useState<EntityId | null>(null);
   const [selectedSongIds, setSelectedSongIds] = useState<readonly EntityId[]>(
@@ -242,9 +273,11 @@ export function ShowBlockEditorDialog({
 
   const activeBlock = blocks.find((block) => block.id === activeBlockId);
   const blockToDelete = blocks.find((block) => block.id === deleteBlockId);
-  const previewCollection = collections.find(
-    ({ collection }) => collection.id === previewCollectionId,
-  );
+  const previewCollection =
+    (previewCollectionOverride?.collection.id === previewCollectionId
+      ? previewCollectionOverride
+      : undefined) ??
+    collections.find(({ collection }) => collection.id === previewCollectionId);
   const previewSongs = useMemo(
     () =>
       previewCollection?.songs.filter((song) => song.archivedAt === null) ?? [],
@@ -432,10 +465,63 @@ export function ShowBlockEditorDialog({
         })),
       ],
     }));
+    setCollectionValidationMessage(null);
     setCollectionPreviewVisible(false);
     setPreviewCollectionId(null);
+    setPreviewCollectionOverride(null);
     setCollectionPickerVisible(false);
     onAddSheetVisibilityChange(false);
+  };
+
+  const confirmCollection = async () => {
+    if (
+      !activeBlock ||
+      !previewCollection ||
+      previewSongs.length === 0 ||
+      isSubmitting ||
+      collectionValidationLockRef.current
+    ) {
+      return;
+    }
+
+    collectionValidationLockRef.current = true;
+    setCollectionValidationMessage(null);
+    setIsValidatingCollection(true);
+    try {
+      const validation = onValidateCollection
+        ? await onValidateCollection({
+            collectionId: previewCollection.collection.id,
+            expectedSongs: previewSongs.map(
+              ({ estimatedDurationMs, id, originalArtist, title }) => ({
+                estimatedDurationMs,
+                id,
+                originalArtist,
+                title,
+              }),
+            ),
+            expectedUpdatedAt: previewCollection.collection.updatedAt,
+          })
+        : { collection: previewCollection, status: 'ready' as const };
+
+      if (validation.status === 'changed') {
+        setPreviewCollectionOverride(validation.collection);
+        setCollectionValidationMessage(validation.message);
+        return;
+      }
+      if (validation.status === 'unavailable') {
+        setCollectionValidationMessage(validation.message);
+        return;
+      }
+
+      addCollectionSongs(validation.collection);
+    } catch {
+      setCollectionValidationMessage(
+        'Não foi possível validar a coleção agora. Tente novamente.',
+      );
+    } finally {
+      collectionValidationLockRef.current = false;
+      setIsValidatingCollection(false);
+    }
   };
 
   const removeItem = (blockId: EntityId, itemId: EntityId) => {
@@ -1169,6 +1255,8 @@ export function ShowBlockEditorDialog({
                 label={collection.collection.name}
                 onPress={() => {
                   setCollectionPickerVisible(false);
+                  setCollectionValidationMessage(null);
+                  setPreviewCollectionOverride(null);
                   setPreviewCollectionId(collection.collection.id);
                   setCollectionPreviewVisible(true);
                 }}
@@ -1187,14 +1275,26 @@ export function ShowBlockEditorDialog({
             : 'Prévia da coleção'
         }
         onClose={() => {
+          if (isValidatingCollection) return;
           setCollectionPreviewVisible(false);
           setPreviewCollectionId(null);
+          setPreviewCollectionOverride(null);
+          setCollectionValidationMessage(null);
         }}
         showCloseButton
         sheetStyle={styles.collectionPreviewSheet}
         testID="show-collection-preview-sheet"
         visible={collectionPreviewVisible}
       >
+        {collectionValidationMessage ? (
+          <AppText
+            accessibilityLiveRegion="polite"
+            testID="show-collection-validation-message"
+            tone="danger"
+          >
+            {collectionValidationMessage}
+          </AppText>
+        ) : null}
         {previewCollection ? (
           <>
             <View style={styles.collectionPreviewSummary}>
@@ -1294,10 +1394,18 @@ export function ShowBlockEditorDialog({
             ) : null}
             <AppButton
               accessibilityLabel="Confirmar inclusão da coleção"
-              disabled={previewSongs.length === 0 || isSubmitting}
+              disabled={
+                previewSongs.length === 0 ||
+                isSubmitting ||
+                isValidatingCollection
+              }
               icon="musicAdd"
-              label={`Adicionar ${previewSongs.length} ${previewSongs.length === 1 ? 'música' : 'músicas'}`}
-              onPress={() => addCollectionSongs(previewCollection)}
+              label={
+                isValidatingCollection
+                  ? 'Verificando…'
+                  : `Adicionar ${previewSongs.length} ${previewSongs.length === 1 ? 'música' : 'músicas'}`
+              }
+              onPress={() => void confirmCollection()}
               testID="show-confirm-add-collection"
             />
           </>

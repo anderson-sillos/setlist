@@ -4,6 +4,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { StyleSheet } from 'react-native';
 import { layout } from '@/theme/tokens';
 import {
@@ -15,6 +16,7 @@ import {
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
+import type { AppRepositories, EntityId } from '@/domain';
 import { ShowSetlistEditorScreen } from '@/features/shows/ShowSetlistEditorScreen';
 import { AppProviders } from '@/providers/AppProviders';
 
@@ -31,6 +33,18 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: jest.fn() }),
   useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
+
+async function openCollectionPreview(
+  view: Awaited<ReturnType<typeof render>>,
+  collectionId = 'collection-demo-festa',
+) {
+  await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+  await fireEvent.press(view.getByTestId('show-add-collection-action'));
+  await fireEvent.press(
+    view.getByTestId(`show-preview-collection-${collectionId}`),
+  );
+  return view.getByTestId('show-collection-preview-sheet');
+}
 
 describe('<ShowSetlistEditorScreen />', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -245,6 +259,118 @@ describe('<ShowSetlistEditorScreen />', () => {
     const preview = view.getByTestId('show-collection-preview-sheet');
     expect(within(preview).getByText('1 música elegível')).toBeTruthy();
     expect(within(preview).queryByText('Maré de Neon')).toBeNull();
+  });
+
+  it('atualiza a prévia e não inclui parcialmente se a coleção mudou', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await openCollectionPreview(view);
+    await repositories.repertoireCollections.appendSongs({
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-festa',
+      songIds: ['song-demo-chuva'],
+    });
+
+    await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId('show-collection-validation-message'),
+      ).toBeTruthy();
+      expect(view.getByText('3 músicas elegíveis')).toBeTruthy();
+    });
+    expect(view.getAllByTestId(/^setlist-item-row-/)).toHaveLength(2);
+    expect(
+      within(view.getByTestId('show-collection-preview-songs')).getAllByTestId(
+        /^show-collection-preview-song-/,
+      ),
+    ).toHaveLength(3);
+  });
+
+  it('exige conexão para confirmar a inclusão', async () => {
+    const networkFetch = jest.mocked(NetInfo.fetch);
+    networkFetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    } as Awaited<ReturnType<typeof NetInfo.fetch>>);
+    const view = await render(
+      <AppProviders>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await openCollectionPreview(view);
+    await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
+
+    expect(
+      await view.findByText(
+        'É necessária uma conexão à internet para confirmar a inclusão da coleção.',
+      ),
+    ).toBeTruthy();
+    expect(view.getAllByTestId(/^setlist-item-row-/)).toHaveLength(2);
+
+    await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
+    await waitFor(() => {
+      expect(view.getAllByTestId(/^setlist-item-row-/)).toHaveLength(4);
+    });
+    expect(view.queryByTestId('show-collection-validation-message')).toBeNull();
+  });
+
+  it('revalida o papel de edição antes de confirmar', async () => {
+    const inMemoryRepositories = createInMemoryRepositories(demoRepositoryData);
+    let accessRevoked = false;
+    const repositories: AppRepositories = {
+      ...inMemoryRepositories,
+      bands: {
+        findById: (bandId) => inMemoryRepositories.bands.findById(bandId),
+        listMembers: (bandId) => inMemoryRepositories.bands.listMembers(bandId),
+        listForUser: async (userId: EntityId) => {
+          const userBands =
+            await inMemoryRepositories.bands.listForUser(userId);
+          if (!accessRevoked) return userBands;
+          return userBands.map((userBand) =>
+            userBand.band.id === demoIds.primaryBand
+              ? {
+                  ...userBand,
+                  membership: { ...userBand.membership, role: 'member' },
+                }
+              : userBand,
+          );
+        },
+      },
+    };
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await openCollectionPreview(view);
+    accessRevoked = true;
+    await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
+
+    expect(
+      await view.findByText('Você não pode editar esta setlist'),
+    ).toBeTruthy();
+    expect(view.queryByTestId('show-block-editor-dialog')).toBeNull();
+    expect(replaceShowBlockItems).not.toHaveBeenCalled();
   });
 
   it('não permite editar setlist de show que já saiu de rascunho', async () => {

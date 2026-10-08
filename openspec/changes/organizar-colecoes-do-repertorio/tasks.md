@@ -53,7 +53,7 @@
 
 - [x] 7.1 Acrescentar Adicionar coleção às opções de inclusão quando houver coleções e o show for editável; verificar que bandas sem coleções e pessoas sem papel de edição mantêm os controles habituais.
 - [x] 7.2 Implementar prévia do bloco de destino, músicas elegíveis ordenadas, quantidade, duração e repetições, com confirmação indisponível sem músicas elegíveis; verificar coleção vazia, arquivadas e conteúdo oculto sem expor dados não consultáveis.
-- [ ] 7.3 Revalidar coleção, músicas e acesso antes da confirmação e exigir conexão; verificar exclusão ou alteração entre prévia e confirmação, erro recuperável e ausência de inclusão parcial silenciosa.
+- [x] 7.3 Revalidar coleção, músicas e acesso antes da confirmação e exigir conexão; verificar exclusão ou alteração entre prévia e confirmação, erro recuperável e ausência de inclusão parcial silenciosa.
 - [ ] 7.4 Acrescentar as ocorrências em uma única atualização local ao final do bloco ativo e bloquear dupla confirmação; verificar testes com repetições permitidas, outros blocos, separadores, planejamento e nenhuma gravação antes de salvar o setlist.
 - [ ] 7.5 Garantir que novas inclusões, tanto pelo seletor habitual quanto por coleção, excluam músicas arquivadas sem esconder itens existentes do show; verificar regressão do editor com show já contendo música arquivada.
 - [ ] 7.6 Verificar em testes de integração a independência do show após reordenar/excluir coleção, a utilização dos metadados vigentes das músicas e o descarte normal do rascunho; documentar a inclusão em lote em `docs/COLECOES_REPERTORIO.md`.
