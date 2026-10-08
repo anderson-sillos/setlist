@@ -21,7 +21,12 @@ import {
   WebRefreshButton,
 } from '@/components/ui/ScreenDataRefresh';
 import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
-import { OptionMenu, SearchField } from '@/components/ui/ListControls';
+import {
+  ChoiceChips,
+  FilterMenu,
+  OptionMenu,
+  SearchField,
+} from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import {
@@ -85,6 +90,13 @@ interface CollectionAppendResult {
   readonly addedCount: number;
   readonly alreadyPresentCount: number;
   readonly collectionName: string;
+}
+
+type RepertoireCollectionFilter = 'all' | 'none' | EntityId;
+
+interface RepertoireCollectionFilterState {
+  readonly bandId: EntityId;
+  readonly value: RepertoireCollectionFilter;
 }
 
 function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
@@ -241,6 +253,11 @@ export function RepertoireScreen({
   );
   const [selectionState, setSelectionState] =
     useState<RepertoireSelectionState>(() => emptySelectionState(bandId));
+  const [collectionFilterState, setCollectionFilterState] =
+    useState<RepertoireCollectionFilterState>(() => ({
+      bandId,
+      value: 'all',
+    }));
   const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
   const [targetCollectionId, setTargetCollectionId] = useState<EntityId | null>(
     null,
@@ -253,15 +270,56 @@ export function RepertoireScreen({
       ? selectionState
       : emptySelectionState(bandId);
   const { active: selectionMode, selectedSongIds } = currentSelectionState;
+  const collectionFilter =
+    collectionFilterState.bandId === bandId
+      ? collectionFilterState.value
+      : 'all';
+  const collectionFilterOptions = useMemo(
+    () => [
+      { label: 'Todas as coleções', value: 'all' },
+      { label: 'Sem coleção', value: 'none' },
+      ...(collectionsQuery.data ?? []).map(({ collection }) => ({
+        label: collection.name,
+        value: collection.id,
+      })),
+    ],
+    [collectionsQuery.data],
+  );
+  const collectionSongIds = useMemo<ReadonlySet<EntityId> | null>(() => {
+    if (collectionFilter === 'all') return null;
+
+    const summaries = collectionsQuery.data ?? [];
+    if (collectionFilter === 'none') {
+      const linkedSongIds = new Set(
+        summaries.flatMap(({ songs: collectionSongs }) =>
+          collectionSongs.map(({ id }) => id),
+        ),
+      );
+      return new Set(
+        (songsQuery.data ?? [])
+          .filter(({ id }) => !linkedSongIds.has(id))
+          .map(({ id }) => id),
+      );
+    }
+
+    const selectedCollection = summaries.find(
+      ({ collection }) => collection.id === collectionFilter,
+    );
+    return new Set(selectedCollection?.songs.map(({ id }) => id) ?? []);
+  }, [collectionFilter, collectionsQuery.data, songsQuery.data]);
   const songs = useMemo(() => {
     return filterAndSortRepertoireSongs(
       songsQuery.data ?? [],
       state.search,
       state.filter,
       state.sort,
+      collectionSongIds,
     );
-  }, [songsQuery.data, state]);
-  const hasQuery = state.search.length > 0 || state.filter !== 'all';
+  }, [collectionSongIds, songsQuery.data, state]);
+  const hasQuery =
+    state.search.length > 0 ||
+    state.filter !== 'all' ||
+    collectionFilter !== 'all';
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
@@ -287,6 +345,10 @@ export function RepertoireScreen({
     update('search', '');
     update('filter', 'all');
     update('sort', 'title');
+    setCollectionFilterState({ bandId, value: 'all' });
+  };
+  const updateCollectionFilter = (value: RepertoireCollectionFilter) => {
+    setCollectionFilterState({ bandId, value });
   };
   const updateSelectionState = (
     updateState: (
@@ -601,16 +663,34 @@ export function RepertoireScreen({
               onPress={() => router.push(getRepertoireCollectionsHref(bandId))}
               variant="tertiary"
             />
-            <OptionMenu
-              active={state.filter !== 'all'}
+            <FilterMenu
+              active={state.filter !== 'all' || collectionFilter !== 'all'}
               accessibilityLabel="Alterar filtros do repertório"
-              compact
               icon="filter"
               label="Filtrar"
-              onChange={(value) => update('filter', value)}
-              options={repertoireFilters}
-              value={state.filter}
-            />
+              onClear={clearFilters}
+            >
+              <View style={styles.filterGroup}>
+                <AppText variant="eyebrow">Status</AppText>
+                <ChoiceChips
+                  accessibilityLabel="Status das músicas"
+                  onChange={(value) => update('filter', value)}
+                  options={repertoireFilters}
+                  value={state.filter}
+                />
+              </View>
+              {collectionsQuery.data?.length ? (
+                <View style={styles.filterGroup}>
+                  <AppText variant="eyebrow">Coleção</AppText>
+                  <ChoiceChips
+                    accessibilityLabel="Coleção das músicas"
+                    onChange={updateCollectionFilter}
+                    options={collectionFilterOptions}
+                    value={collectionFilter}
+                  />
+                </View>
+              ) : null}
+            </FilterMenu>
             <OptionMenu
               active={state.sort !== 'title'}
               accessibilityLabel="Alterar ordenação do repertório"
@@ -915,6 +995,9 @@ const styles = StyleSheet.create({
   },
   collectionAppendSummary: {
     gap: spacing.xs,
+  },
+  filterGroup: {
+    gap: spacing.sm,
   },
   durationValue: {
     fontVariant: ['tabular-nums'],

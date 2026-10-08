@@ -1,4 +1,4 @@
-import type { Song } from '@/domain';
+import type { EntityId, Song } from '@/domain';
 import type { ChoiceOption } from '@/components/ui/ListControls';
 import { normalizeForSearch } from '@/utils/text';
 
@@ -24,6 +24,7 @@ export function filterAndSortRepertoireSongs(
   search: string,
   filter: RepertoireFilter,
   sort: RepertoireSort,
+  collectionSongIds?: ReadonlySet<EntityId> | null,
 ): readonly Song[] {
   const normalizedSearch = normalizeForSearch(search);
   const result = songs.filter((song) => {
@@ -38,8 +39,12 @@ export function filterAndSortRepertoireSongs(
             (filter === 'synchronized'
               ? song.lyricStatus === 'synchronized'
               : song.lyricStatus !== 'synchronized'));
+    const matchesCollection =
+      collectionSongIds === undefined ||
+      collectionSongIds === null ||
+      collectionSongIds.has(song.id);
 
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesCollection;
   });
 
   return [...result].sort((left, right) => {

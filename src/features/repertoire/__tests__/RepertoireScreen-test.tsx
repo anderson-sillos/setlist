@@ -84,6 +84,7 @@ describe('<RepertoireScreen />', () => {
     );
     await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
     await fireEvent.press(view.getByText('Arquivadas'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
     expect(
       view.getByLabelText('Alterar filtros do repertório').props
         .accessibilityState,
@@ -102,6 +103,82 @@ describe('<RepertoireScreen />', () => {
     ).toEqual({ selected: true });
 
     expect(view.getByLabelText('Alterar ordenação do repertório')).toBeTruthy();
+  });
+
+  it('combina coleção, status e busca sem duplicar músicas e preserva a ordenação', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollectionSongs: [
+        ...demoRepositoryData.repertoireCollectionSongs,
+        {
+          bandId: demoIds.primaryBand,
+          collectionId: 'collection-demo-festa',
+          songId: demoIds.stageSong,
+          position: 2,
+        },
+      ],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    expect(view.getByLabelText('Coleção das músicas')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Festa'));
+    await fireEvent.press(view.getByLabelText('Sincronizadas'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Luzes da Cidade')).toBeNull();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByLabelText('Todas'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    await fireEvent.press(
+      view.getByLabelText('Alterar ordenação do repertório'),
+    );
+    await fireEvent.press(view.getByLabelText('Maior duração'));
+    expect(
+      view
+        .getAllByText(/^(Luzes da Cidade|Maré de Neon)$/)
+        .map((element) => element.props.children),
+    ).toEqual(['Maré de Neon', 'Luzes da Cidade']);
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'pontes',
+    );
+    expect(view.getByText('Nenhuma música encontrada')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByLabelText('Sem coleção'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    expect(view.getByText('Entre Pontes')).toBeTruthy();
+    expect(view.queryByText('Maré de Neon')).toBeNull();
+  });
+
+  it('não apresenta opções de coleção no filtro quando a banda não tem coleções', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollections: [],
+      repertoireCollectionSongs: [],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+
+    expect(view.getByLabelText('Status das músicas')).toBeTruthy();
+    expect(view.queryByLabelText('Coleção das músicas')).toBeNull();
+    expect(view.queryByLabelText('Todas as coleções')).toBeNull();
+    expect(view.queryByLabelText('Sem coleção')).toBeNull();
   });
 
   it('apresenta estados vazios e permite limpar uma busca sem resultado', async () => {
