@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { layout } from '@/theme/tokens';
 import {
   ShowMutationError,
@@ -28,12 +28,30 @@ jest.mock('@/data/supabase', () => ({
   replaceShowBlockItems: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockRouter = {
+  back: jest.fn(),
+  push: jest.fn(),
+  replace: jest.fn(),
+};
+
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
-  useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: jest.fn() }),
+  useRouter: () => mockRouter,
   useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
 }));
+
+function getNativeDismiss(
+  view: Awaited<ReturnType<typeof render>>,
+  testID: string,
+) {
+  let parent = view.getByTestId(testID).parent;
+  while (parent && typeof parent.props.onDismiss !== 'function') {
+    parent = parent.parent;
+  }
+  if (!parent) throw new Error('Modal de confirmação não encontrado');
+  return parent.props.onDismiss as () => void;
+}
 
 async function openCollectionPreview(
   view: Awaited<ReturnType<typeof render>>,
@@ -168,6 +186,125 @@ describe('<ShowSetlistEditorScreen />', () => {
       await picker.findByLabelText('Selecionar Maré de Neon'),
     ).toBeTruthy();
     expect(picker.queryByLabelText('Selecionar Luzes da Cidade')).toBeNull();
+  });
+
+  it('mantém a cópia no show após reordenar e excluir a coleção, usando os dados atuais', async () => {
+    const updatedSongTitle = 'Luzes da Cidade (versão atual)';
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      songs: demoRepositoryData.songs.map((song) =>
+        song.id === demoIds.stageSong
+          ? {
+              ...song,
+              estimatedDurationMs: 240_000,
+              originalArtist: 'Banda Horizonte Atual',
+              title: updatedSongTitle,
+            }
+          : song,
+      ),
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    const preview = await openCollectionPreview(view);
+    expect(within(preview).getByText(updatedSongTitle)).toBeTruthy();
+    await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
+
+    await waitFor(() => {
+      expect(view.getAllByTestId(/^setlist-item-row-/)).toHaveLength(4);
+    });
+    const primaryBlock = within(
+      view.getByTestId('setlist-block-show-block-clube-principal'),
+    );
+    const rowsBeforeCollectionRemoval =
+      primaryBlock.getAllByTestId(/^setlist-item-row-/);
+    expect(
+      within(rowsBeforeCollectionRemoval[2]!).getByText(updatedSongTitle),
+    ).toBeTruthy();
+    expect(
+      within(rowsBeforeCollectionRemoval[3]!).getByText('Maré de Neon'),
+    ).toBeTruthy();
+
+    const collection = await repositories.repertoireCollections.findById(
+      demoIds.primaryBand,
+      'collection-demo-festa',
+    );
+    expect(collection).not.toBeNull();
+    const reorderedCollection = await repositories.repertoireCollections.save({
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-festa',
+      expectedUpdatedAt: collection!.updatedAt,
+      name: collection!.name,
+      orderedSongIds: ['song-demo-mare-neon', demoIds.stageSong],
+    });
+    await repositories.repertoireCollections.delete({
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-festa',
+      expectedUpdatedAt: reorderedCollection.updatedAt,
+    });
+    expect(
+      await repositories.repertoireCollections.findById(
+        demoIds.primaryBand,
+        'collection-demo-festa',
+      ),
+    ).toBeNull();
+
+    const rowsAfterCollectionRemoval =
+      primaryBlock.getAllByTestId(/^setlist-item-row-/);
+    expect(
+      within(rowsAfterCollectionRemoval[2]!).getByText(updatedSongTitle),
+    ).toBeTruthy();
+    expect(
+      within(rowsAfterCollectionRemoval[3]!).getByText('Maré de Neon'),
+    ).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Salvar setlist'));
+    await waitFor(() => {
+      expect(replaceShowBlockItems).toHaveBeenCalledWith(
+        expect.objectContaining({
+          blockId: 'show-block-clube-principal',
+          items: expect.arrayContaining([
+            expect.objectContaining({ songId: demoIds.stageSong }),
+            expect.objectContaining({ songId: 'song-demo-mare-neon' }),
+          ]),
+        }),
+      );
+    });
+  });
+
+  it('oferece o descarte padrão após adicionar uma coleção ao rascunho', async () => {
+    const view = await render(
+      <AppProviders>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await openCollectionPreview(view);
+    await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
+    await waitFor(() => {
+      expect(view.getAllByTestId(/^setlist-item-row-/)).toHaveLength(4);
+    });
+    await fireEvent.press(view.getByText('Cancelar', { exact: true }));
+    expect(view.getByTestId('show-block-editor-discard-sheet')).toBeTruthy();
+
+    const dismiss = getNativeDismiss(view, 'show-block-editor-discard-sheet');
+    await fireEvent.press(view.getByLabelText('Descartar alterações'));
+    if (Platform.OS === 'ios') {
+      await act(async () => dismiss());
+    }
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(view.queryByTestId('show-block-editor-discard-sheet')).toBeNull();
   });
 
   it('desabilita a confirmação quando a coleção está vazia', async () => {

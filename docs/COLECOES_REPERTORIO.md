@@ -78,6 +78,12 @@ Quando a banda tem ao menos uma coleção, o painel **Filtrar** mostra o grupo *
 
 O filtro de coleção é combinado aos outros critérios: uma música precisa corresponder à busca e aos filtros de status e coleção selecionados. Por exemplo, **Festa** com **Sincronizadas** mostra apenas músicas sincronizadas que pertencem a Festa. A ordenação escolhida continua sendo aplicada aos resultados. **Sem coleção** também respeita o status: músicas arquivadas só aparecem quando **Arquivadas** está selecionado.
 
+### Adicionar uma coleção à setlist
+
+Na edição de um show em rascunho, **Adicionar coleção** permite escolher uma coleção e revisar a inclusão antes de confirmar. A prévia mostra o bloco de destino, a ordem atual das músicas ativas, a quantidade, a duração conhecida, músicas repetidas no show e faixas arquivadas que ficarão de fora. A confirmação exige conexão e revalida o show, o acesso, a coleção e os dados das músicas; se algo mudou desde a prévia, a pessoa revisa a versão atual antes de confirmar novamente.
+
+Confirmar acrescenta as músicas ativas como ocorrências comuns ao final do bloco selecionado. A ordem é copiada naquele momento e músicas já presentes podem ser repetidas. A setlist guarda as referências das músicas, não o vínculo com a coleção: reordenar, editar ou excluir a coleção depois não altera as ocorrências do show. Os títulos e demais metadados continuam vindo do cadastro atual de cada música. A inclusão fica local até **Salvar setlist**; cancelar o editor usa a confirmação padrão para descartar o rascunho.
+
 Se a coleção usada no filtro for excluída, o app aguarda a consulta atualizada confirmar a exclusão, volta a **Todas as coleções** e mostra um aviso temporário. Busca, status e ordenação permanecem. Se a atualização falhar, o critério e os dados carregados continuam disponíveis para tentar novamente.
 
 Para renomear ou organizar uma coleção existente, abra seu detalhe e escolha **Editar coleção**. A exclusão fica no final do editor, pede confirmação e remove a coleção e seus vínculos; não remove músicas nem setlists existentes. Se houver alterações ainda não salvas, a confirmação informa que elas também serão descartadas. Ao detectar uma edição concorrente, o app mantém o rascunho na tela, bloqueia uma nova gravação com a revisão antiga e oferece a saída para revisar a versão atual.
