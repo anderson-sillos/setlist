@@ -43,6 +43,28 @@ Vínculos de músicas moderadas permanecem no banco durante uma edição feita p
 
 Por exemplo, “Festa” e “Acústico” podem apontar para a mesma música. Se o título ou o tom dessa música mudar, as duas coleções passam a exibir o valor atualizado na próxima consulta. A letra continua somente no cadastro da música; criar ou editar uma coleção não duplica a letra nem depende de um snapshot dela.
 
+## Consulta, edição e organização no app
+
+O acesso às coleções fica na ação secundária **Coleções** do Repertório. A função é opcional: as telas habituais de músicas e shows continuam disponíveis sem criar ou usar coleções. Integrantes ativos podem consultar a lista e os detalhes; somente proprietários e editores veem as ações para criar, editar e excluir.
+
+Na lista, cada cartão mostra o nome, a quantidade de músicas consultáveis, a duração conhecida e, quando aplicável, quantas estão arquivadas. Abrir um cartão mostra as músicas na ordem da coleção, com indicação das arquivadas. Tocar numa música abre seu cadastro no Repertório. Uma coleção vazia continua válida e seu detalhe oferece **Adicionar músicas** a quem pode editar.
+
+Na criação ou edição, informe um nome e use a lista **Músicas** para procurar por título ou artista. Os filtros e a ordenação são os mesmos do Repertório:
+
+- **Todas** lista músicas ativas, independentemente do estado da letra.
+- **Pendentes** lista músicas ativas cuja letra não está sincronizada.
+- **Sincronizadas** lista músicas ativas cuja letra está sincronizada.
+- **Arquivadas** lista somente músicas arquivadas.
+- A ordenação pode usar título, artista/banda, atualização recente ou duração.
+
+O contador e a revisão **Músicas escolhidas** ficam separados desses resultados. Trocar busca, filtro ou ordenação não apaga escolhas. Tocar numa música alterna sua participação; **Selecionar resultados (N)** acrescenta de uma vez apenas os resultados visíveis naquele momento, na ordem apresentada. A revisão permite remover participações e reordenar por arraste ou pelas setas. A ordem só é persistida ao tocar em **Salvar coleção**, numa única operação. Remover uma música dessa revisão remove apenas o vínculo; o cadastro da música e suas aparições em shows permanecem.
+
+Para renomear ou organizar uma coleção existente, abra seu detalhe e escolha **Editar coleção**. A exclusão fica no final do editor, pede confirmação e remove a coleção e seus vínculos; não remove músicas nem setlists existentes. Se houver alterações ainda não salvas, a confirmação informa que elas também serão descartadas. Ao detectar uma edição concorrente, o app mantém o rascunho na tela, bloqueia uma nova gravação com a revisão antiga e oferece a saída para revisar a versão atual.
+
+### Conferência com músicas ativas e arquivadas
+
+O cenário automatizado usa o repertório de demonstração. Crie **Ativas e arquivadas**, escolha **Luzes da Cidade**, use a busca para encontrar e acrescentar **Entre Pontes**, depois troque o filtro para **Arquivadas** e acrescente **Rota Antiga**. Ao voltar para **Todas** e mudar a ordenação, o contador permanece em três. Salvar mantém a ordem escolhida — Luzes da Cidade, Entre Pontes e Rota Antiga — e o resumo identifica uma música arquivada. A verificação também confirma que Rota Antiga continua cadastrada no repertório.
+
 ## Migrações e validação
 
 1. Aplique `20261008100000_create_repertoire_collections.sql` para criar tabelas, restrições, índices e políticas RLS.

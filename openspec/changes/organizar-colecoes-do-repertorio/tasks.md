@@ -25,7 +25,7 @@
 - [x] 3.4 Implementar seletor de músicas com busca, filtros, ordenação, contagem, revisão e seleção explícita dos resultados; verificar testes que mudam a consulta várias vezes sem perder marcações ou selecionar músicas fora dos resultados.
 - [x] 3.5 Implementar remoção de participações, reordenação por arraste e controles de subir/descer, salvamento atômico e exclusão confirmada da coleção; verificar manutenção da ordem, ausência de exclusão de músicas e erro recuperável por edição concorrente.
 - [x] 3.6 Integrar a proteção compartilhada de alterações não salvas e bloquear envios concorrentes; verificar continuar, descartar, falhar e salvar sem aviso indevido, incluindo confirmação acima do editor e navegação responsiva após o fechamento.
-- [ ] 3.7 Documentar consulta, edição e organização no seletor em `docs/COLECOES_REPERTORIO.md`; conferir os passos usando uma coleção com músicas ativas e arquivadas.
+- [x] 3.7 Documentar consulta, edição e organização no seletor em `docs/COLECOES_REPERTORIO.md`; conferir os passos usando uma coleção com músicas ativas e arquivadas.
 
 ## 4. Organização a partir do Repertório
 

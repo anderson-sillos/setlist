@@ -450,8 +450,11 @@ describe('<RepertoireCollectionEditorScreen />', () => {
   });
 
   it('mantém escolhas entre buscas e filtros e seleciona apenas resultados visíveis', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData, {
+      createId: () => 'collection-demo-active-and-archived',
+    });
     const view = await render(
-      <AppProviders>
+      <AppProviders repositories={repositories}>
         <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
       </AppProviders>,
     );
@@ -505,5 +508,40 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       'Selecionar Maré de Neon',
     );
     expect(view.getByText('3 escolhidas')).toBeTruthy();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da coleção'),
+      'Ativas e arquivadas',
+    );
+    await fireEvent.press(view.getByLabelText('Salvar coleção'));
+    await waitFor(() =>
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-active-and-archived`,
+      ),
+    );
+
+    const savedCollection = (
+      await repositories.repertoireCollections.listByBandId(demoIds.primaryBand)
+    ).find(({ name }) => name === 'Ativas e arquivadas');
+    expect(savedCollection).toBeTruthy();
+    const savedMemberships = (
+      await repositories.repertoireCollections.listSongsByBandId(
+        demoIds.primaryBand,
+      )
+    )
+      .filter(({ collectionId }) => collectionId === savedCollection?.id)
+      .sort((left, right) => left.position - right.position);
+    expect(savedMemberships.map(({ songId }) => songId)).toEqual([
+      'song-demo-luzes',
+      'song-demo-pontes',
+      'song-demo-rota-antiga',
+    ]);
+    const savedSongs = await repositories.songs.listByBandId(
+      demoIds.primaryBand,
+      { includeArchived: true },
+    );
+    expect(
+      savedSongs.find(({ id }) => id === 'song-demo-rota-antiga')?.archivedAt,
+    ).not.toBeNull();
   });
 });
