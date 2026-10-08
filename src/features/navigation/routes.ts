@@ -46,8 +46,19 @@ export function getRepertoireCollectionHref(
   return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/${encodeURIComponent(collectionId)}` as Href;
 }
 
-export function getRepertoireCollectionCreateHref(bandId: EntityId): Href {
-  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/new` as Href;
+export function getRepertoireCollectionCreateHref(
+  bandId: EntityId,
+  initialSongIds: readonly EntityId[] = [],
+  returnToRepertoire = false,
+): Href {
+  const route = `/bands/${encodeURIComponent(bandId)}/repertoire/collections/new`;
+  const songQuery = initialSongIds
+    .map((songId) => `songId=${encodeURIComponent(songId)}`)
+    .join('&');
+  const query = [songQuery, returnToRepertoire ? 'returnTo=repertoire' : '']
+    .filter(Boolean)
+    .join('&');
+  return `${route}${query ? `?${query}` : ''}` as Href;
 }
 
 export function getRepertoireCollectionEditHref(

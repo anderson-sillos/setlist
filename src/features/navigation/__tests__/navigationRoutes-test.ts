@@ -57,6 +57,15 @@ describe('rotas da navegação', () => {
       `/bands/${demoIds.primaryBand}/repertoire/collections/new`,
     );
     expect(
+      getRepertoireCollectionCreateHref(
+        demoIds.primaryBand,
+        ['song id 1', 'song&2'],
+        true,
+      ),
+    ).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/new?songId=song%20id%201&songId=song%262&returnTo=repertoire`,
+    );
+    expect(
       getRepertoireCollectionEditHref(demoIds.primaryBand, 'collection-festa'),
     ).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/collections/collection-festa/edit`,

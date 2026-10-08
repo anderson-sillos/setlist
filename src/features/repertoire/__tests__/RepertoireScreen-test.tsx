@@ -285,6 +285,37 @@ describe('<RepertoireScreen />', () => {
     ).toBeNull();
   });
 
+  it('abre a criação da coleção com as músicas selecionadas', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+    const lightsSong = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Luzes da Cidade',
+    );
+    const bridgesSong = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Entre Pontes',
+    );
+    if (!lightsSong || !bridgesSong) {
+      throw new Error('Músicas de demonstração não encontradas');
+    }
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(
+      view.getByLabelText('Selecionar músicas do repertório'),
+    );
+    await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
+    await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
+    await fireEvent.press(
+      view.getByLabelText('Criar coleção com 2 músicas selecionadas'),
+    );
+
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/new?songId=${lightsSong.id}&songId=${bridgesSong.id}&returnTo=repertoire`,
+    );
+  });
+
   it('leva Owner de uma banda conectada à criação online', async () => {
     const bandId = 'band-live';
     const repositories = createInMemoryRepositories({

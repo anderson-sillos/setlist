@@ -26,6 +26,7 @@ import type { EntityId, Song } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
+  getRepertoireCollectionCreateHref,
   getRepertoireCollectionsHref,
   getSongCreateHref,
   getSongHref,
@@ -290,6 +291,15 @@ export function RepertoireScreen({
   const beginSongSelection = () => {
     updateSelectionState((current) => ({ ...current, active: true }));
   };
+  const createCollectionFromSelection = () => {
+    router.push(
+      getRepertoireCollectionCreateHref(
+        bandId,
+        Array.from(selectedSongIds),
+        true,
+      ),
+    );
+  };
 
   return (
     <BandAreaLayout
@@ -449,6 +459,14 @@ export function RepertoireScreen({
                     icon="check"
                     label={`Selecionar resultados (${songs.length})`}
                     onPress={selectVisibleSongs}
+                    variant="secondary"
+                  />
+                  <AppButton
+                    accessibilityLabel={`Criar coleção com ${selectedSongCount} músicas selecionadas`}
+                    disabled={selectedSongCount === 0}
+                    icon="addCircle"
+                    label="Criar coleção"
+                    onPress={createCollectionFromSelection}
                     variant="secondary"
                   />
                   <AppButton

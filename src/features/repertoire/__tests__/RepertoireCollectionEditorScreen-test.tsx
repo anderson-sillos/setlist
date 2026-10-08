@@ -144,6 +144,84 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     expect(view.queryByText('Descartar alterações?')).toBeNull();
   });
 
+  it('inicia uma coleção com as músicas escolhidas e protege o descarte', async () => {
+    const songId = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Luzes da Cidade',
+    )?.id;
+    if (!songId) throw new Error('Música de demonstração não encontrada');
+
+    const view = await render(
+      <AppProviders>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          initialSongIds={[songId, 'song-inexistente', songId]}
+          returnToRepertoire
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Músicas escolhidas (1)')).toBeTruthy();
+    expect(view.getAllByText('Luzes da Cidade').length).toBeGreaterThan(0);
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da coleção'),
+      'Festa selecionada',
+    );
+    await fireEvent.press(view.getByText('Cancelar'));
+    expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
+
+    const dismissPrompt = getPromptNativeDismiss(view);
+    await fireEvent.press(view.getByLabelText('Descartar alterações'));
+    await act(async () => dismissPrompt());
+
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('salva somente as músicas recebidas na criação da coleção', async () => {
+    const songId = demoRepositoryData.songs.find(
+      ({ title }) => title === 'Luzes da Cidade',
+    )?.id;
+    if (!songId) throw new Error('Música de demonstração não encontrada');
+
+    const repositories = createInMemoryRepositories(demoRepositoryData, {
+      createId: () => 'collection-from-repertoire',
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          initialSongIds={[songId, 'song-inexistente', songId]}
+          returnToRepertoire
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Músicas escolhidas (1)');
+    await fireEvent.changeText(
+      view.getByLabelText('Nome da coleção'),
+      'Festa via repertório',
+    );
+    await fireEvent.press(view.getByLabelText('Salvar coleção'));
+
+    await waitFor(() =>
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-from-repertoire`,
+      ),
+    );
+    const savedCollection = (
+      await repositories.repertoireCollections.listByBandId(demoIds.primaryBand)
+    ).find(({ name }) => name === 'Festa via repertório');
+    expect(savedCollection).toBeTruthy();
+    expect(
+      (
+        await repositories.repertoireCollections.listSongsByBandId(
+          demoIds.primaryBand,
+        )
+      )
+        .filter(({ collectionId }) => collectionId === savedCollection?.id)
+        .map(({ songId: includedSongId }) => includedSongId),
+    ).toEqual([songId]);
+  });
+
   it('valida nome vazio, limite de 120 caracteres e duplicidade', async () => {
     const view = await render(
       <AppProviders>

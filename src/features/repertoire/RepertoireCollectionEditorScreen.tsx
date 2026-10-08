@@ -44,6 +44,7 @@ import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import type { EditActions } from '@/features/navigation/types';
 import {
+  getBandSectionHref,
   getRepertoireCollectionCreateHref,
   getRepertoireCollectionEditHref,
   getRepertoireCollectionHref,
@@ -74,6 +75,8 @@ import {
 interface RepertoireCollectionEditorScreenProps {
   readonly bandId: EntityId;
   readonly collectionId?: EntityId;
+  readonly initialSongIds?: readonly EntityId[];
+  readonly returnToRepertoire?: boolean;
 }
 
 interface RepertoireCollectionEditorFrameProps {
@@ -86,6 +89,8 @@ interface RepertoireCollectionEditorFrameProps {
 export function RepertoireCollectionEditorScreen({
   bandId,
   collectionId,
+  initialSongIds = [],
+  returnToRepertoire = false,
 }: RepertoireCollectionEditorScreenProps) {
   const collectionsQuery = useRepertoireCollections(bandId);
   const songsQuery = useSongs(bandId, true);
@@ -149,14 +154,22 @@ export function RepertoireCollectionEditorScreen({
     );
   }
 
+  const availableSongIds = new Set((songsQuery.data ?? []).map(({ id }) => id));
+  const initialOrderedSongIds = summary
+    ? summary.songs.map(({ id }) => id)
+    : Array.from(new Set(initialSongIds)).filter((songId) =>
+        availableSongIds.has(songId),
+      );
+
   return (
     <RepertoireCollectionEditorForm
       bandId={bandId}
       collectionId={collectionId}
       existingCollections={collectionsQuery.data ?? []}
       initialCollection={summary?.collection ?? null}
-      key={collectionId ?? 'new'}
-      orderedSongIds={summary?.songs.map(({ id }) => id) ?? []}
+      key={collectionId ?? `new-${initialOrderedSongIds.join('|')}`}
+      orderedSongIds={initialOrderedSongIds}
+      returnToRepertoire={returnToRepertoire}
       songs={songsQuery.data ?? []}
     />
   );
@@ -170,6 +183,7 @@ interface RepertoireCollectionEditorFormProps {
   }[];
   readonly initialCollection: RepertoireCollection | null;
   readonly orderedSongIds: readonly EntityId[];
+  readonly returnToRepertoire: boolean;
   readonly songs: readonly Song[];
 }
 
@@ -179,6 +193,7 @@ function RepertoireCollectionEditorForm({
   existingCollections,
   initialCollection,
   orderedSongIds,
+  returnToRepertoire,
   songs,
 }: RepertoireCollectionEditorFormProps) {
   const router = useRouter();
@@ -324,6 +339,15 @@ function RepertoireCollectionEditorForm({
   });
 
   const leaveEditor = () => {
+    if (returnToRepertoire) {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace(getBandSectionHref(bandId, 'repertoire'));
+      }
+      return;
+    }
+
     router.replace(
       collectionId
         ? getRepertoireCollectionHref(bandId, collectionId)
