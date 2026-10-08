@@ -1,12 +1,15 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import {
   FlatList,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
+  type GestureResponderEvent,
 } from 'react-native';
 
 import {
@@ -52,6 +55,7 @@ import {
   getRepertoireCollectionsHref,
   getSongCreateHref,
   getSongEditHref,
+  getSongLyricsHref,
   getSongHref,
 } from '@/features/navigation/routes';
 import {
@@ -129,6 +133,68 @@ function SongRow({
   song,
 }: SongRowProps) {
   const [pressed, setPressed] = useState(false);
+  const router = useRouter();
+  const singleClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelPendingClick = () => {
+    if (singleClickTimer.current === null) return;
+    clearTimeout(singleClickTimer.current);
+    singleClickTimer.current = null;
+  };
+  useEffect(() => cancelPendingClick, []);
+  const handleSongPress = (
+    event: GestureResponderEvent | ReactMouseEvent<HTMLAnchorElement>,
+  ) => {
+    blurWebFocus();
+    if (Platform.OS !== 'web' || song.lyricStatus === 'missing') return;
+
+    const mouseEvent = event as unknown as {
+      altKey?: boolean;
+      button?: number;
+      ctrlKey?: boolean;
+      detail?: number;
+      metaKey?: boolean;
+      nativeEvent?: {
+        altKey?: boolean;
+        button?: number;
+        ctrlKey?: boolean;
+        detail?: number;
+        metaKey?: boolean;
+        shiftKey?: boolean;
+      };
+      shiftKey?: boolean;
+    };
+    const nativeEvent = mouseEvent.nativeEvent;
+    const clickDetail = mouseEvent.detail || nativeEvent?.detail || 0;
+    const button = mouseEvent.button ?? nativeEvent?.button;
+    const modifiedClick =
+      mouseEvent.altKey ||
+      mouseEvent.ctrlKey ||
+      mouseEvent.metaKey ||
+      mouseEvent.shiftKey ||
+      nativeEvent?.altKey ||
+      nativeEvent?.ctrlKey ||
+      nativeEvent?.metaKey ||
+      nativeEvent?.shiftKey;
+
+    if (
+      clickDetail < 1 ||
+      (button !== undefined && button !== 0) ||
+      modifiedClick
+    )
+      return;
+
+    event.preventDefault();
+    if (singleClickTimer.current !== null) {
+      cancelPendingClick();
+      router.push(getSongLyricsHref(bandId, song.id));
+      return;
+    }
+
+    singleClickTimer.current = setTimeout(() => {
+      singleClickTimer.current = null;
+      router.push(getSongHref(bandId, song.id));
+    }, 320);
+  };
 
   const row = (
     <Pressable
@@ -226,7 +292,7 @@ function SongRow({
       ) : (
         <Link
           href={getSongHref(bandId, song.id)}
-          onPress={blurWebFocus}
+          onPress={handleSongPress}
           asChild
         >
           {row}
@@ -237,6 +303,7 @@ function SongRow({
           accessibilityLabel={`Ações da música ${song.title}`}
           accessibilityRole="button"
           onPress={() => {
+            cancelPendingClick();
             blurWebFocus();
             onOpenActions(song);
           }}
@@ -634,6 +701,16 @@ function RepertoireScreenContent({
     actionMenu.target !== 'collections' ? actionMenu.target : null;
   const songActions: RepertoireAction[] = actionSong
     ? [
+        ...(actionSong.lyricStatus !== 'missing'
+          ? [
+              {
+                icon: 'fileText' as const,
+                label: 'Exibir letra',
+                onPress: () =>
+                  router.push(getSongLyricsHref(bandId, actionSong.id)),
+              },
+            ]
+          : []),
         {
           icon: 'info',
           label: 'Ver detalhes',

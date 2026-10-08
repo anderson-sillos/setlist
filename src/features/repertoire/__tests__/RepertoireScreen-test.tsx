@@ -1,4 +1,6 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
+import { Platform } from 'react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -9,7 +11,31 @@ import { AppProviders } from '@/providers/AppProviders';
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
 jest.mock('expo-router', () => ({
-  Link: ({ children }: { children: object }) => children,
+  Link: ({
+    children,
+    href,
+    onPress,
+  }: {
+    children: ReactElement<{
+      onPress?: (event: MockLinkEvent) => void;
+    }>;
+    href?: string;
+    onPress?: (event: MockLinkEvent) => void;
+  }) => {
+    const React = jest.requireActual<typeof import('react')>('react');
+    return React.cloneElement(children, {
+      onPress: (event: MockLinkEvent) => {
+        const preventDefault = event.preventDefault.bind(event);
+        event.preventDefault = () => {
+          event.defaultPrevented = true;
+          preventDefault();
+        };
+        children.props.onPress?.(event);
+        onPress?.(event);
+        if (!event.defaultPrevented && href) mockRouter.push(href);
+      },
+    });
+  },
   useFocusEffect: jest.fn(),
   useNavigation: () => ({
     addListener: jest.fn(() => jest.fn()),
@@ -18,11 +44,25 @@ jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
 }));
 
-async function pressCollectionAction(
+interface MockLinkEvent {
+  readonly nativeEvent?: {
+    readonly altKey?: boolean;
+    readonly button?: number;
+    readonly ctrlKey?: boolean;
+    readonly detail?: number;
+    readonly metaKey?: boolean;
+    readonly shiftKey?: boolean;
+  };
+  defaultPrevented?: boolean;
+  preventDefault: () => void;
+}
+
+async function pressActionMenu(
   view: Awaited<ReturnType<typeof render>>,
+  triggerLabel: string,
   label: string,
 ) {
-  await fireEvent.press(view.getByLabelText('Abrir coleções do repertório'));
+  await fireEvent.press(view.getByLabelText(triggerLabel));
   let parent = view.getByTestId('repertoire-action-menu').parent;
   while (parent && typeof parent.props.onDismiss !== 'function')
     parent = parent.parent;
@@ -30,6 +70,13 @@ async function pressCollectionAction(
   const dismiss = parent.props.onDismiss as () => void;
   await fireEvent.press(view.getByLabelText(label));
   if (dismiss) await act(async () => dismiss());
+}
+
+async function pressCollectionAction(
+  view: Awaited<ReturnType<typeof render>>,
+  label: string,
+) {
+  await pressActionMenu(view, 'Abrir coleções do repertório', label);
 }
 
 describe('<RepertoireScreen />', () => {
@@ -524,6 +571,73 @@ describe('<RepertoireScreen />', () => {
       `/bands/${demoIds.primaryBand}/repertoire/collections`,
     );
     expect(view.queryByLabelText('Adicionar música ao repertório')).toBeNull();
+  });
+
+  it('oferece letra em tela cheia no menu apenas para músicas com letra', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await pressActionMenu(
+      view,
+      'Ações da música Luzes da Cidade',
+      'Exibir letra',
+    );
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/lyrics`,
+    );
+
+    await fireEvent.press(
+      view.getByLabelText('Ações da música Instrumental de Abertura'),
+    );
+    expect(view.queryByLabelText('Exibir letra')).toBeNull();
+  });
+
+  it('distingue clique simples e duplo no Repertório Web', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    jest.useFakeTimers();
+
+    try {
+      const view = await render(
+        <AppProviders>
+          <RepertoireScreen bandId={demoIds.primaryBand} />
+        </AppProviders>,
+      );
+      await view.findByText('Luzes da Cidade');
+      const songCard = view.getByRole('link', {
+        name: /Abrir música Luzes da Cidade/,
+      });
+
+      await fireEvent.press(songCard, {
+        nativeEvent: { button: 0, detail: 1 },
+      });
+      expect(mockRouter.push).not.toHaveBeenCalled();
+      await fireEvent.press(songCard, {
+        nativeEvent: { button: 0, detail: 2 },
+      });
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/lyrics`,
+      );
+
+      mockRouter.push.mockClear();
+      await fireEvent.press(songCard, {
+        nativeEvent: { button: 0, detail: 1 },
+      });
+      await act(async () => jest.advanceTimersByTime(320));
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}`,
+      );
+    } finally {
+      jest.useRealTimers();
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
   });
 
   it('preserva busca e filtros durante a seleção múltipla', async () => {

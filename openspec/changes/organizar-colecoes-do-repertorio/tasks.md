@@ -73,6 +73,8 @@
 
 - [x] 8.5 Investigar a falha de acesso às coleções no ambiente de desenvolvimento, confirmar o projeto e as migrações pendentes, aplicar pelo processo do repositório e refazer a consulta autenticada no app; verificar ausência de migrações pendentes e preservar produção.
 
+- [x] 8.6 Adicionar Exibir letra ao menu de ações somente para músicas com letra, abrir a rota de letra em tela cheia e permitir clique duplo no card na Web sem alterar a navegação imediata por toque em iOS/Android; verificar clique simples/duplo, música sem letra e ação do menu e documentar o atalho.
+
 > Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.

@@ -116,6 +116,12 @@ Usar uma ação secundária para editar participações, com marcações, confir
 
 **Alternativa considerada:** manter uma seção permanente com mensagem de ausência e botão de adesão. As etiquetas condicionais mostram a organização existente e deixam o detalhe habitual leve para quem não utiliza o recurso.
 
+### 8.1 Acesso à letra a partir do Repertório
+
+Acrescentar **Exibir letra** ao menu secundário de ações de uma música somente quando seu status indicar conteúdo de letra. A ação reutiliza a rota existente de letra em tela cheia. Na Web, um clique duplo no card abre essa mesma rota; o clique simples continua abrindo os detalhes, com a navegação simples adiada brevemente para distinguir o gesto. Em Android e iOS, o toque único continua imediato e o menu oferece o atalho explícito.
+
+**Alternativa considerada:** interpretar dois toques rápidos como acesso à letra em todas as plataformas. Isso atrasaria a navegação habitual no celular; a ação explícita no menu mantém o mesmo recurso disponível nesses dispositivos sem alterar a resposta do toque.
+
 ### 9. Inclusão no setlist como lote local de ocorrências
 
 Integrar **Adicionar coleção** à escolha de tipos de inclusão em `ShowBlockEditorDialog.tsx`. A consulta abre uma prévia com bloco ativo, músicas elegíveis na ordem salva, quantidade, duração estimada, músicas arquivadas consultáveis que ficarão de fora e indicação de repetições no show.

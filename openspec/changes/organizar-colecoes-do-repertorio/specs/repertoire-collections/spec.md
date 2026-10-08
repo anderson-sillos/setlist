@@ -182,6 +182,19 @@ O sistema SHALL permitir a proprietários e editores ativar explicitamente um mo
 - **THEN** a consulta volta ao comportamento habitual de abrir o detalhe ao tocar em uma música
 - **AND** nenhum vínculo de coleção é alterado
 
+#### Scenario: Abrir a letra pelas ações da música
+
+- **WHEN** uma pessoa abre o menu de ações de uma música que tem letra disponível
+- **THEN** encontra a ação Exibir letra, que abre a letra em tela cheia
+- **AND** músicas sem letra não apresentam essa ação
+
+#### Scenario: Abrir a letra com clique duplo na Web
+
+- **WHEN** uma pessoa dá um clique duplo no card de uma música com letra disponível no Repertório Web
+- **THEN** a letra abre em tela cheia
+- **AND** um clique simples continua abrindo os detalhes da música
+- **AND** nas plataformas nativas o toque simples permanece imediato e o menu mantém o atalho para a letra
+
 ### Requirement: Filtro de coleção combinado no Repertório
 
 Quando houver coleções na banda, o sistema SHALL oferecer no painel Filtrar uma dimensão de coleção com Todas as coleções, Sem coleção e uma coleção específica por vez, combinada por interseção com a busca e os filtros atuais. Todas as coleções SHALL incluir também músicas sem vínculo.

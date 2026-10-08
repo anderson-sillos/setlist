@@ -74,7 +74,7 @@ No menu **Coleções**, **Limpar seleção** desmarca as músicas sem sair desse
 
 **Cancelar seleção** encerra o modo, limpa as escolhas locais e restaura a abertura habitual do detalhe ao tocar em uma música. Cancelar antes da confirmação não grava vínculos. Integrantes sem papel de edição continuam consultando o Repertório e as coleções sem ver essas ações de organização.
 
-O botão de **três pontos verticais** de cada música oferece **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme as permissões. Tocar no restante do cartão continua abrindo o detalhe; no modo de seleção, esse toque marca ou desmarca a música. A organização pelo menu utiliza o mesmo diálogo de participações disponível no detalhe, com salvamento e confirmação de descarte. No iOS, o menu fecha completamente antes de abrir o diálogo ou a tela de destino.
+O botão de **três pontos verticais** de cada música oferece **Exibir letra** quando existe letra, além de **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme as permissões. **Exibir letra** abre a letra em tela cheia. Na Web, clique duplo no cartão com letra também abre essa tela; clique simples continua abrindo os detalhes. No iOS e Android, o toque simples continua imediato e o menu oferece o atalho à letra. No modo de seleção, tocar no cartão marca ou desmarca a música. A organização pelo menu utiliza o mesmo diálogo de participações disponível no detalhe, com salvamento e confirmação de descarte. No iOS, o menu fecha completamente antes de abrir o diálogo ou a tela de destino.
 
 Uma falha na consulta opcional de coleções não impede a consulta das músicas. O erro e a nova tentativa aparecem nas ações de coleções; se houver dados anteriores, o filtro e os resultados são preservados.
 
