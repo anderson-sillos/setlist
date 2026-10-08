@@ -28,7 +28,9 @@ begin
   values
     (owner_id, 'Owner RPC'),
     (editor_id, 'Editor RPC'),
-    (member_id, 'Integrante RPC');
+    (member_id, 'Integrante RPC')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
 
   insert into public.bands (id, name)
   values

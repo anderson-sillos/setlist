@@ -16,7 +16,9 @@ begin
   values (owner_id, 'authenticated', 'authenticated', 'task-9-4-owner@example.test');
 
   insert into public.profiles (id, display_name)
-  values (owner_id, 'Owner de ciclo de vida');
+  values (owner_id, 'Owner de ciclo de vida')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
 
   insert into public.bands (id, name)
   values (band_id, 'Banda de ciclo de vida');

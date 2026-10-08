@@ -31,7 +31,9 @@ begin
     (editor_id, 'Editor de teste'),
     (member_id, 'Integrante de teste'),
     (outsider_id, 'Pessoa externa de teste'),
-    (suspended_id, 'Conta suspensa de teste');
+    (suspended_id, 'Conta suspensa de teste')
+  on conflict (id) do update
+  set display_name = excluded.display_name;
 
   insert into public.bands (id, name)
   values
