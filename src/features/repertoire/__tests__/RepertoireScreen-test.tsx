@@ -779,7 +779,7 @@ describe('<RepertoireScreen />', () => {
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
     await pressCollectionAction(
       view,
-      'Adicionar 2 músicas selecionadas a uma coleção existente',
+      'Adicionar 2 músicas selecionadas a uma coleção',
     );
     let parent = view.getByTestId('repertoire-collection-picker').parent;
     while (parent && typeof parent.props.onDismiss !== 'function') {
@@ -830,7 +830,7 @@ describe('<RepertoireScreen />', () => {
     expect(view.getByText('3 selecionadas')).toBeTruthy();
     await pressCollectionAction(
       view,
-      'Adicionar 3 músicas selecionadas a uma coleção existente',
+      'Adicionar 3 músicas selecionadas a uma coleção',
     );
     expect(
       view.getByLabelText('Selecionar coleção Festa').props.accessibilityState,
@@ -911,7 +911,7 @@ describe('<RepertoireScreen />', () => {
     await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
     await pressCollectionAction(
       view,
-      'Adicionar 1 música selecionada a uma coleção existente',
+      'Adicionar 1 música selecionada a uma coleção',
     );
     await fireEvent.press(view.getByLabelText('Selecionar coleção Festa'));
     await fireEvent.press(

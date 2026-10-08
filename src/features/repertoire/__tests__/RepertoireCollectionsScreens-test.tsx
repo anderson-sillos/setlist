@@ -8,10 +8,15 @@ import { RepertoireCollectionsScreen } from '@/features/repertoire/RepertoireCol
 import { AppProviders } from '@/providers/AppProviders';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
+const mockNavigation = {
+  addListener: jest.fn(() => jest.fn()),
+  dispatch: jest.fn(),
+};
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: ReactNode }) => children,
   useFocusEffect: jest.fn(),
+  useNavigation: () => mockNavigation,
   useRouter: () => mockRouter,
 }));
 
@@ -87,7 +92,7 @@ describe('telas de consulta de coleções do repertório', () => {
     expect(emptyView.getByText('Criar coleção')).toBeTruthy();
   });
 
-  it('mantém leitura do detalhe para integrante e reserva edição a quem pode escrever', async () => {
+  it('mantém leitura para integrantes e abre a edição diretamente para quem pode escrever', async () => {
     const memberView = await render(
       <AppProviders currentUserId="user-demo-carla">
         <RepertoireCollectionDetailScreen
@@ -111,12 +116,10 @@ describe('telas de consulta de coleções do repertório', () => {
       </AppProviders>,
     );
 
-    await ownerView.findByText('Festa');
-    await fireEvent.press(ownerView.getByLabelText('Editar coleção'));
-
-    expect(mockRouter.push).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa/edit`,
+    expect(ownerView.getByLabelText('Nome da coleção').props.value).toBe(
+      'Festa',
     );
+    expect(ownerView.queryByLabelText('Editar coleção')).toBeNull();
   });
 
   it('mantém músicas arquivadas na ordem e as identifica no detalhe', async () => {
@@ -133,7 +136,7 @@ describe('telas de consulta de coleções do repertório', () => {
       ],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId="user-demo-carla" repositories={repositories}>
         <RepertoireCollectionDetailScreen
           bandId={demoIds.primaryBand}
           collectionId="collection-demo-festa"
@@ -184,10 +187,12 @@ describe('telas de consulta de coleções do repertório', () => {
       </AppProviders>,
     );
 
-    expect(await view.findByText('Coleção vazia')).toBeTruthy();
-    expect(view.getByText(/A coleção pode continuar vazia/)).toBeTruthy();
+    expect(
+      await view.findByText(/Esta coleção ainda não tem músicas/),
+    ).toBeTruthy();
+    expect(view.queryByText('Coleção vazia')).toBeNull();
     await fireEvent.press(view.getByText('Adicionar músicas'));
-    expect(mockRouter.push).toHaveBeenCalledWith(
+    expect(mockRouter.replace).toHaveBeenCalledWith(
       `/bands/${demoIds.primaryBand}/repertoire?addToCollectionId=collection-demo-festa`,
     );
   });

@@ -5,6 +5,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { State } from 'react-native-gesture-handler';
 import { Platform } from 'react-native';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -38,6 +39,24 @@ jest.mock('expo-router', () => ({
     dispatch: mockDispatch,
   }),
 }));
+
+jest.mock('react-native-gesture-handler', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const gestureHandler = jest.requireActual<
+    typeof import('react-native-gesture-handler')
+  >('react-native-gesture-handler');
+
+  return {
+    ...gestureHandler,
+    PanGestureHandler: ({
+      children,
+      ...props
+    }: {
+      readonly children?: import('react').ReactNode;
+      readonly [key: string]: unknown;
+    }) => React.createElement('PanGestureHandlerMock', props, children),
+  };
+});
 
 function getPromptNativeDismiss(
   view: Awaited<ReturnType<typeof render>>,
@@ -136,11 +155,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     ).toEqual({ disabled: true });
 
     await act(async () => deferred.release());
-    await waitFor(() =>
-      expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
-      ),
-    );
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalledTimes(1));
     expect(view.queryByText('Descartar alterações?')).toBeNull();
   });
 
@@ -209,7 +224,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
     await waitFor(() =>
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-from-repertoire`,
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-from-repertoire/edit?returnTo=repertoire`,
       ),
     );
     const savedCollection = (
@@ -285,7 +300,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         orderedSongIds: [],
       });
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-new`,
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-new/edit`,
       );
     });
   });
@@ -316,9 +331,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         name: 'Festa de rua',
         orderedSongIds: ['song-demo-luzes', 'song-demo-mare-neon'],
       });
-      expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
-      );
+      expect(mockRouter.back).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -335,9 +348,28 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     );
 
     await view.findByLabelText('Nome da coleção');
-    await fireEvent.press(
-      view.getByLabelText('Mover Luzes da Cidade para baixo'),
+    const initialHandle = view.getByTestId(
+      'gesture-collection-song-drag-song-demo-luzes',
     );
+    await act(async () => {
+      initialHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
+      });
+    });
+    const activeHandle = view.getByTestId(
+      'gesture-collection-song-drag-song-demo-luzes',
+    );
+    await act(async () => {
+      activeHandle.props.onGestureEvent({
+        nativeEvent: { state: State.ACTIVE, translationY: 80 },
+      });
+    });
+    expect(view.getByTestId('collection-song-drag-preview')).toBeTruthy();
+    await act(async () => {
+      activeHandle.props.onHandlerStateChange({
+        nativeEvent: { oldState: State.ACTIVE, state: State.END },
+      });
+    });
     await fireEvent.press(
       view.getByLabelText('Remover Luzes da Cidade da coleção'),
     );
@@ -452,7 +484,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       }),
     );
     expect(mockRouter.replace).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
+      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa/edit`,
     );
   });
 
@@ -496,7 +528,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       view.getByRole('button', { name: 'Sair e revisar coleção atual' }),
     );
     expect(mockRouter.replace).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
+      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa/edit`,
     );
   });
 
@@ -552,7 +584,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     await fireEvent.press(view.getByLabelText('Salvar coleção'));
     await waitFor(() =>
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-name-only`,
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-name-only/edit`,
       ),
     );
     const saved = await repositories.repertoireCollections.listByBandId(

@@ -13,13 +13,7 @@ jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
-  useNavigation: () => ({
-    addListener: (_type: string, callback: typeof mockBeforeRemove) => {
-      mockBeforeRemove = callback;
-      return jest.fn();
-    },
-    dispatch: mockDispatch,
-  }),
+  useNavigation: () => mockNavigation,
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -38,6 +32,13 @@ let mockBeforeRemove:
     }) => void)
   | undefined;
 const mockDispatch = jest.fn();
+const mockNavigation = {
+  addListener: (_type: string, callback: typeof mockBeforeRemove) => {
+    mockBeforeRemove = callback;
+    return jest.fn();
+  },
+  dispatch: mockDispatch,
+};
 
 function getPromptNativeDismiss(
   view: Awaited<ReturnType<typeof render>>,
