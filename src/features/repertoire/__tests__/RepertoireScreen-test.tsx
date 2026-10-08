@@ -224,6 +224,41 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Sem coleção')).toBeNull();
   });
 
+  it('abre com a coleção indicada pela rota e preserva o filtro ao retornar', async () => {
+    function RepertoireHarness({
+      visible = true,
+    }: {
+      readonly visible?: boolean;
+    }) {
+      return (
+        <AppProviders>
+          {visible ? (
+            <RepertoireScreen
+              bandId={demoIds.primaryBand}
+              initialCollectionId="collection-demo-festa"
+            />
+          ) : null}
+        </AppProviders>
+      );
+    }
+
+    const view = await render(<RepertoireHarness />);
+
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.getByText('Luzes da Cidade')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    expect(view.getByLabelText('Festa').props.accessibilityState).toEqual({
+      checked: true,
+    });
+
+    await view.rerender(<RepertoireHarness visible={false} />);
+    await view.rerender(<RepertoireHarness />);
+
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+  });
+
   it('restaura o filtro ao voltar do detalhe e mantém estado separado por banda durante o refresh', async () => {
     const repositories = createInMemoryRepositories(demoRepositoryData);
     const listCollections = jest.spyOn(

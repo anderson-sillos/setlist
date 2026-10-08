@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import {
@@ -26,11 +26,12 @@ import {
   useSong,
   useUserBands,
 } from '@/data/queries';
-import type { EntityId } from '@/domain';
+import type { EntityId, RepertoireCollection } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { ContentReportDialog } from '@/features/moderation/ContentReportDialog';
 import {
   getBandSectionHref,
+  getRepertoireCollectionFilterHref,
   getSongEditHref,
   getSongHref,
   getSongLyricsHref,
@@ -40,6 +41,7 @@ import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
+import { blurWebFocus } from '@/utils/focus';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
 import { SongLyricsContent } from './SongLyricsContent';
 import {
@@ -54,6 +56,41 @@ interface SongDetailScreenProps {
   readonly songId: EntityId;
   readonly viewportHeight?: number;
   readonly viewportWidth?: number;
+}
+
+interface SongCollectionLinkProps {
+  readonly bandId: EntityId;
+  readonly collection: RepertoireCollection;
+}
+
+function SongCollectionLink({ bandId, collection }: SongCollectionLinkProps) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <Link
+      href={getRepertoireCollectionFilterHref(bandId, collection.id)}
+      onPress={blurWebFocus}
+      asChild
+    >
+      <Pressable
+        accessibilityHint="Abre o repertório filtrado por esta coleção."
+        accessibilityLabel={`Ver músicas da coleção ${collection.name}`}
+        accessibilityRole="link"
+        onBlur={() => setFocused(false)}
+        onFocus={() => setFocused(true)}
+        style={({ pressed }) => [
+          styles.collectionTag,
+          focused && styles.collectionTagFocused,
+          pressed && styles.collectionTagPressed,
+        ]}
+        testID={`song-collection-${collection.id}`}
+      >
+        <AppText style={styles.collectionTagText} variant="caption">
+          {collection.name}
+        </AppText>
+      </Pressable>
+    </Link>
+  );
 }
 
 export function SongDetailScreen({
@@ -211,18 +248,11 @@ export function SongDetailScreen({
                 </AppText>
                 <View style={styles.collectionTags}>
                   {songCollections.map((collection) => (
-                    <View
+                    <SongCollectionLink
+                      bandId={bandId}
+                      collection={collection}
                       key={collection.id}
-                      style={styles.collectionTag}
-                      testID={`song-collection-${collection.id}`}
-                    >
-                      <AppText
-                        style={styles.collectionTagText}
-                        variant="caption"
-                      >
-                        {collection.name}
-                      </AppText>
-                    </View>
+                    />
                   ))}
                 </View>
               </View>
@@ -355,6 +385,13 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+  },
+  collectionTagFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
+  },
+  collectionTagPressed: {
+    backgroundColor: colors.background.pressed,
   },
   collectionTagText: {
     flexShrink: 1,

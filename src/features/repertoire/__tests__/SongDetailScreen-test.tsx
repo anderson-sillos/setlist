@@ -141,6 +141,11 @@ describe('<SongDetailScreen />', () => {
     expect(
       view.getByTestId('song-collection-collection-demo-festa'),
     ).toBeTruthy();
+    expect(
+      view.getByRole('link', {
+        name: `Ver músicas da coleção ${longCollectionName}`,
+      }).props.accessibilityHint,
+    ).toBe('Abre o repertório filtrado por esta coleção.');
   });
 
   it('não mostra seção vazia nem convite quando a música não tem coleção', async () => {

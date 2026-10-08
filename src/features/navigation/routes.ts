@@ -27,6 +27,13 @@ export function getSongHref(bandId: EntityId, songId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/repertoire/${encodeURIComponent(songId)}` as Href;
 }
 
+export function getRepertoireCollectionFilterHref(
+  bandId: EntityId,
+  collectionId: EntityId,
+): Href {
+  return `${getBandSectionHref(bandId, 'repertoire')}?collectionId=${encodeURIComponent(collectionId)}` as Href;
+}
+
 export function getSongCreateHref(bandId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/repertoire/new` as Href;
 }

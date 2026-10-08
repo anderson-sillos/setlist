@@ -96,6 +96,10 @@ interface CollectionAppendResult {
   readonly collectionName: string;
 }
 
+interface RepertoireScreenProps extends BandSectionScreenProps {
+  readonly initialCollectionId?: EntityId;
+}
+
 type RepertoireCollectionFilter = 'all' | 'none' | 'removed' | EntityId;
 
 function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
@@ -211,13 +215,15 @@ function SongRow({
 
 export function RepertoireScreen({
   bandId,
+  initialCollectionId,
   viewportHeight,
   viewportWidth,
-}: BandSectionScreenProps) {
+}: RepertoireScreenProps) {
   return (
     <RepertoireScreenContent
       key={bandId}
       bandId={bandId}
+      initialCollectionId={initialCollectionId}
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     />
@@ -226,9 +232,10 @@ export function RepertoireScreen({
 
 function RepertoireScreenContent({
   bandId,
+  initialCollectionId,
   viewportHeight,
   viewportWidth,
-}: BandSectionScreenProps) {
+}: RepertoireScreenProps) {
   const window = useWindowDimensions();
   const usesBottomNavigation =
     getNavigationPresentation(
@@ -256,6 +263,7 @@ function RepertoireScreenContent({
       search: '',
       sort: 'title' as RepertoireSort,
     });
+  const appliedRouteCollectionId = useRef<EntityId | null>(null);
   const {
     beginDrag: beginControlsDrag,
     beginMomentum: beginControlsMomentum,
@@ -328,6 +336,26 @@ function RepertoireScreenContent({
 
     update('collection', 'removed');
   }, [filteredCollectionWasDeleted, update]);
+  useEffect(() => {
+    if (
+      !initialCollectionId ||
+      !collectionsQuery.isSuccess ||
+      appliedRouteCollectionId.current === initialCollectionId ||
+      !collectionsQuery.data.some(
+        ({ collection }) => collection.id === initialCollectionId,
+      )
+    ) {
+      return;
+    }
+
+    appliedRouteCollectionId.current = initialCollectionId;
+    update('collection', initialCollectionId);
+  }, [
+    collectionsQuery.data,
+    collectionsQuery.isSuccess,
+    initialCollectionId,
+    update,
+  ]);
   const songs = useMemo(() => {
     return filterAndSortRepertoireSongs(
       songsQuery.data ?? [],

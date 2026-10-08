@@ -45,7 +45,7 @@
 ## 6. Participações no detalhe da música
 
 - [x] 6.1 Mostrar etiquetas de coleções abaixo de Tom/BPM somente quando houver vínculos; verificar testes com várias coleções, nomes longos e música sem vínculos sem seção vazia ou convite de adesão.
-- [ ] 6.2 Conectar cada etiqueta ao Repertório filtrado pela coleção e incluir rótulos/foco acessíveis; verificar destino na mesma banda, identificação do filtro e retorno contextual nas rotas.
+- [x] 6.2 Conectar cada etiqueta ao Repertório filtrado pela coleção e incluir rótulos/foco acessíveis; verificar destino na mesma banda, identificação do filtro e retorno contextual nas rotas.
 - [ ] 6.3 Implementar gerenciamento secundário de participações para quem pode editar, incluindo música ainda sem coleções; verificar atualização atômica, inclusão ao final, preservação de posições das outras músicas e negação a integrante sem permissão.
 - [ ] 6.4 Integrar proteção compartilhada, falha recuperável e saída após salvamento; verificar testes de continuar/descartar/salvar e documentar a gestão de participações em `docs/COLECOES_REPERTORIO.md`.
 

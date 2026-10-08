@@ -1,6 +1,7 @@
 import { demoIds } from '@/data/demo';
 import {
   getBandSectionHref,
+  getRepertoireCollectionFilterHref,
   getRepertoireCollectionCreateHref,
   getRepertoireCollectionEditHref,
   getRepertoireCollectionHref,
@@ -20,6 +21,11 @@ describe('rotas da navegação', () => {
     );
     expect(getBandSectionHref(demoIds.primaryBand, 'repertoire')).toBe(
       `/bands/${demoIds.primaryBand}/repertoire`,
+    );
+    expect(
+      getRepertoireCollectionFilterHref('banda com espaço', 'coleção festa'),
+    ).toBe(
+      '/bands/banda%20com%20espa%C3%A7o/repertoire?collectionId=cole%C3%A7%C3%A3o%20festa',
     );
     expect(getBandSectionHref(demoIds.primaryBand, 'band')).toBe(
       `/bands/${demoIds.primaryBand}/band`,
