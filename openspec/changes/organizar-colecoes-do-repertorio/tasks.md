@@ -62,5 +62,9 @@
 
 - [ ] 8.1 Executar os cenários completos de consultar, criar, editar, filtrar, gerenciar participações e incluir no show na Web, iOS e Android, incluindo banda sem coleções; registrar evidências e verificar que o recurso continua opcional e discreto.
 - [ ] 8.2 Conferir telas compactas, texto ampliado, teclado, foco Web, leitor de tela, redução de movimento, áreas seguras e reordenação sem arraste; registrar resultados e verificar ausência de controles inacessíveis ou diálogos encobertos.
-- [ ] 8.3 Executar regressão integrada de navegação, gestos do drawer, proteção de edição, rolagem da lista, atualização manual e troca de banda, além de `npm run validate`; verificar aprovação e registrar qualquer limitação comprovada antes de concluir a change.
+- [x] 8.3 Executar regressão integrada de navegação, gestos do drawer, proteção de edição, rolagem da lista, atualização manual e troca de banda, além de `npm run validate`; verificar aprovação e registrar qualquer limitação comprovada antes de concluir a change.
 - [ ] 8.4 Atualizar `docs/CODEX_HANDOFF.md` com escopo entregue, migração, verificações e orientações de distribuição/retorno; verificar `openspec validate organizar-colecoes-do-repertorio --strict --no-interactive` e correspondência entre documentação, requisitos e tarefas concluídas.
+
+> Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: esta sessão não tem `adb` nem `xcrun simctl`, e o Playwright atual não percorre o fluxo autenticado de coleções.
+
+> Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.

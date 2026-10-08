@@ -229,6 +229,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       </AppProviders>,
     );
 
+    await view.findByLabelText('Nome da coleção');
     await fireEvent.press(view.getByLabelText('Salvar coleção'));
     expect(
       await view.findByText('Informe um nome para a coleção.'),
