@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -182,6 +182,11 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('restaura o filtro ao voltar do detalhe e mantém estado separado por banda durante o refresh', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const listCollections = jest.spyOn(
+      repositories.repertoireCollections,
+      'listByBandId',
+    );
     function RepertoireHarness({
       bandId,
       visible = true,
@@ -190,7 +195,7 @@ describe('<RepertoireScreen />', () => {
       readonly visible?: boolean;
     }) {
       return (
-        <AppProviders>
+        <AppProviders repositories={repositories}>
           {visible ? <RepertoireScreen bandId={bandId} /> : null}
         </AppProviders>
       );
@@ -207,6 +212,7 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByText('Entre Pontes')).toBeNull();
 
     const list = view.getByTestId('repertoire-list');
+    const callsBeforeRefresh = listCollections.mock.calls.length;
     await fireEvent.scroll(list, {
       nativeEvent: {
         contentOffset: { x: 0, y: 240 },
@@ -216,7 +222,10 @@ describe('<RepertoireScreen />', () => {
     });
     const refreshControl = list.props.refreshControl;
     expect(refreshControl).toBeTruthy();
-    await fireEvent(refreshControl, 'refresh');
+    refreshControl.props.onRefresh();
+    await waitFor(() =>
+      expect(listCollections).toHaveBeenCalledTimes(callsBeforeRefresh + 1),
+    );
     expect(view.getByText('Maré de Neon')).toBeTruthy();
 
     await view.rerender(
@@ -250,6 +259,95 @@ describe('<RepertoireScreen />', () => {
     await view.rerender(<RepertoireHarness bandId={demoIds.primaryBand} />);
     expect(await view.findByText('Maré de Neon')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
+  });
+
+  it('remove o filtro da coleção excluída após confirmar a consulta e preserva os outros critérios', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const listCollections = jest.spyOn(
+      repositories.repertoireCollections,
+      'listByBandId',
+    );
+    const collection = demoRepositoryData.repertoireCollections.find(
+      ({ id }) => id === 'collection-demo-festa',
+    );
+    if (!collection) throw new Error('Coleção Festa não encontrada');
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByLabelText('Festa'));
+    await fireEvent.press(view.getByLabelText('Sincronizadas'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'maré',
+    );
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+
+    await repositories.repertoireCollections.delete({
+      bandId: demoIds.primaryBand,
+      collectionId: collection.id,
+      expectedUpdatedAt: collection.updatedAt,
+    });
+    const callsBeforeRefresh = listCollections.mock.calls.length;
+    view.getByTestId('repertoire-list').props.refreshControl.props.onRefresh();
+    await waitFor(() =>
+      expect(listCollections).toHaveBeenCalledTimes(callsBeforeRefresh + 1),
+    );
+
+    expect(
+      await view.findByTestId('collection-filter-removal-notice'),
+    ).toBeTruthy();
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByText('Luzes da Cidade')).toBeNull();
+    expect(
+      view.getByLabelText('Buscar música por título ou artista').props.value,
+    ).toBe('maré');
+
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    expect(
+      view.getByLabelText('Todas as coleções').props.accessibilityState,
+    ).toEqual({ checked: true });
+    expect(
+      view.getByLabelText('Sincronizadas').props.accessibilityState,
+    ).toEqual({ checked: true });
+  });
+
+  it('mantém critério e músicas em caso de falha ao atualizar as coleções', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const listCollections = jest
+      .spyOn(repositories.repertoireCollections, 'listByBandId')
+      .mockResolvedValue(demoRepositoryData.repertoireCollections);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByLabelText('Festa'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'maré',
+    );
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+
+    listCollections.mockRejectedValue(new Error('Falha de conexão'));
+    view.getByTestId('repertoire-list').props.refreshControl.props.onRefresh();
+    await view.findByTestId('feedback-error');
+
+    expect(view.getByText('Maré de Neon')).toBeTruthy();
+    expect(view.queryByTestId('collection-filter-removal-notice')).toBeNull();
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    expect(view.getByLabelText('Festa').props.accessibilityState).toEqual({
+      checked: true,
+    });
   });
 
   it('apresenta estados vazios e permite limpar uma busca sem resultado', async () => {

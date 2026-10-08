@@ -1,5 +1,5 @@
 import { Link, useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -9,7 +9,11 @@ import {
   View,
 } from 'react-native';
 
-import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
+import {
+  ErrorFeedback,
+  LoadingFeedback,
+  TemporaryFeedback,
+} from '@/components/feedback';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
@@ -92,7 +96,7 @@ interface CollectionAppendResult {
   readonly collectionName: string;
 }
 
-type RepertoireCollectionFilter = 'all' | 'none' | EntityId;
+type RepertoireCollectionFilter = 'all' | 'none' | 'removed' | EntityId;
 
 function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
   return { active: false, bandId, selectedSongIds: new Set() };
@@ -276,7 +280,8 @@ function RepertoireScreenContent({
       ? selectionState
       : emptySelectionState(bandId);
   const { active: selectionMode, selectedSongIds } = currentSelectionState;
-  const collectionFilter = state.collection;
+  const collectionFilter =
+    state.collection === 'removed' ? 'all' : state.collection;
   const collectionFilterOptions = useMemo(
     () => [
       { label: 'Todas as coleções', value: 'all' },
@@ -310,6 +315,19 @@ function RepertoireScreenContent({
     );
     return new Set(selectedCollection?.songs.map(({ id }) => id) ?? []);
   }, [collectionFilter, collectionsQuery.data, songsQuery.data]);
+  const filteredCollectionWasDeleted =
+    collectionsQuery.isSuccess &&
+    state.collection !== 'all' &&
+    state.collection !== 'none' &&
+    state.collection !== 'removed' &&
+    !collectionsQuery.data.some(
+      ({ collection }) => collection.id === state.collection,
+    );
+  useEffect(() => {
+    if (!filteredCollectionWasDeleted) return;
+
+    update('collection', 'removed');
+  }, [filteredCollectionWasDeleted, update]);
   const songs = useMemo(() => {
     return filterAndSortRepertoireSongs(
       songsQuery.data ?? [],
@@ -706,6 +724,21 @@ function RepertoireScreenContent({
             />
           </View>
         </ListControlsOverlay>
+        {state.collection === 'removed' ? (
+          <View
+            pointerEvents="box-none"
+            style={[
+              styles.collectionFilterNotice,
+              { top: controlsOverlayHeight + spacing.sm },
+            ]}
+            testID="collection-filter-removal-notice"
+          >
+            <TemporaryFeedback
+              messageKey="collection-filter-reset"
+              onDismiss={() => update('collection', 'all')}
+            />
+          </View>
+        ) : null}
         <OptionSheet
           closeAccessibilityLabel="Fechar escolha de coleção"
           label="Adicionar a uma coleção"
@@ -967,6 +1000,12 @@ const styles = StyleSheet.create({
   },
   collectionPickerSheet: {
     maxHeight: '90%',
+  },
+  collectionFilterNotice: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    zIndex: 3,
   },
   collectionChoicesScroll: {
     flexShrink: 1,
