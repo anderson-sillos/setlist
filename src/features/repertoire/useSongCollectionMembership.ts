@@ -141,11 +141,15 @@ export function useSongCollectionMembership({
 
   return {
     open,
-    guard,
     saved,
     dismissSaved: () => setSaved(false),
     dialogProps: {
       collections: collections.map(({ collection }) => collection),
+      discardPrompt: {
+        onContinue: guard.continueEditing,
+        onDiscard: guard.discardAndLeave,
+        visible: guard.confirmationVisible,
+      },
       errorMessage: error,
       isSaving: saving,
       onClose: close,

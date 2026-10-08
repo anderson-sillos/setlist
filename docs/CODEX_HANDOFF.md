@@ -1741,3 +1741,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      “Adicionar” não varia com a quantidade; o estado de envio desativa a ação.
      Prettier e `git diff --check` passaram; não rodei testes automatizados.
      A change permanece com 45/47 tarefas concluídas e a PR #32 aberta.
+134. No diálogo “Coleções da música”, o prompt de descarte agora é montado
+     dentro do Modal nativo para aparecer acima dele no iOS, seguindo o padrão
+     usado pelos diálogos de criação/edição. Cancelar e Salvar ficam juntos,
+     nessa ordem, em uma linha; Criar seleção permanece numa linha própria.
+     Prettier e `git diff --check` passaram; testes não foram executados.

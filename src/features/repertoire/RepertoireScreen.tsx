@@ -17,7 +17,6 @@ import {
   LoadingFeedback,
   TemporaryFeedback,
 } from '@/components/feedback';
-import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
@@ -891,11 +890,6 @@ function RepertoireScreenContent({
         }
       />
       <SongCollectionMembershipDialog {...collectionMembership.dialogProps} />
-      <UnsavedChangesPrompt
-        onContinue={collectionMembership.guard.continueEditing}
-        onDiscard={collectionMembership.guard.discardAndLeave}
-        visible={collectionMembership.guard.confirmationVisible}
-      />
       {collectionMembership.saved ? (
         <TemporaryFeedback
           messageKey="collection-memberships-saved"

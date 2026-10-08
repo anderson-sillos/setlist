@@ -16,7 +16,6 @@ import {
   TemporaryFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
-import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -177,11 +176,6 @@ export function SongDetailScreen({
         visible={reportVisible}
       />
       <SongCollectionMembershipDialog {...collectionMembership.dialogProps} />
-      <UnsavedChangesPrompt
-        onContinue={collectionMembership.guard.continueEditing}
-        onDiscard={collectionMembership.guard.discardAndLeave}
-        visible={collectionMembership.guard.confirmationVisible}
-      />
       {collectionMembership.saved ? (
         <TemporaryFeedback
           messageKey="collection-memberships-saved"

@@ -1,5 +1,9 @@
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import {
+  UnsavedChangesPrompt,
+  type UnsavedChangesPromptProps,
+} from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -9,6 +13,7 @@ import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 interface SongCollectionMembershipDialogProps {
   readonly collections: readonly RepertoireCollection[];
+  readonly discardPrompt: UnsavedChangesPromptProps;
   readonly errorMessage: string | null;
   readonly isSaving: boolean;
   readonly onClose: () => void;
@@ -24,6 +29,7 @@ interface SongCollectionMembershipDialogProps {
 
 export function SongCollectionMembershipDialog({
   collections,
+  discardPrompt,
   errorMessage,
   isSaving,
   onClose,
@@ -134,27 +140,33 @@ export function SongCollectionMembershipDialog({
           <View style={styles.actions}>
             <AppButton
               disabled={isSaving}
-              label="Cancelar"
-              onPress={onClose}
-              variant="secondary"
-            />
-            <AppButton
-              disabled={isSaving}
               icon="addCircle"
               label="Criar seleção"
               onPress={onCreateCollection}
+              style={styles.createCollectionButton}
               variant="secondary"
             />
-            <AppButton
-              accessibilityLabel="Salvar coleções da música"
-              disabled={isSaving || saveDisabled || collections.length === 0}
-              icon="check"
-              label={isSaving ? 'Salvando…' : 'Salvar'}
-              onPress={onSave}
-            />
+            <View style={styles.actionButtons}>
+              <AppButton
+                disabled={isSaving}
+                label="Cancelar"
+                onPress={onClose}
+                style={styles.actionButton}
+                variant="secondary"
+              />
+              <AppButton
+                accessibilityLabel="Salvar coleções da música"
+                disabled={isSaving || saveDisabled || collections.length === 0}
+                icon="check"
+                label={isSaving ? 'Salvando…' : 'Salvar'}
+                onPress={onSave}
+                style={styles.actionButton}
+              />
+            </View>
           </View>
         </View>
       </View>
+      <UnsavedChangesPrompt {...discardPrompt} />
     </Modal>
   );
 }
@@ -163,11 +175,22 @@ const styles = StyleSheet.create({
   actions: {
     borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
+  actionButton: {
+    flex: 1,
+    minWidth: 0,
+  },
+  actionButtons: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: spacing.md,
     justifyContent: 'flex-end',
-    padding: spacing.lg,
+  },
+  createCollectionButton: {
+    alignSelf: 'flex-start',
   },
   checkbox: {
     alignItems: 'center',
