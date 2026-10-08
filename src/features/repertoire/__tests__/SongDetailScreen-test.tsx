@@ -100,6 +100,72 @@ describe('<SongDetailScreen />', () => {
     expect(view.queryByTestId('song-detail-context')).toBeNull();
   });
 
+  it('mostra as coleções vinculadas, incluindo nomes longos', async () => {
+    const longCollectionName =
+      'Festival independente ao ar livre com repertório acústico';
+    const repertoireCollections = demoRepositoryData.repertoireCollections.map(
+      (collection) =>
+        collection.id === 'collection-demo-festa'
+          ? { ...collection, name: longCollectionName }
+          : collection,
+    );
+    const repertoireCollectionSongs = [
+      ...demoRepositoryData.repertoireCollectionSongs,
+      {
+        bandId: demoIds.primaryBand,
+        collectionId: 'collection-demo-acustico',
+        songId: demoIds.stageSong,
+        position: 2,
+      },
+    ];
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollections,
+      repertoireCollectionSongs,
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByTestId('song-detail-collections')).toBeTruthy();
+    expect(view.getByText('Acústico')).toBeTruthy();
+    expect(view.getByText(longCollectionName)).toBeTruthy();
+    expect(
+      view.getByTestId('song-collection-collection-demo-acustico'),
+    ).toBeTruthy();
+    expect(
+      view.getByTestId('song-collection-collection-demo-festa'),
+    ).toBeTruthy();
+  });
+
+  it('não mostra seção vazia nem convite quando a música não tem coleção', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollectionSongs:
+        demoRepositoryData.repertoireCollectionSongs.filter(
+          ({ songId }) => songId !== demoIds.stageSong,
+        ),
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(view.queryByTestId('song-detail-collections')).toBeNull();
+    expect(view.queryByText('Coleções')).toBeNull();
+    expect(view.queryByText(/adicionar.*coleção/i)).toBeNull();
+  });
+
   it('apresenta a edição da música como ação contextual acessível', async () => {
     const view = await render(
       <AppProviders>

@@ -21,7 +21,11 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useSong, useUserBands } from '@/data/queries';
+import {
+  useRepertoireCollections,
+  useSong,
+  useUserBands,
+} from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { ContentReportDialog } from '@/features/moderation/ContentReportDialog';
@@ -64,13 +68,19 @@ export function SongDetailScreen({
   const [reportActionFocused, setReportActionFocused] = useState(false);
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
+  const collectionsQuery = useRepertoireCollections(bandId);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
+    collectionsQuery,
     songQuery,
     userBandsQuery,
   ]);
   const song = songQuery.data;
+  const songCollections =
+    collectionsQuery.data?.flatMap((summary) =>
+      summary.songs.some(({ id }) => id === songId) ? [summary.collection] : [],
+    ) ?? [];
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
@@ -188,6 +198,35 @@ export function SongDetailScreen({
                 BPM · {song.bpm ?? '—'}
               </AppText>
             </View>
+            {songCollections.length > 0 ? (
+              <View
+                accessibilityLabel={`Coleções: ${songCollections
+                  .map(({ name }) => name)
+                  .join(', ')}`}
+                style={styles.collectionSection}
+                testID="song-detail-collections"
+              >
+                <AppText tone="muted" variant="caption">
+                  Coleções
+                </AppText>
+                <View style={styles.collectionTags}>
+                  {songCollections.map((collection) => (
+                    <View
+                      key={collection.id}
+                      style={styles.collectionTag}
+                      testID={`song-collection-${collection.id}`}
+                    >
+                      <AppText
+                        style={styles.collectionTagText}
+                        variant="caption"
+                      >
+                        {collection.name}
+                      </AppText>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
           </Card>
 
           {song.notes || youtubeReference ? (
@@ -297,6 +336,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.lg,
+  },
+  collectionSection: {
+    gap: spacing.xs,
+  },
+  collectionTags: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  collectionTag: {
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    flexShrink: 1,
+    maxWidth: '100%',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  collectionTagText: {
+    flexShrink: 1,
   },
   lyricCard: {
     gap: spacing.xl,
