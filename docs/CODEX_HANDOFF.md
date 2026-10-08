@@ -1736,3 +1736,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      coleções, “Criar seleção” continua primário por ser o próximo passo
      disponível. Prettier e `git diff --check` passaram; não rodei testes.
      A change permanece com 45/47 tarefas concluídas e a PR #32 aberta.
+133. No seletor “Adicionar a uma coleção”, “Criar seleção” ficou em linha
+     própria e o rodapé reúne “Cancelar” e “Adicionar” sem quebra. O rótulo
+     “Adicionar” não varia com a quantidade; o estado de envio desativa a ação.
+     Prettier e `git diff --check` passaram; não rodei testes automatizados.
+     A change permanece com 45/47 tarefas concluídas e a PR #32 aberta.

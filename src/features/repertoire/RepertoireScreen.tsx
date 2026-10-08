@@ -1189,40 +1189,41 @@ function RepertoireScreenContent({
                   onPress={finishCollectionAppend}
                 />
               ) : (
-                <View style={styles.collectionPickerActions}>
+                <View style={styles.collectionPickerActionStack}>
                   <AppButton
                     disabled={appendSongs.isPending || selectedSongCount === 0}
                     icon="addCircle"
                     label="Criar seleção"
                     onPress={createCollectionFromPicker}
+                    style={styles.collectionPickerCreateAction}
                     variant="secondary"
                   />
-                  <AppButton
-                    label="Cancelar"
-                    disabled={appendSongs.isPending}
-                    onPress={closeCollectionPicker}
-                    variant="secondary"
-                  />
-                  <AppButton
-                    accessibilityLabel={
-                      targetCollection
-                        ? `Confirmar inclusão na coleção ${targetCollection.collection.name}`
-                        : 'Confirmar inclusão na coleção'
-                    }
-                    disabled={
-                      !targetCollection ||
-                      newSelectedSongCount === 0 ||
-                      appendSongs.isPending
-                    }
-                    icon="addCircle"
-                    label={
-                      appendSongs.isPending
-                        ? 'Adicionando…'
-                        : `Adicionar ${newSelectedSongCount} ${newSelectedSongCount === 1 ? 'música' : 'músicas'}`
-                    }
-                    onPress={() => void appendSelectedSongs()}
-                    variant="primary"
-                  />
+                  <View style={styles.collectionPickerActions}>
+                    <AppButton
+                      label="Cancelar"
+                      disabled={appendSongs.isPending}
+                      onPress={closeCollectionPicker}
+                      style={styles.collectionPickerActionButton}
+                      variant="secondary"
+                    />
+                    <AppButton
+                      accessibilityLabel={
+                        targetCollection
+                          ? `Confirmar inclusão na coleção ${targetCollection.collection.name}`
+                          : 'Confirmar inclusão na coleção'
+                      }
+                      disabled={
+                        !targetCollection ||
+                        newSelectedSongCount === 0 ||
+                        appendSongs.isPending
+                      }
+                      icon="addCircle"
+                      label="Adicionar"
+                      onPress={() => void appendSelectedSongs()}
+                      style={styles.collectionPickerActionButton}
+                      variant="primary"
+                    />
+                  </View>
                 </View>
               )}
             </>
@@ -1235,6 +1236,7 @@ function RepertoireScreenContent({
                 <AppButton
                   label="Cancelar"
                   onPress={closeCollectionPicker}
+                  style={styles.collectionPickerActionButton}
                   variant="secondary"
                 />
                 <AppButton
@@ -1242,6 +1244,7 @@ function RepertoireScreenContent({
                   icon="addCircle"
                   label="Criar seleção"
                   onPress={createCollectionFromPicker}
+                  style={styles.collectionPickerActionButton}
                   variant="primary"
                 />
               </View>
@@ -1415,9 +1418,19 @@ const styles = StyleSheet.create({
   collectionPickerActions: {
     alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: spacing.sm,
-    justifyContent: 'flex-end',
+  },
+  collectionPickerActionButton: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: spacing.md,
+  },
+  collectionPickerActionStack: {
+    gap: spacing.sm,
+  },
+  collectionPickerCreateAction: {
+    alignSelf: 'flex-start',
   },
   collectionAppendSummary: {
     gap: spacing.xs,
