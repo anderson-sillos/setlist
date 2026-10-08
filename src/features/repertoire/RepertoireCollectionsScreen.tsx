@@ -6,6 +6,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { useRepertoireCollections, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
@@ -18,6 +19,7 @@ import {
 } from '@/features/navigation/routes';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { formatSongDuration } from '@/utils/duration';
 
 interface RepertoireCollectionsScreenProps {
   readonly bandId: EntityId;
@@ -104,11 +106,28 @@ export function RepertoireCollectionsScreen({
                         <AppText variant="heading">
                           {summary.collection.name}
                         </AppText>
-                        <AppText tone="muted" variant="caption">
-                          {summary.songCount === 1
-                            ? '1 música'
-                            : `${summary.songCount} músicas`}
-                        </AppText>
+                        <View style={styles.rowMetadata}>
+                          <AppText tone="muted" variant="caption">
+                            {summary.songCount === 1
+                              ? '1 música'
+                              : `${summary.songCount} músicas`}
+                            {' · '}
+                            {summary.estimatedDurationMs === null
+                              ? 'Duração não informada'
+                              : formatSongDuration(summary.estimatedDurationMs)}
+                          </AppText>
+                          {summary.archivedSongCount > 0 ? (
+                            <StatusPill
+                              accessibilityLabel={`${summary.archivedSongCount} ${summary.archivedSongCount === 1 ? 'música arquivada' : 'músicas arquivadas'}`}
+                              icon="archive"
+                              tone="warning"
+                            >
+                              {summary.archivedSongCount === 1
+                                ? '1 arquivada'
+                                : `${summary.archivedSongCount} arquivadas`}
+                            </StatusPill>
+                          ) : null}
+                        </View>
                       </View>
                       <AppIcon
                         color={colors.text.secondary}
@@ -165,6 +184,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
     minWidth: 0,
+  },
+  rowMetadata: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   pressed: {
     opacity: 0.72,

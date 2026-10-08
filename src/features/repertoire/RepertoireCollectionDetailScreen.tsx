@@ -10,6 +10,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { useRepertoireCollection, useUserBands } from '@/data/queries';
 import type { EntityId } from '@/domain';
@@ -45,7 +46,6 @@ export function RepertoireCollectionDetailScreen({
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const summary = collectionQuery.data;
-  const activeSongs = summary?.songs.filter((song) => song.archivedAt === null);
 
   return (
     <BandAreaLayout
@@ -108,21 +108,25 @@ export function RepertoireCollectionDetailScreen({
                   : formatSongDuration(summary.estimatedDurationMs)}
               </AppText>
               {summary.archivedSongCount > 0 ? (
-                <AppText tone="warning">
+                <StatusPill
+                  accessibilityLabel={`${summary.archivedSongCount} ${summary.archivedSongCount === 1 ? 'música arquivada' : 'músicas arquivadas'}`}
+                  icon="archive"
+                  tone="warning"
+                >
                   {summary.archivedSongCount === 1
                     ? '1 música arquivada'
                     : `${summary.archivedSongCount} músicas arquivadas`}
-                </AppText>
+                </StatusPill>
               ) : null}
             </View>
           </Card>
 
-          {activeSongs?.length ? (
+          {summary.songs.length ? (
             <View style={styles.songList}>
-              {activeSongs.map((song, index) => (
+              {summary.songs.map((song, index) => (
                 <Link href={getSongHref(bandId, song.id)} asChild key={song.id}>
                   <Pressable
-                    accessibilityLabel={`Abrir música ${song.title}`}
+                    accessibilityLabel={`Abrir música ${song.title}${song.archivedAt === null ? '' : ', arquivada'}`}
                     accessibilityRole="link"
                     style={({ pressed }) => [
                       styles.songRow,
@@ -139,6 +143,15 @@ export function RepertoireCollectionDetailScreen({
                           {song.originalArtist ?? 'Artista/Banda não informado'}
                         </AppText>
                       </View>
+                      {song.archivedAt !== null ? (
+                        <StatusPill
+                          accessible={false}
+                          icon="archive"
+                          tone="warning"
+                        >
+                          Arquivada
+                        </StatusPill>
+                      ) : null}
                       <AppIcon
                         color={colors.text.secondary}
                         name="forward"
