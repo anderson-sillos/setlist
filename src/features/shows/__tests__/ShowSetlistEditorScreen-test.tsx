@@ -1,4 +1,9 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { layout } from '@/theme/tokens';
 import {
@@ -55,9 +60,40 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(view.getByTestId('show-collection-picker-sheet')).toBeTruthy();
     expect(
       view.getByTestId(
-        `show-add-collection-${demoRepositoryData.repertoireCollections[1].id}`,
+        `show-preview-collection-${demoRepositoryData.repertoireCollections[1].id}`,
       ),
     ).toBeTruthy();
+    await fireEvent.press(
+      view.getByTestId(
+        `show-preview-collection-${demoRepositoryData.repertoireCollections[1].id}`,
+      ),
+    );
+
+    const preview = view.getByTestId('show-collection-preview-sheet');
+    const previewSongs = within(
+      view.getByTestId('show-collection-preview-songs'),
+    );
+    expect(within(preview).getByText('Principal')).toBeTruthy();
+    expect(within(preview).getByText('2 músicas elegíveis')).toBeTruthy();
+    expect(within(preview).getByText('Duração estimada: 7min50s')).toBeTruthy();
+    expect(
+      within(preview).getByTestId('show-collection-preview-repeat-summary'),
+    ).toBeTruthy();
+    expect(
+      previewSongs
+        .getAllByTestId(/^show-collection-preview-song-/)
+        .map(({ props }) => props.testID),
+    ).toEqual([
+      `show-collection-preview-song-${demoIds.stageSong}`,
+      'show-collection-preview-song-song-demo-mare-neon',
+    ]);
+    expect(
+      view.getByTestId('show-collection-preview-repeat-' + demoIds.stageSong),
+    ).toBeTruthy();
+    expect(
+      view.getByTestId('show-confirm-add-collection').props.accessibilityState
+        ?.disabled,
+    ).toBe(false);
   });
 
   it('mantém as opções habituais quando a banda não tem coleções', async () => {
@@ -81,6 +117,134 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(view.getByTestId('show-add-songs-action')).toBeTruthy();
     expect(view.getByLabelText('Adicionar anotação')).toBeTruthy();
     expect(view.queryByTestId('show-add-collection-action')).toBeNull();
+  });
+
+  it('desabilita a confirmação quando a coleção está vazia', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollections: [
+        demoRepositoryData.repertoireCollections.find(
+          ({ id }) => id === 'collection-demo-festa',
+        )!,
+      ],
+      repertoireCollectionSongs: [],
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+    await fireEvent.press(view.getByTestId('show-add-collection-action'));
+    await fireEvent.press(
+      view.getByTestId('show-preview-collection-collection-demo-festa'),
+    );
+
+    const preview = view.getByTestId('show-collection-preview-sheet');
+    expect(
+      within(preview).getByText(
+        'Esta coleção ainda não tem músicas para incluir.',
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByTestId('show-confirm-add-collection').props.accessibilityState
+        ?.disabled,
+    ).toBe(true);
+  });
+
+  it('informa quando todas as músicas elegíveis estão arquivadas', async () => {
+    const collectionSongIds = new Set<string>(
+      demoRepositoryData.repertoireCollectionSongs
+        .filter(({ collectionId }) => collectionId === 'collection-demo-festa')
+        .map(({ songId }) => songId),
+    );
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollections: [
+        demoRepositoryData.repertoireCollections.find(
+          ({ id }) => id === 'collection-demo-festa',
+        )!,
+      ],
+      repertoireCollectionSongs:
+        demoRepositoryData.repertoireCollectionSongs.filter(
+          ({ collectionId }) => collectionId === 'collection-demo-festa',
+        ),
+      songs: demoRepositoryData.songs.map((song) =>
+        collectionSongIds.has(song.id)
+          ? { ...song, archivedAt: '2026-09-09T12:00:00.000Z' }
+          : song,
+      ),
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+    await fireEvent.press(view.getByTestId('show-add-collection-action'));
+    await fireEvent.press(
+      view.getByTestId('show-preview-collection-collection-demo-festa'),
+    );
+
+    const preview = view.getByTestId('show-collection-preview-sheet');
+    expect(
+      within(preview).getByText('2 músicas arquivadas ficarão de fora.'),
+    ).toBeTruthy();
+    expect(
+      within(preview).getByText(
+        'Esta coleção não tem músicas ativas para incluir.',
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByTestId('show-confirm-add-collection').props.accessibilityState
+        ?.disabled,
+    ).toBe(true);
+  });
+
+  it('não revela músicas não consultáveis na prévia da coleção', async () => {
+    const hiddenSongId = 'song-demo-mare-neon';
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      repertoireCollections: [
+        demoRepositoryData.repertoireCollections.find(
+          ({ id }) => id === 'collection-demo-festa',
+        )!,
+      ],
+      repertoireCollectionSongs:
+        demoRepositoryData.repertoireCollectionSongs.filter(
+          ({ collectionId }) => collectionId === 'collection-demo-festa',
+        ),
+      songs: demoRepositoryData.songs.filter(({ id }) => id !== hiddenSongId),
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+    await fireEvent.press(view.getByTestId('show-add-collection-action'));
+    await fireEvent.press(
+      view.getByTestId('show-preview-collection-collection-demo-festa'),
+    );
+
+    const preview = view.getByTestId('show-collection-preview-sheet');
+    expect(within(preview).getByText('1 música elegível')).toBeTruthy();
+    expect(within(preview).queryByText('Maré de Neon')).toBeNull();
   });
 
   it('não permite editar setlist de show que já saiu de rascunho', async () => {

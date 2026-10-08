@@ -214,6 +214,10 @@ export function ShowBlockEditorDialog({
   const [deleteBlockId, setDeleteBlockId] = useState<EntityId | null>(null);
   const [songSheetVisible, setSongSheetVisible] = useState(false);
   const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
+  const [collectionPreviewVisible, setCollectionPreviewVisible] =
+    useState(false);
+  const [previewCollectionId, setPreviewCollectionId] =
+    useState<EntityId | null>(null);
   const [selectedSongIds, setSelectedSongIds] = useState<readonly EntityId[]>(
     [],
   );
@@ -238,6 +242,43 @@ export function ShowBlockEditorDialog({
 
   const activeBlock = blocks.find((block) => block.id === activeBlockId);
   const blockToDelete = blocks.find((block) => block.id === deleteBlockId);
+  const previewCollection = collections.find(
+    ({ collection }) => collection.id === previewCollectionId,
+  );
+  const previewSongs = useMemo(
+    () =>
+      previewCollection?.songs.filter((song) => song.archivedAt === null) ?? [],
+    [previewCollection],
+  );
+  const previewArchivedSongCount =
+    previewCollection?.songs.filter((song) => song.archivedAt !== null)
+      .length ?? 0;
+  const previewSongIdsAlreadyInShow = useMemo(() => {
+    const songIds = new Set<EntityId>();
+    blocks.forEach((block) =>
+      block.items.forEach((item) => {
+        if (item.type === 'song') songIds.add(item.songId);
+      }),
+    );
+    return songIds;
+  }, [blocks]);
+  const previewRepeatedSongCount = previewSongs.filter(({ id }) =>
+    previewSongIdsAlreadyInShow.has(id),
+  ).length;
+  const previewKnownDurationMs = previewSongs.reduce(
+    (total, song) => total + (song.estimatedDurationMs ?? 0),
+    0,
+  );
+  const previewSongsWithoutDurationCount = previewSongs.filter(
+    ({ estimatedDurationMs }) => estimatedDurationMs === null,
+  ).length;
+  const previewHasKnownDuration = previewSongs.some(
+    ({ estimatedDurationMs }) => estimatedDurationMs !== null,
+  );
+  const previewEligibleCountLabel = `${previewSongs.length} ${previewSongs.length === 1 ? 'música elegível' : 'músicas elegíveis'}`;
+  const previewDurationLabel = !previewHasKnownDuration
+    ? 'Duração estimada: Não informada'
+    : `${previewSongsWithoutDurationCount > 0 ? 'Duração conhecida' : 'Duração estimada'}: ${formatSongDuration(previewKnownDurationMs)}`;
   const songById = useMemo(
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
@@ -369,7 +410,7 @@ export function ShowBlockEditorDialog({
   };
 
   const addCollectionSongs = (collection: RepertoireCollectionSummary) => {
-    if (!activeBlock) return;
+    if (!activeBlock || isSubmitting) return;
     const eligibleSongs = collection.songs.filter(
       (song) => song.archivedAt === null,
     );
@@ -391,6 +432,8 @@ export function ShowBlockEditorDialog({
         })),
       ],
     }));
+    setCollectionPreviewVisible(false);
+    setPreviewCollectionId(null);
     setCollectionPickerVisible(false);
     onAddSheetVisibilityChange(false);
   };
@@ -1117,23 +1160,153 @@ export function ShowBlockEditorDialog({
         </AppText>
         <View style={styles.optionList}>
           {collections.map((collection) => {
-            const eligibleCount = collection.songs.filter(
-              (song) => song.archivedAt === null,
-            ).length;
             return (
               <AppButton
-                accessibilityLabel={`Adicionar coleção ${collection.collection.name}`}
-                disabled={!activeBlock || eligibleCount === 0}
+                accessibilityLabel={`Pré-visualizar coleção ${collection.collection.name}`}
+                disabled={!activeBlock || isSubmitting}
                 icon="repertoire"
                 key={collection.collection.id}
                 label={collection.collection.name}
-                onPress={() => addCollectionSongs(collection)}
-                testID={`show-add-collection-${collection.collection.id}`}
+                onPress={() => {
+                  setCollectionPickerVisible(false);
+                  setPreviewCollectionId(collection.collection.id);
+                  setCollectionPreviewVisible(true);
+                }}
+                testID={`show-preview-collection-${collection.collection.id}`}
                 variant="secondary"
               />
             );
           })}
         </View>
+      </OptionSheet>
+      <OptionSheet
+        closeAccessibilityLabel="Fechar prévia da coleção"
+        label={
+          previewCollection
+            ? `Prévia: ${previewCollection.collection.name}`
+            : 'Prévia da coleção'
+        }
+        onClose={() => {
+          setCollectionPreviewVisible(false);
+          setPreviewCollectionId(null);
+        }}
+        showCloseButton
+        sheetStyle={styles.collectionPreviewSheet}
+        testID="show-collection-preview-sheet"
+        visible={collectionPreviewVisible}
+      >
+        {previewCollection ? (
+          <>
+            <View style={styles.collectionPreviewSummary}>
+              <View style={styles.collectionPreviewDestination}>
+                <AppText tone="muted" variant="caption">
+                  Bloco de destino
+                </AppText>
+                <AppText testID="show-collection-preview-target-block">
+                  {activeBlock?.name ?? 'Nenhum bloco selecionado'}
+                </AppText>
+              </View>
+              <AppText accessibilityLabel={previewEligibleCountLabel}>
+                {previewEligibleCountLabel}
+              </AppText>
+              <AppText accessibilityLabel={previewDurationLabel}>
+                {previewDurationLabel}
+              </AppText>
+              {previewSongsWithoutDurationCount > 0 &&
+              previewHasKnownDuration ? (
+                <AppText tone="muted" variant="caption">
+                  Duração não informada para {previewSongsWithoutDurationCount}{' '}
+                  {previewSongsWithoutDurationCount === 1
+                    ? 'música'
+                    : 'músicas'}
+                  .
+                </AppText>
+              ) : null}
+              {previewArchivedSongCount > 0 ? (
+                <AppText tone="muted" variant="caption">
+                  {previewArchivedSongCount}{' '}
+                  {previewArchivedSongCount === 1
+                    ? 'música arquivada ficará'
+                    : 'músicas arquivadas ficarão'}{' '}
+                  de fora.
+                </AppText>
+              ) : null}
+              {previewRepeatedSongCount > 0 ? (
+                <AppText
+                  testID="show-collection-preview-repeat-summary"
+                  tone="warning"
+                  variant="caption"
+                >
+                  {previewRepeatedSongCount}{' '}
+                  {previewRepeatedSongCount === 1
+                    ? 'música já aparece'
+                    : 'músicas já aparecem'}{' '}
+                  neste show e serão repetidas.
+                </AppText>
+              ) : null}
+              {previewSongs.length === 0 ? (
+                <AppText tone="muted">
+                  {previewArchivedSongCount > 0
+                    ? 'Esta coleção não tem músicas ativas para incluir.'
+                    : 'Esta coleção ainda não tem músicas para incluir.'}
+                </AppText>
+              ) : null}
+            </View>
+            {previewSongs.length > 0 ? (
+              <ScrollView
+                contentContainerStyle={styles.collectionPreviewSongs}
+                keyboardShouldPersistTaps="handled"
+                style={styles.collectionPreviewScroll}
+                testID="show-collection-preview-songs"
+              >
+                {previewSongs.map((song, index) => (
+                  <View
+                    key={song.id}
+                    style={styles.collectionPreviewSong}
+                    testID={`show-collection-preview-song-${song.id}`}
+                  >
+                    <AppText style={styles.collectionPreviewSequence}>
+                      {index + 1}.
+                    </AppText>
+                    <View style={styles.collectionPreviewSongCopy}>
+                      <AppText>{song.title}</AppText>
+                      {song.originalArtist ? (
+                        <AppText tone="muted" variant="caption">
+                          {song.originalArtist}
+                        </AppText>
+                      ) : null}
+                      {previewSongIdsAlreadyInShow.has(song.id) ? (
+                        <AppText
+                          testID={`show-collection-preview-repeat-${song.id}`}
+                          tone="warning"
+                          variant="caption"
+                        >
+                          Já está no show; será repetida.
+                        </AppText>
+                      ) : null}
+                    </View>
+                    <AppText tone="muted" variant="caption">
+                      {formatSongDuration(song.estimatedDurationMs)}
+                    </AppText>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : null}
+            <AppButton
+              accessibilityLabel="Confirmar inclusão da coleção"
+              disabled={previewSongs.length === 0 || isSubmitting}
+              icon="musicAdd"
+              label={`Adicionar ${previewSongs.length} ${previewSongs.length === 1 ? 'música' : 'músicas'}`}
+              onPress={() => addCollectionSongs(previewCollection)}
+              testID="show-confirm-add-collection"
+            />
+          </>
+        ) : (
+          <AppText tone="muted">
+            Esta coleção não está mais disponível. Feche a prévia e tente
+            novamente.
+          </AppText>
+        )}
       </OptionSheet>
       <OptionSheet
         closeAccessibilityLabel="Fechar seleção de músicas"
@@ -1936,6 +2109,48 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  collectionPreviewDestination: {
+    borderBottomColor: colors.border.subtle,
+    borderBottomWidth: 1,
+    gap: spacing.xs,
+    paddingBottom: spacing.sm,
+  },
+  collectionPreviewScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  collectionPreviewSequence: {
+    minWidth: 24,
+    textAlign: 'right',
+  },
+  collectionPreviewSheet: {
+    height: 620,
+    maxHeight: '90%',
+    minHeight: 0,
+  },
+  collectionPreviewSong: {
+    alignItems: 'center',
+    borderColor: colors.border.subtle,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  collectionPreviewSongCopy: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  collectionPreviewSongs: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  collectionPreviewSummary: {
+    gap: spacing.xs,
   },
   content: {
     gap: spacing.md,
