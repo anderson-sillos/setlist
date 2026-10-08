@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
@@ -35,6 +35,7 @@ export function RepertoireCollectionDetailScreen({
   bandId,
   collectionId,
 }: RepertoireCollectionDetailScreenProps) {
+  const router = useRouter();
   const collectionQuery = useRepertoireCollection(bandId, collectionId);
   const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
