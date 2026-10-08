@@ -77,6 +77,8 @@
 
 - [x] 8.7 Adicionar Selecionar ao menu da música e iniciar o mesmo modo por pressão prolongada do cartão, marcando a música de origem; manter Coleções, Filtrar e Ordenar visíveis durante o modo e retomar a ocultação automática ao sair, respeitando as permissões de edição e documentando os gestos.
 
+- [x] 8.8 Adicionar Criar seleção aos diálogos Coleções da música e Adicionar a uma coleção, levando uma ou várias músicas iniciais para o formulário de nome, com confirmação de descarte quando o primeiro diálogo tiver mudanças pendentes; permitir abrir a ação mesmo sem coleções existentes e documentar o fluxo.
+
 > Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.

@@ -1,5 +1,5 @@
 import { Link, useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import {
   FlatList,
@@ -453,6 +453,16 @@ function RepertoireScreenContent({
     update('collection', 'all');
   }, [bandId, initialAppendCollectionId, update]);
   const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
+  const pendingCollectionPickerAction = useRef<(() => void) | null>(null);
+  const finishCollectionPickerDismissal = useCallback(() => {
+    const action = pendingCollectionPickerAction.current;
+    pendingCollectionPickerAction.current = null;
+    action?.();
+  }, []);
+  useEffect(() => {
+    if (collectionPickerVisible || Platform.OS === 'ios') return;
+    finishCollectionPickerDismissal();
+  }, [collectionPickerVisible, finishCollectionPickerDismissal]);
   const [targetCollectionId, setTargetCollectionId] = useState<EntityId | null>(
     null,
   );
@@ -654,6 +664,18 @@ function RepertoireScreenContent({
     setAppendResult(null);
     setCollectionPickerVisible(true);
   };
+  const createCollectionFromPicker = () => {
+    if (appendLock.current || selectedSongCount === 0) return;
+    pendingCollectionPickerAction.current = () =>
+      router.push(
+        getRepertoireCollectionCreateHref(
+          bandId,
+          Array.from(selectedSongIds),
+          true,
+        ),
+      );
+    closeCollectionPicker();
+  };
   const appendSelectedSongs = async () => {
     if (
       !targetCollection ||
@@ -719,10 +741,7 @@ function RepertoireScreenContent({
         },
         {
           accessibilityLabel: `Adicionar ${selectedSongCount} ${selectedSongCount === 1 ? 'música selecionada' : 'músicas selecionadas'} a uma coleção existente`,
-          disabled:
-            selectedSongCount === 0 ||
-            collectionsUnavailable ||
-            !collectionsQuery.data?.length,
+          disabled: selectedSongCount === 0 || collectionsUnavailable,
           icon: 'repertoire',
           label: 'Adicionar à coleção',
           onPress: openCollectionPicker,
@@ -1074,6 +1093,7 @@ function RepertoireScreenContent({
           closeAccessibilityLabel="Fechar escolha de coleção"
           label="Adicionar a uma coleção"
           onClose={closeCollectionPicker}
+          onDismiss={finishCollectionPickerDismissal}
           sheetStyle={styles.collectionPickerSheet}
           testID="repertoire-collection-picker"
           visible={collectionPickerVisible}
@@ -1171,6 +1191,13 @@ function RepertoireScreenContent({
               ) : (
                 <View style={styles.collectionPickerActions}>
                   <AppButton
+                    disabled={appendSongs.isPending || selectedSongCount === 0}
+                    icon="addCircle"
+                    label="Criar seleção"
+                    onPress={createCollectionFromPicker}
+                    variant="tertiary"
+                  />
+                  <AppButton
                     label="Cancelar"
                     disabled={appendSongs.isPending}
                     onPress={closeCollectionPicker}
@@ -1200,9 +1227,25 @@ function RepertoireScreenContent({
               )}
             </>
           ) : (
-            <AppText tone="muted">
-              Não há coleções disponíveis para esta banda.
-            </AppText>
+            <View style={styles.collectionPickerEmpty}>
+              <AppText tone="muted">
+                Não há coleções disponíveis para esta banda.
+              </AppText>
+              <View style={styles.collectionPickerActions}>
+                <AppButton
+                  label="Cancelar"
+                  onPress={closeCollectionPicker}
+                  variant="tertiary"
+                />
+                <AppButton
+                  disabled={selectedSongCount === 0}
+                  icon="addCircle"
+                  label="Criar seleção"
+                  onPress={createCollectionFromPicker}
+                  variant="primary"
+                />
+              </View>
+            </View>
           )}
         </OptionSheet>
       </ContentFade>
@@ -1378,6 +1421,9 @@ const styles = StyleSheet.create({
   },
   collectionAppendSummary: {
     gap: spacing.xs,
+  },
+  collectionPickerEmpty: {
+    gap: spacing.lg,
   },
   filterGroup: {
     gap: spacing.sm,

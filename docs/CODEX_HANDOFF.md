@@ -1717,3 +1717,16 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      formatação e OpenSpec estrito também passaram. Nenhuma coleção de teste
      foi criada no Supabase conectado. A change tem 42/44 tarefas concluídas;
      8.1 e 8.2 continuam pendentes. A PR #32 permanece aberta para validação.
+
+131. As tarefas 8.7 e 8.8 ampliam a seleção a partir do próprio Repertório:
+     Selecionar no menu da música ou manter seu cartão pressionado inicia o
+     modo já marcando essa música, e os controles Coleções/Filtrar/Ordenar
+     permanecem visíveis durante a seleção. Os diálogos Coleções da música e
+     Adicionar a uma coleção oferecem Criar seleção; o primeiro leva a música
+     atual, e o segundo leva todas as músicas selecionadas ao formulário de
+     nome. O segundo fluxo também pode ser aberto sem coleções existentes.
+     Alterações pendentes de participações continuam protegidas pela
+     confirmação compartilhada. Nesta etapa, Prettier e `git diff --check`
+     passaram; testes automatizados não foram executados. A change está em
+     45/47 tarefas concluídas; 8.1/8.2 e a PR #32 permanecem abertos para
+     validação manual.

@@ -118,6 +118,19 @@ O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvam
 - **THEN** encontra o campo de nome e as ações de salvar/cancelar, sem busca, filtros ou lista de músicas
 - **AND** quando veio de Criar com selecionadas no Repertório, vê somente a contagem das músicas que serão incluídas ao salvar
 
+#### Scenario: Criar seleção a partir das coleções da música
+
+- **WHEN** um proprietário ou editor escolhe Criar seleção em Coleções da música
+- **THEN** abre a criação somente com o campo de nome e a música atual previamente escolhida
+- **AND** mudanças pendentes nas participações existentes pedem confirmação antes de sair
+
+#### Scenario: Criar seleção a partir da inclusão em coleção
+
+- **WHEN** um proprietário ou editor escolhe Criar seleção em Adicionar a uma coleção
+- **THEN** abre a criação somente com o campo de nome e todas as músicas selecionadas previamente escolhidas
+- **AND** a ação também fica disponível quando a banda ainda não tem coleções
+- **AND** nenhuma participação existente é alterada antes de salvar a nova coleção
+
 #### Scenario: Incluir músicas numa coleção vazia
 
 - **WHEN** uma pessoa aciona Adicionar músicas no detalhe de uma coleção vazia

@@ -37,6 +37,8 @@ Adicionar o botão **Coleções** ao lado de Filtrar e Ordenar, com o mesmo trat
 
 Cada música oferece um botão de três pontos verticais (`EllipsisVertical`), separado da área que abre o detalhe. Seu menu apresenta **Selecionar**, **Exibir letra** quando disponível, **Ver detalhes**, **Editar música** e **Organizar em coleções**, conforme o papel da pessoa. **Selecionar** ativa o modo de seleção e já marca essa música. Manter o cartão pressionado executa a mesma ação para permitir iniciar a seleção diretamente da lista. A organização utiliza o mesmo editor de participações do detalhe da música. O menu fecha antes de executar a ação; no iOS, aguarda o `onDismiss` nativo antes de navegar ou abrir outro diálogo.
 
+Nos diálogos **Coleções da música** e **Adicionar a uma coleção**, oferecer **Criar seleção** para proprietários e editores. A nova coleção começa com a música do diálogo de participações ou com todas as músicas escolhidas no Repertório. O seletor de destino continua permitindo esse fluxo quando nenhuma coleção existe. Antes de sair do diálogo de participações com mudanças pendentes, usar a confirmação compartilhada de descarte. Fechar o diálogo antes de navegar para a tela de criação.
+
 O filtro de coleção e a opção **Adicionar coleção** no setlist aparecem quando houver coleções. No detalhe da música, as etiquetas aparecem somente quando existem vínculos; o gerenciamento continua acessível como ação secundária a quem pode editar, inclusive sem vínculos.
 
 **Alternativas consideradas:** destino próprio na barra inferior ou no drawer e aviso de primeira coleção. Essas opções aumentariam a presença do recurso para quem não deseja utilizá-lo; a área subordinada oferece um caminho nomeado e estável sem acrescentar etapa ao uso habitual.

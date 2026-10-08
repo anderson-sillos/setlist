@@ -12,6 +12,8 @@ interface SongCollectionMembershipDialogProps {
   readonly errorMessage: string | null;
   readonly isSaving: boolean;
   readonly onClose: () => void;
+  readonly onCreateCollection: () => void;
+  readonly onDismiss: () => void;
   readonly onSave: () => void;
   readonly onToggle: (collectionId: EntityId) => void;
   readonly selectedCollectionIds: ReadonlySet<EntityId>;
@@ -25,6 +27,8 @@ export function SongCollectionMembershipDialog({
   errorMessage,
   isSaving,
   onClose,
+  onCreateCollection,
+  onDismiss,
   onSave,
   onToggle,
   selectedCollectionIds,
@@ -34,16 +38,13 @@ export function SongCollectionMembershipDialog({
 }: SongCollectionMembershipDialogProps) {
   const reducedMotion = useReducedMotionPreference();
 
-  if (!visible) {
-    return null;
-  }
-
   return (
     <Modal
       animationType={reducedMotion ? 'none' : 'fade'}
+      onDismiss={onDismiss}
       onRequestClose={onClose}
       transparent
-      visible
+      visible={visible}
     >
       <View accessibilityViewIsModal style={styles.modalLayer}>
         <Pressable
@@ -136,6 +137,13 @@ export function SongCollectionMembershipDialog({
               label="Cancelar"
               onPress={onClose}
               variant="secondary"
+            />
+            <AppButton
+              disabled={isSaving}
+              icon="addCircle"
+              label="Criar seleção"
+              onPress={onCreateCollection}
+              variant="tertiary"
             />
             <AppButton
               accessibilityLabel="Salvar coleções da música"

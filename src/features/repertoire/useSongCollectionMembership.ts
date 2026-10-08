@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 
 import {
   type RepertoireCollectionSummary,
@@ -6,6 +8,7 @@ import {
 } from '@/data/queries';
 import type { EntityId, Song } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
+import { getRepertoireCollectionCreateHref } from '@/features/navigation/routes';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 
 interface MembershipOptions {
@@ -20,6 +23,7 @@ export function useSongCollectionMembership({
   canEdit,
   collections,
 }: MembershipOptions) {
+  const router = useRouter();
   const mutation = useSetSongRepertoireCollections(bandId);
   const [song, setSong] = useState<Pick<Song, 'id' | 'title'> | null>(null);
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<EntityId>>(
@@ -29,6 +33,7 @@ export function useSongCollectionMembership({
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const lock = useRef(false);
+  const pendingCreateAction = useRef<(() => void) | null>(null);
   const [initialIds, setInitialIds] = useState<ReadonlySet<EntityId>>(
     () => new Set(),
   );
@@ -40,6 +45,16 @@ export function useSongCollectionMembership({
     dirty: song !== null && dirty,
     saving,
   });
+  const finishPendingCreate = useCallback(() => {
+    const action = pendingCreateAction.current;
+    pendingCreateAction.current = null;
+    action?.();
+  }, []);
+
+  useEffect(() => {
+    if (song !== null || Platform.OS === 'ios') return;
+    finishPendingCreate();
+  }, [finishPendingCreate, song]);
 
   const open = (target: Pick<Song, 'id' | 'title'>) => {
     if (!canEdit || lock.current) return;
@@ -73,6 +88,17 @@ export function useSongCollectionMembership({
     } else {
       dismiss();
     }
+  };
+  const createCollection = () => {
+    if (!song || !canEdit || lock.current) return;
+    const create = () => {
+      const songId = song.id;
+      pendingCreateAction.current = () =>
+        router.push(getRepertoireCollectionCreateHref(bandId, [songId], true));
+      dismiss();
+    };
+    if (dirty) guard.requestConfirmation(create);
+    else create();
   };
   const toggle = (id: EntityId) => {
     if (lock.current) return;
@@ -123,6 +149,8 @@ export function useSongCollectionMembership({
       errorMessage: error,
       isSaving: saving,
       onClose: close,
+      onCreateCollection: createCollection,
+      onDismiss: finishPendingCreate,
       onSave: () => void save(),
       onToggle: toggle,
       selectedCollectionIds: selectedIds,
