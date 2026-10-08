@@ -67,6 +67,30 @@ versão não resolveria o alerta.
   árvore, mas o lockfile não foi atualizado; por isso a tentativa foi removida
   do manifesto e não é contabilizada como correção.
 
+### Exposição no CI
+
+- `ci.yml` e `database-tests.yml` são acionados por `pull_request` e declaram
+  apenas `contents: read`. Não usam `pull_request_target` nem referenciam
+  `secrets.*`. O job Web fornece URL e chave Supabase de placeholder. O código
+  da branch é executado por `npm ci`, export, testes e Playwright, então um PR
+  ainda pode consumir recursos ou interromper o job; os workflows de PR não
+  recebem permissões de escrita ou segredos do projeto.
+- `pages.yml` roda após uma Release publicada ou por `workflow_dispatch`, faz
+  checkout de uma tag estável e valida tag/manifesto antes do export. Esse fluxo
+  tem `pages: write` e `id-token: write`, e usa valores públicos de configuração
+  do Supabase. Ele não executa uma branch arbitrária de PR; depende de uma tag
+  e ação de release confiáveis.
+- A cadeia vulnerável `braces` pode afetar disponibilidade de ferramentas se
+  um padrão malicioso chegar a uma operação de glob. `node-forge` requer que um
+  fluxo de verificação de assinatura vulnerável seja chamado; nenhum dos
+  workflows de CI configura assinatura de código/manifesto. `sprintf-js` fica
+  em mensagens de CLI da cadeia de testes, fora do app.
+
+O exame do CI indica impacto possível na disponibilidade de jobs quando
+processam conteúdo malicioso de PR, mas não encontrou caminho para incluir esses
+pacotes nos clientes nem para expor segredos nos workflows de PR. Isso reduz o
+alcance observado; não encerra os alertas nem substitui patch upstream.
+
 Não foram encontrados imports diretos desses três pacotes em `src` ou
 `scripts`. Os exports de produção Android/iOS e o bundle cliente Web foram
 gerados com source maps em `/private/tmp`; os três source maps não contêm
@@ -108,9 +132,9 @@ npm view sprintf-js version
 - A PR #30 foi integrada e seus checks passaram (qualidade/lint/types/tests,
   pgTAP e smoke test Web); o alerta #12 foi encerrado pelo GitHub.
 - Manter os alertas #9, #10 e #11 abertos até haver patch oficial ou remoção
-  comprovada das dependências vulneráveis. Os bundles clientes das três
-  plataformas não as incluem; a exposição do processo CI ainda precisa ser
-  revisada.
+  comprovada das dependências vulneráveis. Os bundles clientes não as incluem;
+  a revisão dos workflows de CI não encontrou segredos nem permissões de escrita
+  nos eventos de PR, mas considerou possível indisponibilidade dos jobs.
 - Antes do release estável, repetir `npm audit`, confirmar os bundles do
   candidato de release e revisar a exposição das ferramentas usadas por CI. Se
   não houver patch upstream, registrar uma decisão explícita de aceite de risco
