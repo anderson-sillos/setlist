@@ -198,7 +198,7 @@ npm ci
 
 Use `npm ci` para reproduzir exatamente o `package-lock.json`. O comando substitui uma instalação anterior e não deve modificar o arquivo de lock.
 
-Na versão atual, o npm informa alertas moderados em dependências transitivas do Expo. Não execute `npm audit fix --force`: a correção sugerida troca componentes centrais por versões incompatíveis. Alertas altos ou críticos devem bloquear a evolução até serem analisados.
+Há alertas altos e moderados em dependências transitivas sem versão corrigida publicada. A atualização de `shell-quote` no lockfile elimina o alerta crítico identificado nesta revisão. Consulte o [acompanhamento das vulnerabilidades](docs/DEPENDENCY_SECURITY.md) para os pacotes afetados, as evidências e as próximas ações. Não execute `npm audit fix --force`: a atualização sugerida pode trocar componentes centrais por versões incompatíveis com o Expo atual. Alertas altos ou críticos devem ser analisados antes de avançar com a entrega.
 
 ### 5. Variáveis de ambiente
 
