@@ -51,18 +51,52 @@ it('consulta a versão e o build reais do binário Setlist', () => {
   constants.expoConfig = { version: '1.1.0' };
   expect(getAppReleaseInfo()).toMatchObject({
     version: '1.0.0',
+    installedVersion: '1.0.0',
+    codeVersion: '1.0.0',
     build: '12',
     platform: 'Android',
   });
 });
 
 it('preserva o fallback em um client antigo sem o módulo', () => {
-  expect(getAppReleaseInfo()).toMatchObject({ version: '1.0.0', build: null });
+  expect(getAppReleaseInfo()).toMatchObject({
+    version: '1.0.0',
+    codeVersion: '1.0.0',
+    installedVersion: null,
+    build: null,
+  });
 });
 
 it('usa app.json quando a configuração Expo não está disponível', () => {
   constants.expoConfig = null;
   expect(getAppReleaseInfo().version).toBe('1.0.0');
+});
+
+it('usa a versão do código mesmo quando o manifesto iOS mantém uma versão anterior', () => {
+  Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+  constants.expoConfig = { version: '0.1.0' };
+  expect(getAppReleaseInfo()).toMatchObject({
+    version: '1.0.0',
+    codeVersion: '1.0.0',
+    installedVersion: null,
+    build: null,
+    platform: 'iOS',
+  });
+});
+
+it('distingue um binário antigo do código atual sem inventar a versão instalada', () => {
+  mockNative.mockReturnValue({
+    applicationId: 'com.andersonsillos.setlist',
+    nativeApplicationVersion: '0.1.0',
+    nativeBuildVersion: '1',
+  } as never);
+  constants.expoConfig = { version: '0.1.0' };
+  expect(getAppReleaseInfo()).toMatchObject({
+    version: '0.1.0',
+    installedVersion: '0.1.0',
+    codeVersion: '1.0.0',
+    build: '1',
+  });
 });
 
 it('não confunde a versão do Expo Go com Setlist', () => {

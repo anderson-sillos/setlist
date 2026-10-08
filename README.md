@@ -461,6 +461,24 @@ npm run android
 npm run ios
 ```
 
+Esses comandos verificam primeiro se a versão de `app.json` está sincronizada
+com `package.json` e `package-lock.json`. Para usar os development clients já
+instalados, mantendo o Metro somente na porta 8081:
+
+```sh
+npm start -- --dev-client --port 8081
+```
+
+Ao mudar de branch ou configuração, reinicie o Metro e reabra o projeto pelo
+launcher/QR atual em cada client. O console de desenvolvimento registra
+`[Setlist: versão]` com as versões do código, manifesto e binário e orienta em
+caso de divergência. A versão instalada só muda ao instalar outro build;
+alterações JavaScript podem ser carregadas pelo Metro. Antes de validar uma
+entrega, confira os dados da tela Sobre e siga o
+[processo de versões e releases](docs/RELEASE_PROCESS.md), que exige builds e
+export Web do mesmo commit/tag. Os atalhos de produção/validação também exigem
+`--tag vX.Y.Z-rc.N`. Nunca altere manualmente o manifesto do app instalado.
+
 A rota inicial exibe `Minhas bandas` e, após o login, consulta exclusivamente as bandas e participações da conta no Supabase. O Repertório consulta e salva no Supabase os metadados, a referência externa do YouTube e a letra estruturada em blocos e linhas; Owners e Editors podem adicionar e editar, enquanto Members permanecem somente para leitura. Na edição, a letra pode ser colada ou digitada em um único campo: uma linha iniciada por `#` cria um bloco (por exemplo, `# Refrão`), uma linha contendo apenas `---` preserva uma linha em branco, `**texto**` aplica negrito e `***` cria uma linha de separação. A duração da música é informada separadamente em horas, minutos e segundos com controles de incremento e decremento. O campo Artista/Banda sugere valores distintos de `originalArtist` encontrados nas músicas dos repertórios das bandas da conta. Shows agora consultam e persistem metadados no Supabase, com criação e edição online por Owner ou Editor; edição de setlists, sincronização temporal e modo palco seguem em incrementos posteriores. Fixtures em memória ficam restritas aos testes automatizados. As listas usam uma coluna em celulares, duas em tablets e três em telas de computador.
 
 O protótipo técnico do player de referência fica separado da navegação principal. Com a versão web em execução, abra [http://localhost:8081/youtube-prototype](http://localhost:8081/youtube-prototype) para validar o IFrame visível do YouTube, os controles de reproduzir, pausar, buscar dez segundos e a leitura do tempo atual. No Android e no iOS, a mesma rota usa o `react-native-webview` para hospedar o IFrame, enviar comandos pela ponte JavaScript e receber tempo, estado e erros. A validação nativa depende de um aparelho ou simulador e de um build que contenha o módulo nativo.

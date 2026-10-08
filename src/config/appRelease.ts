@@ -26,12 +26,17 @@ export function getAppReleaseInfo() {
     typeof release?.commit === 'string' && /^[a-f0-9]{40}$/.test(release.commit)
       ? release.commit
       : null;
+  // A development client can retain an older launch manifest after Fast Refresh.
+  // app.json is bundled with the executing code and is the release source of truth.
+  const codeVersion = appConfig.expo.version;
+  const installedVersion = isSetlist
+    ? (nativeApplication?.nativeApplicationVersion ?? null)
+    : null;
 
   return {
-    version:
-      (isSetlist ? nativeApplication?.nativeApplicationVersion : null) ??
-      Constants.expoConfig?.version ??
-      appConfig.expo.version,
+    version: installedVersion ?? codeVersion,
+    codeVersion,
+    installedVersion,
     build: isSetlist ? (nativeApplication?.nativeBuildVersion ?? null) : null,
     commit,
     tag: typeof release?.tag === 'string' ? release.tag : null,

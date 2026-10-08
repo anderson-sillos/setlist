@@ -73,8 +73,12 @@ try {
       }),
     );
     if (
+      records.length !== 1 ||
       records.some(
         (build) =>
+          !build.id ||
+          build.platform !== platform.toUpperCase() ||
+          build.buildProfile !== profile ||
           build.gitCommitHash !== release.commit ||
           build.appVersion !== release.version,
       )

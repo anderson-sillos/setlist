@@ -14,7 +14,8 @@ preparação do release.
 - Shows, calendário, blocos e edição de setlists.
 - Interface Content-First Darkness, navegação responsiva e proteção de alterações
   não salvas.
-- Tela Sobre o Setlist com versão, build, ambiente e links legais.
+- Tela Sobre o Setlist compacta, com versão do código/instalada, build, ambiente,
+  commit quando disponível, links legais e acesso ao código-fonte no GitHub.
 
 ### Distribuição
 
@@ -22,6 +23,10 @@ preparação do release.
 - Contadores Android/iOS gerenciados pelo EAS com incremento automático.
 - Builds vinculados ao commit de uma tag e registro em GitHub Releases.
 - Publicação Web a partir da tag estável aprovada, com manifesto do release.
+- Conferência de versões antes de iniciar o Expo, exportar Web e executar builds
+  EAS; atalhos de produção/validação também exigem a tag e o commit da entrega.
+- Diagnóstico no desenvolvimento para manifestos e clients desatualizados,
+  preservando a identificação do código a partir do `app.json` do bundle atual.
 
 ### Conferências pendentes
 

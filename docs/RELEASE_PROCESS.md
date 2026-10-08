@@ -19,6 +19,13 @@ divergentes. Registrar a entrega no `CHANGELOG.md` e abrir uma PR; a `main` exig
 alterações por PR, com os checks aprovados. Fazer commit, push e operações GitHub
 com acesso elevado, conforme `AGENTS.md`.
 
+Os comandos npm de início do Expo, abertura de plataformas, exportação Web e
+builds de desenvolvimento/preview executam essa conferência automaticamente
+antes de continuar. Todos os perfis EAS também executam `eas-build-pre-install`,
+que recusa versões divergentes antes de instalar dependências. O CI mantém a
+mesma verificação. Essas conferências comparam os arquivos do checkout; elas
+não atualizam um aplicativo já instalado nem comprovam sua compatibilidade nativa.
+
 Os contadores técnicos são independentes: `android.versionCode` e
 `ios.buildNumber` são mantidos pelo EAS (`appVersionSource: remote`). Os perfis
 de produção incrementam automaticamente; o perfil de simulador não incrementa.
@@ -30,6 +37,44 @@ npx --yes eas-cli@23.2.0 build:version:get --platform all --profile production -
 npx --yes eas-cli@23.2.0 build:version:set --platform android --profile production
 npx --yes eas-cli@23.2.0 build:version:set --platform ios --profile production
 ```
+
+## Rotina de desenvolvimento e manifestos
+
+No desenvolvimento, o Metro pode fornecer código atual a um client instalado
+anteriormente. A versão do produto continua definida somente em `app.json`;
+manifestos e metadados nativos são cópias geradas ou recebidas pelos clients.
+Não editar essas cópias manualmente para fazer os números coincidirem.
+
+1. Alterar a versão com `npm run release:version -- X.Y.Z`, mantendo os
+   registros npm sincronizados.
+2. Ao mudar de branch ou alterar a configuração/versão, reiniciar o Metro e
+   reabrir o projeto pelo launcher/QR atual nos dois clients. Manter uma única
+   instância do Metro deste checkout, na porta 8081:
+
+   ```sh
+   npm start -- --dev-client --port 8081 --clear
+   ```
+
+3. Conferir no console de desenvolvimento o registro `[Setlist: versão]`.
+   Ele informa plataforma, versão do código, versão do manifesto, versão
+   instalada e build. Divergências vêm acompanhadas de orientação; dados
+   indisponíveis aparecem como `null`, sem usar o manifesto como versão nativa.
+   O registro é deduplicado para a mesma combinação de dados, não abre LogBox
+   nem bloqueia a navegação, e é desativado nos bundles sem `__DEV__`.
+4. Se apenas o manifesto estiver antigo, encerrar e reabrir o app pelo Metro
+   atual. Se continuar antigo, reconstruir e instalar o development client.
+   O iOS incorpora uma configuração em `EXConstants.bundle/app.config`, que
+   permanece a do build instalado; recarregar o JavaScript não a modifica.
+5. Antes de validar uma nova versão como entrega, instalar clients atualizados
+   em Android/iOS ou usar os artefatos fechados do candidato. Verificar no Sobre
+   que a versão instalada corresponde à entrega e que o build está disponível.
+   Para a Web, verificar versão do código e commit do export.
+
+Alterações somente em JavaScript podem continuar usando o client existente
+durante o desenvolvimento. Bibliotecas nativas, plugins ou configuração nativa
+exigem reconstrução. Igualdade de versão não comprova compatibilidade nativa:
+o número do produto também não substitui a validação dos módulos e do artefato.
+Expo Go identifica o código, sem apresentar sua própria versão como Setlist.
 
 ## Candidato de validação
 
@@ -54,6 +99,19 @@ npm run release:build -- --tag v1.0.0-rc.1 --platform all
 npm run release:build -- --tag v1.0.0-rc.1 --platform android --apk
 ```
 
+Os atalhos abaixo passam pelo mesmo script e também exigem `--tag`, checkout
+limpo no commit da tag e versões sincronizadas:
+
+```sh
+npm run build:production:android -- --tag v1.0.0-rc.1
+npm run build:production:ios -- --tag v1.0.0-rc.1
+npm run build:validation:android -- --tag v1.0.0-rc.1
+```
+
+Não usar `eas build` direto para gerar uma entrega oficial: o hook remoto
+confere os arquivos de versão, mas não substitui a conferência local de tag,
+commit e checkout limpo. Os comandos npm usam a mesma versão fixa do EAS CLI.
+
 O script solicita no EAS um AAB Android (`production-android`) e um IPA iOS
 (`production`). Esses artefatos serão usados na distribuição pelas lojas.
 `--apk` usa `production-android-validation` para instalação direta. O envio do
@@ -64,8 +122,10 @@ definir `EAS_CLI` com seu caminho. Dados resumidos dos jobs ficam em
 `release-output/`, ignorado pelo Git; os logs com URLs temporárias não vão à Release.
 
 Os builds podem receber contadores diferentes e continuam na mesma entrega
-quando versão e commit são iguais. Conferir estado `FINISHED`, versão, commit,
-perfil, assinatura e destino antes de disponibilizar cada arquivo.
+quando versão e commit são iguais. O retorno do EAS deve conter exatamente um
+build identificado para a plataforma/perfil solicitados e com a versão/commit
+esperados; qualquer divergência interrompe o script. Conferir também estado
+`FINISHED`, assinatura e destino antes de disponibilizar cada arquivo.
 
 Exportar também a Web da mesma tag usando as variáveis públicas de produção:
 `SETLIST_RELEASE_COMMIT` deve ser o SHA da tag e `SETLIST_RELEASE_TAG`, seu nome.
@@ -129,12 +189,35 @@ tags `v*`. Reexecuções usam a mesma tag e não modificam o release.
 
 ## Sobre o Setlist
 
-A nova tela fica no menu geral, com apresentação do app, versão, build nativo,
-plataforma, ambiente e commit quando registrado. O binário fornece seus números
-reais; Expo Go e clients antigos não exibem o número do host como versão Setlist.
-Na Web, versão e commit vêm do export daquela tag. Termos e privacidade continuam
-acessíveis no menu, antes do login e na tela Sobre. Os detalhes de um build novo
-exigem instalar o novo binário.
+A tela fica no menu geral, com apresentação do app, identificação da versão,
+links legais, notas de versões e acesso ao código-fonte público em
+https://github.com/anderson-sillos/setlist. Termos e privacidade continuam
+acessíveis no menu e antes do login. A composição usa logo de 40, nome de 20,
+títulos e texto de 14 e informações de 13, com margens de 12 e links de pelo
+menos 48 de altura. Em telas usuais, o conteúdo cabe sem precisar rolar; a
+rolagem permanece disponível quando a tela for menor ou a fonte for ampliada.
+
+### Origem dos dados apresentados
+
+| Campo              | Origem                                                                                                                                                                                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Versão instalada   | `ExpoApplication.nativeApplicationVersion` do binário Setlist: `versionName` no Android e `CFBundleShortVersionString` no iOS. Só é identificada como instalada quando o módulo nativo e o identificador do Setlist estão disponíveis.                                        |
+| Versão do código   | `expo.version` do `app.json` incorporado ao bundle em execução. É o fallback em clients antigos e a identificação do export Web.                                                                                                                                              |
+| Código em execução | A mesma versão do `app.json`, exibida adicionalmente quando a versão instalada informada pelo módulo nativo for diferente.                                                                                                                                                    |
+| Build              | `ExpoApplication.nativeBuildVersion`: `versionCode` Android ou `CFBundleVersion` iOS. Os perfis de produção recebem o contador do EAS remoto. Sem o módulo, mostrar “Não disponível”.                                                                                         |
+| Plataforma         | `Platform.OS`.                                                                                                                                                                                                                                                                |
+| Ambiente           | `EXPO_PUBLIC_APP_ENV`: “Produção” quando igual a `production`; “Desenvolvimento” nos demais casos.                                                                                                                                                                            |
+| Release            | `Constants.expoConfig.extra.release.tag`, preenchida em `app.config.ts` por `SETLIST_RELEASE_TAG`. Omitida quando ausente.                                                                                                                                                    |
+| Commit             | `Constants.expoConfig.extra.release.commit`, preenchido em `app.config.ts` por `EAS_BUILD_GIT_COMMIT_HASH` ou `SETLIST_RELEASE_COMMIT`. Exibir sete caracteres de um SHA válido de 40; omitir quando ausente/inválido. Não representa alterações locais posteriores ao build. |
+
+O manifesto do development client pode manter uma configuração anterior durante
+o Fast Refresh. Por isso, `Constants.expoConfig.version` não é usado como versão
+do código: o `app.json` faz parte do bundle atual. A identificação do binário
+permanece prioritária quando disponível; o fallback não inventa a versão
+instalada nem o contador nativo. Expo Go não fornece números do host como se
+fossem do Setlist. Os detalhes nativos de um build novo exigem instalar o novo
+binário; recarregar o Metro atualiza somente o código em teste.
 
 Referências: [Expo: versões](https://docs.expo.dev/build-reference/app-versions/),
+[Expo: hooks de build](https://docs.expo.dev/build-reference/npm-hooks/),
 [GitHub: Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
