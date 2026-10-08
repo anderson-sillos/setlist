@@ -1,5 +1,5 @@
 import { Link, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
   Linking,
@@ -13,6 +13,7 @@ import {
 import {
   ErrorFeedback,
   LoadingFeedback,
+  TemporaryFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
@@ -23,10 +24,12 @@ import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useRepertoireCollections,
+  useSetSongRepertoireCollections,
   useSong,
   useUserBands,
 } from '@/data/queries';
 import type { EntityId, RepertoireCollection } from '@/domain';
+import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { ContentReportDialog } from '@/features/moderation/ContentReportDialog';
 import {
@@ -44,6 +47,7 @@ import { formatSongDuration } from '@/utils/duration';
 import { blurWebFocus } from '@/utils/focus';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
 import { SongLyricsContent } from './SongLyricsContent';
+import { SongCollectionMembershipDialog } from './SongCollectionMembershipDialog';
 import {
   lyricStatusIcons,
   lyricStatusLabels,
@@ -103,11 +107,25 @@ export function SongDetailScreen({
   const router = useRouter();
   const [reportVisible, setReportVisible] = useState(false);
   const [reportActionFocused, setReportActionFocused] = useState(false);
+  const [collectionManagerVisible, setCollectionManagerVisible] =
+    useState(false);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<
+    ReadonlySet<EntityId>
+  >(() => new Set());
+  const [collectionMembershipError, setCollectionMembershipError] = useState<
+    string | null
+  >(null);
+  const [collectionMembershipSaved, setCollectionMembershipSaved] =
+    useState(false);
+  const [savingCollectionMembership, setSavingCollectionMembership] =
+    useState(false);
+  const collectionMembershipLock = useRef(false);
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const collectionsQuery = useRepertoireCollections(bandId);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
+  const setSongCollections = useSetSongRepertoireCollections(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
     songQuery,
@@ -122,6 +140,14 @@ export function SongDetailScreen({
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
+  const availableCollections =
+    collectionsQuery.data?.map(({ collection }) => collection) ?? [];
+  const currentSongCollectionIds = new Set(songCollections.map(({ id }) => id));
+  const collectionMembershipDirty =
+    selectedCollectionIds.size !== currentSongCollectionIds.size ||
+    Array.from(selectedCollectionIds).some(
+      (collectionId) => !currentSongCollectionIds.has(collectionId),
+    );
   const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
   const openYoutubeReference = () => {
     if (!youtubeReference) {
@@ -134,6 +160,70 @@ export function SongDetailScreen({
     }
 
     void Linking.openURL(youtubeReference);
+  };
+  const openCollectionManager = () => {
+    if (!song || !canEdit) return;
+
+    setSelectedCollectionIds(new Set(songCollections.map(({ id }) => id)));
+    setCollectionMembershipError(null);
+    setCollectionManagerVisible(true);
+  };
+  const closeCollectionManager = () => {
+    if (collectionMembershipLock.current) return;
+
+    setCollectionManagerVisible(false);
+    setCollectionMembershipError(null);
+  };
+  const toggleCollectionMembership = (collectionId: EntityId) => {
+    setSelectedCollectionIds((current) => {
+      const next = new Set(current);
+      if (next.has(collectionId)) {
+        next.delete(collectionId);
+      } else {
+        next.add(collectionId);
+      }
+      return next;
+    });
+    setCollectionMembershipError(null);
+  };
+  const saveCollectionMembership = async () => {
+    if (!song || !canEdit || !collectionMembershipDirty) return;
+    if (collectionMembershipLock.current) return;
+
+    const validCollectionIds = availableCollections
+      .filter(({ id }) => selectedCollectionIds.has(id))
+      .map(({ id }) => id);
+    const affectedCollectionIds = new Set([
+      ...currentSongCollectionIds,
+      ...validCollectionIds,
+    ]);
+    const expectedRevisions = Object.fromEntries(
+      (collectionsQuery.data ?? [])
+        .filter(({ collection }) => affectedCollectionIds.has(collection.id))
+        .map(({ collection }) => [collection.id, collection.updatedAt]),
+    );
+
+    collectionMembershipLock.current = true;
+    setSavingCollectionMembership(true);
+    setCollectionMembershipError(null);
+    try {
+      await setSongCollections.mutateAsync({
+        collectionIds: validCollectionIds,
+        expectedRevisions,
+        songId,
+      });
+      setCollectionManagerVisible(false);
+      setCollectionMembershipSaved(true);
+    } catch (error) {
+      setCollectionMembershipError(
+        error instanceof RepertoireCollectionError
+          ? error.message
+          : 'Não foi possível atualizar as coleções agora. Tente novamente.',
+      );
+    } finally {
+      collectionMembershipLock.current = false;
+      setSavingCollectionMembership(false);
+    }
   };
 
   return (
@@ -167,6 +257,24 @@ export function SongDetailScreen({
         targetName={song?.title ?? 'Música'}
         visible={reportVisible}
       />
+      <SongCollectionMembershipDialog
+        collections={availableCollections}
+        errorMessage={collectionMembershipError}
+        isSaving={savingCollectionMembership}
+        onClose={closeCollectionManager}
+        onSave={() => void saveCollectionMembership()}
+        onToggle={toggleCollectionMembership}
+        saveDisabled={!collectionMembershipDirty}
+        selectedCollectionIds={selectedCollectionIds}
+        songTitle={song?.title ?? 'Música'}
+        visible={collectionManagerVisible}
+      />
+      {collectionMembershipSaved ? (
+        <TemporaryFeedback
+          messageKey="collection-memberships-saved"
+          onDismiss={() => setCollectionMembershipSaved(false)}
+        />
+      ) : null}
       {songQuery.isPending || userBandsQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
@@ -256,6 +364,19 @@ export function SongDetailScreen({
                   ))}
                 </View>
               </View>
+            ) : null}
+            {canEdit ? (
+              <AppButton
+                accessibilityLabel="Organizar coleções da música"
+                disabled={
+                  collectionsQuery.isPending || collectionsQuery.isError
+                }
+                icon="edit"
+                label="Organizar coleções"
+                onPress={openCollectionManager}
+                style={styles.manageCollectionsButton}
+                variant="tertiary"
+              />
             ) : null}
           </Card>
 
@@ -395,6 +516,9 @@ const styles = StyleSheet.create({
   },
   collectionTagText: {
     flexShrink: 1,
+  },
+  manageCollectionsButton: {
+    alignSelf: 'flex-start',
   },
   lyricCard: {
     gap: spacing.xl,

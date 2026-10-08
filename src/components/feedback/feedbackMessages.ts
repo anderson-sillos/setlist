@@ -30,6 +30,10 @@ export const feedbackMessages = {
       'A coleção foi removida. O filtro voltou para Todas as coleções.',
     ],
   },
+  'collection-memberships-saved': {
+    sensitive: false,
+    variants: ['Coleções da música atualizadas.'],
+  },
   'item-removed': {
     sensitive: false,
     variants: ['Item removido da setlist.'],

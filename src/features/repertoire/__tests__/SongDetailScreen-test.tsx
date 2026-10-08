@@ -169,6 +169,74 @@ describe('<SongDetailScreen />', () => {
     expect(view.queryByTestId('song-detail-collections')).toBeNull();
     expect(view.queryByText('Coleções')).toBeNull();
     expect(view.queryByText(/adicionar.*coleção/i)).toBeNull();
+    expect(view.getByLabelText('Organizar coleções da música')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Organizar coleções da música'));
+    expect(view.getByTestId('song-collection-membership-dialog')).toBeTruthy();
+    expect(
+      view.getByTestId('song-collection-option-collection-demo-festa').props
+        .accessibilityState,
+    ).toEqual({ checked: false });
+  });
+
+  it('salva as participações em conjunto e preserva a ordem das outras músicas', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Organizar coleções da música'));
+    expect(
+      view.getByTestId('song-collection-option-collection-demo-festa').props
+        .accessibilityState,
+    ).toEqual({ checked: true });
+    await fireEvent.press(
+      view.getByTestId('song-collection-option-collection-demo-festa'),
+    );
+    await fireEvent.press(
+      view.getByTestId('song-collection-option-collection-demo-acustico'),
+    );
+    await fireEvent.press(view.getByLabelText('Salvar coleções da música'));
+
+    await waitFor(() =>
+      expect(
+        view.queryByTestId('song-collection-membership-dialog'),
+      ).toBeNull(),
+    );
+    const memberships =
+      await repositories.repertoireCollections.listSongsByBandId(
+        demoIds.primaryBand,
+      );
+    expect(
+      memberships
+        .filter(({ songId }) => songId === demoIds.stageSong)
+        .map(({ collectionId }) => collectionId),
+    ).toEqual(['collection-demo-acustico']);
+    expect(
+      memberships
+        .filter(
+          ({ collectionId }) => collectionId === 'collection-demo-acustico',
+        )
+        .sort((left, right) => left.position - right.position)
+        .map(({ songId, position }) => ({ songId, position })),
+    ).toEqual([
+      { position: 0, songId: 'song-demo-ceu-outubro' },
+      { position: 1, songId: 'song-demo-chuva' },
+      { position: 2, songId: demoIds.stageSong },
+    ]);
+    expect(
+      memberships.find(
+        ({ collectionId, songId }) =>
+          collectionId === 'collection-demo-festa' &&
+          songId === 'song-demo-mare-neon',
+      )?.position,
+    ).toBe(1);
   });
 
   it('apresenta a edição da música como ação contextual acessível', async () => {
@@ -338,6 +406,7 @@ describe('<SongDetailScreen />', () => {
     expect(view.queryByText('Editar')).toBeNull();
     expect(view.queryByLabelText('Editar música')).toBeNull();
     expect(view.queryByLabelText('Mais opções da música')).toBeNull();
+    expect(view.queryByLabelText('Organizar coleções da música')).toBeNull();
   });
 
   it('trata música sem letra e conteúdo não encontrado', async () => {
