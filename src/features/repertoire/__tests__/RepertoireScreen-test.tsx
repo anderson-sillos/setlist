@@ -160,6 +160,49 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByText('Maré de Neon')).toBeNull();
   });
 
+  it('mantém o espaço da toolbar fixo ao aplicar coleção e ocultar os controles na rolagem', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+    await view.findByText('Luzes da Cidade');
+    const list = view.getByTestId('repertoire-list');
+    const spacer = view.getByTestId('repertoire-list-header-spacer');
+    const reservedHeight = spacer.props.style.height;
+    const areControlsHidden = () =>
+      view.getByTestId('list-controls-collapse', {
+        includeHiddenElements: true,
+      }).props.accessibilityElementsHidden;
+
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByLabelText('Festa'));
+    await fireEvent.press(view.getByLabelText('Aplicar filtros'));
+    expect(spacer.props.style.height).toBe(reservedHeight);
+
+    await fireEvent(list, 'scrollBeginDrag', {});
+    await fireEvent.scroll(list, {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 60 },
+        contentSize: { height: 1600, width: 380 },
+        layoutMeasurement: { height: 700, width: 380 },
+      },
+    });
+    expect(areControlsHidden()).toBe(true);
+    expect(spacer.props.style.height).toBe(reservedHeight);
+
+    await fireEvent(list, 'scrollBeginDrag', {});
+    await fireEvent.scroll(list, {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 30 },
+        contentSize: { height: 1600, width: 380 },
+        layoutMeasurement: { height: 700, width: 380 },
+      },
+    });
+    expect(areControlsHidden()).toBe(false);
+    expect(spacer.props.style.height).toBe(reservedHeight);
+  });
+
   it('não apresenta opções de coleção no filtro quando a banda não tem coleções', async () => {
     const repositories = createInMemoryRepositories({
       ...demoRepositoryData,

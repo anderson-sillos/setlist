@@ -569,7 +569,10 @@ function RepertoireScreenContent({
             ) : null
           }
           ListHeaderComponent={
-            <View style={{ height: controlsOverlayHeight }} />
+            <View
+              style={{ height: controlsOverlayHeight }}
+              testID="repertoire-list-header-spacer"
+            />
           }
           onMomentumScrollBegin={beginControlsMomentum}
           onMomentumScrollEnd={endControlsMomentum}
