@@ -1653,7 +1653,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      766 testes) também passaram. O Jest mantém handles abertos após imprimir o
      resultado; a validação da suíte precisou de `--forceExit` para terminar
      com código zero.
-     A sessão não tinha `adb` nem `xcrun simctl`, então conferência manual em
+     O ADB está instalado, mas a consulta elevada retornou lista de dispositivos
+     vazia; `xcrun simctl` não está disponível. Conferência manual em
      Android/iOS, escala de fonte, safe areas e gestos continua pendente. O
      Playwright existente não percorre autenticação e navegação até coleções.
      As tarefas OpenSpec 8.1 e 8.2 permanecem abertas até essa validação manual;
