@@ -3,7 +3,12 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { demoIds } from '@/data/demo';
 import { sendContentReport } from '@/data/supabase/contentReports';
 import { createBand } from '@/data/supabase/bandMutations';
-import type { AppRepositories, Band, BandMember } from '@/domain';
+import type {
+  AppRepositories,
+  Band,
+  BandMember,
+  RepertoireCollectionRepository,
+} from '@/domain';
 import {
   deleteBand,
   updateBandName,
@@ -16,7 +21,6 @@ import {
   leaveBand,
   updateBandMemberRole,
 } from '@/data/supabase/bandMemberMutations';
-import type { RepertoireCollectionRepository } from '@/domain';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
 import { AppProviders } from '@/providers/AppProviders';
