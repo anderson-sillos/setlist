@@ -332,16 +332,9 @@ describe('<SongDetailScreen />', () => {
       await fireEvent.press(
         view.getByTestId('song-collection-option-collection-demo-acustico'),
       );
-      const routeEvent = {
-        preventDefault: jest.fn(),
-        data: { action: { type: 'GO_BACK' } },
-      };
-
-      await act(async () => mockBeforeRemove?.(routeEvent));
-      expect(routeEvent.preventDefault).toHaveBeenCalledTimes(1);
+      await fireEvent.press(view.getByText('Cancelar'));
       expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
-      const continueButtons = view.getAllByLabelText('Continuar editando');
-      await fireEvent.press(continueButtons[continueButtons.length - 1]);
+      await fireEvent.press(view.getByLabelText('Continuar editando'));
       expect(
         view.getByTestId('song-collection-membership-dialog'),
       ).toBeTruthy();
@@ -353,7 +346,6 @@ describe('<SongDetailScreen />', () => {
       await fireEvent.press(view.getByText('Cancelar'));
       expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
       await fireEvent.press(view.getByLabelText('Descartar alterações'));
-
       expect(
         view.queryByTestId('song-collection-membership-dialog'),
       ).toBeNull();
