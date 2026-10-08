@@ -208,7 +208,7 @@ export function ShowBlockEditorDialog({
   const itemLayoutsRef = useRef(new Map<EntityId, ItemLayout>());
   const itemDragSessionRef = useRef<ItemDragSession | null>(null);
   const blockDragSessionRef = useRef<BlockDragSession | null>(null);
-  const collectionValidationLockRef = useRef(false);
+  const collectionConfirmationLockRef = useRef(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const scrollFrameYRef = useRef(0);
   const scrollOffsetYRef = useRef(0);
@@ -479,12 +479,12 @@ export function ShowBlockEditorDialog({
       !previewCollection ||
       previewSongs.length === 0 ||
       isSubmitting ||
-      collectionValidationLockRef.current
+      collectionConfirmationLockRef.current
     ) {
       return;
     }
 
-    collectionValidationLockRef.current = true;
+    collectionConfirmationLockRef.current = true;
     setCollectionValidationMessage(null);
     setIsValidatingCollection(true);
     try {
@@ -519,7 +519,7 @@ export function ShowBlockEditorDialog({
         'Não foi possível validar a coleção agora. Tente novamente.',
       );
     } finally {
-      collectionValidationLockRef.current = false;
+      collectionConfirmationLockRef.current = false;
       setIsValidatingCollection(false);
     }
   };

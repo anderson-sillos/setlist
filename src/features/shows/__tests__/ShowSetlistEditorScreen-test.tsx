@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   waitFor,
@@ -373,6 +374,109 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(replaceShowBlockItems).not.toHaveBeenCalled();
   });
 
+  it('inclui a coleção uma vez ao fim do bloco ativo e só grava ao salvar', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      shows: demoRepositoryData.shows.map((show) =>
+        show.id === 'show-demo-clube'
+          ? {
+              ...show,
+              blocks: [
+                {
+                  id: 'show-block-collection-primary',
+                  name: 'Principal',
+                  items: [
+                    {
+                      id: 'show-item-preserved-song',
+                      notes: null,
+                      songId: 'song-demo-pontes',
+                      type: 'song' as const,
+                    },
+                    {
+                      description: 'Troca de instrumento',
+                      estimatedDurationMs: 60_000,
+                      id: 'show-item-preserved-planning',
+                      type: 'planning' as const,
+                    },
+                    {
+                      id: 'show-item-preserved-separator',
+                      type: 'separator' as const,
+                    },
+                  ],
+                },
+                {
+                  id: 'show-block-collection-bis',
+                  name: 'Bis',
+                  items: [
+                    {
+                      id: 'show-item-bis-luzes',
+                      notes: null,
+                      songId: demoIds.stageSong,
+                      type: 'song' as const,
+                    },
+                  ],
+                },
+              ],
+            }
+          : show,
+      ),
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    await openCollectionPreview(view);
+    let resolveNetwork!: (
+      state: Awaited<ReturnType<typeof NetInfo.fetch>>,
+    ) => void;
+    const networkPromise = new Promise<
+      Awaited<ReturnType<typeof NetInfo.fetch>>
+    >((resolve) => {
+      resolveNetwork = resolve;
+    });
+    const networkFetch = jest.mocked(NetInfo.fetch);
+    networkFetch.mockReturnValueOnce(networkPromise);
+    const confirmButton = view.getByTestId('show-confirm-add-collection');
+
+    await fireEvent.press(confirmButton);
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    await fireEvent.press(confirmButton);
+    expect(networkFetch).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolveNetwork({
+        isConnected: true,
+        isInternetReachable: true,
+      } as Awaited<ReturnType<typeof NetInfo.fetch>>);
+    });
+
+    const primaryBlock = within(
+      view.getByTestId('setlist-block-show-block-collection-primary'),
+    );
+    const primaryRows = primaryBlock.getAllByTestId(/^setlist-item-row-/);
+    expect(primaryRows.map(({ props }) => props.testID)).toEqual([
+      'setlist-item-row-show-item-preserved-song',
+      'setlist-item-row-show-item-preserved-planning',
+      'setlist-item-row-show-item-preserved-separator',
+      expect.stringMatching(/^setlist-item-row-draft-collection-/),
+      expect.stringMatching(/^setlist-item-row-draft-collection-/),
+    ]);
+    expect(within(primaryRows[3]!).getByText('Luzes da Cidade')).toBeTruthy();
+    expect(within(primaryRows[4]!).getByText('Maré de Neon')).toBeTruthy();
+    expect(
+      within(
+        view.getByTestId('setlist-block-show-block-collection-bis'),
+      ).getByTestId('setlist-item-row-show-item-bis-luzes'),
+    ).toBeTruthy();
+    expect(replaceShowBlockItems).not.toHaveBeenCalled();
+    await view.unmount();
+  });
+
   it('não permite editar setlist de show que já saiu de rascunho', async () => {
     const view = await render(
       <AppProviders>
@@ -382,7 +486,6 @@ describe('<ShowSetlistEditorScreen />', () => {
         />
       </AppProviders>,
     );
-
     expect(
       await view.findByText(
         'Este show só pode ser editado enquanto estiver em Rascunho',
