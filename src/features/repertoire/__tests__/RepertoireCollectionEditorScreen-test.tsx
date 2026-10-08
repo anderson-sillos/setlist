@@ -1,9 +1,11 @@
 import {
+  act,
   fireEvent,
   render,
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { RepertoireCollectionError } from '@/domain';
@@ -16,17 +18,130 @@ const mockRouter = {
   push: jest.fn(),
   replace: jest.fn(),
 };
+let mockBeforeRemove:
+  | ((event: {
+      preventDefault: () => void;
+      data: { action: { type: string } };
+    }) => void)
+  | undefined;
+const mockDispatch = jest.fn();
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useRouter: () => mockRouter,
-  useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
+  useNavigation: () => ({
+    addListener: (_type: string, callback: typeof mockBeforeRemove) => {
+      mockBeforeRemove = callback;
+      return jest.fn();
+    },
+    dispatch: mockDispatch,
+  }),
 }));
+
+function getPromptNativeDismiss(
+  view: Awaited<ReturnType<typeof render>>,
+): () => void {
+  let parent = view.getByTestId('unsaved-changes-prompt').parent;
+  while (parent && typeof parent.props.onDismiss !== 'function') {
+    parent = parent.parent;
+  }
+  if (!parent) throw new Error('Modal de alterações não salvas não encontrado');
+  return parent.props.onDismiss as () => void;
+}
 
 describe('<RepertoireCollectionEditorScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBeforeRemove = undefined;
+  });
+
+  it('protege a rota editada e continua ou descarta sem bloquear a navegação', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+    try {
+      const view = await render(
+        <AppProviders>
+          <RepertoireCollectionEditorScreen
+            bandId={demoIds.primaryBand}
+            collectionId="collection-demo-festa"
+          />
+        </AppProviders>,
+      );
+      await fireEvent.changeText(
+        await view.findByLabelText('Nome da coleção'),
+        'Festa alterada',
+      );
+      const event = {
+        preventDefault: jest.fn(),
+        data: { action: { type: 'GO_BACK' } },
+      };
+
+      await act(async () => mockBeforeRemove?.(event));
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
+      expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
+      await fireEvent.press(view.getByText('Continuar editando'));
+      expect(view.getByLabelText('Nome da coleção').props.value).toBe(
+        'Festa alterada',
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      await act(async () => mockBeforeRemove?.(event));
+      const dismissPrompt = getPromptNativeDismiss(view);
+      await fireEvent.press(view.getByLabelText('Descartar alterações'));
+      expect(mockDispatch).not.toHaveBeenCalled();
+      await act(async () => dismissPrompt());
+      expect(mockDispatch).toHaveBeenCalledWith(event.data.action);
+      expect(view.queryByText('Descartar alterações?')).toBeNull();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
+  it('ignora toques repetidos enquanto a gravação está em andamento', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const originalSave = repositories.repertoireCollections.save.bind(
+      repositories.repertoireCollections,
+    );
+    const deferred = { release: () => {} };
+    const saveSpy = jest
+      .spyOn(repositories.repertoireCollections, 'save')
+      .mockImplementation(async (input) => {
+        await new Promise<void>((resolve) => {
+          deferred.release = resolve;
+        });
+        return originalSave(input);
+      });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireCollectionEditorScreen
+          bandId={demoIds.primaryBand}
+          collectionId="collection-demo-festa"
+        />
+      </AppProviders>,
+    );
+
+    await fireEvent.changeText(
+      await view.findByLabelText('Nome da coleção'),
+      'Festa atualizada',
+    );
+    await fireEvent.press(view.getByLabelText('Salvar coleção'));
+    await fireEvent.press(view.getByLabelText('Salvar coleção'));
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+    expect(
+      view.getByLabelText('Salvar coleção').props.accessibilityState,
+    ).toEqual({ disabled: true });
+
+    await act(async () => deferred.release());
+    await waitFor(() =>
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa`,
+      ),
+    );
+    expect(view.queryByText('Descartar alterações?')).toBeNull();
   });
 
   it('valida nome vazio, limite de 120 caracteres e duplicidade', async () => {
