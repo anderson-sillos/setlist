@@ -35,6 +35,30 @@ jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('react-native-gesture-handler', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const native =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  const gestureHandler = jest.requireActual<
+    typeof import('react-native-gesture-handler')
+  >('react-native-gesture-handler');
+  return {
+    ...gestureHandler,
+    GestureDetector: ({
+      children,
+    }: {
+      readonly children: import('react').ReactNode;
+    }) => children,
+    GestureHandlerRootView: ({
+      children,
+      ...props
+    }: {
+      readonly children?: import('react').ReactNode;
+      readonly [key: string]: unknown;
+    }) => React.createElement(native.View, props, children),
+  };
+});
+
 jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
@@ -225,6 +249,48 @@ describe('shell de navegação', () => {
     expect(await view.findByTestId('stage-availability-dialog')).toBeTruthy();
   });
 
+  it('no Android, fecha ao concluir o toque no destino, sem fechar no pressIn', async () => {
+    const originalPlatform = Object.getOwnPropertyDescriptor(Platform, 'OS');
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    try {
+      const view = await render(
+        <AppProviders>
+          <AppNavigationShell
+            activeSection="shows"
+            bandId={demoIds.primaryBand}
+            bandName="Banda Horizonte"
+            currentRoute={`/bands/${demoIds.primaryBand}/shows`}
+            title="Shows"
+            viewportHeight={844}
+            viewportWidth={390}
+          >
+            <></>
+          </AppNavigationShell>
+        </AppProviders>,
+      );
+      await fireEvent.press(view.getByLabelText('Abrir menu geral'));
+      const destination = view.getByLabelText('Ir para Minhas bandas');
+      const profile = view.getByLabelText('Perfil e conta');
+      await act(async () => {
+        await fireEvent(destination, 'pressIn');
+        await fireEvent(profile, 'pressIn');
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      });
+      expect(view.getByTestId('navigation-drawer')).toBeTruthy();
+      await fireEvent.press(destination);
+      await waitFor(() =>
+        expect(view.queryByTestId('navigation-drawer')).toBeNull(),
+      );
+      await view.unmount();
+    } finally {
+      if (originalPlatform)
+        Object.defineProperty(Platform, 'OS', originalPlatform);
+    }
+  });
+
   it('apresenta nome e e-mail da sessão no menu lateral', async () => {
     mockGetUserProfile.mockResolvedValue({
       avatarUrl: 'https://img.example.test/lucas.png',
@@ -278,7 +344,7 @@ describe('shell de navegação', () => {
     expect(accountCopy.getByText('profile-lucas@example.com')).toBeTruthy();
     expect(
       StyleSheet.flatten(accountCopy.getByText('Lucas no perfil').props.style),
-    ).toMatchObject({ fontSize: 13, lineHeight: 18 });
+    ).toMatchObject({ fontSize: 14, lineHeight: 20 });
     expect(
       StyleSheet.flatten(
         accountCopy.getByText('profile-lucas@example.com').props.style,

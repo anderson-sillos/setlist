@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, PanResponder, Platform } from 'react-native';
+import { Gesture } from 'react-native-gesture-handler';
 
+import {
+  androidDrawerGesture,
+  completesAndroidDrawerGesture,
+} from '@/features/navigation/drawerGestures';
 import type { NavigationScreenKind } from '@/features/navigation/types';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { motion } from '@/theme/tokens';
@@ -81,10 +86,26 @@ export function useNavigationDrawer({
           Platform.OS !== 'ios' &&
           screenKind === 'main' &&
           !persistentSidebar &&
-          gesture.dx > 12 &&
-          Math.abs(gesture.dx) > Math.abs(gesture.dy),
+          gesture.dx >
+            (Platform.OS === 'android'
+              ? androidDrawerGesture.activationDistance
+              : 12) &&
+          Math.abs(gesture.dx) >
+            Math.abs(gesture.dy) *
+              (Platform.OS === 'android'
+                ? androidDrawerGesture.horizontalRatio
+                : 1),
         onPanResponderRelease: (_, gesture) => {
-          if (gesture.dx >= 40) {
+          const completed =
+            Platform.OS === 'android'
+              ? completesAndroidDrawerGesture({
+                  direction: 'open',
+                  translationX: gesture.dx,
+                  translationY: gesture.dy,
+                  velocityX: gesture.vx * 1000,
+                })
+              : gesture.dx >= 40;
+          if (completed) {
             openDrawer();
           }
         },
@@ -92,8 +113,43 @@ export function useNavigationDrawer({
     [openDrawer, persistentSidebar, screenKind],
   );
 
+  const androidEdgeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(
+          Platform.OS === 'android' &&
+            screenKind === 'main' &&
+            !persistentSidebar &&
+            !drawerOpen,
+        )
+        .activeOffsetX(androidDrawerGesture.activationDistance)
+        .failOffsetY([
+          -androidDrawerGesture.verticalTolerance,
+          androidDrawerGesture.verticalTolerance,
+        ])
+        .maxPointers(1)
+        .shouldCancelWhenOutside(false)
+        .runOnJS(true)
+        .onEnd(({ translationX, translationY, velocityX }, success) => {
+          if (
+            success &&
+            completesAndroidDrawerGesture({
+              direction: 'open',
+              translationX,
+              translationY,
+              velocityX,
+            })
+          ) {
+            openDrawer();
+          }
+        }),
+    [drawerOpen, openDrawer, persistentSidebar, screenKind],
+  );
+
   return {
+    androidEdgeGesture,
     closeDrawer,
+    drawerClosing,
     drawerOpen,
     drawerTranslateX,
     edgeGesture,
