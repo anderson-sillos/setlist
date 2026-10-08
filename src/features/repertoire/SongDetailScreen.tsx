@@ -16,6 +16,7 @@ import {
   TemporaryFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -41,13 +42,14 @@ import {
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
 import { blurWebFocus } from '@/utils/focus';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
-import { SongLyricsContent } from './SongLyricsContent';
 import { SongCollectionMembershipDialog } from './SongCollectionMembershipDialog';
+import { SongLyricsContent } from './SongLyricsContent';
 import {
   lyricStatusIcons,
   lyricStatusLabels,
@@ -148,6 +150,10 @@ export function SongDetailScreen({
     Array.from(selectedCollectionIds).some(
       (collectionId) => !currentSongCollectionIds.has(collectionId),
     );
+  const unsavedCollectionChanges = useUnsavedChangesGuard({
+    dirty: collectionManagerVisible && collectionMembershipDirty,
+    saving: savingCollectionMembership,
+  });
   const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
   const openYoutubeReference = () => {
     if (!youtubeReference) {
@@ -168,11 +174,20 @@ export function SongDetailScreen({
     setCollectionMembershipError(null);
     setCollectionManagerVisible(true);
   };
-  const closeCollectionManager = () => {
+  const dismissCollectionManager = () => {
     if (collectionMembershipLock.current) return;
 
     setCollectionManagerVisible(false);
+    setSelectedCollectionIds(new Set(songCollections.map(({ id }) => id)));
     setCollectionMembershipError(null);
+  };
+  const requestCloseCollectionManager = () => {
+    if (collectionMembershipDirty) {
+      unsavedCollectionChanges.requestConfirmation(dismissCollectionManager);
+      return;
+    }
+
+    dismissCollectionManager();
   };
   const toggleCollectionMembership = (collectionId: EntityId) => {
     setSelectedCollectionIds((current) => {
@@ -261,13 +276,18 @@ export function SongDetailScreen({
         collections={availableCollections}
         errorMessage={collectionMembershipError}
         isSaving={savingCollectionMembership}
-        onClose={closeCollectionManager}
+        onClose={requestCloseCollectionManager}
         onSave={() => void saveCollectionMembership()}
         onToggle={toggleCollectionMembership}
         saveDisabled={!collectionMembershipDirty}
         selectedCollectionIds={selectedCollectionIds}
         songTitle={song?.title ?? 'Música'}
         visible={collectionManagerVisible}
+      />
+      <UnsavedChangesPrompt
+        onContinue={unsavedCollectionChanges.continueEditing}
+        onDiscard={unsavedCollectionChanges.discardAndLeave}
+        visible={unsavedCollectionChanges.confirmationVisible}
       />
       {collectionMembershipSaved ? (
         <TemporaryFeedback

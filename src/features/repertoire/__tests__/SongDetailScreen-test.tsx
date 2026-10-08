@@ -1,9 +1,10 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { sendContentReport } from '@/data/supabase/contentReports';
+import { RepertoireCollectionError } from '@/domain';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { AppProviders } from '@/providers/AppProviders';
 import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
@@ -12,6 +13,13 @@ jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  useNavigation: () => ({
+    addListener: (_type: string, callback: typeof mockBeforeRemove) => {
+      mockBeforeRemove = callback;
+      return jest.fn();
+    },
+    dispatch: mockDispatch,
+  }),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -23,11 +31,30 @@ jest.mock('@/data/supabase/contentReports', () => ({
 }));
 
 const mockSendContentReport = jest.mocked(sendContentReport);
+let mockBeforeRemove:
+  | ((event: {
+      preventDefault: () => void;
+      data: { action: { type: string } };
+    }) => void)
+  | undefined;
+const mockDispatch = jest.fn();
+
+function getPromptNativeDismiss(
+  view: Awaited<ReturnType<typeof render>>,
+): () => void {
+  let parent = view.getByTestId('unsaved-changes-prompt').parent;
+  while (parent && typeof parent.props.onDismiss !== 'function') {
+    parent = parent.parent;
+  }
+  if (!parent) throw new Error('Modal de alterações não salvas não encontrado');
+  return parent.props.onDismiss as () => void;
+}
 
 describe('<SongDetailScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSendContentReport.mockResolvedValue();
+    mockBeforeRemove = undefined;
   });
 
   it.each([
@@ -209,6 +236,12 @@ describe('<SongDetailScreen />', () => {
         view.queryByTestId('song-collection-membership-dialog'),
       ).toBeNull(),
     );
+    const routeEvent = {
+      preventDefault: jest.fn(),
+      data: { action: { type: 'GO_BACK' } },
+    };
+    await act(async () => mockBeforeRemove?.(routeEvent));
+    expect(routeEvent.preventDefault).not.toHaveBeenCalled();
     const memberships =
       await repositories.repertoireCollections.listSongsByBandId(
         demoIds.primaryBand,
@@ -237,6 +270,119 @@ describe('<SongDetailScreen />', () => {
           songId === 'song-demo-mare-neon',
       )?.position,
     ).toBe(1);
+  });
+
+  it('pede confirmação para continuar ou descartar mudanças no gerenciador', async () => {
+    const originalPlatform = Platform.OS;
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const setSongCollections = jest.spyOn(
+      repositories.repertoireCollections,
+      'setSongCollections',
+    );
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+
+    try {
+      const view = await render(
+        <AppProviders repositories={repositories}>
+          <SongDetailScreen
+            bandId={demoIds.primaryBand}
+            songId={demoIds.stageSong}
+          />
+        </AppProviders>,
+      );
+
+      await view.findByText('Luzes da Cidade');
+      await fireEvent.press(
+        view.getByLabelText('Organizar coleções da música'),
+      );
+      await fireEvent.press(
+        view.getByTestId('song-collection-option-collection-demo-acustico'),
+      );
+      const routeEvent = {
+        preventDefault: jest.fn(),
+        data: { action: { type: 'GO_BACK' } },
+      };
+
+      await act(async () => mockBeforeRemove?.(routeEvent));
+      expect(routeEvent.preventDefault).toHaveBeenCalledTimes(1);
+      expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
+      const continueButtons = view.getAllByLabelText('Continuar editando');
+      await fireEvent.press(continueButtons[continueButtons.length - 1]);
+      expect(
+        view.getByTestId('song-collection-membership-dialog'),
+      ).toBeTruthy();
+      expect(
+        view.getByTestId('song-collection-option-collection-demo-acustico')
+          .props.accessibilityState,
+      ).toEqual({ checked: true });
+
+      await fireEvent.press(view.getByText('Cancelar'));
+      expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
+      const dismissPrompt = getPromptNativeDismiss(view);
+      await fireEvent.press(view.getByLabelText('Descartar alterações'));
+      await act(async () => dismissPrompt());
+
+      expect(
+        view.queryByTestId('song-collection-membership-dialog'),
+      ).toBeNull();
+      expect(setSongCollections).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
+  it('mantém as escolhas após falha e permite tentar salvar novamente', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const originalSetSongCollections =
+      repositories.repertoireCollections.setSongCollections.bind(
+        repositories.repertoireCollections,
+      );
+    const setSongCollections = jest
+      .spyOn(repositories.repertoireCollections, 'setSongCollections')
+      .mockRejectedValueOnce(
+        new RepertoireCollectionError(
+          'stale_revision',
+          'As coleções mudaram. Atualize e tente novamente.',
+        ),
+      )
+      .mockImplementation(originalSetSongCollections);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongDetailScreen
+          bandId={demoIds.primaryBand}
+          songId={demoIds.stageSong}
+        />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Organizar coleções da música'));
+    await fireEvent.press(
+      view.getByTestId('song-collection-option-collection-demo-acustico'),
+    );
+    await fireEvent.press(view.getByLabelText('Salvar coleções da música'));
+
+    expect(
+      await view.findByText('As coleções mudaram. Atualize e tente novamente.'),
+    ).toBeTruthy();
+    expect(view.getByTestId('song-collection-membership-dialog')).toBeTruthy();
+    expect(
+      view.getByTestId('song-collection-option-collection-demo-acustico').props
+        .accessibilityState,
+    ).toEqual({ checked: true });
+
+    await fireEvent.press(view.getByLabelText('Salvar coleções da música'));
+
+    await waitFor(() =>
+      expect(
+        view.queryByTestId('song-collection-membership-dialog'),
+      ).toBeNull(),
+    );
+    expect(setSongCollections).toHaveBeenCalledTimes(2);
+    expect(view.getByTestId('temporary-feedback')).toBeTruthy();
   });
 
   it('apresenta a edição da música como ação contextual acessível', async () => {

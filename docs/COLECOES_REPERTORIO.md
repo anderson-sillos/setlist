@@ -49,6 +49,8 @@ O acesso às coleções fica na ação secundária **Coleções** do Repertório
 
 Na lista, cada cartão mostra o nome, a quantidade de músicas consultáveis, a duração conhecida e, quando aplicável, quantas estão arquivadas. Abrir um cartão mostra as músicas na ordem da coleção, com indicação das arquivadas. Tocar numa música abre seu cadastro no Repertório. Uma coleção vazia continua válida e seu detalhe oferece **Adicionar músicas** a quem pode editar.
 
+No detalhe da música, as coleções vinculadas aparecem como etiquetas abaixo de tom e BPM; tocar numa etiqueta abre o Repertório da mesma banda já filtrado por ela. Proprietários e editores também encontram **Organizar coleções** no cartão de informações, mesmo quando a música ainda não participa de nenhuma. Marque ou desmarque as coleções desejadas e salve para atualizar os vínculos em conjunto. Novas participações entram ao final da coleção e não mudam a ordem das outras músicas. Se tentar fechar ou sair com mudanças pendentes, o app oferece continuar editando ou descartar; se outra pessoa alterar uma coleção durante a edição, os dados escolhidos permanecem na janela para uma nova tentativa.
+
 Na criação ou edição, informe um nome e use a lista **Músicas** para procurar por título ou artista. Os filtros e a ordenação são os mesmos do Repertório:
 
 - **Todas** lista músicas ativas, independentemente do estado da letra.
