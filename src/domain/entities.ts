@@ -76,6 +76,21 @@ export interface Song {
   readonly updatedAt: IsoDateTime;
 }
 
+export interface RepertoireCollection {
+  readonly id: EntityId;
+  readonly bandId: EntityId;
+  readonly name: string;
+  readonly createdAt: IsoDateTime;
+  readonly updatedAt: IsoDateTime;
+}
+
+export interface RepertoireCollectionSong {
+  readonly bandId: EntityId;
+  readonly collectionId: EntityId;
+  readonly songId: EntityId;
+  readonly position: number;
+}
+
 export type ShowStatus = 'draft' | 'ready' | 'cancelled';
 
 export interface ShowSongSetlistItem {
