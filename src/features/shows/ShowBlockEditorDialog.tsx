@@ -316,6 +316,10 @@ export function ShowBlockEditorDialog({
     () => new Map(songs.map((song) => [song.id, song])),
     [songs],
   );
+  const activeSongs = useMemo(
+    () => songs.filter((song) => song.archivedAt === null),
+    [songs],
+  );
   const songSequenceNumbers = useMemo(() => {
     const sequenceNumbers = new Map<EntityId, number>();
     let nextSongNumber = 0;
@@ -332,13 +336,13 @@ export function ShowBlockEditorDialog({
   }, [blocks]);
   const filteredSongs = useMemo(() => {
     const query = songSearchText.trim().toLocaleLowerCase('pt-BR');
-    if (!query) return songs;
-    return songs.filter((song) =>
+    if (!query) return activeSongs;
+    return activeSongs.filter((song) =>
       `${song.title} ${song.originalArtist ?? ''}`
         .toLocaleLowerCase('pt-BR')
         .includes(query),
     );
-  }, [songs, songSearchText]);
+  }, [activeSongs, songSearchText]);
   const durations = useMemo(() => {
     const blockDurations = new Map<EntityId, number | null>();
     let hasDuration = false;
@@ -1452,7 +1456,7 @@ export function ShowBlockEditorDialog({
           keyboardShouldPersistTaps="handled"
           style={styles.songPickerScroll}
         >
-          {songs.length === 0 ? (
+          {activeSongs.length === 0 ? (
             <AppText tone="muted">
               Nenhuma música ativa para incluir neste repertório.
             </AppText>

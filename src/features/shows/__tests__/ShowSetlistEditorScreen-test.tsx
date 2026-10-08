@@ -134,6 +134,42 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(view.queryByTestId('show-add-collection-action')).toBeNull();
   });
 
+  it('mantém músicas arquivadas já no show, mas não oferece novas inclusões', async () => {
+    const repositories = createInMemoryRepositories({
+      ...demoRepositoryData,
+      songs: demoRepositoryData.songs.map((song) =>
+        song.id === demoIds.stageSong
+          ? { ...song, archivedAt: '2026-09-09T12:00:00.000Z' }
+          : song,
+      ),
+    });
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <ShowSetlistEditorScreen
+          bandId={demoIds.primaryBand}
+          showId="show-demo-clube"
+        />
+      </AppProviders>,
+    );
+
+    await view.findByTestId('show-block-editor-dialog');
+    const existingArchivedSong = view.getByTestId(
+      'setlist-item-row-show-item-clube-luzes',
+    );
+    expect(
+      within(existingArchivedSong).getByText('Luzes da Cidade'),
+    ).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
+    await fireEvent.press(view.getByTestId('show-add-songs-action'));
+    const picker = within(view.getByTestId('show-song-picker-sheet'));
+
+    expect(
+      await picker.findByLabelText('Selecionar Maré de Neon'),
+    ).toBeTruthy();
+    expect(picker.queryByLabelText('Selecionar Luzes da Cidade')).toBeNull();
+  });
+
   it('desabilita a confirmação quando a coleção está vazia', async () => {
     const repositories = createInMemoryRepositories({
       ...demoRepositoryData,
