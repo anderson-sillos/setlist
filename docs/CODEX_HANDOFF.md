@@ -1632,3 +1632,29 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      criar e validar uma ação interna, além de definir controles proporcionais
      de bloqueio. A tarefa 11.8.1 registra essas pendências. O processo ainda
      não está implementado e o item 11.3 segue aberto.
+
+127. A change `organizar-colecoes-do-repertorio` está sendo implementada na
+     branch `feat/repertoire-collections`, PR #32 aberta. As tarefas 1 a 7
+     estão concluídas e commitadas individualmente. A inclusão de uma coleção no
+     setlist cria ocorrências comuns das músicas ativas na ordem confirmada;
+     mudanças posteriores na coleção não alteram a setlist. A feature usa as
+     migrações `20261008100000_create_repertoire_collections.sql` e
+     `20261008101000_manage_repertoire_collections.sql`. Elas estão no código,
+     mas esta etapa não as aplicou a um Supabase hospedado nem validou banco
+     local. Antes de habilitar a feature em um ambiente, conferir o projeto de
+     destino e aplicar as migrações pelo procedimento autorizado. Para retorno,
+     pode-se reverter o app para uma versão sem a interface de coleções e
+     preservar tabelas e dados; não remover as tabelas sem backup e decisão
+     explícita, pois já podem conter coleções de bandas.
+
+     Verificações desta etapa: exportação Web passou; quatro testes Playwright
+     passaram (autenticação, WCAG na tela de login, larguras responsivas e foco
+     de teclado); formatação, lint, TypeScript e a suíte completa (106 suites,
+     766 testes) também passaram. O Jest mantém handles abertos após imprimir o
+     resultado; a validação da suíte precisou de `--forceExit` para terminar
+     com código zero.
+     A sessão não tinha `adb` nem `xcrun simctl`, então conferência manual em
+     Android/iOS, escala de fonte, safe areas e gestos continua pendente. O
+     Playwright existente não percorre autenticação e navegação até coleções.
+     As tarefas OpenSpec 8.1 e 8.2 permanecem abertas até essa validação manual;
+     a change passou na validação estrita do OpenSpec.
