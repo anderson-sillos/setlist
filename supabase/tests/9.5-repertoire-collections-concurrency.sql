@@ -96,17 +96,19 @@ end;
 $$;
 
 select is(
-  extensions.dblink_connect_u(
+  extensions.dblink_connect(
     'collection_append_slow',
-    'dbname=' || current_database()
+    'host=127.0.0.1 dbname=' || current_database() ||
+      ' user=postgres password=postgres'
   ),
   'OK',
   'Conexão concorrente lenta abre'
 );
 select is(
-  extensions.dblink_connect_u(
+  extensions.dblink_connect(
     'collection_append_fast',
-    'dbname=' || current_database()
+    'host=127.0.0.1 dbname=' || current_database() ||
+      ' user=postgres password=postgres'
   ),
   'OK',
   'Conexão concorrente rápida abre'
