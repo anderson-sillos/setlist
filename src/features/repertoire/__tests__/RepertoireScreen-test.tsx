@@ -787,7 +787,7 @@ describe('<RepertoireScreen />', () => {
     }
     if (!parent) throw new Error('Modal de inclusão em coleção não encontrado');
     const dismiss = parent.props.onDismiss as () => void;
-    await fireEvent.press(view.getByLabelText('Nova coleção'));
+    await fireEvent.press(await view.findByLabelText('Nova coleção'));
     await act(async () => dismiss());
 
     expect(mockRouter.push).toHaveBeenCalledWith(

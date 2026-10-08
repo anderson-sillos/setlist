@@ -1633,32 +1633,29 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      de bloqueio. A tarefa 11.8.1 registra essas pendências. O processo ainda
      não está implementado e o item 11.3 segue aberto.
 
-127. A change `organizar-colecoes-do-repertorio` está sendo implementada na
-     branch `feat/repertoire-collections`, PR #32 aberta. As tarefas 1 a 7
-     estão concluídas e commitadas individualmente. A inclusão de uma coleção no
-     setlist cria ocorrências comuns das músicas ativas na ordem confirmada;
-     mudanças posteriores na coleção não alteram a setlist. A feature usa as
-     migrações `20261008100000_create_repertoire_collections.sql` e
-     `20261008101000_manage_repertoire_collections.sql`. Elas estão no código,
-     mas esta etapa não as aplicou a um Supabase hospedado nem validou banco
-     local. Antes de habilitar a feature em um ambiente, conferir o projeto de
-     destino e aplicar as migrações pelo procedimento autorizado. Para retorno,
-     pode-se reverter o app para uma versão sem a interface de coleções e
-     preservar tabelas e dados; não remover as tabelas sem backup e decisão
-     explícita, pois já podem conter coleções de bandas.
+127. A change `organizar-colecoes-do-repertorio` foi arquivada em
+     `openspec/changes/archive/2026-10-08-organizar-colecoes-do-repertorio`,
+     suas definições foram sincronizadas com `openspec/specs/repertoire-collections`
+     e todas as tarefas foram marcadas como concluídas após validação manual
+     confirmada pelo responsável em 2026-10-08. A branch `feat/repertoire-collections`
+     contém a implementação, a migração `20261008100000_create_repertoire_collections.sql`,
+     a migração `20261008101000_manage_repertoire_collections.sql` e a PR #32
+     para integração à `main`. A inclusão de uma coleção no setlist cria
+     ocorrências comuns das músicas ativas na ordem confirmada; mudanças
+     posteriores na coleção não alteram a setlist. A PR deve ser integrada após
+     aprovação dos checks exigidos. Antes de habilitar a feature em outro
+     ambiente, conferir o projeto de destino e aplicar as migrações pelo
+     procedimento autorizado. Para retorno, pode-se reverter o app para uma
+     versão sem a interface de coleções e preservar tabelas e dados; não remover
+     as tabelas sem backup e decisão explícita, pois já podem conter coleções.
 
-     Verificações desta etapa: exportação Web passou; quatro testes Playwright
-     passaram (autenticação, WCAG na tela de login, larguras responsivas e foco
-     de teclado); formatação, lint, TypeScript e a suíte completa (106 suites,
-     766 testes) também passaram. O Jest mantém handles abertos após imprimir o
-     resultado; a validação da suíte precisou de `--forceExit` para terminar
-     com código zero.
-     O ADB estava sem dispositivos conectados nesta etapa. O simulador iOS foi
-     localizado posteriormente; ver a atualização 128 abaixo. Conferência manual em
-     Android/iOS, escala de fonte, safe areas e gestos continua pendente. O
-     Playwright existente não percorre autenticação e navegação até coleções.
-     As tarefas OpenSpec 8.1 e 8.2 permanecem abertas até essa validação manual;
-     a change passou na validação estrita do OpenSpec.
+     A execução de CI mais recente detectou expectativas de testes desatualizadas
+     após os refinamentos de fluxo; os ajustes estão sendo feitos na mesma PR e
+     a integração depende da nova execução dos checks. Verificações anteriores:
+     exportação Web, quatro testes Playwright, formatação, lint, TypeScript e
+     suíte completa (106 suites, 766 testes); o Jest precisou de `--forceExit`
+     para encerrar com código zero devido a handles abertos. O estado dos checks
+     e da PR #32 deve ser conferido no GitHub antes de declarar a integração.
 
 128. A falha de acesso às coleções foi confirmada no projeto **setlist-dev**
      (`zncaahgaoqwksdidunza`), usado pelo `.env.local` e pelo simulador iOS:

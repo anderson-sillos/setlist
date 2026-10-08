@@ -116,9 +116,9 @@ describe('telas de consulta de coleções do repertório', () => {
       </AppProviders>,
     );
 
-    expect(ownerView.getByLabelText('Nome da coleção').props.value).toBe(
-      'Festa',
-    );
+    expect(
+      (await ownerView.findByLabelText('Nome da coleção')).props.value,
+    ).toBe('Festa');
     expect(ownerView.queryByLabelText('Editar coleção')).toBeNull();
   });
 

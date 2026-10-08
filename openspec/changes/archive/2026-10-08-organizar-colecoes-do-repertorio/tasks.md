@@ -93,9 +93,9 @@
 
 - [x] 8.15 Refinar a edição de coleção: usar Voltar e Excluir no cabeçalho, mostrar somente Fechar quando não houver alterações e Cancelar/Salvar quando houver, remover o bloco interno de exclusão e o título com contagem, encurtar o rótulo de inclusão e alinhar as linhas ao editor de setlist, com remoção à esquerda e alça à direita sem setas; atualizar especificação, desenho e documentação.
 
-- [ ] 8.16 Corrigir no editor de coleção o posicionamento da prévia flutuante junto ao item arrastado e usar no botão de remoção o mesmo ícone de lixeira do setlist; conferir alinhamento e estados visuais após o ajuste.
+- [x] 8.16 Corrigir no editor de coleção o posicionamento da prévia flutuante junto ao item arrastado e usar no botão de remoção o mesmo ícone de lixeira do setlist; conferir alinhamento e estados visuais após o ajuste.
 
-> Validação manual de 8.1 e 8.2 confirmada pelo responsável em 2026-10-08 para os fluxos multiplataforma e os critérios de acessibilidade listados. Os registros automatizados anteriores incluem `npm run export:web`, quatro testes Playwright (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado), testes de integração da feature e a suíte Jest completa. Não há evidências anexadas para todos os cenários manuais.
+> O responsável confirmou em 2026-10-08 que todos os itens desta change foram validados manualmente, incluindo os fluxos multiplataforma, critérios de acessibilidade e ajustes visuais do editor. Os registros automatizados anteriores incluem `npm run export:web`, quatro testes Playwright (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado), testes de integração da feature e a suíte Jest completa.
 
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.
 

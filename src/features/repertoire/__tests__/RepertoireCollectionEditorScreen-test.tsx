@@ -348,6 +348,10 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     );
 
     await view.findByLabelText('Nome da coleção');
+    const songRow = view.getByTestId('collection-song-row-song-demo-luzes');
+    await fireEvent(songRow, 'layout', {
+      nativeEvent: { layout: { height: 64, width: 320, x: 0, y: 0 } },
+    });
     const initialHandle = view.getByTestId(
       'gesture-collection-song-drag-song-demo-luzes',
     );

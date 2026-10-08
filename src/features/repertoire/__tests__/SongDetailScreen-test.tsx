@@ -306,7 +306,7 @@ describe('<SongDetailScreen />', () => {
 
       await act(async () => mockBeforeRemove?.(routeEvent));
       expect(routeEvent.preventDefault).toHaveBeenCalledTimes(1);
-      expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
+      expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
       const continueButtons = view.getAllByLabelText('Continuar editando');
       await fireEvent.press(continueButtons[continueButtons.length - 1]);
       expect(
@@ -318,7 +318,7 @@ describe('<SongDetailScreen />', () => {
       ).toEqual({ checked: true });
 
       await fireEvent.press(view.getByText('Cancelar'));
-      expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
+      expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
       const dismissPrompt = getPromptNativeDismiss(view);
       await fireEvent.press(view.getByLabelText('Descartar alterações'));
       await act(async () => dismissPrompt());
