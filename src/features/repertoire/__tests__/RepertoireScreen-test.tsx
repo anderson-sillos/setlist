@@ -179,6 +179,112 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Adicionar música ao repertório')).toBeNull();
   });
 
+  it('preserva busca e filtros durante a seleção múltipla', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
+    await fireEvent.press(view.getByText('Arquivadas'));
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'rota',
+    );
+    expect(view.getByText('Rota Antiga')).toBeTruthy();
+
+    await fireEvent.press(
+      view.getByLabelText('Selecionar músicas do repertório'),
+    );
+
+    expect(
+      view.getByLabelText('Buscar música por título ou artista').props.value,
+    ).toBe('rota');
+    expect(
+      view.getByLabelText('Alterar filtros do repertório').props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+    expect(view.getByLabelText('Selecionar Rota Antiga')).toBeTruthy();
+    expect(view.getByText('0 músicas selecionadas')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Selecionar 1 resultado atual'));
+    expect(view.getByText('1 música selecionada')).toBeTruthy();
+  });
+
+  it('retorna ao toque habitual e não grava ao cancelar a seleção', async () => {
+    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const save = jest.spyOn(repositories.repertoireCollections, 'save');
+    const appendSongs = jest.spyOn(
+      repositories.repertoireCollections,
+      'appendSongs',
+    );
+    const setSongCollections = jest.spyOn(
+      repositories.repertoireCollections,
+      'setSongCollections',
+    );
+    const deleteCollection = jest.spyOn(
+      repositories.repertoireCollections,
+      'delete',
+    );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await fireEvent.press(
+      view.getByLabelText('Selecionar músicas do repertório'),
+    );
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'pontes',
+    );
+    await fireEvent.press(view.getByLabelText('Selecionar Entre Pontes'));
+    expect(view.getByText('1 música selecionada')).toBeTruthy();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'luzes',
+    );
+    expect(view.getByText('1 música selecionada')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
+    expect(view.getByText('2 músicas selecionadas')).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Cancelar seleção de músicas'));
+    expect(
+      view.getByLabelText('Selecionar músicas do repertório'),
+    ).toBeTruthy();
+    expect(
+      view.getByLabelText('Buscar música por título ou artista').props.value,
+    ).toBe('luzes');
+    expect(
+      view.queryByLabelText('Remover seleção de Luzes da Cidade'),
+    ).toBeNull();
+    expect(
+      view.getByRole('link', { name: /Abrir música Luzes da Cidade/ }),
+    ).toBeTruthy();
+    expect(save).not.toHaveBeenCalled();
+    expect(appendSongs).not.toHaveBeenCalled();
+    expect(setSongCollections).not.toHaveBeenCalled();
+    expect(deleteCollection).not.toHaveBeenCalled();
+  });
+
+  it('não oferece seleção múltipla para pessoas Member', async () => {
+    const view = await render(
+      <AppProviders currentUserId="user-demo-carla">
+        <RepertoireScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+
+    expect(
+      view.queryByLabelText('Selecionar músicas do repertório'),
+    ).toBeNull();
+  });
+
   it('leva Owner de uma banda conectada à criação online', async () => {
     const bandId = 'band-live';
     const repositories = createInMemoryRepositories({

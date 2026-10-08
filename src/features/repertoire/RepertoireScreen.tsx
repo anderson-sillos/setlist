@@ -57,75 +57,127 @@ import {
   lyricStatusTones,
 } from './songPresentation';
 
-function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
+interface SongRowProps {
+  readonly bandId: EntityId;
+  readonly onToggleSelection: (songId: EntityId) => void;
+  readonly selected: boolean;
+  readonly selectionMode: boolean;
+  readonly song: Song;
+}
+
+interface RepertoireSelectionState {
+  readonly active: boolean;
+  readonly bandId: EntityId;
+  readonly selectedSongIds: ReadonlySet<EntityId>;
+}
+
+function emptySelectionState(bandId: EntityId): RepertoireSelectionState {
+  return { active: false, bandId, selectedSongIds: new Set() };
+}
+
+function SongRow({
+  bandId,
+  onToggleSelection,
+  selected,
+  selectionMode,
+  song,
+}: SongRowProps) {
   const [pressed, setPressed] = useState(false);
+
+  const row = (
+    <Pressable
+      accessibilityLabel={
+        selectionMode
+          ? `${selected ? 'Remover seleção de' : 'Selecionar'} ${song.title}`
+          : `Abrir música ${song.title}. Status da letra: ${lyricStatusLabels[song.lyricStatus]}`
+      }
+      accessibilityRole={selectionMode ? 'checkbox' : 'link'}
+      accessibilityState={selectionMode ? { checked: selected } : undefined}
+      onPress={selectionMode ? () => onToggleSelection(song.id) : undefined}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      style={StyleSheet.flatten([
+        styles.listRow,
+        selected && selectionMode && styles.selectedListRow,
+        pressed && styles.pressed,
+      ])}
+    >
+      <View style={styles.rowLayout}>
+        <View style={styles.rowPrimaryContent}>
+          <View style={styles.rowLeadingIcon}>
+            <AppIcon color={colors.text.secondary} name="music" size={40} />
+          </View>
+          <View style={styles.rowContent}>
+            <View style={styles.rowTitleLine}>
+              <AppText style={styles.rowTitle} variant="heading">
+                {song.title}
+              </AppText>
+              <StatusPill
+                accessible={false}
+                accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                icon={lyricStatusIcons[song.lyricStatus]}
+                tone={lyricStatusTones[song.lyricStatus]}
+              />
+            </View>
+            <View style={styles.rowMetaLine}>
+              <AppText numberOfLines={1} style={styles.rowArtist} tone="muted">
+                {song.originalArtist ?? 'Artista/Banda não informado'}
+              </AppText>
+              <View
+                accessibilityLabel={`Duração ${
+                  song.estimatedDurationMs === null
+                    ? 'não informada'
+                    : formatSongDuration(song.estimatedDurationMs)
+                }`}
+                style={styles.durationMeta}
+              >
+                <AppIcon
+                  color={colors.text.secondary}
+                  name="duration"
+                  size={12}
+                />
+                <AppText style={styles.durationValue} tone="accent">
+                  {song.estimatedDurationMs === null
+                    ? '—'
+                    : formatSongDuration(song.estimatedDurationMs)}
+                </AppText>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View style={styles.rowNavigation}>
+          {selectionMode ? (
+            <View
+              style={[
+                styles.selectionIndicator,
+                selected && styles.selectionIndicatorSelected,
+              ]}
+            >
+              {selected ? (
+                <AppIcon color={colors.text.onAccent} name="check" size={14} />
+              ) : null}
+            </View>
+          ) : (
+            <AppIcon color={colors.text.secondary} name="forward" size={20} />
+          )}
+        </View>
+      </View>
+    </Pressable>
+  );
 
   return (
     <View style={styles.rowFrame}>
-      <Link href={getSongHref(bandId, song.id)} onPress={blurWebFocus} asChild>
-        <Pressable
-          accessibilityLabel={`Abrir música ${song.title}. Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
-          accessibilityRole="link"
-          onPressIn={() => setPressed(true)}
-          onPressOut={() => setPressed(false)}
-          style={StyleSheet.flatten([
-            styles.listRow,
-            pressed && styles.pressed,
-          ])}
+      {selectionMode ? (
+        row
+      ) : (
+        <Link
+          href={getSongHref(bandId, song.id)}
+          onPress={blurWebFocus}
+          asChild
         >
-          <View style={styles.rowLayout}>
-            <View style={styles.rowPrimaryContent}>
-              <View style={styles.rowLeadingIcon}>
-                <AppIcon color={colors.text.secondary} name="music" size={40} />
-              </View>
-              <View style={styles.rowContent}>
-                <View style={styles.rowTitleLine}>
-                  <AppText style={styles.rowTitle} variant="heading">
-                    {song.title}
-                  </AppText>
-                  <StatusPill
-                    accessible={false}
-                    accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
-                    icon={lyricStatusIcons[song.lyricStatus]}
-                    tone={lyricStatusTones[song.lyricStatus]}
-                  />
-                </View>
-                <View style={styles.rowMetaLine}>
-                  <AppText
-                    numberOfLines={1}
-                    style={styles.rowArtist}
-                    tone="muted"
-                  >
-                    {song.originalArtist ?? 'Artista/Banda não informado'}
-                  </AppText>
-                  <View
-                    accessibilityLabel={`Duração ${
-                      song.estimatedDurationMs === null
-                        ? 'não informada'
-                        : formatSongDuration(song.estimatedDurationMs)
-                    }`}
-                    style={styles.durationMeta}
-                  >
-                    <AppIcon
-                      color={colors.text.secondary}
-                      name="duration"
-                      size={12}
-                    />
-                    <AppText style={styles.durationValue} tone="accent">
-                      {song.estimatedDurationMs === null
-                        ? '—'
-                        : formatSongDuration(song.estimatedDurationMs)}
-                    </AppText>
-                  </View>
-                </View>
-              </View>
-            </View>
-            <View style={styles.rowNavigation}>
-              <AppIcon color={colors.text.secondary} name="forward" size={20} />
-            </View>
-          </View>
-        </Pressable>
-      </Link>
+          {row}
+        </Link>
+      )}
     </View>
   );
 }
@@ -167,6 +219,13 @@ export function RepertoireScreen({
   const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
     spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
   );
+  const [selectionState, setSelectionState] =
+    useState<RepertoireSelectionState>(() => emptySelectionState(bandId));
+  const currentSelectionState =
+    selectionState.bandId === bandId
+      ? selectionState
+      : emptySelectionState(bandId);
+  const { active: selectionMode, selectedSongIds } = currentSelectionState;
   const songs = useMemo(() => {
     return filterAndSortRepertoireSongs(
       songsQuery.data ?? [],
@@ -181,12 +240,55 @@ export function RepertoireScreen({
   )?.membership;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
+  const activeSelectionMode = canCreate && selectionMode;
+  const selectedSongCount = selectedSongIds.size;
+  const allVisibleSongsSelected =
+    songs.length > 0 && songs.every(({ id }) => selectedSongIds.has(id));
   const hasRegisteredSongs = (songsQuery.data?.length ?? 0) > 0;
   const isFirstSongEmptyState = !hasQuery && !hasRegisteredSongs;
   const clearFilters = () => {
     update('search', '');
     update('filter', 'all');
     update('sort', 'title');
+  };
+  const updateSelectionState = (
+    updateState: (
+      current: RepertoireSelectionState,
+    ) => RepertoireSelectionState,
+  ) => {
+    setSelectionState((current) =>
+      updateState(
+        current.bandId === bandId ? current : emptySelectionState(bandId),
+      ),
+    );
+  };
+  const toggleSongSelection = (songId: EntityId) => {
+    updateSelectionState((current) => {
+      const selected = new Set(current.selectedSongIds);
+      if (selected.has(songId)) {
+        selected.delete(songId);
+      } else {
+        selected.add(songId);
+      }
+      return { ...current, selectedSongIds: selected };
+    });
+  };
+  const selectVisibleSongs = () => {
+    updateSelectionState((current) => {
+      const selected = new Set(current.selectedSongIds);
+      songs.forEach(({ id }) => selected.add(id));
+      return { ...current, selectedSongIds: selected };
+    });
+  };
+  const cancelSongSelection = () => {
+    updateSelectionState((current) => ({
+      ...current,
+      active: false,
+      selectedSongIds: new Set(),
+    }));
+  };
+  const beginSongSelection = () => {
+    updateSelectionState((current) => ({ ...current, active: true }));
   };
 
   return (
@@ -296,7 +398,15 @@ export function RepertoireScreen({
             progressViewOffset: controlsOverlayHeight,
             refreshing,
           })}
-          renderItem={({ item }) => <SongRow bandId={bandId} song={item} />}
+          renderItem={({ item }) => (
+            <SongRow
+              bandId={bandId}
+              onToggleSelection={toggleSongSelection}
+              selected={selectedSongIds.has(item.id)}
+              selectionMode={activeSelectionMode}
+              song={item}
+            />
+          )}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={styles.list}
@@ -321,6 +431,44 @@ export function RepertoireScreen({
           }
         >
           <View style={styles.controlToolbarEnd}>
+            {canCreate ? (
+              selectionMode ? (
+                <>
+                  <AppText
+                    accessibilityLiveRegion="polite"
+                    style={styles.selectionCount}
+                    tone="muted"
+                  >
+                    {selectedSongCount === 1
+                      ? '1 música selecionada'
+                      : `${selectedSongCount} músicas selecionadas`}
+                  </AppText>
+                  <AppButton
+                    accessibilityLabel={`Selecionar ${songs.length} resultado${songs.length === 1 ? '' : 's'} atual${songs.length === 1 ? '' : 'is'}`}
+                    disabled={songs.length === 0 || allVisibleSongsSelected}
+                    icon="check"
+                    label={`Selecionar resultados (${songs.length})`}
+                    onPress={selectVisibleSongs}
+                    variant="secondary"
+                  />
+                  <AppButton
+                    accessibilityLabel="Cancelar seleção de músicas"
+                    icon="close"
+                    label="Cancelar seleção"
+                    onPress={cancelSongSelection}
+                    variant="tertiary"
+                  />
+                </>
+              ) : (
+                <AppButton
+                  accessibilityLabel="Selecionar músicas do repertório"
+                  icon="check"
+                  label="Selecionar músicas"
+                  onPress={beginSongSelection}
+                  variant="tertiary"
+                />
+              )
+            ) : null}
             <AppButton
               accessibilityLabel="Abrir coleções do repertório"
               icon="repertoire"
@@ -405,6 +553,10 @@ const styles = StyleSheet.create({
     minHeight: 84,
     padding: spacing.md,
   },
+  selectedListRow: {
+    backgroundColor: colors.background.selected,
+    borderColor: colors.border.selected,
+  },
   rowLayout: {
     alignItems: 'stretch',
     flexDirection: 'row',
@@ -453,6 +605,22 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     justifyContent: 'center',
     minWidth: 20,
+  },
+  selectionIndicator: {
+    alignItems: 'center',
+    borderColor: colors.border.control,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    height: 20,
+    justifyContent: 'center',
+    width: 20,
+  },
+  selectionIndicatorSelected: {
+    backgroundColor: colors.action.primary,
+    borderColor: colors.action.primary,
+  },
+  selectionCount: {
+    marginHorizontal: spacing.sm,
   },
   durationValue: {
     fontVariant: ['tabular-nums'],
