@@ -2,11 +2,11 @@
 
 ## 1. Persistência e autorização
 
-- [ ] 1.1 Criar migração aditiva para coleções e vínculos ordenados, com nomes válidos e únicos por banda, restrições de posição e cascatas; verificar com pgTAP nomes equivalentes, vínculo duplicado, associação entre bandas e exclusão sem apagar músicas ou shows.
-- [ ] 1.2 Implementar RLS para integrantes ativos, papéis de escrita, suspensão e visibilidade das músicas nos vínculos; verificar com pgTAP proprietário, editor, integrante, pessoa externa, conta suspensa e música ocultada, incluindo ausência de vazamento em contagens.
-- [ ] 1.3 Implementar RPCs atômicos para salvar coleção/ordem, acrescentar músicas, atualizar participações de uma música e excluir coleção; verificar rollback em entrada inválida, preservação de vínculos não consultáveis e reenvio sem duplicação.
-- [ ] 1.4 Implementar bloqueios, atualização da revisão e rejeição de edição desatualizada; verificar inclusões concorrentes e tentativas de sobrescrever uma revisão anterior sem perda silenciosa de dados.
-- [ ] 1.5 Ampliar os testes de ciclo de vida para arquivamento, restauração, moderação e exclusão definitiva de músicas vinculadas; verificar que a ordem relativa permanece e que coleções não alteram a decisão vigente entre exclusão e arquivamento.
+- [x] 1.1 Criar migração aditiva para coleções e vínculos ordenados, com nomes válidos e únicos por banda, restrições de posição e cascatas; verificar com pgTAP nomes equivalentes, vínculo duplicado, associação entre bandas e exclusão sem apagar músicas ou shows.
+- [x] 1.2 Implementar RLS para integrantes ativos, papéis de escrita, suspensão e visibilidade das músicas nos vínculos; verificar com pgTAP proprietário, editor, integrante, pessoa externa, conta suspensa e música ocultada, incluindo ausência de vazamento em contagens.
+- [x] 1.3 Implementar RPCs atômicos para salvar coleção/ordem, acrescentar músicas, atualizar participações de uma música e excluir coleção; verificar rollback em entrada inválida, preservação de vínculos não consultáveis e reenvio sem duplicação.
+- [x] 1.4 Implementar bloqueios, atualização da revisão e rejeição de edição desatualizada; verificar inclusões concorrentes e tentativas de sobrescrever uma revisão anterior sem perda silenciosa de dados.
+- [x] 1.5 Ampliar os testes de ciclo de vida para arquivamento, restauração, moderação e exclusão definitiva de músicas vinculadas; verificar que a ordem relativa permanece e que coleções não alteram a decisão vigente entre exclusão e arquivamento.
 - [x] 1.6 Documentar estrutura, permissões e sequência de aplicação da migração em `docs/COLECOES_REPERTORIO.md`; verificar correspondência com a migração e executar `npm run supabase:test` e `npm run supabase:lint` no ambiente local configurado ou no runner isolado da PR quando não houver Docker/Podman local.
 
 ## 2. Domínio, repositórios e consultas
