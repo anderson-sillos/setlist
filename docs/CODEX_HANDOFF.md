@@ -1653,9 +1653,24 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      766 testes) também passaram. O Jest mantém handles abertos após imprimir o
      resultado; a validação da suíte precisou de `--forceExit` para terminar
      com código zero.
-     O ADB está instalado, mas a consulta elevada retornou lista de dispositivos
-     vazia; `xcrun simctl` não está disponível. Conferência manual em
+     O ADB estava sem dispositivos conectados nesta etapa. O simulador iOS foi
+     localizado posteriormente; ver a atualização 128 abaixo. Conferência manual em
      Android/iOS, escala de fonte, safe areas e gestos continua pendente. O
      Playwright existente não percorre autenticação e navegação até coleções.
      As tarefas OpenSpec 8.1 e 8.2 permanecem abertas até essa validação manual;
      a change passou na validação estrita do OpenSpec.
+
+128. A falha de acesso às coleções foi confirmada no projeto **setlist-dev**
+     (`zncaahgaoqwksdidunza`), usado pelo `.env.local` e pelo simulador iOS:
+     a API retornava `404 / PGRST205` para `repertoire_collections` e
+     `repertoire_collection_songs`. As migrações da feature estavam pendentes.
+     O Supabase CLI confirmou o nome/ref do projeto e o dry-run listou somente
+     `20261008100000_create_repertoire_collections.sql` e
+     `20261008101000_manage_repertoire_collections.sql`. Os testes pgTAP dessas
+     migrações passaram no workflow da PR #32. Ambas foram aplicadas somente
+     em desenvolvimento, sem seeds, roles ou reset, conforme o processo
+     registrado em Convenção de trabalho solicitada. O dry-run posterior
+     confirmou banco atualizado. A consulta autenticada no runtime do app
+     passou (`status: success`, zero coleções para a banda aberta); acesso
+     anônimo continua negado por projeto, com `401 / 42501`.
+     Produção não foi alterada. A tarefa 8.5 registra a conferência.

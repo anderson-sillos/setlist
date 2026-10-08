@@ -34,6 +34,8 @@
 - [x] 4.3 Implementar inclusão das escolhidas ao final de coleção existente, sem repetir participações ou alterar a ordem anterior; verificar testes com mistura de músicas novas e já presentes e falha sem mudança parcial.
 - [x] 4.4 Documentar as duas ações de organização a partir do Repertório em `docs/COLECOES_REPERTORIO.md`; conferir que ambas podem ser descobertas sem pressão longa ou etapa obrigatória.
 
+- [ ] 4.5 Aplicar o refinamento de UX aprovado: reunir manutenção e seleção no menu Coleções, manter a toolbar compacta com contagem/cancelamento no cabeçalho, acrescentar ações por música com três pontos verticais preservando o toque no cartão e compartilhar o gerenciamento de participações; conferir a apresentação e o fechamento antes da ação no simulador iOS.
+
 ## 5. Filtro de coleção e contexto da lista
 
 - [x] 5.1 Acrescentar Todas as coleções, Sem coleção e uma coleção por vez ao painel Filtrar quando houver coleções; verificar testes de interseção com busca/situação, músicas sem vínculo, ausência de duplicação e preservação da ordenação atual.
@@ -65,6 +67,8 @@
 - [x] 8.3 Executar regressão integrada de navegação, gestos do drawer, proteção de edição, rolagem da lista, atualização manual e troca de banda, além de `npm run validate`; verificar aprovação e registrar qualquer limitação comprovada antes de concluir a change.
 - [x] 8.4 Atualizar `docs/CODEX_HANDOFF.md` com escopo entregue, migração, verificações e orientações de distribuição/retorno; verificar `openspec validate organizar-colecoes-do-repertorio --strict --no-interactive` e correspondência entre documentação, requisitos e tarefas concluídas.
 
-> Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; `xcrun simctl` não está disponível; o Playwright atual não percorre o fluxo autenticado de coleções.
+- [x] 8.5 Investigar a falha de acesso às coleções no ambiente de desenvolvimento, confirmar o projeto e as migrações pendentes, aplicar pelo processo do repositório e refazer a consulta autenticada no app; verificar ausência de migrações pendentes e preservar produção.
+
+> Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 
 > Limitação registrada para 8.3: formatação, lint, TypeScript e os 766 testes passaram. O `npm run validate` não encerrou após o Jest reportar tudo verde devido a handles assíncronos ainda abertos; a execução equivalente `npm run test:ci -- --forceExit --silent` terminou com sucesso. O processo de teste sem `--forceExit` precisa ser investigado em uma tarefa própria.
