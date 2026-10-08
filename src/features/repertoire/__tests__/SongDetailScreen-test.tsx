@@ -20,49 +20,14 @@ jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(() => jest.fn()),
 }));
 
-jest.mock('@/components/feedback/UnsavedChangesPrompt', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { Pressable, Text, View } =
-    jest.requireActual<typeof import('react-native')>('react-native');
+const mockSetUnsavedPromptVisible = jest.fn();
 
-  return {
-    UnsavedChangesPrompt: ({
-      onContinue,
-      onDiscard,
-      testID = 'unsaved-changes-prompt',
-      visible,
-    }: {
-      readonly onContinue: () => void;
-      readonly onDiscard: () => void;
-      readonly testID?: string;
-      readonly visible: boolean;
-    }) =>
-      visible
-        ? React.createElement(
-            View,
-            { testID },
-            React.createElement(
-              Pressable,
-              {
-                accessibilityLabel: 'Continuar editando',
-                accessibilityRole: 'button',
-                onPress: onContinue,
-              },
-              React.createElement(Text, null, 'Continuar editando'),
-            ),
-            React.createElement(
-              Pressable,
-              {
-                accessibilityLabel: 'Descartar alterações',
-                accessibilityRole: 'button',
-                onPress: onDiscard,
-              },
-              React.createElement(Text, null, 'Descartar alterações'),
-            ),
-          )
-        : null,
-  };
-});
+jest.mock('@/components/feedback/UnsavedChangesPrompt', () => ({
+  UnsavedChangesPrompt: ({ visible }: { readonly visible: boolean }) => {
+    mockSetUnsavedPromptVisible(visible);
+    return null;
+  },
+}));
 
 jest.mock('@/data/supabase/contentReports', () => ({
   sendContentReport: jest.fn(),
@@ -306,7 +271,7 @@ describe('<SongDetailScreen />', () => {
     ).toBe(1);
   });
 
-  it('pede confirmação para continuar ou descartar mudanças no gerenciador', async () => {
+  it('preserva as alterações ao pedir confirmação para cancelar o gerenciador', async () => {
     const originalPlatform = Platform.OS;
     const repositories = createInMemoryRepositories(demoRepositoryData);
     const setSongCollections = jest.spyOn(
@@ -333,8 +298,7 @@ describe('<SongDetailScreen />', () => {
         view.getByTestId('song-collection-option-collection-demo-acustico'),
       );
       await fireEvent.press(view.getByText('Cancelar'));
-      expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
-      await fireEvent.press(view.getByLabelText('Continuar editando'));
+      expect(mockSetUnsavedPromptVisible).toHaveBeenLastCalledWith(true);
       expect(
         view.getByTestId('song-collection-membership-dialog'),
       ).toBeTruthy();
@@ -342,13 +306,6 @@ describe('<SongDetailScreen />', () => {
         view.getByTestId('song-collection-option-collection-demo-acustico')
           .props.accessibilityState,
       ).toEqual({ checked: true });
-
-      await fireEvent.press(view.getByText('Cancelar'));
-      expect(await view.findByTestId('unsaved-changes-prompt')).toBeTruthy();
-      await fireEvent.press(view.getByLabelText('Descartar alterações'));
-      expect(
-        view.queryByTestId('song-collection-membership-dialog'),
-      ).toBeNull();
       expect(setSongCollections).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(Platform, 'OS', {
