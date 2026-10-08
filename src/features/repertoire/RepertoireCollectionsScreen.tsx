@@ -14,6 +14,7 @@ import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
   getRepertoireCollectionCreateHref,
+  getRepertoireCollectionEditHref,
   getRepertoireCollectionHref,
   getRepertoireCollectionsHref,
 } from '@/features/navigation/routes';
@@ -82,14 +83,22 @@ export function RepertoireCollectionsScreen({
             {collectionsQuery.data.map((summary) => (
               <View key={summary.collection.id} style={styles.rowFrame}>
                 <Link
-                  href={getRepertoireCollectionHref(
-                    bandId,
-                    summary.collection.id,
-                  )}
+                  href={
+                    canEdit
+                      ? getRepertoireCollectionEditHref(
+                          bandId,
+                          summary.collection.id,
+                          'collections',
+                        )
+                      : getRepertoireCollectionHref(
+                          bandId,
+                          summary.collection.id,
+                        )
+                  }
                   asChild
                 >
                   <Pressable
-                    accessibilityLabel={`Abrir coleção ${summary.collection.name}`}
+                    accessibilityLabel={`${canEdit ? 'Editar' : 'Abrir'} coleção ${summary.collection.name}`}
                     accessibilityRole="link"
                     style={({ pressed }) => [
                       styles.row,

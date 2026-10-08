@@ -23,7 +23,7 @@
 - [x] 3.2 Implementar lista e detalhe ordenado, quantidade, duração, indicação de arquivamento e estados vazios contextuais; verificar testes com zero, uma e várias coleções e ausência de aviso de adesão nas telas habituais.
 - [x] 3.3 Implementar criação e renomeação com validação de nome, salvamento explícito e coleção vazia válida; verificar nome vazio, limite de 120 caracteres, duplicidade e preservação do formulário após falha.
 - [x] 3.4 Implementar seletor de músicas com busca, filtros, ordenação, contagem, revisão e seleção explícita dos resultados; verificar testes que mudam a consulta várias vezes sem perder marcações ou selecionar músicas fora dos resultados.
-- [x] 3.5 Implementar remoção de participações, reordenação por arraste e controles de subir/descer, salvamento atômico e exclusão confirmada da coleção; verificar manutenção da ordem, ausência de exclusão de músicas e erro recuperável por edição concorrente.
+- [x] 3.5 Implementar remoção de participações, reordenação por arraste, salvamento atômico e exclusão confirmada da coleção; verificar manutenção da ordem, ausência de exclusão de músicas e erro recuperável por edição concorrente.
 - [x] 3.6 Integrar a proteção compartilhada de alterações não salvas e bloquear envios concorrentes; verificar continuar, descartar, falhar e salvar sem aviso indevido, incluindo confirmação acima do editor e navegação responsiva após o fechamento.
 - [x] 3.7 Documentar consulta, edição e organização no seletor em `docs/COLECOES_REPERTORIO.md`; conferir os passos usando uma coleção com músicas ativas e arquivadas.
 
@@ -67,7 +67,7 @@
 ## 8. Conferência integrada e entrega
 
 - [ ] 8.1 Executar os cenários completos de consultar, criar, editar, filtrar, gerenciar participações e incluir no show na Web, iOS e Android, incluindo banda sem coleções; registrar evidências e verificar que o recurso continua opcional e discreto.
-- [ ] 8.2 Conferir telas compactas, texto ampliado, teclado, foco Web, leitor de tela, redução de movimento, áreas seguras e reordenação sem arraste; registrar resultados e verificar ausência de controles inacessíveis ou diálogos encobertos.
+- [ ] 8.2 Conferir telas compactas, texto ampliado, teclado, foco Web, leitor de tela, redução de movimento, áreas seguras e reordenação pela alça de arraste; registrar resultados e verificar ausência de controles inacessíveis ou diálogos encobertos.
 - [x] 8.3 Executar regressão integrada de navegação, gestos do drawer, proteção de edição, rolagem da lista, atualização manual e troca de banda, além de `npm run validate`; verificar aprovação e registrar qualquer limitação comprovada antes de concluir a change.
 - [x] 8.4 Atualizar `docs/CODEX_HANDOFF.md` com escopo entregue, migração, verificações e orientações de distribuição/retorno; verificar `openspec validate organizar-colecoes-do-repertorio --strict --no-interactive` e correspondência entre documentação, requisitos e tarefas concluídas.
 
@@ -88,6 +88,12 @@
 - [x] 8.12 Exibir Adicionar diretamente na toolbar durante a seleção, mover Selecionar todos/Limpar seleção/Cancelar seleção para as opções do cabeçalho, encerrar a seleção após inclusão confirmada e padronizar Nova coleção para grupos salvos; atualizar especificação, desenho e documentação.
 
 - [x] 8.13 Apresentar Nova coleção em uma janela modal centralizada sobre a tela de origem, mantendo formulário simples, contexto de retorno e proteção de alterações não salvas; atualizar especificação, desenho e documentação.
+
+- [x] 8.14 Abrir diretamente o editor ao selecionar uma coleção para proprietários/editores e manter a consulta somente leitura para os demais integrantes; após criação ou inclusão em lote abrir o editor, retornar ao contexto de origem e preservar gravações confirmadas ao cancelar; atualizar especificação, desenho e documentação.
+
+- [x] 8.15 Refinar a edição de coleção: usar Voltar e Excluir no cabeçalho, mostrar somente Fechar quando não houver alterações e Cancelar/Salvar quando houver, remover o bloco interno de exclusão e o título com contagem, encurtar o rótulo de inclusão e alinhar as linhas ao editor de setlist, com remoção à esquerda e alça à direita sem setas; atualizar especificação, desenho e documentação.
+
+- [x] 8.16 Replicar no editor de coleção a prévia flutuante alinhada ao item arrastado, o contorno da linha original e o destaque da alça; usar ícone de lixeira no botão de remoção com o mesmo alvo e estados de foco/pressionado do setlist; atualizar especificação, desenho e documentação.
 
 > Evidências parciais para 8.1 e 8.2: `npm run export:web` passou e os quatro testes Playwright existentes passaram (autenticação, WCAG na tela de login, larguras responsivas e foco de teclado). A suíte de integração da feature e a suíte Jest completa também passaram. A conferência manual multiplataforma e os cenários de acessibilidade nativa continuam pendentes: o ADB está instalado, mas não há dispositivo conectado; o simulador iOS foi localizado posteriormente via `DEVELOPER_DIR` no Xcode do volume de dados, e a consulta autenticada de coleções passou após aplicar as migrações em desenvolvimento; os fluxos completos nativos ainda não foram conferidos; o Playwright atual não percorre o fluxo autenticado de coleções.
 

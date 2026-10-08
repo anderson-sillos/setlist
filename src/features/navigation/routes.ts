@@ -3,6 +3,7 @@ import type { Href } from 'expo-router';
 import type { EntityId } from '@/domain';
 
 export type BandSection = 'shows' | 'repertoire' | 'stage' | 'band';
+export type RepertoireCollectionReturnTo = 'repertoire' | 'collections';
 
 export function getBandSectionHref(
   bandId: EntityId,
@@ -78,8 +79,10 @@ export function getRepertoireCollectionCreateHref(
 export function getRepertoireCollectionEditHref(
   bandId: EntityId,
   collectionId: EntityId,
+  returnTo: RepertoireCollectionReturnTo = 'collections',
 ): Href {
-  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/${encodeURIComponent(collectionId)}/edit` as Href;
+  const route = `/bands/${encodeURIComponent(bandId)}/repertoire/collections/${encodeURIComponent(collectionId)}/edit`;
+  return `${route}${returnTo === 'repertoire' ? '?returnTo=repertoire' : ''}` as Href;
 }
 
 export function getStageHref(bandId: EntityId, showId: EntityId): Href {

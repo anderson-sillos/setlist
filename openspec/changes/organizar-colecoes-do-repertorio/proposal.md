@@ -13,6 +13,7 @@ Bandas precisam reunir músicas do repertório por ocasião, estilo ou intençã
 - Oferecer um modo explícito de seleção múltipla no Repertório para criar uma coleção ou acrescentar músicas a uma existente.
 - Permitir iniciar a seleção pelo menu de ações ou mantendo o cartão de uma música pressionado; a música de origem já fica marcada, Adicionar é a ação principal visível e os filtros permanecem acessíveis durante a seleção.
 - Permitir criar uma coleção diretamente nos diálogos de participações da música e de inclusão em coleção, levando para a criação as músicas que originaram cada ação.
+- Após criar uma coleção ou acrescentar músicas em lote, abrir diretamente sua edição para permitir revisar e ordenar o conteúdo; ao sair, retornar à origem e manter salvas a coleção recém-criada e as inclusões já confirmadas.
 - Acrescentar ao painel Filtrar, quando existirem coleções, uma dimensão de coleção combinável com os critérios atuais: todas, sem coleção ou uma coleção da banda.
 - Mostrar no detalhe da música as coleções das quais ela participa, com nomes clicáveis que abrem o Repertório filtrado; oferecer gerenciamento secundário dos vínculos a quem pode editar. Músicas sem vínculos não receberão aviso ou incentivo de adesão.
 - Oferecer no menu de ações da música um atalho para abrir a letra em tela cheia quando houver letra disponível; na Web, permitir o mesmo acesso com clique duplo no card, preservando o clique simples para abrir os detalhes.

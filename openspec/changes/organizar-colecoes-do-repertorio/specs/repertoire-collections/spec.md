@@ -152,6 +152,7 @@ O sistema SHALL permitir criar, renomear, editar e excluir coleções com salvam
 - **WHEN** uma pessoa aciona Adicionar músicas no detalhe de uma coleção vazia
 - **THEN** abre o Repertório em modo de seleção, sem restrição de resultados à coleção vazia
 - **AND** a confirmação de inclusão identifica essa coleção como destino inicialmente escolhido
+- **AND** após confirmar, o editor da coleção abre com os dados atualizados
 
 #### Scenario: Nome inválido ou duplicado
 
@@ -183,13 +184,72 @@ O sistema SHALL apresentar nome, quantidade de músicas consultáveis e duraçã
 
 - **WHEN** um proprietário ou editor muda a ordem e salva a coleção
 - **THEN** a ordem salva fica disponível para consulta e inclusão futura no setlist
-- **AND** existem controles acessíveis para reordenar além do gesto de arrastar
+- **AND** cada linha coloca a ação de remover à esquerda e a alça de arraste à direita
+- **AND** a linha não apresenta botões separados de subir e descer
+
+#### Scenario: Mostrar a prévia durante o arraste
+
+- **WHEN** um proprietário ou editor arrasta uma música pela alça
+- **THEN** uma prévia flutuante com o ícone de música e o título acompanha o gesto
+- **AND** a linha original permanece destacada até o gesto terminar
+- **AND** a alça recebe o destaque visual usado no editor de setlist
+- **AND** a ação de remover usa uma lixeira de 17 px, com o tamanho do alvo e os estados de foco/pressionado do editor de setlist
 
 #### Scenario: Consultar duração não informada
 
 - **WHEN** nenhuma música consultável da coleção possui duração informada
 - **THEN** a duração é apresentada como não informada
 - **AND** quando houver durações, o total soma somente os valores informados
+
+### Requirement: Edição direta e retorno contextual da coleção
+
+O sistema SHALL abrir diretamente a edição ao selecionar uma coleção para proprietários e editores, sem exigir uma etapa separada de detalhe. Integrantes sem permissão de edição SHALL continuar podendo consultar a mesma coleção em modo somente leitura. Após criação ou inclusão em lote confirmada, SHALL abrir a edição da coleção afetada. Salvar ou cancelar SHALL retornar ao contexto de origem; cancelamento SHALL descartar somente mudanças ainda não salvas no editor, preservando a coleção recém-criada e inclusões já confirmadas.
+
+#### Scenario: Abrir coleção para edição
+
+- **WHEN** um proprietário ou editor toca em um cartão na lista de Coleções
+- **THEN** o editor da coleção abre diretamente
+- **AND** salvar ou cancelar retorna à lista de Coleções
+
+#### Scenario: Apresentar as ações do editor da coleção
+
+- **WHEN** um proprietário ou editor abre uma coleção existente
+- **THEN** o cabeçalho apresenta Voltar à esquerda e Excluir à direita
+- **AND** excluir abre a confirmação existente, sem um bloco de exclusão dentro do formulário
+- **AND** quando não há alterações pendentes, o rodapé apresenta somente Fechar
+- **AND** quando há alterações pendentes, o rodapé apresenta Cancelar e Salvar
+- **AND** a lista não apresenta um título com a contagem de músicas
+- **AND** a ação de inclusão é identificada como Adicionar músicas
+
+#### Scenario: Consultar coleção sem permissão de edição
+
+- **WHEN** um integrante sem papel de proprietário ou editor toca em um cartão na lista de Coleções
+- **THEN** consulta as músicas na ordem salva em modo somente leitura
+- **AND** não vê controles de edição
+
+#### Scenario: Editar após criar uma coleção
+
+- **WHEN** a criação de uma coleção é salva com sucesso
+- **THEN** o editor da coleção recém-criada abre imediatamente
+- **AND** cancelar essa edição mantém a coleção e suas músicas iniciais salvas, descartando somente mudanças feitas no editor depois da criação
+- **AND** salvar ou cancelar retorna ao contexto que iniciou a criação
+
+#### Scenario: Editar após incluir músicas em lote
+
+- **WHEN** músicas são adicionadas com sucesso a uma coleção pelo seletor do Repertório
+- **THEN** a seleção termina e o editor da coleção de destino abre para revisar e ordenar suas músicas
+- **AND** salvar ou cancelar retorna ao Repertório
+- **AND** cancelar mantém as inclusões que já foram confirmadas antes de abrir o editor
+
+#### Scenario: Retomar a edição após adicionar músicas pelo editor
+
+- **WHEN** a pessoa inicia Adicionar músicas durante a edição de uma coleção e confirma a inclusão em lote
+- **THEN** o editor da coleção escolhida abre novamente com os dados atualizados
+
+#### Scenario: Cancelar sem salvar a criação
+
+- **WHEN** a pessoa cancela o formulário de nome antes de salvar uma nova coleção
+- **THEN** nenhuma coleção é criada e o app retorna ao contexto de origem
 
 ### Requirement: Escolha múltipla com busca e filtros
 

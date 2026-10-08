@@ -20,6 +20,16 @@ export interface EditActions {
   readonly onCancel: () => void;
   readonly onSave: () => void;
   readonly saveDisabled?: boolean;
+  readonly leadingAction?: EditHeaderAction;
+  readonly trailingAction?: EditHeaderAction;
+}
+
+export interface EditHeaderAction {
+  readonly accessibilityLabel: string;
+  readonly color?: string;
+  readonly disabled?: boolean;
+  readonly icon: AppIconName;
+  readonly onPress: () => void;
 }
 
 export interface AppNavigationShellProps extends PropsWithChildren {

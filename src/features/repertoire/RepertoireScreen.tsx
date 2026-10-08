@@ -51,6 +51,7 @@ import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getBandSectionHref,
   getRepertoireCollectionCreateHref,
+  getRepertoireCollectionEditHref,
   getRepertoireCollectionsHref,
   getSongCreateHref,
   getSongEditHref,
@@ -663,15 +664,13 @@ function RepertoireScreenContent({
   };
   const createCollectionFromPicker = () => {
     if (appendLock.current || selectedSongCount === 0) return;
+    const initialSongIds = Array.from(selectedSongIds);
     pendingCollectionPickerAction.current = () =>
       router.push(
-        getRepertoireCollectionCreateHref(
-          bandId,
-          Array.from(selectedSongIds),
-          true,
-        ),
+        getRepertoireCollectionCreateHref(bandId, initialSongIds, true),
       );
     closeCollectionPicker();
+    cancelSongSelection();
   };
   const appendSelectedSongs = async () => {
     if (!targetCollection || newSelectedSongCount === 0 || appendLock.current) {
@@ -693,10 +692,23 @@ function RepertoireScreenContent({
           ? ` ${alreadyPresentCount} ${alreadyPresentCount === 1 ? 'já fazia parte' : 'já faziam parte'} da coleção.`
           : '';
       setAppendFeedbackMessage(`${addedLabel}${alreadyPresentLabel}`);
+      const savedCollectionId = targetCollection.collection.id;
+      pendingCollectionPickerAction.current = () =>
+        router.push(
+          getRepertoireCollectionEditHref(
+            bandId,
+            savedCollectionId,
+            'repertoire',
+          ),
+        );
       setCollectionPickerVisible(false);
       setTargetCollectionId(null);
       setAppendError(null);
-      cancelSongSelection();
+      updateSelectionState((current) => ({
+        ...current,
+        active: false,
+        selectedSongIds: new Set(),
+      }));
     } catch (error) {
       setAppendError(
         error instanceof RepertoireCollectionError

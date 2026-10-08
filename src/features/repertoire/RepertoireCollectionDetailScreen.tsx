@@ -1,4 +1,4 @@
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
@@ -17,7 +17,6 @@ import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
   getRepertoireCollectionAddSongsHref,
-  getRepertoireCollectionEditHref,
   getRepertoireCollectionHref,
   getRepertoireCollectionsHref,
   getSongHref,
@@ -25,6 +24,7 @@ import {
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
+import { RepertoireCollectionEditorScreen } from './RepertoireCollectionEditorScreen';
 
 interface RepertoireCollectionDetailScreenProps {
   readonly bandId: EntityId;
@@ -35,7 +35,6 @@ export function RepertoireCollectionDetailScreen({
   bandId,
   collectionId,
 }: RepertoireCollectionDetailScreenProps) {
-  const router = useRouter();
   const collectionQuery = useRepertoireCollection(bandId, collectionId);
   const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
@@ -48,25 +47,22 @@ export function RepertoireCollectionDetailScreen({
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const summary = collectionQuery.data;
 
+  if (!userBandsQuery.isPending && canEdit) {
+    return (
+      <RepertoireCollectionEditorScreen
+        bandId={bandId}
+        collectionId={collectionId}
+        returnTo="collections"
+      />
+    );
+  }
+
   return (
     <BandAreaLayout
       activeSection="repertoire"
       backHref={getRepertoireCollectionsHref(bandId)}
       bandId={bandId}
       currentRoute={getRepertoireCollectionHref(bandId, collectionId) as string}
-      headerAction={
-        canEdit
-          ? {
-              accessibilityLabel: 'Editar coleção',
-              icon: 'edit',
-              label: 'Editar coleção',
-              onPress: () =>
-                router.push(
-                  getRepertoireCollectionEditHref(bandId, collectionId),
-                ),
-            }
-          : undefined
-      }
       screenKind="detail"
       title="Coleção"
     >

@@ -18,7 +18,7 @@ export default function NewRepertoireCollectionRoute() {
     <RepertoireCollectionEditorScreen
       bandId={bandId}
       initialSongIds={initialSongIds}
-      returnToRepertoire={returnTo === 'repertoire'}
+      returnTo={returnTo === 'repertoire' ? 'repertoire' : 'collections'}
     />
   );
 }
