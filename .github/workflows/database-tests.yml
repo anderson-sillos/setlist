@@ -28,8 +28,16 @@ jobs:
         with:
           version: 2.117.0
 
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y postgresql-client
+
       - name: Iniciar banco local com migrações e seed
         run: supabase db start
+
+      - name: Verificar inclusões concorrentes em coleções
+        run: bash scripts/test-repertoire-collection-concurrency.sh
 
       - name: Verificar schema e tipos
         run: supabase db lint --local --schema public --fail-on error
