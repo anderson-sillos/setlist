@@ -2,18 +2,18 @@
 
 ## Revisão de 7 de outubro de 2026
 
-A revisão parte da `main` após a integração da PR #29, no commit
-`23ffc0a3617756f4a21441580f3f5041603c9016`. A
-[PR #30](https://github.com/anderson-sillos/setlist/pull/30), aberta pelo Dependabot
-durante esta revisão, reúne a correção disponível e o acompanhamento dos demais
-avisos na branch `dependabot/npm_and_yarn/shell-quote-1.12.0`. Este registro não
-representa aceitação de risco para o release estável.
+A revisão parte da `main` após a integração da PR #30, no commit
+`c75e55c88ac52cdd27b80a9048df918882084118`. A PR atualizou
+`shell-quote` para corrigir o alerta crítico #12. Os alertas #9, #10 e #11
+continuam abertos; nenhum deles tem versão corrigida publicada segundo os
+avisos consultados. Este registro não representa aceitação de risco para o
+release estável.
 
 ### Correção disponível
 
-| Pacote        | Versão anterior | Versão no lockfile | Aviso                                                                              | Situação                                                        |
-| ------------- | --------------- | ------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `shell-quote` | `1.10.0`        | `1.12.0`           | [GHSA-pqg4-j6r4-53mv](https://github.com/advisories/GHSA-pqg4-j6r4-53mv) — crítico | Corrigido no lockfile desta branch; aguarda integração à `main` |
+| Pacote        | Versão anterior | Versão no lockfile | Aviso                                                                              | Situação                                             |
+| ------------- | --------------- | ------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `shell-quote` | `1.10.0`        | `1.12.0`           | [GHSA-pqg4-j6r4-53mv](https://github.com/advisories/GHSA-pqg4-j6r4-53mv) — crítico | Integrado à `main` pela PR #30; alerta #12 encerrado |
 
 O aviso descreve injeção de comandos em `quote()` quando uma string com quebra
 de linha segue um token de comentário. A versão corrigida indicada pelo aviso é
@@ -26,18 +26,16 @@ intervalo já declarado. A comparação do lockfile confirmou alteração apenas
 do aplicativo continua `1.0.0`. Para instalar a árvore corrigida, usar `npm ci`;
 uma instalação anterior em `node_modules` não é atualizada pela edição do lockfile.
 
-O GitHub passou a registrar esta vulnerabilidade no
-[alerta #12](https://github.com/anderson-sillos/setlist/security/dependabot/12).
-O estado no GitHub deve ser conferido novamente após a integração da correção à
-branch principal e a atualização do grafo de dependências.
+O [alerta #12](https://github.com/anderson-sillos/setlist/security/dependabot/12)
+foi conferido como corrigido após a integração da PR #30.
 
 ### Avisos ainda sem versão corrigida
 
-| Alerta                                                                   | Pacote no lockfile | Severidade | Intervalo afetado | Entrada na árvore                                                       | Próxima ação                                                                                                |
-| ------------------------------------------------------------------------ | ------------------ | ---------- | ----------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9)   | `node-forge@1.4.0` | Alta       | `<=1.4.0`         | `@expo/cli` e `@expo/code-signing-certificates`                         | Acompanhar a correção oficial e revisar as entradas dos fluxos de certificados/assinaturas antes do release |
-| [#10](https://github.com/anderson-sillos/setlist/security/dependabot/10) | `braces@3.0.3`     | Alta       | `<=3.0.3`         | `micromatch`, usado pela cadeia Expo/Metro e Jest                       | Acompanhar a correção oficial e revisar a origem dos padrões de busca processados pelas ferramentas         |
-| [#11](https://github.com/anderson-sillos/setlist/security/dependabot/11) | `sprintf-js@1.0.3` | Moderada   | `<=1.1.3`         | `argparse@1`, via `@istanbuljs/load-nyc-config` na cadeia Jest/Istanbul | Acompanhar a correção oficial ou uma atualização compatível da cadeia que retire esse pacote                |
+| Alerta                                                                   | Pacote no lockfile | Severidade | Intervalo afetado | Entrada na árvore                                                       | Avaliação atual                                                                                 |
+| ------------------------------------------------------------------------ | ------------------ | ---------- | ----------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9)   | `node-forge@1.4.0` | Alta       | `<=1.4.0`         | `@expo/cli` e `@expo/code-signing-certificates`                         | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados.                     |
+| [#10](https://github.com/anderson-sillos/setlist/security/dependabot/10) | `braces@3.0.3`     | Alta       | `<=3.0.3`         | `micromatch`, usado pela cadeia Expo/Metro e Jest                       | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados.                     |
+| [#11](https://github.com/anderson-sillos/setlist/security/dependabot/11) | `sprintf-js@1.0.3` | Moderada   | `<=1.1.3`         | `argparse@1`, via `@istanbuljs/load-nyc-config` na cadeia Jest/Istanbul | Ausente nos source maps dos bundles clientes Android, iOS e Web examinados; sem patch upstream. |
 
 Fontes dos avisos:
 
@@ -45,14 +43,68 @@ Fontes dos avisos:
 - [braces — GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm): esgotamento da pilha com padrões profundamente aninhados.
 - [sprintf-js — GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c): negação de serviço com precisão de formatação sem limite.
 
-Na conferência, as versões mais recentes publicadas no npm eram `node-forge@1.4.0`,
-`braces@3.0.3` e `sprintf-js@1.1.3`; todas permaneciam nos intervalos afetados.
-Atualizar `sprintf-js` para `1.1.3` não resolve o aviso.
+Os três avisos consultados informam `Patched versions: None`. A versão
+`sprintf-js@1.1.3` também está dentro do intervalo afetado; atualizá-la para essa
+versão não resolveria o alerta.
 
-Não foram encontrados imports diretos desses pacotes em `src` ou `scripts`.
-Isso não demonstra ausência de exposição nas ferramentas: o código instalado de
-`@expo/code-signing-certificates` chama verificações RSA do `node-forge`. O
-alcance dessas entradas ainda requer análise; os três alertas continuam abertos.
+### Avaliação de alcance
+
+- `node-forge`: a árvore aponta para `@expo/cli` e
+  `@expo/code-signing-certificates`. O CLI usa o pacote em caminhos de
+  assinatura de manifests e certificados de desenvolvimento. Não há
+  `expo-updates`, configuração `updates` ou uso de assinatura no código do app.
+  Os source maps dos bundles clientes das três plataformas confirmam que o
+  módulo vulnerável não é incluído nos apps.
+- `braces`: chega por `micromatch`, usado por Metro/Expo e Jest para filtrar
+  caminhos e globs. Esses consumidores ficam no processo de build/teste; não há
+  import direto em `src` ou `scripts`, nem inclusão nos bundles clientes.
+  Globs não confiáveis ainda podem afetar processos de ferramenta que os avaliem.
+- `sprintf-js`: chega pela cadeia opcional de desenvolvimento
+  `jest-expo` → `babel-jest` → `babel-plugin-istanbul` →
+  `@istanbuljs/load-nyc-config` → `js-yaml@3` → `argparse@1`. Não é dependência
+  direta do app e não é incluído nos bundles clientes. Foi avaliado um override
+  para `js-yaml@4.3.2`, já presente na
+  árvore, mas o lockfile não foi atualizado; por isso a tentativa foi removida
+  do manifesto e não é contabilizada como correção.
+
+### Exposição no CI
+
+- `ci.yml` e `database-tests.yml` são acionados por `pull_request` e declaram
+  apenas `contents: read`. Não usam `pull_request_target` nem referenciam
+  `secrets.*`. O job Web fornece URL e chave Supabase de placeholder. O código
+  da branch é executado por `npm ci`, export, testes e Playwright, então um PR
+  ainda pode consumir recursos ou interromper o job; os workflows de PR não
+  recebem permissões de escrita ou segredos do projeto.
+- `pages.yml` roda após uma Release publicada ou por `workflow_dispatch`, faz
+  checkout de uma tag estável e valida tag/manifesto antes do export. Esse fluxo
+  tem `pages: write` e `id-token: write`, e usa valores públicos de configuração
+  do Supabase. Ele não executa uma branch arbitrária de PR; depende de uma tag
+  e ação de release confiáveis.
+- A cadeia vulnerável `braces` pode afetar disponibilidade de ferramentas se
+  um padrão malicioso chegar a uma operação de glob. `node-forge` requer que um
+  fluxo de verificação de assinatura vulnerável seja chamado; nenhum dos
+  workflows de CI configura assinatura de código/manifesto. `sprintf-js` fica
+  em mensagens de CLI da cadeia de testes, fora do app.
+
+O exame do CI indica impacto possível na disponibilidade de jobs quando
+processam conteúdo malicioso de PR, mas não encontrou caminho para incluir esses
+pacotes nos clientes nem para expor segredos nos workflows de PR. Isso reduz o
+alcance observado; não encerra os alertas nem substitui patch upstream.
+
+Não foram encontrados imports diretos desses três pacotes em `src` ou
+`scripts`. Os exports de produção Android/iOS e o bundle cliente Web foram
+gerados com source maps em `/private/tmp`; os três source maps não contêm
+`node-forge`, `micromatch`, `sprintf-js` ou o caminho `node_modules/braces`. As
+únicas ocorrências de `braces` no bundle nativo são nomes de ícones Lucide. O
+source map nativo contém um módulo `@expo/cli` de infraestrutura Metro, sem os
+módulos de assinatura vulneráveis.
+
+O bundle cliente Web foi gerado com `web.output: "single"` temporariamente para
+evitar a renderização HTML estática; `app.json` foi restaurado para
+`web.output: "static"`. A exportação estática completa continua pendente, mas a
+compilação do bundle cliente e a inspeção do source map foram concluídas. Nenhum
+alerta foi fechado manualmente; as dependências continuam no grafo npm e as
+ferramentas de build/CI ainda precisam ser consideradas na avaliação de risco.
 
 ### Evidência da auditoria
 
@@ -77,14 +129,16 @@ npm view sprintf-js version
 
 ### Continuidade da tratativa
 
-- Conferir os checks da PR de segurança, que instalam a árvore com `npm ci` e
-  executam as verificações de qualidade, banco e smoke test Web existentes.
-- Integrar a correção de `shell-quote` após revisão e conferir o encerramento
-  automático do alerta #12 no GitHub.
-- Manter os alertas #9, #10 e #11 abertos até haver correção, remoção comprovada
-  da cadeia vulnerável ou análise documentada que justifique outra classificação.
-- Antes do release estável, repetir a auditoria e concluir a avaliação de
-  exposição/mitigação das pendências. Esta PR não resolve os três avisos sem patch.
+- A PR #30 foi integrada e seus checks passaram (qualidade/lint/types/tests,
+  pgTAP e smoke test Web); o alerta #12 foi encerrado pelo GitHub.
+- Manter os alertas #9, #10 e #11 abertos até haver patch oficial ou remoção
+  comprovada das dependências vulneráveis. Os bundles clientes não as incluem;
+  a revisão dos workflows de CI não encontrou segredos nem permissões de escrita
+  nos eventos de PR, mas considerou possível indisponibilidade dos jobs.
+- Antes do release estável, repetir `npm audit`, confirmar os bundles do
+  candidato de release e revisar a exposição das ferramentas usadas por CI. Se
+  não houver patch upstream, registrar uma decisão explícita de aceite de risco
+  antes de liberar; esta análise não concede esse aceite.
 - Revisar atualizações centrais junto da compatibilidade do Expo 57. A sugestão
   de `npm audit fix --force` pode instalar outra versão principal de React Native
   ou Jest sem resolver todos os avisos.
