@@ -151,4 +151,62 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       view.getByLabelText('Salvar coleção').props.accessibilityState,
     ).toEqual({ disabled: false });
   });
+
+  it('mantém escolhas entre buscas e filtros e seleciona apenas resultados visíveis', async () => {
+    const view = await render(
+      <AppProviders>
+        <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
+      </AppProviders>,
+    );
+
+    await view.findByLabelText('Selecionar Luzes da Cidade');
+    await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'pontes',
+    );
+    expect(await view.findByText('Entre Pontes')).toBeTruthy();
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Selecionar resultados (1)' }),
+    );
+
+    expect(
+      view.getByLabelText('Remover Luzes da Cidade da coleção'),
+    ).toBeTruthy();
+    expect(view.getByLabelText('Remover Entre Pontes da coleção')).toBeTruthy();
+    expect(view.queryByLabelText('Remover Maré de Neon da coleção')).toBeNull();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      'coletivo atlântico',
+    );
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.getByText('2 escolhidas')).toBeTruthy();
+
+    await fireEvent.changeText(
+      view.getByLabelText('Buscar música por título ou artista'),
+      '',
+    );
+    await fireEvent.press(
+      view.getByLabelText('Alterar filtros da seleção de músicas'),
+    );
+    await fireEvent.press(view.getByText('Arquivadas'));
+    expect(await view.findByText('Rota Antiga')).toBeTruthy();
+    expect(view.getByText('2 escolhidas')).toBeTruthy();
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Selecionar resultados (1)' }),
+    );
+    expect(view.getByLabelText('Remover Rota Antiga da coleção')).toBeTruthy();
+
+    await fireEvent.press(
+      view.getByLabelText('Alterar filtros da seleção de músicas'),
+    );
+    await fireEvent.press(view.getByText('Todas'));
+    await fireEvent.press(view.getByLabelText('Alterar ordenação das músicas'));
+    await fireEvent.press(view.getByText('Maior duração'));
+    expect(view.getAllByRole('checkbox')[0]?.props.accessibilityLabel).toBe(
+      'Selecionar Maré de Neon',
+    );
+    expect(view.getByText('3 escolhidas')).toBeTruthy();
+  });
 });

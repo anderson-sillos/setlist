@@ -43,30 +43,19 @@ import {
 } from '@/theme/responsive';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatSongDuration } from '@/utils/duration';
-import { normalizeForSearch } from '@/utils/text';
 import { blurWebFocus } from '@/utils/focus';
+import {
+  filterAndSortRepertoireSongs,
+  repertoireFilters,
+  repertoireSorts,
+  type RepertoireFilter,
+  type RepertoireSort,
+} from './repertoireQuery';
 import {
   lyricStatusIcons,
   lyricStatusLabels,
   lyricStatusTones,
 } from './songPresentation';
-
-type RepertoireFilter = 'all' | 'archived' | 'pending' | 'synchronized';
-type RepertoireSort = 'artist' | 'duration' | 'title' | 'updated';
-
-const repertoireFilters = [
-  { label: 'Todas', value: 'all' },
-  { label: 'Pendentes', value: 'pending' },
-  { label: 'Sincronizadas', value: 'synchronized' },
-  { label: 'Arquivadas', value: 'archived' },
-] as const;
-
-const repertoireSorts = [
-  { label: 'Título', value: 'title' },
-  { label: 'Artista/Banda', value: 'artist' },
-  { label: 'Atualizadas recentemente', value: 'updated' },
-  { label: 'Maior duração', value: 'duration' },
-] as const;
 
 function SongRow({ bandId, song }: { bandId: EntityId; song: Song }) {
   const [pressed, setPressed] = useState(false);
@@ -178,42 +167,14 @@ export function RepertoireScreen({
   const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
     spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
   );
-  const normalizedSearch = normalizeForSearch(state.search);
   const songs = useMemo(() => {
-    const result = (songsQuery.data ?? []).filter((song) => {
-      const matchesSearch = normalizeForSearch(
-        `${song.title} ${song.originalArtist ?? ''}`,
-      ).includes(normalizedSearch);
-      const matchesFilter =
-        state.filter === 'archived'
-          ? song.archivedAt !== null
-          : song.archivedAt === null &&
-            (state.filter === 'all' ||
-              (state.filter === 'synchronized'
-                ? song.lyricStatus === 'synchronized'
-                : song.lyricStatus !== 'synchronized'));
-
-      return matchesSearch && matchesFilter;
-    });
-
-    return [...result].sort((left, right) => {
-      if (state.sort === 'artist') {
-        return (left.originalArtist ?? '').localeCompare(
-          right.originalArtist ?? '',
-          'pt-BR',
-        );
-      }
-      if (state.sort === 'updated') {
-        return right.updatedAt.localeCompare(left.updatedAt);
-      }
-      if (state.sort === 'duration') {
-        return (
-          (right.estimatedDurationMs ?? -1) - (left.estimatedDurationMs ?? -1)
-        );
-      }
-      return left.title.localeCompare(right.title, 'pt-BR');
-    });
-  }, [normalizedSearch, songsQuery.data, state]);
+    return filterAndSortRepertoireSongs(
+      songsQuery.data ?? [],
+      state.search,
+      state.filter,
+      state.sort,
+    );
+  }, [songsQuery.data, state]);
   const hasQuery = state.search.length > 0 || state.filter !== 'all';
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,

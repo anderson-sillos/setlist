@@ -1,8 +1,9 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -16,14 +17,20 @@ import {
 } from '@/components/feedback';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { Card } from '@/components/ui/Card';
+import { ListEmptyState } from '@/components/ui/ListEmptyState';
+import { OptionMenu, SearchField } from '@/components/ui/ListControls';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
+import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useSaveRepertoireCollection,
   useRepertoireCollections,
+  useSongs,
   useUserBands,
 } from '@/data/queries';
-import type { EntityId, RepertoireCollection } from '@/domain';
+import type { EntityId, RepertoireCollection, Song } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import type { EditActions } from '@/features/navigation/types';
@@ -36,6 +43,19 @@ import {
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { formatSongDuration } from '@/utils/duration';
+import {
+  filterAndSortRepertoireSongs,
+  repertoireFilters,
+  repertoireSorts,
+  type RepertoireFilter,
+  type RepertoireSort,
+} from './repertoireQuery';
+import {
+  lyricStatusIcons,
+  lyricStatusLabels,
+  lyricStatusTones,
+} from './songPresentation';
 
 interface RepertoireCollectionEditorScreenProps {
   readonly bandId: EntityId;
@@ -54,9 +74,11 @@ export function RepertoireCollectionEditorScreen({
   collectionId,
 }: RepertoireCollectionEditorScreenProps) {
   const collectionsQuery = useRepertoireCollections(bandId);
+  const songsQuery = useSongs(bandId, true);
   const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
+    songsQuery,
     userBandsQuery,
   ]);
   const membership = userBandsQuery.data?.find(
@@ -66,8 +88,12 @@ export function RepertoireCollectionEditorScreen({
   const summary = collectionsQuery.data?.find(
     ({ collection }) => collection.id === collectionId,
   );
-  const isLoading = collectionsQuery.isPending || userBandsQuery.isPending;
-  const isError = collectionsQuery.isError || userBandsQuery.isError;
+  const isLoading =
+    collectionsQuery.isPending ||
+    songsQuery.isPending ||
+    userBandsQuery.isPending;
+  const isError =
+    collectionsQuery.isError || songsQuery.isError || userBandsQuery.isError;
 
   if (isLoading) {
     return (
@@ -89,6 +115,7 @@ export function RepertoireCollectionEditorScreen({
         <ErrorFeedback
           onRetry={() => {
             void collectionsQuery.refetch();
+            void songsQuery.refetch();
             void userBandsQuery.refetch();
           }}
         />
@@ -116,6 +143,7 @@ export function RepertoireCollectionEditorScreen({
       initialCollection={summary?.collection ?? null}
       key={collectionId ?? 'new'}
       orderedSongIds={summary?.songs.map(({ id }) => id) ?? []}
+      songs={songsQuery.data ?? []}
     />
   );
 }
@@ -128,6 +156,7 @@ interface RepertoireCollectionEditorFormProps {
   }[];
   readonly initialCollection: RepertoireCollection | null;
   readonly orderedSongIds: readonly EntityId[];
+  readonly songs: readonly Song[];
 }
 
 function RepertoireCollectionEditorForm({
@@ -136,6 +165,7 @@ function RepertoireCollectionEditorForm({
   existingCollections,
   initialCollection,
   orderedSongIds,
+  songs,
 }: RepertoireCollectionEditorFormProps) {
   const router = useRouter();
   const saveCollection = useSaveRepertoireCollection(bandId);
@@ -144,8 +174,57 @@ function RepertoireCollectionEditorForm({
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedSongIds, setSelectedSongIds] =
+    useState<readonly EntityId[]>(orderedSongIds);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<RepertoireFilter>('all');
+  const [sort, setSort] = useState<RepertoireSort>('title');
   const initialName = initialCollection?.name ?? '';
-  const dirty = name !== initialName;
+  const selectionDirty =
+    selectedSongIds.length !== orderedSongIds.length ||
+    selectedSongIds.some((songId, index) => orderedSongIds[index] !== songId);
+  const dirty = name !== initialName || selectionDirty;
+  const filteredSongs = useMemo(
+    () => filterAndSortRepertoireSongs(songs, search, filter, sort),
+    [filter, search, sort, songs],
+  );
+  const songsById = useMemo(
+    () => new Map(songs.map((song) => [song.id, song])),
+    [songs],
+  );
+  const selectedSongs = selectedSongIds.flatMap((songId) => {
+    const song = songsById.get(songId);
+    return song ? [song] : [];
+  });
+  const selectedSongIdSet = useMemo(
+    () => new Set(selectedSongIds),
+    [selectedSongIds],
+  );
+  const allVisibleSongsSelected =
+    filteredSongs.length > 0 &&
+    filteredSongs.every(({ id }) => selectedSongIdSet.has(id));
+
+  const toggleSong = (songId: EntityId) => {
+    setSelectedSongIds((current) =>
+      current.includes(songId)
+        ? current.filter((currentSongId) => currentSongId !== songId)
+        : [...current, songId],
+    );
+  };
+
+  const selectVisibleSongs = () => {
+    setSelectedSongIds((current) => {
+      const next = [...current];
+      const selected = new Set(current);
+      filteredSongs.forEach(({ id }) => {
+        if (!selected.has(id)) {
+          next.push(id);
+          selected.add(id);
+        }
+      });
+      return next;
+    });
+  };
   const unsavedChanges = useUnsavedChangesGuard({
     dirty,
     saving: isSubmitting,
@@ -211,7 +290,7 @@ function RepertoireCollectionEditorForm({
             }
           : {}),
         name: normalizedName,
-        orderedSongIds,
+        orderedSongIds: selectedSongIds,
       });
 
       unsavedChanges.allowNextRemoval();
@@ -294,6 +373,157 @@ function RepertoireCollectionEditorForm({
               </AppText>
             </View>
           </View>
+          <View style={styles.songSection}>
+            <View style={styles.songSectionHeading}>
+              <AppText variant="heading">Músicas</AppText>
+              <AppText tone="muted">
+                {selectedSongIds.length === 1
+                  ? '1 escolhida'
+                  : `${selectedSongIds.length} escolhidas`}
+              </AppText>
+            </View>
+            <View style={styles.searchRow}>
+              <SearchField
+                accessibilityLabel="Buscar música por título ou artista"
+                onChangeText={setSearch}
+                placeholder="Buscar música ou artista/banda"
+                value={search}
+              />
+            </View>
+            <View style={styles.controls}>
+              <OptionMenu
+                active={filter !== 'all'}
+                accessibilityLabel="Alterar filtros da seleção de músicas"
+                compact
+                icon="filter"
+                label="Filtrar"
+                onChange={setFilter}
+                options={repertoireFilters}
+                value={filter}
+              />
+              <OptionMenu
+                active={sort !== 'title'}
+                accessibilityLabel="Alterar ordenação das músicas"
+                compact
+                icon="sort"
+                label="Ordenar"
+                onChange={setSort}
+                options={repertoireSorts}
+                value={sort}
+              />
+              <AppButton
+                disabled={filteredSongs.length === 0 || allVisibleSongsSelected}
+                icon="check"
+                label={`Selecionar resultados (${filteredSongs.length})`}
+                onPress={selectVisibleSongs}
+                variant="secondary"
+              />
+            </View>
+            {filteredSongs.length ? (
+              <View style={styles.songList}>
+                {filteredSongs.map((song) => {
+                  const selected = selectedSongIdSet.has(song.id);
+                  return (
+                    <Pressable
+                      accessibilityLabel={`${selected ? 'Remover seleção de' : 'Selecionar'} ${song.title}`}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: selected }}
+                      key={song.id}
+                      onPress={() => toggleSong(song.id)}
+                      style={({ pressed }) => [
+                        styles.songOption,
+                        pressed && styles.songOptionPressed,
+                      ]}
+                    >
+                      <Card
+                        style={styles.songOptionCard}
+                        tone={selected ? 'accent' : 'default'}
+                      >
+                        <View style={styles.songOptionIcon}>
+                          {selected ? (
+                            <AppIcon
+                              color={colors.action.primary}
+                              name="check"
+                              size={20}
+                            />
+                          ) : (
+                            <AppIcon
+                              color={colors.text.secondary}
+                              name="music"
+                              size={20}
+                            />
+                          )}
+                        </View>
+                        <View style={styles.songOptionCopy}>
+                          <View style={styles.songOptionTitle}>
+                            <AppText variant="heading">{song.title}</AppText>
+                            <StatusPill
+                              accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                              icon={lyricStatusIcons[song.lyricStatus]}
+                              tone={lyricStatusTones[song.lyricStatus]}
+                            />
+                            {song.archivedAt !== null ? (
+                              <StatusPill
+                                accessibilityLabel="Música arquivada"
+                                icon="archive"
+                                tone="warning"
+                              />
+                            ) : null}
+                          </View>
+                          <View style={styles.songOptionMeta}>
+                            <AppText numberOfLines={1} tone="muted">
+                              {song.originalArtist ??
+                                'Artista/Banda não informado'}
+                            </AppText>
+                            <AppText tone="muted" variant="caption">
+                              {song.estimatedDurationMs === null
+                                ? 'Duração não informada'
+                                : formatSongDuration(song.estimatedDurationMs)}
+                            </AppText>
+                          </View>
+                        </View>
+                      </Card>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <ListEmptyState
+                message="Tente mudar a busca ou os filtros para encontrar músicas."
+                title="Nenhuma música encontrada"
+              />
+            )}
+            <Card style={styles.selectionReview}>
+              <AppText variant="heading">
+                Músicas escolhidas ({selectedSongs.length})
+              </AppText>
+              {selectedSongs.length ? (
+                <View style={styles.selectedSongList}>
+                  {selectedSongs.map((song, index) => (
+                    <View key={song.id} style={styles.selectedSongRow}>
+                      <AppText style={styles.selectedPosition} tone="muted">
+                        {index + 1}
+                      </AppText>
+                      <AppText style={styles.selectedSongTitle}>
+                        {song.title}
+                      </AppText>
+                      <AppButton
+                        accessibilityLabel={`Remover ${song.title} da coleção`}
+                        icon="remove"
+                        label="Remover"
+                        onPress={() => toggleSong(song.id)}
+                        variant="tertiary"
+                      />
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <AppText tone="muted">
+                  Nenhuma música escolhida. Você pode salvar a coleção vazia.
+                </AppText>
+              )}
+            </Card>
+          </View>
           {submitError ? (
             <AppText accessibilityRole="alert" style={styles.fieldError}>
               {submitError}
@@ -359,6 +589,86 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: spacing.xs,
+  },
+  songSection: {
+    gap: spacing.md,
+  },
+  songSectionHeading: {
+    alignItems: 'baseline',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  searchRow: {
+    width: '100%',
+  },
+  controls: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  songList: {
+    gap: spacing.sm,
+  },
+  songOption: {
+    borderRadius: radii.lg,
+  },
+  songOptionPressed: {
+    opacity: 0.72,
+  },
+  songOptionCard: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    minHeight: 76,
+    padding: spacing.md,
+  },
+  songOptionIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+  },
+  songOptionCopy: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  songOptionTitle: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  songOptionMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  selectionReview: {
+    alignSelf: 'center',
+    gap: spacing.sm,
+    maxWidth: layout.contentMaxWidth,
+    width: '100%',
+  },
+  selectedSongList: {
+    gap: spacing.xs,
+  },
+  selectedSongRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  selectedPosition: {
+    fontVariant: ['tabular-nums'],
+    minWidth: 24,
+    textAlign: 'right',
+  },
+  selectedSongTitle: {
+    flex: 1,
+    minWidth: 0,
   },
   input: {
     backgroundColor: colors.background.raised,
