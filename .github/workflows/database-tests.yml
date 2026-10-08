@@ -31,6 +31,9 @@ jobs:
       - name: Iniciar banco local com migrações e seed
         run: supabase db start
 
+      - name: Verificar schema e tipos
+        run: supabase db lint --local --schema public --fail-on error
+
       - name: Executar testes pgTAP
         run: supabase test db
 
