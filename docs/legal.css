@@ -55,6 +55,16 @@ h2 {
   font-size: 1.35rem;
 }
 
+h3 {
+  margin-top: 1.75rem;
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+
+h3[id] {
+  scroll-margin-top: 1.5rem;
+}
+
 p,
 li {
   max-width: 75ch;
