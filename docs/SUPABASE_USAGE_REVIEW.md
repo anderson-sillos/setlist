@@ -22,12 +22,12 @@ O Supabase oferece a página de uso e notificações quando cotas são excedidas
 
 O limite é inclusivo: exatamente 80% aciona alerta. Exemplos de conferência da regra:
 
-| Uso/cota | Percentual | Resultado |
-| --- | ---: | --- |
-| 399 MB / 500 MB | 79,8% | Sem alerta |
-| 400 MB / 500 MB | 80% | Registrar alerta interno |
-| 4 GB / 5 GB | 80% | Registrar alerta interno |
-| 40.000 / 50.000 MAU | 80% | Registrar alerta interno |
+| Uso/cota            | Percentual | Resultado                |
+| ------------------- | ---------: | ------------------------ |
+| 399 MB / 500 MB     |      79,8% | Sem alerta               |
+| 400 MB / 500 MB     |        80% | Registrar alerta interno |
+| 4 GB / 5 GB         |        80% | Registrar alerta interno |
+| 40.000 / 50.000 MAU |        80% | Registrar alerta interno |
 
 Os exemplos refletem as cotas Free publicadas na data desta revisão; o valor vigente mostrado no painel é a referência operacional.
 
@@ -35,6 +35,6 @@ Os exemplos refletem as cotas Free publicadas na data desta revisão; o valor vi
 
 Acrescentar uma linha por revisão, inclusive quando nenhum alerta for acionado:
 
-| Data | Organização/plano | Período de cobrança | Resultado e alertas | Responsável |
-| --- | --- | --- | --- | --- |
+| Data                 | Organização/plano                                | Período de cobrança     | Resultado e alertas                                                                                                                                                                                                                                                                                | Responsável                                            |
+| -------------------- | ------------------------------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | 2026-10-08 (parcial) | `anderson-sillos`; plano não disponível pela CLI | Não disponível pela CLI | Estatística técnica `pg_database_size`: `setlist-dev` 13 MB e `setlist-prod` 12 MB. Esse dado não substitui o indicador de uso faturável do painel. Egress, MAU, armazenamento, funções, Realtime, logs, cotas e conclusão do alerta de 80%: não disponíveis pela CLI; pendente conferir no Usage. | Codex (consulta técnica); revisão de cobrança pendente |
