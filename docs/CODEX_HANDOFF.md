@@ -8,8 +8,8 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   com a conta existente `asillos@gmail.com` como Owner. O seed explícito está
   em `supabase/seeds/banda-demo.sql`; instruções e cobertura estão em
   `supabase/seeds/README.md`. Depois da criação, o responsável autorizou o
-  carregamento em desenvolvimento, concluído conforme o registro abaixo.
-  Produção não recebeu este seed; não houve commit ou envio remoto nesta etapa.
+  carregamento em desenvolvimento e, depois, em produção, conforme os registros
+  abaixo. Na entrega inicial, não houve commit ou envio remoto.
 - O catálogo contém 72 músicas fictícias de 12 artistas, 66 ativas e 6
   arquivadas; 12 sem letra, 24 com letra estática, 18 incompletas e 18
   sincronizadas. Letras originais incluem versos, refrões, ponte, negrito,
@@ -51,6 +51,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   de status, posições, setlists vazios ou referências de músicas de outra banda.
   As contagens anteriores foram preservadas: duas outras bandas, seis músicas,
   três coleções, nove shows, cinco contas Auth, sete aceites e 40 convites.
+- Após autorização explícita, o seed também foi carregado em `setlist-prod`
+  (`tqijocmmiwistinrjpwl`) em 9 de outubro de 2026, pela Supabase CLI com
+  projeto/ref explícitos. A consulta prévia encontrou as migrações de coleções
+  aplicadas, uma conta/perfil ativo para o Owner e nenhuma Banda Demo existente.
+  A verificação posterior confirmou 72 músicas, 13 coleções, 30 shows, 103
+  blocos e 883 itens, todos com Owner e vínculos corretos. Os dados prévios
+  foram preservados: quatro outras contas Auth, cinco bandas, 13 músicas,
+  quatro convites, oito aceites e três shows. Nenhuma migração foi aplicada
+  durante a carga do seed.
 
 ## Atualização de 8 de outubro de 2026 — validação crítica iOS
 
@@ -1824,3 +1833,10 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      O README agora registra o valor de produção e mantém callbacks HTTPS e
      `setlist://auth/callback**` na lista permitida. A tarefa 11.5.5 continua
      pendente dos builds do candidato `v1.0.0-rc.1` nas três plataformas.
+
+139. Em 9 de outubro de 2026, a versão iOS **1.0.0 (build 3)** foi enviada à
+     App Store para revisão. O App Store Connect mostra o status **Aguardando
+     revisão**, com envio às 17:55, ID `e638da97-81cf-4254-8e58-5365b8129623`,
+     enviado por Anderson Martins. A versão ainda não foi aprovada nem
+     publicada; acompanhar o status e eventuais mensagens da Apple no App Store
+     Connect e no e-mail da conta.
