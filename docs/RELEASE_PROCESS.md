@@ -132,6 +132,15 @@ Exportar também a Web da mesma tag usando as variáveis públicas de produção
 Depois, `npm run export:web`. A publicação oficial continua na versão anterior
 durante a avaliação do candidato. Não alterar o Supabase de desenvolvimento.
 
+Para validar a primeira versão Web, uma pré-release publicada pode ser enviada
+ao domínio público por um disparo manual do workflow `Publicar GitHub Pages`,
+informando a tag `vX.Y.Z-rc.N`. O workflow exige a Release não rascunho, a tag
+exata, o manifesto correspondente ao commit e builds EAS Android/iOS completos
+da mesma versão e commit. As validações nativas podem continuar pendentes nesse
+deploy; o manifesto Web permanece como `pending` até a conferência manual. Esse
+procedimento substitui o conteúdo público imediatamente pela candidata. A
+publicação automática de pré-release continua desativada.
+
 ## Registro da Release
 
 Criar inicialmente uma Release em rascunho com a tag do candidato. Incluir:
@@ -181,11 +190,15 @@ commit. Anexar o manifesto e os artefatos aprovados à Release estável em rascu
 então publicá-la. As lojas têm processos de distribuição próprios; atualizar as
 notas com seu estado real, sem declarar disponibilidade antes da confirmação.
 
-O Pages de produção reage somente a uma Release estável publicada ou ao disparo
-manual com uma tag estável já publicada. Ele obtém o código pela tag, confere o
-manifesto e publica `release.json` no site. Um push na `main`, um rascunho ou uma
-pré-release não publica produção. O ambiente GitHub `github-pages` deve permitir
-tags `v*`. Reexecuções usam a mesma tag e não modificam o release.
+O Pages publica automaticamente uma Release estável aprovada, ou pode ser
+disparado manualmente com uma tag estável publicada e validada. Para a validação
+Web da primeira versão, também aceita disparo manual para uma pré-release
+publicada, após conferir o manifesto e os builds móveis; esse deploy coloca a
+candidata no domínio público mesmo enquanto as validações nativas estão
+pendentes. O deploy estável sempre exige `--ready`, com todas as validações
+aprovadas. Um push na `main`, uma Release em rascunho ou a publicação automática
+de uma pré-release não atualiza o Pages. O ambiente GitHub `github-pages` deve
+permitir tags `v*`. Reexecuções usam a mesma tag e não modificam o release.
 
 ## Sobre o Setlist
 
