@@ -291,7 +291,14 @@ export function BandsScreen({
                     </View>
                     <View style={styles.bandCopy}>
                       <View style={styles.titleLine}>
-                        <AppText variant="heading">{band.name}</AppText>
+                        <AppText
+                          ellipsizeMode="tail"
+                          numberOfLines={1}
+                          style={styles.bandName}
+                          variant="heading"
+                        >
+                          {band.name}
+                        </AppText>
                         {isLastAccessed ? (
                           <View style={styles.lastAccessedBadge}>
                             <AppText tone="accent" variant="caption">
@@ -339,7 +346,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
   rowFrame: {
@@ -354,7 +361,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     borderWidth: 1,
     minHeight: 84,
-    padding: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
   },
   bandRowLayout: {
     alignItems: 'stretch',
@@ -395,12 +403,18 @@ const styles = StyleSheet.create({
   titleLine: {
     alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+    flexWrap: 'nowrap',
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  bandName: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   lastAccessedBadge: {
     backgroundColor: colors.background.selected,
     borderRadius: radii.pill,
+    flexShrink: 0,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },

@@ -280,7 +280,12 @@ function SongRow({
           </View>
           <View style={styles.rowContent}>
             <View style={styles.rowTitleLine}>
-              <AppText style={styles.rowTitle} variant="heading">
+              <AppText
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={styles.rowTitle}
+                variant="heading"
+              >
                 {song.title}
               </AppText>
               <StatusPill
@@ -1298,7 +1303,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
   listContentWithBottomNavigation: {
@@ -1316,7 +1321,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     borderWidth: 1,
     minHeight: 84,
-    padding: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
   },
   selectedListRow: {
     backgroundColor: colors.background.selected,
@@ -1362,11 +1368,14 @@ const styles = StyleSheet.create({
   rowTitleLine: {
     alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+    flexWrap: 'nowrap',
+    gap: spacing.xs,
+    minWidth: 0,
   },
   rowTitle: {
+    flex: 1,
     flexShrink: 1,
+    minWidth: 0,
   },
   rowMetaLine: {
     alignItems: 'center',

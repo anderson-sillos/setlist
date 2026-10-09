@@ -567,11 +567,22 @@ function MemberRow({
         />
         <View style={styles.rowCopy}>
           <View style={styles.rowTitleLine}>
-            <AppText>{member.displayName}</AppText>
+            <AppText
+              ellipsizeMode="tail"
+              numberOfLines={1}
+              style={styles.rowTitle}
+            >
+              {member.displayName}
+            </AppText>
             {current ? <StatusPill tone="ready">Você</StatusPill> : null}
           </View>
           {member.email ? (
-            <AppText tone="muted" variant="caption">
+            <AppText
+              ellipsizeMode="tail"
+              numberOfLines={1}
+              tone="muted"
+              variant="caption"
+            >
               {member.email}
             </AppText>
           ) : null}
@@ -642,7 +653,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxxl,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
   rowFrame: {
@@ -660,8 +671,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+    flexWrap: 'nowrap',
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  rowTitle: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   groupHeader: {
     alignSelf: 'flex-start',
@@ -680,7 +696,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: 68,
-    padding: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
   },
   overflowButton: {
     alignItems: 'center',
