@@ -16,6 +16,7 @@ import {
   createSupabaseSongRepository,
 } from '@/data/supabase';
 import { createSupabaseShowRepository } from '@/data/supabase/showRepository';
+import { createSupabaseRepertoireCollectionRepository } from '@/data/supabase/repertoireCollectionRepository';
 import type { AppRepositories, EntityId } from '@/domain';
 import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -69,6 +70,7 @@ function SessionQueryProvider({
         predicate: ({ queryKey }) =>
           queryKey.includes('songs') ||
           queryKey.includes('shows') ||
+          queryKey.includes('repertoire-collections') ||
           queryKey.includes('summaries'),
       });
     };
@@ -112,6 +114,7 @@ export function AppProviders({
   const remoteRepositories = useMemo(
     () => ({
       bands: createSupabaseBandRepository(),
+      repertoireCollections: createSupabaseRepertoireCollectionRepository(),
       shows: createSupabaseShowRepository(),
       songs: createSupabaseSongRepository(),
     }),

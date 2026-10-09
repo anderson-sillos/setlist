@@ -2,6 +2,10 @@
 
 jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(() => jest.fn()),
+  fetch: jest.fn().mockResolvedValue({
+    isConnected: true,
+    isInternetReachable: true,
+  }),
 }));
 
 jest.mock('react-native-reanimated', () => ({

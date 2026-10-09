@@ -16,6 +16,7 @@ type AppHeaderProps = Pick<
   | 'bandName'
   | 'editActions'
   | 'headerAction'
+  | 'leadingHeaderAction'
   | 'screenKind'
   | 'subtitle'
   | 'title'
@@ -29,6 +30,7 @@ export function AppHeader({
   bandName,
   editActions,
   headerAction,
+  leadingHeaderAction,
   onOpenMenu,
   persistentSidebar,
   screenKind,
@@ -40,7 +42,18 @@ export function AppHeader({
 
   return (
     <View style={styles.header} testID="app-header">
-      {kind === 'main' && !persistentSidebar ? (
+      {kind === 'main' && leadingHeaderAction ? (
+        <HeaderIconButton
+          accessibilityLabel={leadingHeaderAction.accessibilityLabel}
+          color={colors.text.secondary}
+          icon={leadingHeaderAction.icon ?? 'close'}
+          onPress={() => {
+            blurWebFocus();
+            leadingHeaderAction.onPress();
+          }}
+          size={32}
+        />
+      ) : kind === 'main' && !persistentSidebar ? (
         <NavigationIconButton
           accessibilityLabel="Abrir menu geral"
           icon="menu"
@@ -67,9 +80,12 @@ export function AppHeader({
 
       {kind === 'edit' && editActions ? (
         <HeaderIconButton
-          accessibilityLabel="Cancelar edição"
-          icon="close"
-          onPress={editActions.onCancel}
+          accessibilityLabel={
+            editActions.leadingAction?.accessibilityLabel ?? 'Cancelar edição'
+          }
+          color={editActions.leadingAction?.color}
+          icon={editActions.leadingAction?.icon ?? 'close'}
+          onPress={editActions.leadingAction?.onPress ?? editActions.onCancel}
         />
       ) : null}
 
@@ -86,16 +102,24 @@ export function AppHeader({
 
       {kind === 'edit' && editActions ? (
         <HeaderIconButton
-          accessibilityLabel="Salvar edição"
-          accessibilityState={{ disabled: editActions.saveDisabled }}
-          color={
-            editActions.saveDisabled
-              ? colors.text.secondary
-              : colors.action.primary
+          accessibilityLabel={
+            editActions.trailingAction?.accessibilityLabel ?? 'Salvar edição'
           }
-          disabled={editActions.saveDisabled}
-          icon="check"
-          onPress={editActions.onSave}
+          accessibilityState={{
+            disabled:
+              editActions.trailingAction?.disabled ?? editActions.saveDisabled,
+          }}
+          color={
+            editActions.trailingAction?.color ??
+            (editActions.saveDisabled
+              ? colors.text.secondary
+              : colors.action.primary)
+          }
+          disabled={
+            editActions.trailingAction?.disabled ?? editActions.saveDisabled
+          }
+          icon={editActions.trailingAction?.icon ?? 'check'}
+          onPress={editActions.trailingAction?.onPress ?? editActions.onSave}
           size={32}
         />
       ) : null}

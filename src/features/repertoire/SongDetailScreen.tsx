@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import {
@@ -13,6 +13,7 @@ import {
 import {
   ErrorFeedback,
   LoadingFeedback,
+  TemporaryFeedback,
   UnavailableFeedback,
 } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
@@ -21,12 +22,17 @@ import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useSong, useUserBands } from '@/data/queries';
-import type { EntityId } from '@/domain';
+import {
+  useRepertoireCollections,
+  useSong,
+  useUserBands,
+} from '@/data/queries';
+import type { EntityId, RepertoireCollection } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { ContentReportDialog } from '@/features/moderation/ContentReportDialog';
 import {
   getBandSectionHref,
+  getRepertoireCollectionFilterHref,
   getSongEditHref,
   getSongHref,
   getSongLyricsHref,
@@ -36,7 +42,10 @@ import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatRelativeUpdate } from '@/utils/dateTime';
 import { formatSongDuration } from '@/utils/duration';
+import { blurWebFocus } from '@/utils/focus';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
+import { SongCollectionMembershipDialog } from './SongCollectionMembershipDialog';
+import { useSongCollectionMembership } from './useSongCollectionMembership';
 import { SongLyricsContent } from './SongLyricsContent';
 import {
   lyricStatusIcons,
@@ -52,6 +61,41 @@ interface SongDetailScreenProps {
   readonly viewportWidth?: number;
 }
 
+interface SongCollectionLinkProps {
+  readonly bandId: EntityId;
+  readonly collection: RepertoireCollection;
+}
+
+function SongCollectionLink({ bandId, collection }: SongCollectionLinkProps) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <Link
+      href={getRepertoireCollectionFilterHref(bandId, collection.id)}
+      onPress={blurWebFocus}
+      asChild
+    >
+      <Pressable
+        accessibilityHint="Abre o repertório filtrado por esta coleção."
+        accessibilityLabel={`Ver músicas da coleção ${collection.name}`}
+        accessibilityRole="link"
+        onBlur={() => setFocused(false)}
+        onFocus={() => setFocused(true)}
+        style={({ pressed }) => [
+          styles.collectionTag,
+          focused && styles.collectionTagFocused,
+          pressed && styles.collectionTagPressed,
+        ]}
+        testID={`song-collection-${collection.id}`}
+      >
+        <AppText style={styles.collectionTagText} variant="caption">
+          {collection.name}
+        </AppText>
+      </Pressable>
+    </Link>
+  );
+}
+
 export function SongDetailScreen({
   bandId,
   now = new Date(),
@@ -64,17 +108,28 @@ export function SongDetailScreen({
   const [reportActionFocused, setReportActionFocused] = useState(false);
   const dimensions = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
+  const collectionsQuery = useRepertoireCollections(bandId);
   const songQuery = useSong(bandId, songId);
   const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
+    collectionsQuery,
     songQuery,
     userBandsQuery,
   ]);
   const song = songQuery.data;
+  const songCollections =
+    collectionsQuery.data?.flatMap((summary) =>
+      summary.songs.some(({ id }) => id === songId) ? [summary.collection] : [],
+    ) ?? [];
   const membership = userBandsQuery.data?.find(
     ({ band }) => band.id === bandId,
   )?.membership;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
+  const collectionMembership = useSongCollectionMembership({
+    bandId,
+    canEdit,
+    collections: collectionsQuery.data ?? [],
+  });
   const youtubeReference = normalizeYoutubeReference(song?.youtubeReference);
   const openYoutubeReference = () => {
     if (!youtubeReference) {
@@ -120,6 +175,13 @@ export function SongDetailScreen({
         targetName={song?.title ?? 'Música'}
         visible={reportVisible}
       />
+      <SongCollectionMembershipDialog {...collectionMembership.dialogProps} />
+      {collectionMembership.saved ? (
+        <TemporaryFeedback
+          messageKey="collection-memberships-saved"
+          onDismiss={collectionMembership.dismissSaved}
+        />
+      ) : null}
       {songQuery.isPending || userBandsQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
@@ -188,6 +250,41 @@ export function SongDetailScreen({
                 BPM · {song.bpm ?? '—'}
               </AppText>
             </View>
+            {songCollections.length > 0 ? (
+              <View
+                accessibilityLabel={`Coleções: ${songCollections
+                  .map(({ name }) => name)
+                  .join(', ')}`}
+                style={styles.collectionSection}
+                testID="song-detail-collections"
+              >
+                <AppText tone="muted" variant="caption">
+                  Coleções
+                </AppText>
+                <View style={styles.collectionTags}>
+                  {songCollections.map((collection) => (
+                    <SongCollectionLink
+                      bandId={bandId}
+                      collection={collection}
+                      key={collection.id}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            {canEdit ? (
+              <AppButton
+                accessibilityLabel="Organizar coleções da música"
+                disabled={
+                  collectionsQuery.isPending || collectionsQuery.isError
+                }
+                icon="edit"
+                label="Organizar coleções"
+                onPress={() => collectionMembership.open(song)}
+                style={styles.manageCollectionsButton}
+                variant="tertiary"
+              />
+            ) : null}
           </Card>
 
           {song.notes || youtubeReference ? (
@@ -297,6 +394,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.lg,
+  },
+  collectionSection: {
+    gap: spacing.xs,
+  },
+  collectionTags: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  collectionTag: {
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    flexShrink: 1,
+    maxWidth: '100%',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  collectionTagFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
+  },
+  collectionTagPressed: {
+    backgroundColor: colors.background.pressed,
+  },
+  collectionTagText: {
+    flexShrink: 1,
+  },
+  manageCollectionsButton: {
+    alignSelf: 'flex-start',
   },
   lyricCard: {
     gap: spacing.xl,

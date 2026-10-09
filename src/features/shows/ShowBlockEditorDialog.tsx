@@ -26,6 +26,7 @@ import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { SearchField } from '@/components/ui/list-controls/SearchField';
+import type { RepertoireCollectionSummary } from '@/data/queries';
 import { moveSetlistItem } from '@/domain';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
@@ -45,8 +46,30 @@ export interface ShowBlockDraft {
   readonly name: string;
 }
 
+export interface CollectionPreviewValidationRequest {
+  readonly collectionId: EntityId;
+  readonly expectedSongs: readonly Pick<
+    Song,
+    'estimatedDurationMs' | 'id' | 'originalArtist' | 'title'
+  >[];
+  readonly expectedUpdatedAt: RepertoireCollectionSummary['collection']['updatedAt'];
+}
+
+export type CollectionPreviewValidationResult =
+  | {
+      readonly collection: RepertoireCollectionSummary;
+      readonly message: string;
+      readonly status: 'changed';
+    }
+  | {
+      readonly collection: RepertoireCollectionSummary;
+      readonly status: 'ready';
+    }
+  | { readonly message: string; readonly status: 'unavailable' };
+
 interface ShowBlockEditorDialogProps {
   readonly addSheetVisible: boolean;
+  readonly collections?: readonly RepertoireCollectionSummary[];
   readonly errorMessage: string | null;
   readonly fullScreen?: boolean;
   readonly initialBlocks: readonly ShowBlockDraft[];
@@ -54,6 +77,9 @@ interface ShowBlockEditorDialogProps {
   readonly onAddSheetVisibilityChange: (visible: boolean) => void;
   readonly onClose: () => void;
   readonly onDirtyChange?: (dirty: boolean) => void;
+  readonly onValidateCollection?: (
+    request: CollectionPreviewValidationRequest,
+  ) => Promise<CollectionPreviewValidationResult>;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
   readonly visible: boolean;
@@ -160,6 +186,7 @@ function moveBlock(
 
 export function ShowBlockEditorDialog({
   addSheetVisible,
+  collections = [],
   errorMessage,
   fullScreen = false,
   initialBlocks,
@@ -167,6 +194,7 @@ export function ShowBlockEditorDialog({
   onAddSheetVisibilityChange,
   onClose,
   onDirtyChange,
+  onValidateCollection,
   onSubmit,
   songs,
   visible,
@@ -180,6 +208,7 @@ export function ShowBlockEditorDialog({
   const itemLayoutsRef = useRef(new Map<EntityId, ItemLayout>());
   const itemDragSessionRef = useRef<ItemDragSession | null>(null);
   const blockDragSessionRef = useRef<BlockDragSession | null>(null);
+  const collectionConfirmationLockRef = useRef(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const scrollFrameYRef = useRef(0);
   const scrollOffsetYRef = useRef(0);
@@ -210,6 +239,16 @@ export function ShowBlockEditorDialog({
   const [dragPreview, setDragPreview] = useState<DragPreview | null>(null);
   const [deleteBlockId, setDeleteBlockId] = useState<EntityId | null>(null);
   const [songSheetVisible, setSongSheetVisible] = useState(false);
+  const [collectionPickerVisible, setCollectionPickerVisible] = useState(false);
+  const [collectionPreviewVisible, setCollectionPreviewVisible] =
+    useState(false);
+  const [isValidatingCollection, setIsValidatingCollection] = useState(false);
+  const [collectionValidationMessage, setCollectionValidationMessage] =
+    useState<string | null>(null);
+  const [previewCollectionOverride, setPreviewCollectionOverride] =
+    useState<RepertoireCollectionSummary | null>(null);
+  const [previewCollectionId, setPreviewCollectionId] =
+    useState<EntityId | null>(null);
   const [selectedSongIds, setSelectedSongIds] = useState<readonly EntityId[]>(
     [],
   );
@@ -234,8 +273,51 @@ export function ShowBlockEditorDialog({
 
   const activeBlock = blocks.find((block) => block.id === activeBlockId);
   const blockToDelete = blocks.find((block) => block.id === deleteBlockId);
+  const previewCollection =
+    (previewCollectionOverride?.collection.id === previewCollectionId
+      ? previewCollectionOverride
+      : undefined) ??
+    collections.find(({ collection }) => collection.id === previewCollectionId);
+  const previewSongs = useMemo(
+    () =>
+      previewCollection?.songs.filter((song) => song.archivedAt === null) ?? [],
+    [previewCollection],
+  );
+  const previewArchivedSongCount =
+    previewCollection?.songs.filter((song) => song.archivedAt !== null)
+      .length ?? 0;
+  const previewSongIdsAlreadyInShow = useMemo(() => {
+    const songIds = new Set<EntityId>();
+    blocks.forEach((block) =>
+      block.items.forEach((item) => {
+        if (item.type === 'song') songIds.add(item.songId);
+      }),
+    );
+    return songIds;
+  }, [blocks]);
+  const previewRepeatedSongCount = previewSongs.filter(({ id }) =>
+    previewSongIdsAlreadyInShow.has(id),
+  ).length;
+  const previewKnownDurationMs = previewSongs.reduce(
+    (total, song) => total + (song.estimatedDurationMs ?? 0),
+    0,
+  );
+  const previewSongsWithoutDurationCount = previewSongs.filter(
+    ({ estimatedDurationMs }) => estimatedDurationMs === null,
+  ).length;
+  const previewHasKnownDuration = previewSongs.some(
+    ({ estimatedDurationMs }) => estimatedDurationMs !== null,
+  );
+  const previewEligibleCountLabel = `${previewSongs.length} ${previewSongs.length === 1 ? 'música elegível' : 'músicas elegíveis'}`;
+  const previewDurationLabel = !previewHasKnownDuration
+    ? 'Duração estimada: Não informada'
+    : `${previewSongsWithoutDurationCount > 0 ? 'Duração conhecida' : 'Duração estimada'}: ${formatSongDuration(previewKnownDurationMs)}`;
   const songById = useMemo(
     () => new Map(songs.map((song) => [song.id, song])),
+    [songs],
+  );
+  const activeSongs = useMemo(
+    () => songs.filter((song) => song.archivedAt === null),
     [songs],
   );
   const songSequenceNumbers = useMemo(() => {
@@ -254,13 +336,13 @@ export function ShowBlockEditorDialog({
   }, [blocks]);
   const filteredSongs = useMemo(() => {
     const query = songSearchText.trim().toLocaleLowerCase('pt-BR');
-    if (!query) return songs;
-    return songs.filter((song) =>
+    if (!query) return activeSongs;
+    return activeSongs.filter((song) =>
       `${song.title} ${song.originalArtist ?? ''}`
         .toLocaleLowerCase('pt-BR')
         .includes(query),
     );
-  }, [songs, songSearchText]);
+  }, [activeSongs, songSearchText]);
   const durations = useMemo(() => {
     const blockDurations = new Map<EntityId, number | null>();
     let hasDuration = false;
@@ -362,6 +444,88 @@ export function ShowBlockEditorDialog({
     setSongSearchText('');
     setSongSheetVisible(false);
     onAddSheetVisibilityChange(false);
+  };
+
+  const addCollectionSongs = (collection: RepertoireCollectionSummary) => {
+    if (!activeBlock || isSubmitting) return;
+    const eligibleSongs = collection.songs.filter(
+      (song) => song.archivedAt === null,
+    );
+    if (eligibleSongs.length === 0) return;
+
+    updateBlock(activeBlock.id, (block) => ({
+      ...block,
+      items: [
+        ...block.items,
+        ...eligibleSongs.map((song, index) => ({
+          id: createDraftId(
+            'collection-' + collection.collection.id + '-' + song.id,
+            block.items.length + index,
+          ),
+          isNew: true,
+          notes: null,
+          songId: song.id,
+          type: 'song' as const,
+        })),
+      ],
+    }));
+    setCollectionValidationMessage(null);
+    setCollectionPreviewVisible(false);
+    setPreviewCollectionId(null);
+    setPreviewCollectionOverride(null);
+    setCollectionPickerVisible(false);
+    onAddSheetVisibilityChange(false);
+  };
+
+  const confirmCollection = async () => {
+    if (
+      !activeBlock ||
+      !previewCollection ||
+      previewSongs.length === 0 ||
+      isSubmitting ||
+      collectionConfirmationLockRef.current
+    ) {
+      return;
+    }
+
+    collectionConfirmationLockRef.current = true;
+    setCollectionValidationMessage(null);
+    setIsValidatingCollection(true);
+    try {
+      const validation = onValidateCollection
+        ? await onValidateCollection({
+            collectionId: previewCollection.collection.id,
+            expectedSongs: previewSongs.map(
+              ({ estimatedDurationMs, id, originalArtist, title }) => ({
+                estimatedDurationMs,
+                id,
+                originalArtist,
+                title,
+              }),
+            ),
+            expectedUpdatedAt: previewCollection.collection.updatedAt,
+          })
+        : { collection: previewCollection, status: 'ready' as const };
+
+      if (validation.status === 'changed') {
+        setPreviewCollectionOverride(validation.collection);
+        setCollectionValidationMessage(validation.message);
+        return;
+      }
+      if (validation.status === 'unavailable') {
+        setCollectionValidationMessage(validation.message);
+        return;
+      }
+
+      addCollectionSongs(validation.collection);
+    } catch {
+      setCollectionValidationMessage(
+        'Não foi possível validar a coleção agora. Tente novamente.',
+      );
+    } finally {
+      collectionConfirmationLockRef.current = false;
+      setIsValidatingCollection(false);
+    }
   };
 
   const removeItem = (blockId: EntityId, itemId: EntityId) => {
@@ -833,7 +997,7 @@ export function ShowBlockEditorDialog({
   const content = (
     <>
       <KeyboardAvoidingView
-        accessibilityViewIsModal
+        accessibilityViewIsModal={!fullScreen}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={fullScreen ? styles.screenLayer : styles.modalLayer}
       >
@@ -1034,8 +1198,22 @@ export function ShowBlockEditorDialog({
               setSongSearchText('');
               setSongSheetVisible(true);
             }}
+            testID="show-add-songs-action"
             variant="secondary"
           />
+          {collections.length > 0 ? (
+            <AppButton
+              accessibilityLabel="Adicionar coleção"
+              icon="repertoire"
+              label="Adicionar coleção"
+              onPress={() => {
+                onAddSheetVisibilityChange(false);
+                setCollectionPickerVisible(true);
+              }}
+              testID="show-add-collection-action"
+              variant="secondary"
+            />
+          ) : null}
           <AppButton
             accessibilityLabel="Adicionar anotação"
             icon="planning"
@@ -1058,6 +1236,189 @@ export function ShowBlockEditorDialog({
             variant="secondary"
           />
         </View>
+      </OptionSheet>
+      <OptionSheet
+        closeAccessibilityLabel="Fechar coleções"
+        label="Adicionar coleção"
+        onClose={() => setCollectionPickerVisible(false)}
+        showCloseButton
+        testID="show-collection-picker-sheet"
+        visible={collectionPickerVisible}
+      >
+        <AppText tone="muted">
+          As músicas entram no final de “{activeBlock?.name ?? 'nenhum bloco'}”.
+        </AppText>
+        <View style={styles.optionList}>
+          {collections.map((collection) => {
+            return (
+              <AppButton
+                accessibilityLabel={`Pré-visualizar coleção ${collection.collection.name}`}
+                disabled={!activeBlock || isSubmitting}
+                icon="repertoire"
+                key={collection.collection.id}
+                label={collection.collection.name}
+                onPress={() => {
+                  setCollectionPickerVisible(false);
+                  setCollectionValidationMessage(null);
+                  setPreviewCollectionOverride(null);
+                  setPreviewCollectionId(collection.collection.id);
+                  setCollectionPreviewVisible(true);
+                }}
+                testID={`show-preview-collection-${collection.collection.id}`}
+                variant="secondary"
+              />
+            );
+          })}
+        </View>
+      </OptionSheet>
+      <OptionSheet
+        closeAccessibilityLabel="Fechar prévia da coleção"
+        label={
+          previewCollection
+            ? `Prévia: ${previewCollection.collection.name}`
+            : 'Prévia da coleção'
+        }
+        onClose={() => {
+          if (isValidatingCollection) return;
+          setCollectionPreviewVisible(false);
+          setPreviewCollectionId(null);
+          setPreviewCollectionOverride(null);
+          setCollectionValidationMessage(null);
+        }}
+        showCloseButton
+        sheetStyle={styles.collectionPreviewSheet}
+        testID="show-collection-preview-sheet"
+        visible={collectionPreviewVisible}
+      >
+        {collectionValidationMessage ? (
+          <AppText
+            accessibilityLiveRegion="polite"
+            testID="show-collection-validation-message"
+            tone="danger"
+          >
+            {collectionValidationMessage}
+          </AppText>
+        ) : null}
+        {previewCollection ? (
+          <>
+            <View style={styles.collectionPreviewSummary}>
+              <View style={styles.collectionPreviewDestination}>
+                <AppText tone="muted" variant="caption">
+                  Bloco de destino
+                </AppText>
+                <AppText testID="show-collection-preview-target-block">
+                  {activeBlock?.name ?? 'Nenhum bloco selecionado'}
+                </AppText>
+              </View>
+              <AppText accessibilityLabel={previewEligibleCountLabel}>
+                {previewEligibleCountLabel}
+              </AppText>
+              <AppText accessibilityLabel={previewDurationLabel}>
+                {previewDurationLabel}
+              </AppText>
+              {previewSongsWithoutDurationCount > 0 &&
+              previewHasKnownDuration ? (
+                <AppText tone="muted" variant="caption">
+                  Duração não informada para {previewSongsWithoutDurationCount}{' '}
+                  {previewSongsWithoutDurationCount === 1
+                    ? 'música'
+                    : 'músicas'}
+                  .
+                </AppText>
+              ) : null}
+              {previewArchivedSongCount > 0 ? (
+                <AppText tone="muted" variant="caption">
+                  {previewArchivedSongCount}{' '}
+                  {previewArchivedSongCount === 1
+                    ? 'música arquivada ficará'
+                    : 'músicas arquivadas ficarão'}{' '}
+                  de fora.
+                </AppText>
+              ) : null}
+              {previewRepeatedSongCount > 0 ? (
+                <AppText
+                  testID="show-collection-preview-repeat-summary"
+                  tone="warning"
+                  variant="caption"
+                >
+                  {previewRepeatedSongCount}{' '}
+                  {previewRepeatedSongCount === 1
+                    ? 'música já aparece'
+                    : 'músicas já aparecem'}{' '}
+                  neste show e serão repetidas.
+                </AppText>
+              ) : null}
+              {previewSongs.length === 0 ? (
+                <AppText tone="muted">
+                  {previewArchivedSongCount > 0
+                    ? 'Esta coleção não tem músicas ativas para incluir.'
+                    : 'Esta coleção ainda não tem músicas para incluir.'}
+                </AppText>
+              ) : null}
+            </View>
+            {previewSongs.length > 0 ? (
+              <ScrollView
+                contentContainerStyle={styles.collectionPreviewSongs}
+                keyboardShouldPersistTaps="handled"
+                style={styles.collectionPreviewScroll}
+                testID="show-collection-preview-songs"
+              >
+                {previewSongs.map((song, index) => (
+                  <View
+                    key={song.id}
+                    style={styles.collectionPreviewSong}
+                    testID={`show-collection-preview-song-${song.id}`}
+                  >
+                    <AppText style={styles.collectionPreviewSequence}>
+                      {index + 1}.
+                    </AppText>
+                    <View style={styles.collectionPreviewSongCopy}>
+                      <AppText>{song.title}</AppText>
+                      {song.originalArtist ? (
+                        <AppText tone="muted" variant="caption">
+                          {song.originalArtist}
+                        </AppText>
+                      ) : null}
+                      {previewSongIdsAlreadyInShow.has(song.id) ? (
+                        <AppText
+                          testID={`show-collection-preview-repeat-${song.id}`}
+                          tone="warning"
+                          variant="caption"
+                        >
+                          Já está no show; será repetida.
+                        </AppText>
+                      ) : null}
+                    </View>
+                    <AppText tone="muted" variant="caption">
+                      {formatSongDuration(song.estimatedDurationMs)}
+                    </AppText>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : null}
+            <AppButton
+              accessibilityLabel="Confirmar inclusão da coleção"
+              disabled={
+                previewSongs.length === 0 ||
+                isSubmitting ||
+                isValidatingCollection
+              }
+              icon="musicAdd"
+              label={
+                isValidatingCollection
+                  ? 'Verificando…'
+                  : `Adicionar ${previewSongs.length} ${previewSongs.length === 1 ? 'música' : 'músicas'}`
+              }
+              onPress={() => void confirmCollection()}
+              testID="show-confirm-add-collection"
+            />
+          </>
+        ) : (
+          <AppText tone="muted">
+            Esta coleção não está mais disponível. Feche a prévia e tente
+            novamente.
+          </AppText>
+        )}
       </OptionSheet>
       <OptionSheet
         closeAccessibilityLabel="Fechar seleção de músicas"
@@ -1095,7 +1456,7 @@ export function ShowBlockEditorDialog({
           keyboardShouldPersistTaps="handled"
           style={styles.songPickerScroll}
         >
-          {songs.length === 0 ? (
+          {activeSongs.length === 0 ? (
             <AppText tone="muted">
               Nenhuma música ativa para incluir neste repertório.
             </AppText>
@@ -1860,6 +2221,48 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  collectionPreviewDestination: {
+    borderBottomColor: colors.border.subtle,
+    borderBottomWidth: 1,
+    gap: spacing.xs,
+    paddingBottom: spacing.sm,
+  },
+  collectionPreviewScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  collectionPreviewSequence: {
+    minWidth: 24,
+    textAlign: 'right',
+  },
+  collectionPreviewSheet: {
+    height: 620,
+    maxHeight: '90%',
+    minHeight: 0,
+  },
+  collectionPreviewSong: {
+    alignItems: 'center',
+    borderColor: colors.border.subtle,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: layout.minimumTouchTarget,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  collectionPreviewSongCopy: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  collectionPreviewSongs: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  collectionPreviewSummary: {
+    gap: spacing.xs,
   },
   content: {
     gap: spacing.md,

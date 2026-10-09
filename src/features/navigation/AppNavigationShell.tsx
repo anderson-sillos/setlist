@@ -48,6 +48,7 @@ export function AppNavigationShell({
   editActions,
   fixedContent,
   headerAction,
+  leadingHeaderAction,
   onConnectionRetry,
   onRefresh,
   refreshing = false,
@@ -164,6 +165,7 @@ export function AppNavigationShell({
             bandName={bandName}
             editActions={editActions}
             headerAction={headerAction}
+            leadingHeaderAction={leadingHeaderAction}
             onOpenMenu={openDrawer}
             persistentSidebar={persistentSidebar}
             screenKind={screenKind}

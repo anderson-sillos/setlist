@@ -20,6 +20,16 @@ export interface EditActions {
   readonly onCancel: () => void;
   readonly onSave: () => void;
   readonly saveDisabled?: boolean;
+  readonly leadingAction?: EditHeaderAction;
+  readonly trailingAction?: EditHeaderAction;
+}
+
+export interface EditHeaderAction {
+  readonly accessibilityLabel: string;
+  readonly color?: string;
+  readonly disabled?: boolean;
+  readonly icon: AppIconName;
+  readonly onPress: () => void;
 }
 
 export interface AppNavigationShellProps extends PropsWithChildren {
@@ -33,6 +43,7 @@ export interface AppNavigationShellProps extends PropsWithChildren {
   readonly editActions?: EditActions;
   readonly fixedContent?: ReactNode;
   readonly headerAction?: HeaderAction;
+  readonly leadingHeaderAction?: HeaderAction;
   readonly onConnectionRetry?: () => void;
   readonly onRefresh?: () => void | Promise<void>;
   readonly refreshing?: boolean;

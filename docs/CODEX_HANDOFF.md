@@ -1632,3 +1632,130 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      criar e validar uma ação interna, além de definir controles proporcionais
      de bloqueio. A tarefa 11.8.1 registra essas pendências. O processo ainda
      não está implementado e o item 11.3 segue aberto.
+
+127. A change `organizar-colecoes-do-repertorio` foi arquivada em
+     `openspec/changes/archive/2026-10-08-organizar-colecoes-do-repertorio`,
+     suas definições foram sincronizadas com `openspec/specs/repertoire-collections`
+     e todas as tarefas foram marcadas como concluídas após validação manual
+     confirmada pelo responsável em 2026-10-08. A branch `feat/repertoire-collections`
+     contém a implementação, a migração `20261008100000_create_repertoire_collections.sql`,
+     a migração `20261008101000_manage_repertoire_collections.sql` e a PR #32
+     para integração à `main`. A inclusão de uma coleção no setlist cria
+     ocorrências comuns das músicas ativas na ordem confirmada; mudanças
+     posteriores na coleção não alteram a setlist. A PR deve ser integrada após
+     aprovação dos checks exigidos. Antes de habilitar a feature em outro
+     ambiente, conferir o projeto de destino e aplicar as migrações pelo
+     procedimento autorizado. Para retorno, pode-se reverter o app para uma
+     versão sem a interface de coleções e preservar tabelas e dados; não remover
+     as tabelas sem backup e decisão explícita, pois já podem conter coleções.
+
+     A execução de CI mais recente detectou expectativas de testes desatualizadas
+     após os refinamentos de fluxo; os ajustes estão sendo feitos na mesma PR e
+     a integração depende da nova execução dos checks. Verificações anteriores:
+     exportação Web, quatro testes Playwright, formatação, lint, TypeScript e
+     suíte completa (106 suites, 766 testes); o Jest precisou de `--forceExit`
+     para encerrar com código zero devido a handles abertos. O estado dos checks
+     e da PR #32 deve ser conferido no GitHub antes de declarar a integração.
+
+128. A falha de acesso às coleções foi confirmada no projeto **setlist-dev**
+     (`zncaahgaoqwksdidunza`), usado pelo `.env.local` e pelo simulador iOS:
+     a API retornava `404 / PGRST205` para `repertoire_collections` e
+     `repertoire_collection_songs`. As migrações da feature estavam pendentes.
+     O Supabase CLI confirmou o nome/ref do projeto e o dry-run listou somente
+     `20261008100000_create_repertoire_collections.sql` e
+     `20261008101000_manage_repertoire_collections.sql`. Os testes pgTAP dessas
+     migrações passaram no workflow da PR #32. Ambas foram aplicadas somente
+     em desenvolvimento, sem seeds, roles ou reset, conforme o processo
+     registrado em Convenção de trabalho solicitada. O dry-run posterior
+     confirmou banco atualizado. A consulta autenticada no runtime do app
+     passou (`status: success`, zero coleções para a banda aberta); acesso
+     anônimo continua negado por projeto, com `401 / 42501`.
+     Produção não foi alterada. A tarefa 8.5 registra a conferência.
+
+129. O refinamento aprovado de UX de Coleções foi implementado na tarefa 4.5:
+     botão neutro Coleções junto de Filtrar/Ordenar, com consulta, criação e
+     seleção no menu; contagem e X no cabeçalho durante a seleção, sem novas
+     linhas na toolbar; ações por música com `EllipsisVertical`. O toque no
+     restante do cartão mantém a abertura dos detalhes. Edição e organização
+     respeitam owner/editor; a gestão de participações utiliza o mesmo hook e
+     diálogo no Repertório e no detalhe, preservando proteção de descarte e
+     revisões capturadas ao abrir. O menu aguarda `onDismiss` no iOS antes de
+     executar navegação ou abrir outro diálogo. Falhas na consulta opcional de
+     coleções ficam localizadas nas ações do recurso; a lista e filtros com
+     dados anteriores continuam disponíveis.
+
+     Xcode está em `/Volumes/Macintosh HD - Dados/Applications/Xcode.app`.
+     Para acessar o simulador, usar `DEVELOPER_DIR` apontando para seu diretório
+     `Contents/Developer`, sem mudar `xcode-select` global. A apresentação normal
+     e em seleção, os três pontos, a abertura de participações e o toque habitual
+     abrindo detalhes foram conferidos no iPhone 16. Evidências locais estão em
+     `/private/tmp/setlist-collections-menu-normal.png`,
+     `/private/tmp/setlist-collections-selection-after.png`,
+     `/private/tmp/setlist-collections-membership-after.png` e
+     `/private/tmp/setlist-song-card-detail-after.png`.
+     Os 38 testes existentes de Repertório/Detalhe e 8 de rolagem/overlay passaram,
+     além de lint, TypeScript, formatação e OpenSpec estrito. A execução do Jest
+     usou `--forceExit` por causa dos handles já registrados. As tarefas 8.1/8.2
+     continuam abertas para a conferência completa nas três plataformas e de
+     acessibilidade. A PR #32 deve permanecer aberta.
+
+130. A tarefa 3.8 simplifica a criação de coleção conforme solicitado: apenas
+     nome e salvamento/cancelamento, com contagem discreta quando vier de músicas
+     previamente selecionadas. O seletor duplicado foi removido do editor;
+     novas inclusões acontecem pela seleção e ações do Repertório. O editor
+     existente mantém renomeação, ordem, remoção e exclusão. Adicionar músicas
+     no detalhe vazio ou no editor abre o Repertório com `addToCollectionId`,
+     ativa a seleção, remove a restrição de coleção da consulta e pré-seleciona
+     o destino na confirmação. Sair do editor com mudanças continua sujeito
+     à confirmação compartilhada de descarte.
+     A criação simples foi conferida no iPhone 16; evidência em
+     `/private/tmp/setlist-collection-create-name-only.png`. Os 39 testes de
+     Repertório, consulta e editor de coleções passaram; lint, TypeScript,
+     formatação e OpenSpec estrito também passaram. Nenhuma coleção de teste
+     foi criada no Supabase conectado. A change tem 42/44 tarefas concluídas;
+     8.1 e 8.2 continuam pendentes. A PR #32 permanece aberta para validação.
+
+131. As tarefas 8.7 e 8.8 ampliam a seleção a partir do próprio Repertório:
+     Selecionar no menu da música ou manter seu cartão pressionado inicia o
+     modo já marcando essa música, e os controles Coleções/Filtrar/Ordenar
+     permanecem visíveis durante a seleção. Os diálogos Coleções da música e
+     Adicionar a uma coleção oferecem Criar seleção; o primeiro leva a música
+     atual, e o segundo leva todas as músicas selecionadas ao formulário de
+     nome. O segundo fluxo também pode ser aberto sem coleções existentes.
+     Alterações pendentes de participações continuam protegidas pela
+     confirmação compartilhada. Nesta etapa, Prettier e `git diff --check`
+     passaram; testes automatizados não foram executados. A change está em
+     45/47 tarefas concluídas; 8.1/8.2 e a PR #32 permanecem abertos para
+     validação manual.
+132. Refinamento dos diálogos de coleção (8.8): as ações secundárias “Criar
+     seleção” e “Cancelar” usam agora o estilo secondary padrão dos diálogos;
+     “Salvar” e “Adicionar” preservam a hierarquia primária. No seletor sem
+     coleções, “Criar seleção” continua primário por ser o próximo passo
+     disponível. Prettier e `git diff --check` passaram; não rodei testes.
+     A change permanece com 45/47 tarefas concluídas e a PR #32 aberta.
+133. No seletor “Adicionar a uma coleção”, “Criar seleção” ficou em linha
+     própria e o rodapé reúne “Cancelar” e “Adicionar” sem quebra. O rótulo
+     “Adicionar” não varia com a quantidade; o estado de envio desativa a ação.
+     Prettier e `git diff --check` passaram; não rodei testes automatizados.
+     A change permanece com 45/47 tarefas concluídas e a PR #32 aberta.
+134. No diálogo “Coleções da música”, o prompt de descarte agora é montado
+     dentro do Modal nativo para aparecer acima dele no iOS, seguindo o padrão
+     usado pelos diálogos de criação/edição. Cancelar e Salvar ficam juntos,
+     nessa ordem, em uma linha; Criar seleção permanece numa linha própria.
+     Prettier e `git diff --check` passaram; testes não foram executados.
+135. O menu do botão Coleções não oferece mais criação direta, inclusive
+     durante a seleção de músicas. Para criar a partir das selecionadas, abrir
+     Adicionar à coleção e escolher Criar seleção; a lista de coleções continua
+     oferecendo sua ação de criação. Código, requisito, desenho, documentação e
+     o teste existente de criação foram alinhados. Não houve commit conforme
+     pedido; testes não foram executados.
+136. Durante a seleção de músicas, o menu Coleções oferece agora Cancelar
+     seleção separadamente de Limpar seleção. A primeira ação limpa as escolhas
+     e sai do modo; a segunda mantém o modo ativo. OpenSpec, design e guia de
+     uso foram alinhados. A change está em 47/49 tarefas concluídas; 8.1/8.2
+     continuam pendentes. Não houve commit; testes não foram executados.
+137. No modo de seleção, “Selecionar resultados (N)” foi renomeado para
+     “Selecionar todos”; o rótulo acessível informa que a ação seleciona somente
+     as músicas visíveis na consulta atual. Especificação, desenho, guia e a
+     expectativa do teste existente foram alinhados. A change está em 48/50
+     tarefas concluídas. Não houve commit; testes não foram executados.

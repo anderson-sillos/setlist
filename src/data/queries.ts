@@ -1,7 +1,21 @@
 import { getCurrentBandTermAcceptance } from '@/data/supabase/legalTermMutations';
-import { useQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 
-import type { EntityId, Song } from '@/domain';
+import type {
+  DeleteRepertoireCollectionInput,
+  EntityId,
+  RepertoireCollection,
+  RepertoireCollectionSong,
+  SaveRepertoireCollectionInput,
+  SetSongRepertoireCollectionsInput,
+  Song,
+} from '@/domain';
+import { RepertoireCollectionError } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
 
@@ -133,6 +147,166 @@ export function useShows(bandId: EntityId) {
   return useQuery({
     queryKey: ['bands', bandId, 'shows'],
     queryFn: () => repositories.shows.listByBandId(bandId),
+  });
+}
+
+export interface RepertoireCollectionSummary {
+  readonly collection: RepertoireCollection;
+  readonly songs: readonly Song[];
+  readonly songCount: number;
+  readonly activeSongCount: number;
+  readonly archivedSongCount: number;
+  readonly estimatedDurationMs: number | null;
+  readonly songsWithoutDurationCount: number;
+}
+
+export const repertoireCollectionQueryKeys = {
+  byBand: (bandId: EntityId) =>
+    ['bands', bandId, 'repertoire-collections'] as const,
+};
+
+function deriveRepertoireCollectionSummaries(
+  collections: readonly RepertoireCollection[],
+  memberships: readonly RepertoireCollectionSong[],
+  songs: readonly Song[],
+): readonly RepertoireCollectionSummary[] {
+  const songsById = new Map(songs.map((song) => [song.id, song]));
+
+  return collections.map((collection) => {
+    const linkedSongs = memberships
+      .filter((membership) => membership.collectionId === collection.id)
+      .sort((left, right) => left.position - right.position)
+      .flatMap((membership) => {
+        const song = songsById.get(membership.songId);
+        return song ? [song] : [];
+      });
+    const durationValues = linkedSongs.flatMap((song) =>
+      song.estimatedDurationMs === null ? [] : [song.estimatedDurationMs],
+    );
+
+    return {
+      activeSongCount: linkedSongs.filter((song) => song.archivedAt === null)
+        .length,
+      archivedSongCount: linkedSongs.filter((song) => song.archivedAt !== null)
+        .length,
+      collection,
+      estimatedDurationMs:
+        durationValues.length > 0
+          ? durationValues.reduce((total, duration) => total + duration, 0)
+          : null,
+      songCount: linkedSongs.length,
+      songs: linkedSongs,
+      songsWithoutDurationCount: linkedSongs.length - durationValues.length,
+    };
+  });
+}
+
+export function useRepertoireCollections(bandId: EntityId) {
+  const { repositories } = useAppData();
+
+  return useQuery({
+    queryKey: repertoireCollectionQueryKeys.byBand(bandId),
+    queryFn: async () => {
+      const [collections, memberships, songs] = await Promise.all([
+        repositories.repertoireCollections.listByBandId(bandId),
+        repositories.repertoireCollections.listSongsByBandId(bandId),
+        repositories.songs.listByBandId(bandId, { includeArchived: true }),
+      ]);
+
+      return deriveRepertoireCollectionSummaries(
+        collections,
+        memberships,
+        songs,
+      );
+    },
+  });
+}
+
+export function useRepertoireCollection(
+  bandId: EntityId,
+  collectionId: EntityId,
+) {
+  const collectionsQuery = useRepertoireCollections(bandId);
+  return {
+    ...collectionsQuery,
+    data: collectionsQuery.data?.find(
+      ({ collection }) => collection.id === collectionId,
+    ),
+  };
+}
+
+async function invalidateRepertoireCollectionData(
+  queryClient: QueryClient,
+  bandId: EntityId,
+) {
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: repertoireCollectionQueryKeys.byBand(bandId),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: ['bands', bandId, 'songs'],
+    }),
+  ]);
+}
+
+export function useSaveRepertoireCollection(bandId: EntityId) {
+  const { repositories } = useAppData();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: Omit<SaveRepertoireCollectionInput, 'bandId'>) =>
+      repositories.repertoireCollections.save({ ...input, bandId }),
+    onSuccess: () => invalidateRepertoireCollectionData(queryClient, bandId),
+    onError: (error) =>
+      error instanceof RepertoireCollectionError &&
+      error.code === 'stale_revision'
+        ? invalidateRepertoireCollectionData(queryClient, bandId)
+        : undefined,
+  });
+}
+
+export function useAppendRepertoireCollectionSongs(bandId: EntityId) {
+  const { repositories } = useAppData();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (
+      input: Omit<
+        Parameters<typeof repositories.repertoireCollections.appendSongs>[0],
+        'bandId'
+      >,
+    ) => repositories.repertoireCollections.appendSongs({ ...input, bandId }),
+    onSuccess: () => invalidateRepertoireCollectionData(queryClient, bandId),
+  });
+}
+
+export function useSetSongRepertoireCollections(bandId: EntityId) {
+  const { repositories } = useAppData();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: Omit<SetSongRepertoireCollectionsInput, 'bandId'>) =>
+      repositories.repertoireCollections.setSongCollections({
+        ...input,
+        bandId,
+      }),
+    onSuccess: () => invalidateRepertoireCollectionData(queryClient, bandId),
+  });
+}
+
+export function useDeleteRepertoireCollection(bandId: EntityId) {
+  const { repositories } = useAppData();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: Omit<DeleteRepertoireCollectionInput, 'bandId'>) =>
+      repositories.repertoireCollections.delete({ ...input, bandId }),
+    onSuccess: () => invalidateRepertoireCollectionData(queryClient, bandId),
+    onError: (error) =>
+      error instanceof RepertoireCollectionError &&
+      error.code === 'stale_revision'
+        ? invalidateRepertoireCollectionData(queryClient, bandId)
+        : undefined,
   });
 }
 

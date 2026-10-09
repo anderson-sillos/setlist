@@ -610,6 +610,48 @@ export const demoRepositoryData = {
       updatedAt: '2026-09-08T15:25:00.000Z',
     },
   ],
+  repertoireCollections: [
+    {
+      id: 'collection-demo-acustico',
+      bandId: demoIds.primaryBand,
+      name: 'Acústico',
+      createdAt: '2026-09-08T12:00:00.000Z',
+      updatedAt: '2026-09-08T12:00:00.000Z',
+    },
+    {
+      id: 'collection-demo-festa',
+      bandId: demoIds.primaryBand,
+      name: 'Festa',
+      createdAt: '2026-09-08T12:05:00.000Z',
+      updatedAt: '2026-09-08T12:05:00.000Z',
+    },
+  ],
+  repertoireCollectionSongs: [
+    {
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-acustico',
+      songId: 'song-demo-ceu-outubro',
+      position: 0,
+    },
+    {
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-acustico',
+      songId: 'song-demo-chuva',
+      position: 1,
+    },
+    {
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-festa',
+      songId: demoIds.stageSong,
+      position: 0,
+    },
+    {
+      bandId: demoIds.primaryBand,
+      collectionId: 'collection-demo-festa',
+      songId: 'song-demo-mare-neon',
+      position: 1,
+    },
+  ],
   shows: [
     {
       id: demoIds.calendarShow,

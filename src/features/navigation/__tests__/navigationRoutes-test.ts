@@ -1,6 +1,11 @@
 import { demoIds } from '@/data/demo';
 import {
   getBandSectionHref,
+  getRepertoireCollectionFilterHref,
+  getRepertoireCollectionCreateHref,
+  getRepertoireCollectionEditHref,
+  getRepertoireCollectionHref,
+  getRepertoireCollectionsHref,
   getSongCreateHref,
   getSongEditHref,
   getSongLyricsHref,
@@ -16,6 +21,11 @@ describe('rotas da navegação', () => {
     );
     expect(getBandSectionHref(demoIds.primaryBand, 'repertoire')).toBe(
       `/bands/${demoIds.primaryBand}/repertoire`,
+    );
+    expect(
+      getRepertoireCollectionFilterHref('banda com espaço', 'coleção festa'),
+    ).toBe(
+      '/bands/banda%20com%20espa%C3%A7o/repertoire?collectionId=cole%C3%A7%C3%A3o%20festa',
     );
     expect(getBandSectionHref(demoIds.primaryBand, 'band')).toBe(
       `/bands/${demoIds.primaryBand}/band`,
@@ -40,6 +50,34 @@ describe('rotas da navegação', () => {
     );
     expect(getSongEditHref(demoIds.primaryBand, demoIds.stageSong)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/edit`,
+    );
+    expect(getRepertoireCollectionsHref(demoIds.primaryBand)).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/collections`,
+    );
+    expect(
+      getRepertoireCollectionHref(demoIds.primaryBand, 'collection festa'),
+    ).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/collection%20festa`,
+    );
+    expect(getRepertoireCollectionCreateHref(demoIds.primaryBand)).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/new`,
+    );
+    expect(
+      getRepertoireCollectionCreateHref(
+        demoIds.primaryBand,
+        ['song id 1', 'song&2'],
+        true,
+      ),
+    ).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/new?songId=song%20id%201&songId=song%262&returnTo=repertoire`,
+    );
+    expect(
+      getRepertoireCollectionEditHref(demoIds.primaryBand, 'collection-festa'),
+    ).toBe(
+      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-festa/edit`,
+    );
+    expect(getRepertoireCollectionHref(demoIds.primaryBand, 'new')).not.toBe(
+      getSongHref(demoIds.primaryBand, 'new'),
     );
     expect(getStageHref(demoIds.primaryBand, demoIds.readyShow)).toBe(
       `/bands/${demoIds.primaryBand}/shows/${demoIds.readyShow}/stage`,

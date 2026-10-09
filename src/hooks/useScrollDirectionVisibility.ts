@@ -1,11 +1,20 @@
-import { useCallback, useRef, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 const HIDE_CONTROLS_SCROLL_DISTANCE = 48;
 const SHOW_CONTROLS_SCROLL_DISTANCE = 24;
 const TOP_OFFSET_THRESHOLD = 8;
 const DIRECTION_NOISE_THRESHOLD = 6;
 
-export function useScrollDirectionVisibility(initialOffset = 0) {
+export function useScrollDirectionVisibility(
+  initialOffset = 0,
+  autoHideEnabled = true,
+) {
   const [visible, setVisible] = useState(true);
   const visibleRef = useRef(true);
   const directionAnchor = useRef(Math.max(0, initialOffset));
@@ -13,6 +22,17 @@ export function useScrollDirectionVisibility(initialOffset = 0) {
   const gestureAnchor = useRef(Math.max(0, initialOffset));
   const lastDirection = useRef<'down' | 'up' | null>(null);
   const momentumActive = useRef(false);
+
+  useEffect(() => {
+    if (autoHideEnabled) return;
+
+    visibleRef.current = true;
+    startTransition(() => setVisible(true));
+    directionAnchor.current = lastOffset.current;
+    gestureAnchor.current = lastOffset.current;
+    lastDirection.current = null;
+    momentumActive.current = false;
+  }, [autoHideEnabled]);
 
   const beginDrag = useCallback(() => {
     momentumActive.current = false;
@@ -22,8 +42,8 @@ export function useScrollDirectionVisibility(initialOffset = 0) {
   }, []);
 
   const beginMomentum = useCallback(() => {
-    momentumActive.current = true;
-  }, []);
+    momentumActive.current = autoHideEnabled;
+  }, [autoHideEnabled]);
 
   const endMomentum = useCallback(() => {
     momentumActive.current = false;
@@ -36,6 +56,16 @@ export function useScrollDirectionVisibility(initialOffset = 0) {
       // Ignore overscroll: a bounce at either end is not a change of intent.
       const offset = Math.max(0, Math.min(offsetY, Math.max(0, maximumOffset)));
       lastOffset.current = offset;
+      if (!autoHideEnabled) {
+        visibleRef.current = true;
+        directionAnchor.current = offset;
+        gestureAnchor.current = offset;
+        lastDirection.current = null;
+        momentumActive.current = false;
+        setVisible(true);
+        return;
+      }
+
       if (!momentumActive.current || lastDirection.current === null) {
         const delta = offset - gestureAnchor.current;
         if (
@@ -90,8 +120,14 @@ export function useScrollDirectionVisibility(initialOffset = 0) {
         setVisible(visibleRef.current);
       }
     },
-    [],
+    [autoHideEnabled],
   );
 
-  return { beginDrag, beginMomentum, endMomentum, updateVisibility, visible };
+  return {
+    beginDrag,
+    beginMomentum,
+    endMomentum,
+    updateVisibility,
+    visible: autoHideEnabled ? visible : true,
+  };
 }
