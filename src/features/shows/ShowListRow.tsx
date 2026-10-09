@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
   rowTitle: {
     flex: 1,
     flexShrink: 1,
+    fontSize: 18,
     minWidth: 0,
   },
   rowMetaLine: {
