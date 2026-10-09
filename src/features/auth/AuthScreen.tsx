@@ -13,6 +13,7 @@ import { AuthLoadingState } from '@/features/auth/AuthLoadingState';
 import { AuthProviderIcon } from '@/features/auth/AuthProviderIcon';
 import { AppleSignInButton } from '@/features/auth/AppleSignInButton';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
+import { MobileAppDownloadLinks } from '@/features/auth/MobileAppDownloadLinks';
 import {
   AuthFlowError,
   signInWithSocialProvider,
@@ -143,6 +144,8 @@ export function AuthScreen() {
               <AppButton label="Voltar" variant="secondary" />
             </Link>
           ) : null}
+
+          <MobileAppDownloadLinks />
         </View>
 
         <View style={styles.legalFooter}>

@@ -139,11 +139,11 @@
 ## 11. Consolidação e piloto
 
 - [x] 11.1 Executar as suítes de unidade, componentes, integração RLS, Maestro e Playwright aplicáveis à preparação online em Web e Android e verificar os fluxos críticos, sem incluir modo palco completo, sincronização YouTube ou uso offline
-- [ ] 11.1.1 Validar os fluxos críticos da preparação online também em iOS, incluindo instalação, autenticação, bandas, convites, repertório, shows, edição e exclusão de conta
+- [x] 11.1.1 Validar os fluxos críticos da preparação online também em iOS, incluindo instalação, autenticação, bandas, convites, repertório, shows, edição e exclusão de conta. **Validação manual concluída e confirmada pelo responsável em 8 de outubro de 2026.**
 - [x] 11.2 Revisar acessibilidade, responsividade, desempenho e consistência do tom de voz nas telas da primeira versão em celular, tablet e computador e registrar e corrigir bloqueios de uso; a revisão do modo palco permanece para 8.9
-- [ ] 11.2.1 Revisar em iOS as telas da preparação online quanto a acessibilidade, responsividade, desempenho e consistência antes da distribuição pela App Store
+- [x] 11.2.1 Revisar em iOS as telas da preparação online quanto a acessibilidade, responsividade, desempenho e consistência antes da distribuição pela App Store. **Revisão concluída e confirmada pelo responsável em 8 de outubro de 2026.**
 - [x] 11.3 Redigir termo de responsabilidade, política de privacidade e procedimento de remoção; o responsável informou que a revisão por profissional jurídico foi concluída. A consolidação das versões públicas e as conferências operacionais permanecem em 11.8.
-- [ ] 11.4 Configurar monitoramento de banco, tráfego e usuários ativos e verificar alertas internos ao atingir 80% das cotas do Supabase
+- [x] 11.4 Configurar a revisão manual mensal de banco, tráfego e usuários ativos e verificar o gatilho de alerta interno a partir de 80% das cotas do Supabase. Processo e registro definidos em `docs/SUPABASE_USAGE_REVIEW.md`; gatilho conferido com valores de exemplo em 8 de outubro de 2026. A revisão mensal real passa a ser rotina operacional.
 - [ ] 11.5 Configurar ambientes, URLs, associações de links e credenciais definitivas, incluindo os destinos HTTPS e o esquema nativo exercitados no protótipo 3.4, e verificar que nenhum segredo ou chave administrativa está no cliente
   - [x] 11.5.1 Definir `1.0.0` como primeira versão pública comum, sincronizar os arquivos por comando único e conferir divergências no CI
   - [x] 11.5.2 Preparar contadores remotos EAS com incremento automático e perfis de AAB Android, IPA iOS e APK interno vinculados ao mesmo commit

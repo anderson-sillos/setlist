@@ -258,25 +258,24 @@ Faça essa configuração no painel de cada ambiente, sem colocar segredos no Gi
    as credenciais emitidas por cada provedor. O endereço de callback cadastrado
    no Google e na Apple é o callback do Supabase:
    `https://<project-ref>.supabase.co/auth/v1/callback`.
-2. Em **Authentication → URL Configuration**, defina a URL web do ambiente e
-   adicione os retornos permitidos usados no desenvolvimento:
+2. Em **Authentication → URL Configuration**, configure **Site URL** como a
+   origem canônica do site, sem o caminho de callback. Em produção, use
+   `https://setlistbr.app.br`. Adicione em cada ambiente somente os destinos
+   necessários. Em produção, mantenha:
+   `https://setlistbr.app.br/auth/callback**`,
+   `https://setlistbr.app.br/app/auth/callback**` e
+   `setlist://auth/callback**`. No ambiente de desenvolvimento, adicione
    `http://localhost:8081/auth/callback**`,
-   `https://*.exp.direct/auth/callback**`,
-   `https://anderson-sillos.github.io/setlist/app/auth/callback**`,
-   `https://setlistbr.app.br/auth/callback**` e
-   `setlist://auth/callback**`.
-   Para validar pelo Expo Go usando túnel, adicione também
-   `exp://**/--/auth/callback**`; esses padrões cobrem os endereços temporários
-   gerados pelo Expo em cada execução e o parâmetro `sb_flow_id` acrescentado
-   pelo PKCE. Neste projeto, o `Site URL` fica como
-   `setlist://auth/callback`, servindo como fallback nativo; os destinos web
-   precisam permanecer cadastrados explicitamente na lista de Redirect URLs.
-   A prévia hospedada no GitHub Pages usa temporariamente o retorno HTTPS antigo;
-   o endereço canônico do aplicativo será `https://setlistbr.app.br/auth/callback`.
-   A lista foi sincronizada pela Supabase CLI nos projetos hospedados de
-   desenvolvimento e produção, preservando os destinos já existentes. Antes do
-   primeiro login pelo domínio, confirme apenas a propagação do DNS e do
-   certificado HTTPS.
+   `https://*.exp.direct/auth/callback**` e, se a prévia ainda for usada,
+   `https://anderson-sillos.github.io/setlist/app/auth/callback**`.
+   Para validar pelo Expo Go usando túnel, adicione também no ambiente de
+   desenvolvimento `exp://**/--/auth/callback**`; esses padrões cobrem os
+   endereços temporários gerados pelo Expo em cada execução e o parâmetro
+   `sb_flow_id` acrescentado pelo PKCE. O app informa o callback específico da
+   plataforma em cada login, por isso os callbacks web e o deep link nativo
+   precisam permanecer explicitamente na lista de Redirect URLs. A configuração
+   de produção foi sincronizada pela Supabase CLI: `Site URL` é
+   `https://setlistbr.app.br` e os três destinos acima estão permitidos.
    Antes de repetir a operação em outro ambiente, execute `supabase config diff`
    e revise o resultado; o `supabase/config.toml` versionado contém valores para
    desenvolvimento local e não deve ser enviado diretamente sem essa revisão.
@@ -405,6 +404,15 @@ npm run supabase:check -- production
 ```
 
 Não execute `db reset --local` apontando para um projeto hospedado, não use `--include-seed` nesses ambientes e não aplique alterações manualmente pelo Table Editor. O `seed.sql` habilita pgTAP somente no banco local; produção e desenvolvimento hospedados devem receber apenas as migrações versionadas. Se o `dry-run` indicar divergência de histórico, interrompa a publicação e revise o projeto antes de usar opções como `--include-all`.
+
+### Banda de demonstração
+
+O [seed da Banda Demo](supabase/seeds/README.md) oferece 72 músicas de 12 artistas
+fictícios, 60 letras estruturadas, 13 coleções e 30 shows com setlists completos.
+Ele vincula a banda à conta existente `asillos@gmail.com` e preserva os dados em
+reexecuções. O carregamento pelo SQL Editor é explícito e separado da publicação
+de migrações; não use `db push --include-seed`. Consulte o guia para pré-requisitos,
+datas relativas e comandos de geração/conferência.
 
 ### Convites de banda
 

@@ -53,7 +53,8 @@ export function ShowListRow({
               <View style={styles.rowContent}>
                 <View style={styles.rowTitleLine}>
                   <AppText
-                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
                     style={styles.rowTitle}
                     variant="heading"
                   >
@@ -122,7 +123,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     borderWidth: 1,
     minHeight: 84,
-    padding: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
   },
   cancelledRow: {
     opacity: 0.66,
@@ -152,14 +154,16 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowTitleLine: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    gap: spacing.sm,
+    gap: spacing.xs,
+    minWidth: 0,
   },
   rowTitle: {
     flex: 1,
     flexShrink: 1,
+    fontSize: 18,
     minWidth: 0,
   },
   rowMetaLine: {

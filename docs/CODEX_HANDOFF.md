@@ -2,6 +2,63 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 9 de outubro de 2026 — seed da Banda Demo
+
+- O responsável solicitou dados completos para divulgação e testes externos,
+  com a conta existente `asillos@gmail.com` como Owner. O seed explícito está
+  em `supabase/seeds/banda-demo.sql`; instruções e cobertura estão em
+  `supabase/seeds/README.md`. Depois da criação, o responsável autorizou o
+  carregamento em desenvolvimento, concluído conforme o registro abaixo.
+  Produção não recebeu este seed; não houve commit ou envio remoto nesta etapa.
+- O catálogo contém 72 músicas fictícias de 12 artistas, 66 ativas e 6
+  arquivadas; 12 sem letra, 24 com letra estática, 18 incompletas e 18
+  sincronizadas. Letras originais incluem versos, refrões, ponte, negrito,
+  separadores e variações de tempos. Referências YouTube são exemplos técnicos
+  do protótipo, não gravações dessas músicas; os tempos são sintéticos.
+- Há 12 coleções preenchidas e uma vazia, com participação múltipla, ordem
+  própria e músicas sem coleção. Os 30 shows incluem oito passados e 22 nos
+  próximos 88 dias, em America/Sao_Paulo; 14 prontos, 12 rascunhos e quatro
+  cancelados. Todos têm setlist, somando 103 blocos e 883 itens. Há reprises,
+  músicas arquivadas no histórico e shows prontos com e sem pendências de letras.
+- A criação usa um único DO atômico com trava de execução, exige usuário/perfil
+  existentes e recusa conta suspensa, nome duplicado ou conflito de Owner.
+  IDs estáveis tornam reexecuções conservadoras: preservam alterações e datas,
+  sem repor dados excluídos. Não cria contas, convites ou aceites; convidados e
+  aceite do termo vigente usam os fluxos normais do app. Nenhum gatilho é
+  desativado, e shows recebem o status final após a montagem como rascunho.
+- Fontes em `scripts/demo-band-catalog.mjs`, `demo-band-data.mjs` e
+  `demo-band-seed.template.sql`; `npm run seed:demo:generate` gera o SQL e
+  `npm run seed:demo:check` confere o artefato e os cinco cenários de catálogo.
+  A classificação de letras é comparada com a implementação real do app.
+- O SQL foi executado em PostgreSQL isolado via PGlite temporário, carregando
+  as 27 migrações reais de schema/RLS; as duas migrações de agendamento pg_cron
+  ficaram fora dessa validação. Passaram inserção com gatilhos, contagens,
+  datas/posições, rollback após colisão de ID, conta ausente/suspensa, nome
+  existente, reexecução com edição preservada, conflito de Owner e acesso RLS
+  de Owner/conta externa. O scaffold de Auth existe somente nessa validação,
+  sem alteração das dependências do app ou dos projetos hospedados.
+- Em 9 de outubro de 2026, o seed foi executado no projeto `setlist-dev`
+  (`zncaahgaoqwksdidunza`) pela Supabase CLI com `db query --linked`, ref
+  explícita e arquivo SQL. A consulta prévia confirmou o projeto saudável,
+  migrações de coleções presentes, uma conta/perfil `asillos@gmail.com`,
+  nenhuma suspensão e ausência da Banda Demo. A referência das datas foi
+  `2026-10-09`, no fuso America/Sao_Paulo; produção não foi acessada para escrita.
+- Conferência remota após a execução: banda `35073eb1-c5e5-42df-85f6-c17226b646d4`
+  com um Owner (`asillos@gmail.com`), 72 músicas/66 ativas/12 artistas,
+  13 coleções/184 vínculos/uma coleção vazia, 30 shows (8 passados/22 nos próximos
+  três meses), 103 blocos e 883 itens (574 músicas, 206 anotações, 103 separadores).
+  Estados de letras/shows corresponderam ao catálogo; não houve inconsistência
+  de status, posições, setlists vazios ou referências de músicas de outra banda.
+  As contagens anteriores foram preservadas: duas outras bandas, seis músicas,
+  três coleções, nove shows, cinco contas Auth, sete aceites e 40 convites.
+
+## Atualização de 8 de outubro de 2026 — validação crítica iOS
+
+- O responsável confirmou que a validação manual da tarefa 11.1.1 foi concluída: instalação, autenticação, bandas, convites, repertório, shows, edição e exclusão de conta na preparação online em iOS. A tarefa foi marcada como concluída em `openspec/changes/definir-mvp-setlist/tasks.md`.
+- O responsável também confirmou a conclusão da revisão iOS da tarefa 11.2.1, cobrindo acessibilidade, responsividade, desempenho e consistência das telas da preparação online. A tarefa foi marcada como concluída. A geração e validação do candidato `v1.0.0-rc.1` continua pendente nas tarefas 11.5.5 e 11.6.
+- O responsável escolheu revisão manual mensal para a tarefa 11.4. O procedimento registra o uso por organização/projeto, aciona alerta interno documentado a partir de 80% e avalia migração sem mudança automática do plano. O gatilho foi conferido com exemplos; a rotina e o registro estão em `docs/SUPABASE_USAGE_REVIEW.md`. A revisão de uso corrente deve ser registrada mensalmente.
+- Em 8 de outubro, as migrações `20261008100000_create_repertoire_collections.sql` e `20261008101000_manage_repertoire_collections.sql` foram aplicadas em `setlist-prod` (`tqijocmmiwistinrjpwl`). A conferência final mostrou todos os registros locais sincronizados e `db push --dry-run` sem migrações pendentes.
+
 ## Atualização de 7 de outubro de 2026 — integração da PR #29 e dependências
 
 - Continuação da revisão de segurança: a PR #30 foi integrada por squash à `main` no commit `c75e55c88ac52cdd27b80a9048df918882084118`; os checks passaram e o alerta #12 (`shell-quote`) foi confirmado como corrigido. A PR #31 (`https://github.com/anderson-sillos/setlist/pull/31`) está aberta contra `main`, sem merge, com a análise documentada em `docs/DEPENDENCY_SECURITY.md`. Os alertas #9 (`node-forge`), #10 (`braces`) e #11 (`sprintf-js`) não têm versão corrigida publicada. Source maps dos bundles cliente Android/iOS/Web foram gerados em `/private/tmp` e não incluem os três pacotes. O bundle Web usou `web.output: "single"` temporariamente para evitar SSG; `app.json` foi restaurado para `static`. A revisão dos workflows não encontrou segredos/permissões de escrita nos eventos de PR, mas identificou risco de indisponibilidade de jobs ao processar padrões maliciosos. Nenhum alerta foi encerrado manualmente nem risco aceito. A tentativa de retirar `sprintf-js` com override não foi mantida porque o lockfile não foi atualizado; não deixar `package.json` divergente do lock. Antes do release, repetir audit e bundles no candidato e obter decisão explícita caso os avisos ainda estejam sem patch.
@@ -1759,3 +1816,11 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      as músicas visíveis na consulta atual. Especificação, desenho, guia e a
      expectativa do teste existente foram alinhados. A change está em 48/50
      tarefas concluídas. Não houve commit; testes não foram executados.
+138. Em 8 de outubro de 2026, o `Site URL` de Auth de `setlist-prod` foi
+     corrigido para `https://setlistbr.app.br`, sem o caminho `/auth/callback`.
+     A atualização pela Supabase CLI declarou somente `auth.site_url` e os
+     três Redirect URLs existentes; o diff final não aponta alterações nesses
+     redirects, e as 12 propriedades remotas não declaradas foram preservadas.
+     O README agora registra o valor de produção e mantém callbacks HTTPS e
+     `setlist://auth/callback**` na lista permitida. A tarefa 11.5.5 continua
+     pendente dos builds do candidato `v1.0.0-rc.1` nas três plataformas.

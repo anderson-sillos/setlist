@@ -2024,7 +2024,7 @@ function ItemRemoveButton({
         pressed && styles.pressed,
       ]}
     >
-      <AppIcon color={colors.text.secondary} name="remove" size={17} />
+      <AppIcon color={colors.text.secondary} name="delete" size={17} />
     </Pressable>
   );
 }
