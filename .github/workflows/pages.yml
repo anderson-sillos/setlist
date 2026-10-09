@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Tag estável de uma Release publicada e validada (vX.Y.Z)
+        description: Tag de Release publicada (vX.Y.Z estável ou vX.Y.Z-rc.N para publicar manualmente a Web candidata)
         required: true
         type: string
 
@@ -54,14 +54,41 @@ jobs:
           import { readFileSync, appendFileSync } from 'node:fs';
           import { execFileSync } from 'node:child_process';
           const release = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-          if (release.isDraft || release.isPrerelease || release.tagName !== process.env.RELEASE_TAG || !/^v\d+\.\d+\.\d+$/.test(release.tagName)) {
-            throw new Error('O Pages de produção exige uma Release estável publicada.');
+          const tag = process.env.RELEASE_TAG;
+          const stable = /^v\d+\.\d+\.\d+$/.test(tag);
+          const candidate = /^v\d+\.\d+\.\d+-rc\.[1-9]\d*$/.test(tag);
+          if (release.isDraft || release.tagName !== tag || (!stable && !candidate) || release.isPrerelease !== candidate) {
+            throw new Error('Use uma Release estável publicada ou uma pré-release publicada para o deploy manual da Web candidata.');
           }
           const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-          appendFileSync(process.env.GITHUB_ENV, `SETLIST_RELEASE_COMMIT=${commit}\nSETLIST_RELEASE_TAG=${release.tagName}\n`);
+          appendFileSync(process.env.GITHUB_ENV, `SETLIST_RELEASE_COMMIT=${commit}\nSETLIST_RELEASE_TAG=${release.tagName}\nSETLIST_RELEASE_CANDIDATE=${candidate}\n`);
           NODE
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern release-manifest.json --dir "$RUNNER_TEMP/release-record"
-          npm run release:manifest -- --tag "$RELEASE_TAG" --manifest "$RUNNER_TEMP/release-record/release-manifest.json" --ready
+          node --input-type=module - "$RUNNER_TEMP/release-record/release-manifest.json" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const manifest = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const version = process.env.RELEASE_TAG.match(/^v(\d+\.\d+\.\d+)/)?.[1];
+          const commit = process.env.SETLIST_RELEASE_COMMIT;
+          const candidate = process.env.SETLIST_RELEASE_CANDIDATE === 'true';
+          if (manifest.schemaVersion !== 1 || manifest.version !== version || manifest.commit !== commit || (candidate && (manifest.tag !== process.env.RELEASE_TAG || manifest.candidate !== true))) {
+            throw new Error('O manifesto não corresponde à versão, ao commit e à tag publicados.');
+          }
+          for (const [platform, profile] of [['android', 'production-android'], ['ios', 'production']]) {
+            const build = manifest.platforms?.[platform];
+            const extension = platform === 'android' ? '.aab' : '.ipa';
+            if (!build || build.version !== version || build.commit !== commit || !build.id || !build.build || build.profile !== profile || build.distribution !== 'STORE' || !build.artifactUrl?.startsWith('https://expo.dev/') || !build.artifactUrl.endsWith(extension)) {
+              throw new Error(`O build ${platform} não corresponde à candidata publicada.`);
+            }
+          }
+          const web = manifest.platforms?.web;
+          if (!web || web.version !== version || web.commit !== commit || web.url !== 'https://setlistbr.app.br') {
+            throw new Error('O registro Web não corresponde à versão, ao commit ou ao domínio público.');
+          }
+          NODE
+          npm run release:manifest -- --tag "$RELEASE_TAG" --manifest "$RUNNER_TEMP/release-record/release-manifest.json"
+          if [[ ! "$RELEASE_TAG" =~ -rc\.[1-9][0-9]*$ ]]; then
+            npm run release:manifest -- --tag "$RELEASE_TAG" --manifest "$RUNNER_TEMP/release-record/release-manifest.json" --ready
+          fi
 
       - name: Verificar configuração pública do Supabase
         env:
