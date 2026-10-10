@@ -908,11 +908,15 @@ Para obter a impressão do Android nos builds EAS atuais:
    que deve ser incluída é a do certificado que assina o APK instalado no aparelho;
    na Play Console ela fica em **Release → Setup → App signing → App signing key
    certificate → SHA-256 certificate fingerprint**.
-5. Execute novamente o workflow de Pages e confirme que o arquivo publicado contém
-   o pacote e as impressões esperadas:
+5. Execute o workflow de Pages na branch `main`, usando uma Release publicada
+   que tenha manifesto e builds EAS válidos. Para atualizar somente os termos e
+   a política de privacidade com o conteúdo mais recente da `main`, ative também
+   `publish_current_legal_docs`:
 
    ```bash
-   gh workflow run pages.yml --ref feat/task-5-6-convites
+   gh workflow run pages.yml --ref main \
+     -f release_tag=v1.0.0-rc.1 \
+     -f publish_current_legal_docs=true
    curl -fsSL https://setlistbr.app.br/.well-known/assetlinks.json | jq .
    ```
 

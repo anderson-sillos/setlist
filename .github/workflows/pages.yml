@@ -9,6 +9,11 @@ on:
         description: Tag de Release publicada (vX.Y.Z estável ou vX.Y.Z-rc.N para publicar manualmente a Web candidata)
         required: true
         type: string
+      publish_current_legal_docs:
+        description: Usar os termos e a política de privacidade atuais da branch main
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -27,6 +32,7 @@ jobs:
     timeout-minutes: 15
     env:
       RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+      PUBLISH_CURRENT_LEGAL_DOCS: ${{ inputs.publish_current_legal_docs || false }}
 
     steps:
       - name: Obter código
@@ -43,6 +49,18 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
+
+      - name: Obter documentos legais atuais da branch principal
+        if: env.PUBLISH_CURRENT_LEGAL_DOCS == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: legal-source
+          sparse-checkout: |
+            docs/legal.css
+            docs/termos.html
+            docs/privacidade.html
+          sparse-checkout-cone-mode: false
 
       - name: Conferir tag e registro da Release publicada
         env:
@@ -130,9 +148,15 @@ jobs:
             cp -R public/.well-known/. pages-site/app/.well-known/
           fi
           cp docs/apresentacao.html pages-site/docs/apresentacao.html
-          cp docs/legal.css pages-site/legal.css
-          cp docs/termos.html pages-site/termos/index.html
-          cp docs/privacidade.html pages-site/privacidade/index.html
+          if [ "$PUBLISH_CURRENT_LEGAL_DOCS" = "true" ]; then
+            cp legal-source/docs/legal.css pages-site/legal.css
+            cp legal-source/docs/termos.html pages-site/termos/index.html
+            cp legal-source/docs/privacidade.html pages-site/privacidade/index.html
+          else
+            cp docs/legal.css pages-site/legal.css
+            cp docs/termos.html pages-site/termos/index.html
+            cp docs/privacidade.html pages-site/privacidade/index.html
+          fi
           cp "$RUNNER_TEMP/release-record/release-manifest.json" pages-site/release.json
           cp "$RUNNER_TEMP/release-record/release-manifest.json" pages-site/app/release.json
           cp pages-site/index.html pages-site/404.html

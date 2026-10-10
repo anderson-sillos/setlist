@@ -1840,3 +1840,12 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      enviado por Anderson Martins. A versão ainda não foi aprovada nem
      publicada; acompanhar o status e eventuais mensagens da Apple no App Store
      Connect e no e-mail da conta.
+140. No primeiro envio do AAB ao teste interno do Google Play, o Console exibiu
+     aviso de ausência do arquivo de desofuscação para o `versionCode 2`. A
+     configuração versionada (`app.json`, `app.config.ts` e `eas.json`) não
+     declara R8/ProGuard; o aviso não bloqueia o teste. Para o próximo release
+     Android, habilitar a minificação R8 no build de produção, validar o AAB,
+     guardar o `mapping.txt` correspondente e enviá-lo à mesma versão no Play
+     Console. Nunca reutilizar o mapa de outro build. Se a minificação for
+     mantida desativada, não haverá mapa para enviar e o aviso é informativo.
+     O procedimento foi registrado em `docs/RELEASE_PROCESS.md`.
