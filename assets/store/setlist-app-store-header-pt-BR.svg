@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="3840" height="1646" viewBox="0 0 3840 1646">
+  <defs>
+    <linearGradient id="copyScrim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#09090c" stop-opacity="0.84" />
+      <stop offset="0.36" stop-color="#09090c" stop-opacity="0.76" />
+      <stop offset="0.56" stop-color="#09090c" stop-opacity="0.38" />
+      <stop offset="0.72" stop-color="#09090c" stop-opacity="0" />
+    </linearGradient>
+    <clipPath id="appIconClip">
+      <rect x="800" y="260" width="164" height="164" rx="40" />
+    </clipPath>
+  </defs>
+
+  <image x="0" y="0" width="3840" height="1646" preserveAspectRatio="xMidYMid slice" xlink:href="setlist-header-background.png" />
+  <rect x="0" y="0" width="3840" height="1646" fill="#09090c" fill-opacity="0.12" />
+  <rect x="0" y="0" width="3840" height="1646" fill="url(#copyScrim)" />
+
+  <image x="800" y="260" width="164" height="164" preserveAspectRatio="xMidYMid slice" clip-path="url(#appIconClip)" xlink:href="../icons/app-icon-1024.png" />
+  <text x="1008" y="382" fill="#ffffff" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="104" font-weight="700" letter-spacing="-2">Setlist</text>
+
+  <text x="800" y="690" fill="#ffffff" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="148" font-weight="700" letter-spacing="-3">Do repertório ao show,</text>
+  <text x="800" y="860" fill="#ffffff" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="148" font-weight="700" letter-spacing="-3">no mesmo compasso.</text>
+
+  <rect x="800" y="945" width="8" height="142" rx="4" fill="#a78bfa" />
+  <text x="844" y="1002" fill="#e5e3eb" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="56" font-weight="400" letter-spacing="0">Organize repertórios, prepare seus shows</text>
+  <text x="844" y="1080" fill="#e5e3eb" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="56" font-weight="400" letter-spacing="0">e leve as letras com você.</text>
+</svg>

@@ -127,6 +127,24 @@ build identificado para a plataforma/perfil solicitados e com a versão/commit
 esperados; qualquer divergência interrompe o script. Conferir também estado
 `FINISHED`, assinatura e destino antes de disponibilizar cada arquivo.
 
+### Símbolos de depuração Android
+
+Antes de enviar um AAB ao Google Play, conferir se o build de produção usa
+ofuscação R8/ProGuard. Se usar, guardar o `mapping.txt` gerado para aquele AAB e
+enviá-lo à mesma versão no Play Console para tornar legíveis os relatórios de
+falhas e ANRs. O arquivo precisa corresponder exatamente ao `versionCode` do
+bundle; não reutilizar o mapa de outro build. Se a ofuscação não estiver ativa,
+registrar que o aviso de ausência do arquivo é informativo e não há mapa a
+enviar.
+
+No envio do primeiro AAB ao teste interno, o Play Console mostrou esse aviso
+para o `versionCode 2`. As configurações versionadas do projeto não declaram
+R8/ProGuard. Para eliminar o aviso no próximo release Android, habilitar a
+minificação R8 no build de produção, validar o AAB resultante, preservar o
+`mapping.txt` desse build e enviá-lo à versão correspondente no Play Console.
+Se a minificação for mantida desativada, não haverá mapa para enviar e o aviso
+deve ser tratado como informativo.
+
 Exportar também a Web da mesma tag usando as variáveis públicas de produção:
 `SETLIST_RELEASE_COMMIT` deve ser o SHA da tag e `SETLIST_RELEASE_TAG`, seu nome.
 Depois, `npm run export:web`. A publicação oficial continua na versão anterior
@@ -140,6 +158,13 @@ da mesma versão e commit. As validações nativas podem continuar pendentes nes
 deploy; o manifesto Web permanece como `pending` até a conferência manual. Esse
 procedimento substitui o conteúdo público imediatamente pela candidata. A
 publicação automática de pré-release continua desativada.
+
+Para atualizar termos e política de privacidade sem gerar novos builds nativos,
+execute o workflow manual com `publish_current_legal_docs=true`. O site continua
+usando a aplicação Web e o manifesto da Release indicada, mas recebe os três
+documentos legais (`legal.css`, `termos.html` e `privacidade.html`) da `main`.
+Use essa opção somente depois de revisar e integrar as alterações legais à
+branch principal; ela publica o site público imediatamente.
 
 ## Registro da Release
 
