@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -22,6 +23,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
@@ -1006,7 +1008,10 @@ export function ShowBlockEditorDialog({
             accessibilityLabel="Fechar edição da setlist tocando fora"
             accessibilityRole="button"
             disabled={isSubmitting}
-            onPress={requestClose}
+            onPress={() => {
+              if (Keyboard.isVisible()) Keyboard.dismiss();
+              else requestClose();
+            }}
             style={styles.scrim}
           />
         ) : null}
@@ -1016,38 +1021,49 @@ export function ShowBlockEditorDialog({
           testID="show-block-editor-dialog"
         >
           {!fullScreen ? (
-            <View style={styles.header}>
-              <View style={styles.headerCopy}>
-                <AppText accessibilityRole="header" variant="heading">
-                  Editar setlist
-                </AppText>
+            <KeyboardDismissRegion>
+              <View style={styles.header}>
+                <View style={styles.headerCopy}>
+                  <AppText accessibilityRole="header" variant="heading">
+                    Editar setlist
+                  </AppText>
+                </View>
+                <Pressable
+                  accessibilityLabel="Fechar edição de blocos"
+                  accessibilityRole="button"
+                  disabled={isSubmitting}
+                  hitSlop={spacing.sm}
+                  onPress={requestClose}
+                  style={styles.closeButton}
+                >
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="close"
+                    size={20}
+                  />
+                </Pressable>
               </View>
-              <Pressable
-                accessibilityLabel="Fechar edição de blocos"
-                accessibilityRole="button"
-                disabled={isSubmitting}
-                hitSlop={spacing.sm}
-                onPress={requestClose}
-                style={styles.closeButton}
-              >
-                <AppIcon color={colors.text.secondary} name="close" size={20} />
-              </Pressable>
-            </View>
+            </KeyboardDismissRegion>
           ) : null}
           <View style={styles.editorBody}>
-            <View
-              style={styles.totalDurationBar}
-              testID="setlist-total-duration"
-            >
-              <AppText style={styles.totalDuration}>
-                Tempo total:{' '}
-                {durations.totalMs === null
-                  ? 'Duração não informada'
-                  : formatShowDuration(durations.totalMs)}
-              </AppText>
-            </View>
+            <KeyboardDismissRegion>
+              <View
+                style={styles.totalDurationBar}
+                testID="setlist-total-duration"
+              >
+                <AppText style={styles.totalDuration}>
+                  Tempo total:{' '}
+                  {durations.totalMs === null
+                    ? 'Duração não informada'
+                    : formatShowDuration(durations.totalMs)}
+                </AppText>
+              </View>
+            </KeyboardDismissRegion>
             <ScrollView
               contentContainerStyle={styles.content}
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
               keyboardShouldPersistTaps="handled"
               onContentSizeChange={(_, height) => {
                 scrollContentHeightRef.current = height;
@@ -1124,21 +1140,23 @@ export function ShowBlockEditorDialog({
               </View>
             ) : null}
           </View>
-          <View style={styles.actions}>
-            <AppButton
-              disabled={isSubmitting}
-              label="Cancelar"
-              onPress={requestClose}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Salvar setlist"
-              disabled={!canSubmit}
-              icon="check"
-              label={isSubmitting ? 'Salvando…' : 'Salvar'}
-              onPress={() => onSubmit(blocks)}
-            />
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.actions}>
+              <AppButton
+                disabled={isSubmitting}
+                label="Cancelar"
+                onPress={requestClose}
+                variant="secondary"
+              />
+              <AppButton
+                accessibilityLabel="Salvar setlist"
+                disabled={!canSubmit}
+                icon="check"
+                label={isSubmitting ? 'Salvando…' : 'Salvar'}
+                onPress={() => onSubmit(blocks)}
+              />
+            </View>
+          </KeyboardDismissRegion>
         </View>
         <UnsavedChangesPrompt
           onContinue={() => setDiscardVisible(false)}
@@ -1652,11 +1670,15 @@ function BlockRow({
               value={block.name}
             />
           </View>
-          <AppText tone="muted" variant="caption">
-            {durationMs === null
-              ? 'Duração não informada'
-              : formatShowDuration(durationMs)}
-          </AppText>
+          <KeyboardDismissRegion>
+            <View>
+              <AppText tone="muted" variant="caption">
+                {durationMs === null
+                  ? 'Duração não informada'
+                  : formatShowDuration(durationMs)}
+              </AppText>
+            </View>
+          </KeyboardDismissRegion>
         </View>
         <DragGestureHandle
           accessible
@@ -1961,15 +1983,28 @@ function SetlistItemRow({
           {songSequenceNumber}.
         </AppText>
         <View style={styles.itemFields}>
-          <AppText>{song?.title ?? 'Música indisponível'}</AppText>
+          <KeyboardDismissRegion>
+            <View>
+              <AppText>{song?.title ?? 'Música indisponível'}</AppText>
+            </View>
+          </KeyboardDismissRegion>
           {song?.originalArtist ? (
-            <AppText tone="muted" variant="caption">
-              {song.originalArtist}
-            </AppText>
+            <KeyboardDismissRegion>
+              <View>
+                <AppText tone="muted" variant="caption">
+                  {song.originalArtist}
+                </AppText>
+              </View>
+            </KeyboardDismissRegion>
           ) : null}
-          <AppText tone="muted" variant="caption">
-            Duração · {formatSongDuration(song?.estimatedDurationMs ?? null)}
-          </AppText>
+          <KeyboardDismissRegion>
+            <View>
+              <AppText tone="muted" variant="caption">
+                Duração ·{' '}
+                {formatSongDuration(song?.estimatedDurationMs ?? null)}
+              </AppText>
+            </View>
+          </KeyboardDismissRegion>
           <TextInput
             accessibilityLabel={
               'Observação da música ' + (songSequenceNumber ?? index + 1)

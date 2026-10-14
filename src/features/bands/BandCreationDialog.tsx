@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -18,6 +19,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { colors, fontSizes, layout, radii, spacing } from '@/theme/tokens';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { CURRENT_BAND_TERM } from './legalTerm';
@@ -76,7 +78,10 @@ export function BandCreationDialog({
           accessibilityLabel="Fechar criação de banda tocando fora"
           accessibilityRole="button"
           disabled={isSubmitting}
-          onPress={onClose}
+          onPress={() => {
+            if (Keyboard.isVisible()) Keyboard.dismiss();
+            else onClose();
+          }}
           style={styles.scrim}
         />
         <View
@@ -84,36 +89,49 @@ export function BandCreationDialog({
           style={styles.dialog}
           testID="create-band-dialog"
         >
-          <View style={styles.header}>
-            <AppText accessibilityRole="header" variant="heading">
-              Criar banda
-            </AppText>
-            <Pressable
-              accessibilityLabel="Fechar janela de criação de banda"
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              hitSlop={spacing.sm}
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.closeButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <AppIcon color={colors.text.secondary} name="close" size={20} />
-            </Pressable>
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.header}>
+              <AppText accessibilityRole="header" variant="heading">
+                Criar banda
+              </AppText>
+              <Pressable
+                accessibilityLabel="Fechar janela de criação de banda"
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                hitSlop={spacing.sm}
+                onPress={onClose}
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
+              </Pressable>
+            </View>
+          </KeyboardDismissRegion>
           <ScrollView
             contentContainerStyle={styles.formContent}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
             keyboardShouldPersistTaps="handled"
             style={styles.formScroll}
           >
-            <AppText tone="muted">
-              Dê um nome ao seu palco. Depois você poderá convidar os outros
-              integrantes.
-            </AppText>
+            <KeyboardDismissRegion>
+              <View>
+                <AppText tone="muted">
+                  Dê um nome ao seu palco. Depois você poderá convidar os outros
+                  integrantes.
+                </AppText>
+              </View>
+            </KeyboardDismissRegion>
 
             <View style={styles.fieldGroup}>
-              <AppText variant="caption">Nome da banda</AppText>
+              <KeyboardDismissRegion>
+                <View>
+                  <AppText variant="caption">Nome da banda</AppText>
+                </View>
+              </KeyboardDismissRegion>
               <TextInput
                 accessibilityLabel="Nome da banda"
                 autoCapitalize="words"
@@ -148,7 +166,10 @@ export function BandCreationDialog({
               accessibilityLabel="Aceitar termo de responsabilidade"
               accessibilityRole="checkbox"
               accessibilityState={{ checked: acceptedTerm }}
-              onPress={() => setAcceptedTerm((current) => !current)}
+              onPress={() => {
+                Keyboard.dismiss();
+                setAcceptedTerm((current) => !current);
+              }}
               style={({ pressed }) => [
                 styles.acceptanceRow,
                 pressed && styles.pressed,
@@ -176,21 +197,23 @@ export function BandCreationDialog({
               </AppText>
             ) : null}
           </ScrollView>
-          <View style={styles.actions}>
-            <AppButton
-              disabled={isSubmitting}
-              label="Cancelar"
-              onPress={onClose}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Confirmar criação da banda"
-              disabled={!canSubmit}
-              icon="check"
-              label={isSubmitting ? 'Criando…' : 'Criar banda'}
-              onPress={() => onSubmit({ acceptedTerm, name })}
-            />
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.actions}>
+              <AppButton
+                disabled={isSubmitting}
+                label="Cancelar"
+                onPress={onClose}
+                variant="secondary"
+              />
+              <AppButton
+                accessibilityLabel="Confirmar criação da banda"
+                disabled={!canSubmit}
+                icon="check"
+                label={isSubmitting ? 'Criando…' : 'Criar banda'}
+                onPress={() => onSubmit({ acceptedTerm, name })}
+              />
+            </View>
+          </KeyboardDismissRegion>
         </View>
       </KeyboardAvoidingView>
       {/* No iOS, a confirmação deve ser apresentada pelo Modal já aberto. */}

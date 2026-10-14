@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -26,6 +27,7 @@ import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { Card } from '@/components/ui/Card';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
@@ -514,22 +516,32 @@ function RepertoireCollectionEditorForm({
           onDiscard={unsavedChanges.discardAndLeave}
           visible={unsavedChanges.confirmationVisible}
         />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <View
           style={styles.creationDialogBody}
           testID="collection-editor-keyboard-layout"
         >
           <ScrollView
             contentContainerStyle={styles.creationFormContent}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
             keyboardShouldPersistTaps="handled"
             testID="collection-editor-scroll"
           >
-            <AppText tone="muted">
-              Escolha um nome para a coleção. Inclua músicas pelas ações do
-              Repertório.
-            </AppText>
+            <KeyboardDismissRegion>
+              <View>
+                <AppText tone="muted">
+                  Escolha um nome para a coleção. Inclua músicas pelas ações do
+                  Repertório.
+                </AppText>
+              </View>
+            </KeyboardDismissRegion>
             <View style={styles.field}>
-              <AppText variant="caption">Nome da coleção</AppText>
+              <KeyboardDismissRegion>
+                <View>
+                  <AppText variant="caption">Nome da coleção</AppText>
+                </View>
+              </KeyboardDismissRegion>
               <TextInput
                 accessibilityLabel="Nome da coleção"
                 autoCapitalize="words"
@@ -570,24 +582,26 @@ function RepertoireCollectionEditorForm({
               </AppText>
             ) : null}
           </ScrollView>
-          <View style={styles.creationFooter}>
-            <AppButton
-              disabled={isSubmitting || isDeleting}
-              label="Cancelar"
-              onPress={requestLeave}
-              style={styles.creationActionButton}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Salvar coleção"
-              disabled={isSubmitting || isDeleting}
-              icon="check"
-              label={isSubmitting ? 'Salvando…' : 'Salvar coleção'}
-              onPress={() => void handleSave()}
-              style={styles.creationActionButton}
-            />
-          </View>
-        </KeyboardAvoidingView>
+          <KeyboardDismissRegion>
+            <View style={styles.creationFooter}>
+              <AppButton
+                disabled={isSubmitting || isDeleting}
+                label="Cancelar"
+                onPress={requestLeave}
+                style={styles.creationActionButton}
+                variant="secondary"
+              />
+              <AppButton
+                accessibilityLabel="Salvar coleção"
+                disabled={isSubmitting || isDeleting}
+                icon="check"
+                label={isSubmitting ? 'Salvando…' : 'Salvar coleção'}
+                onPress={() => void handleSave()}
+                style={styles.creationActionButton}
+              />
+            </View>
+          </KeyboardDismissRegion>
+        </View>
       </RepertoireCollectionCreationOverlay>
     );
   }
@@ -612,6 +626,9 @@ function RepertoireCollectionEditorForm({
         <View style={styles.editorBody}>
           <ScrollView
             contentContainerStyle={styles.formContent}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
             keyboardShouldPersistTaps="handled"
             onLayout={(event) => {
               scrollFrameYRef.current = event.nativeEvent.layout.y;
@@ -622,12 +639,20 @@ function RepertoireCollectionEditorForm({
             scrollEventThrottle={16}
             testID="collection-editor-scroll"
           >
-            <AppText tone="muted">
-              Escolha um nome para a coleção. Inclua músicas pelas ações do
-              Repertório.
-            </AppText>
+            <KeyboardDismissRegion>
+              <View>
+                <AppText tone="muted">
+                  Escolha um nome para a coleção. Inclua músicas pelas ações do
+                  Repertório.
+                </AppText>
+              </View>
+            </KeyboardDismissRegion>
             <View style={styles.field}>
-              <AppText variant="caption">Nome da coleção</AppText>
+              <KeyboardDismissRegion>
+                <View>
+                  <AppText variant="caption">Nome da coleção</AppText>
+                </View>
+              </KeyboardDismissRegion>
               <TextInput
                 accessibilityLabel="Nome da coleção"
                 autoCapitalize="words"
@@ -805,36 +830,38 @@ function RepertoireCollectionEditorForm({
             </View>
           ) : null}
         </View>
-        <View style={styles.footer}>
-          {collectionId && !dirty ? (
-            <AppButton
-              disabled={isSubmitting || isDeleting}
-              label="Fechar"
-              onPress={requestLeave}
-              variant="secondary"
-            />
-          ) : (
-            <>
+        <KeyboardDismissRegion>
+          <View style={styles.footer}>
+            {collectionId && !dirty ? (
               <AppButton
                 disabled={isSubmitting || isDeleting}
-                label="Cancelar"
+                label="Fechar"
                 onPress={requestLeave}
                 variant="secondary"
               />
-              <AppButton
-                accessibilityLabel="Salvar coleção"
-                disabled={
-                  isSubmitting ||
-                  isDeleting ||
-                  (Boolean(collectionId) && (!dirty || revisionConflict))
-                }
-                icon="check"
-                label={isSubmitting ? 'Salvando…' : 'Salvar coleção'}
-                onPress={() => void handleSave()}
-              />
-            </>
-          )}
-        </View>
+            ) : (
+              <>
+                <AppButton
+                  disabled={isSubmitting || isDeleting}
+                  label="Cancelar"
+                  onPress={requestLeave}
+                  variant="secondary"
+                />
+                <AppButton
+                  accessibilityLabel="Salvar coleção"
+                  disabled={
+                    isSubmitting ||
+                    isDeleting ||
+                    (Boolean(collectionId) && (!dirty || revisionConflict))
+                  }
+                  icon="check"
+                  label={isSubmitting ? 'Salvando…' : 'Salvar coleção'}
+                  onPress={() => void handleSave()}
+                />
+              </>
+            )}
+          </View>
+        </KeyboardDismissRegion>
       </KeyboardAvoidingView>
       <OptionSheet
         closeAccessibilityLabel="Cancelar exclusão da coleção"
@@ -1062,11 +1089,18 @@ function RepertoireCollectionCreationOverlay({
   onClose,
 }: RepertoireCollectionCreationOverlayProps) {
   return (
-    <View style={styles.creationOverlay} testID="collection-create-overlay">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.creationOverlay}
+      testID="collection-create-keyboard-layout"
+    >
       <Pressable
         accessibilityLabel="Fechar janela de nova coleção"
         accessibilityRole="button"
-        onPress={onClose}
+        onPress={() => {
+          if (Keyboard.isVisible()) Keyboard.dismiss();
+          else onClose();
+        }}
         style={styles.creationScrim}
       />
       <View
@@ -1093,7 +1127,7 @@ function RepertoireCollectionCreationOverlay({
         </View>
         <View style={styles.creationDialogContent}>{children}</View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,6 +14,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
@@ -60,7 +62,10 @@ export function AccountDeletionDialog({
             accessibilityLabel="Fechar exclusão da conta"
             accessibilityRole="button"
             disabled={isSubmitting}
-            onPress={onClose}
+            onPress={() => {
+              if (Keyboard.isVisible()) Keyboard.dismiss();
+              else onClose();
+            }}
             style={styles.scrim}
           />
           <View
@@ -68,43 +73,60 @@ export function AccountDeletionDialog({
             style={styles.dialog}
             testID="account-deletion-dialog"
           >
-            <View style={styles.header}>
-              <AppText accessibilityRole="header" variant="heading">
-                Excluir conta
-              </AppText>
-              <Pressable
-                accessibilityLabel="Fechar exclusão da conta"
-                accessibilityRole="button"
-                disabled={isSubmitting}
-                hitSlop={spacing.sm}
-                onPress={onClose}
-                style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppIcon color={colors.text.secondary} name="close" size={20} />
-              </Pressable>
-            </View>
+            <KeyboardDismissRegion>
+              <View style={styles.header}>
+                <AppText accessibilityRole="header" variant="heading">
+                  Excluir conta
+                </AppText>
+                <Pressable
+                  accessibilityLabel="Fechar exclusão da conta"
+                  accessibilityRole="button"
+                  disabled={isSubmitting}
+                  hitSlop={spacing.sm}
+                  onPress={onClose}
+                  style={({ pressed }) => [
+                    styles.closeButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="close"
+                    size={20}
+                  />
+                </Pressable>
+              </View>
+            </KeyboardDismissRegion>
 
             <ScrollView
               contentContainerStyle={styles.content}
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
               keyboardShouldPersistTaps="handled"
               style={styles.formScroll}
             >
-              <AppText>
-                Esta ação é permanente. Seu perfil e sua sessão serão removidos.
-                O conteúdo das bandas continuará disponível para os demais
-                integrantes.
-              </AppText>
-              <AppText tone="muted">
-                Se você for o único integrante de uma banda, exclua essa banda
-                antes de excluir a conta.
-              </AppText>
+              <KeyboardDismissRegion>
+                <View style={styles.contentCopy}>
+                  <AppText>
+                    Esta ação é permanente. Seu perfil e sua sessão serão
+                    removidos. O conteúdo das bandas continuará disponível para
+                    os demais integrantes.
+                  </AppText>
+                  <AppText tone="muted">
+                    Se você for o único integrante de uma banda, exclua essa
+                    banda antes de excluir a conta.
+                  </AppText>
+                </View>
+              </KeyboardDismissRegion>
               <View style={styles.fieldGroup}>
-                <AppText variant="caption">
-                  Digite {CONFIRMATION_TEXT} para confirmar
-                </AppText>
+                <KeyboardDismissRegion>
+                  <View>
+                    <AppText variant="caption">
+                      Digite {CONFIRMATION_TEXT} para confirmar
+                    </AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <TextInput
                   accessibilityLabel="Confirmação da exclusão da conta"
                   autoCapitalize="characters"
@@ -123,22 +145,26 @@ export function AccountDeletionDialog({
               ) : null}
             </ScrollView>
 
-            <View style={styles.actions}>
-              <AppButton
-                disabled={isSubmitting}
-                label="Cancelar"
-                onPress={onClose}
-                variant="secondary"
-              />
-              <AppButton
-                accessibilityLabel="Confirmar exclusão da conta"
-                disabled={isSubmitting || !canDelete}
-                icon="delete"
-                label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
-                onPress={onConfirm}
-                variant="destructive"
-              />
-            </View>
+            <KeyboardDismissRegion>
+              <View style={styles.actions}>
+                <AppButton
+                  disabled={isSubmitting}
+                  label="Cancelar"
+                  onPress={onClose}
+                  variant="secondary"
+                />
+                <AppButton
+                  accessibilityLabel="Confirmar exclusão da conta"
+                  disabled={isSubmitting || !canDelete}
+                  icon="delete"
+                  label={
+                    isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'
+                  }
+                  onPress={onConfirm}
+                  variant="destructive"
+                />
+              </View>
+            </KeyboardDismissRegion>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -166,6 +192,9 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.lg,
     padding: spacing.xl,
+  },
+  contentCopy: {
+    gap: spacing.lg,
   },
   dialog: {
     backgroundColor: colors.background.raised,
