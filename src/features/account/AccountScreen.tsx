@@ -239,7 +239,10 @@ export function AccountScreen({
 
 const styles = StyleSheet.create({
   content: {
+    alignSelf: 'center',
     gap: spacing.lg,
+    maxWidth: 600,
+    width: '100%',
   },
   dangerCard: {
     borderColor: colors.border.subtle,

@@ -127,91 +127,98 @@ export function InviteScreen({
 
   return (
     <Screen testID="invite-screen">
-      <View style={styles.header}>
-        <AppText tone="accent" variant="eyebrow">
-          Convite para banda
-        </AppText>
-        <AppText accessibilityRole="header" variant="title">
-          Você foi convidado
-        </AppText>
-        <AppText tone="muted">
-          Entre e confirme sua entrada. O convite é de uso único e não fica
-          salvo como texto no aparelho.
-        </AppText>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <AppText tone="accent" variant="eyebrow">
+            Convite para banda
+          </AppText>
+          <AppText accessibilityRole="header" variant="title">
+            Você foi convidado
+          </AppText>
+          <AppText tone="muted">
+            Entre e confirme sua entrada. O convite é de uso único e não fica
+            salvo como texto no aparelho.
+          </AppText>
+        </View>
+
+        {!token ? (
+          <Card tone="accent" testID="invite-invalid">
+            <AppText variant="heading">Convite sem token</AppText>
+            <AppText tone="muted">
+              O link não trouxe o identificador necessário para continuar.
+            </AppText>
+          </Card>
+        ) : hasAuthenticatedContext ? (
+          <Card style={styles.card} testID="invite-details">
+            <AppText variant="heading">
+              {preview?.bandName ?? 'Convite recebido'}
+            </AppText>
+            {preview?.label ? (
+              <AppText tone="muted">Identificação: {preview.label}</AppText>
+            ) : null}
+            <AppText tone="muted">
+              {preview
+                ? `Válido até ${new Date(preview.expiresAt).toLocaleDateString('pt-BR')}.`
+                : 'Conferindo se o convite ainda está no compasso…'}
+            </AppText>
+            {previewError ? (
+              <AppText accessibilityRole="alert" style={styles.errorText}>
+                {previewError}
+              </AppText>
+            ) : null}
+            {inviteState.status === 'accepted' ? (
+              <AppText tone="accent" testID="invite-authenticated">
+                Entrada confirmada. A banda já está no seu repertório.
+              </AppText>
+            ) : (
+              <AppButton
+                disabled={
+                  inviteState.status === 'loading' ||
+                  Boolean(previewError) ||
+                  !preview
+                }
+                icon="check"
+                label={
+                  inviteState.status === 'loading'
+                    ? 'Conferindo…'
+                    : 'Aceitar convite'
+                }
+                onPress={() => void handleAccept()}
+              />
+            )}
+            {inviteState.status === 'error' && !previewError ? (
+              <AppText accessibilityRole="alert" style={styles.errorText}>
+                {inviteState.message}
+              </AppText>
+            ) : null}
+          </Card>
+        ) : (
+          <Card style={styles.card} testID="invite-details">
+            <AppText variant="heading">Convite recebido</AppText>
+            <AppText tone="muted">
+              Entre para conferir a banda e confirmar sua entrada. O token fica
+              guardado apenas durante o retorno do login.
+            </AppText>
+            <Link href={authPath} onPress={blurWebFocus} replace asChild>
+              <AppButton icon="login" label="Entrar para continuar" />
+            </Link>
+          </Card>
+        )}
+
+        <Link href="/" onPress={blurWebFocus} replace asChild>
+          <AppButton label="Voltar" variant="secondary" />
+        </Link>
       </View>
-
-      {!token ? (
-        <Card tone="accent" testID="invite-invalid">
-          <AppText variant="heading">Convite sem token</AppText>
-          <AppText tone="muted">
-            O link não trouxe o identificador necessário para continuar.
-          </AppText>
-        </Card>
-      ) : hasAuthenticatedContext ? (
-        <Card style={styles.card} testID="invite-details">
-          <AppText variant="heading">
-            {preview?.bandName ?? 'Convite recebido'}
-          </AppText>
-          {preview?.label ? (
-            <AppText tone="muted">Identificação: {preview.label}</AppText>
-          ) : null}
-          <AppText tone="muted">
-            {preview
-              ? `Válido até ${new Date(preview.expiresAt).toLocaleDateString('pt-BR')}.`
-              : 'Conferindo se o convite ainda está no compasso…'}
-          </AppText>
-          {previewError ? (
-            <AppText accessibilityRole="alert" style={styles.errorText}>
-              {previewError}
-            </AppText>
-          ) : null}
-          {inviteState.status === 'accepted' ? (
-            <AppText tone="accent" testID="invite-authenticated">
-              Entrada confirmada. A banda já está no seu repertório.
-            </AppText>
-          ) : (
-            <AppButton
-              disabled={
-                inviteState.status === 'loading' ||
-                Boolean(previewError) ||
-                !preview
-              }
-              icon="check"
-              label={
-                inviteState.status === 'loading'
-                  ? 'Conferindo…'
-                  : 'Aceitar convite'
-              }
-              onPress={() => void handleAccept()}
-            />
-          )}
-          {inviteState.status === 'error' && !previewError ? (
-            <AppText accessibilityRole="alert" style={styles.errorText}>
-              {inviteState.message}
-            </AppText>
-          ) : null}
-        </Card>
-      ) : (
-        <Card style={styles.card} testID="invite-details">
-          <AppText variant="heading">Convite recebido</AppText>
-          <AppText tone="muted">
-            Entre para conferir a banda e confirmar sua entrada. O token fica
-            guardado apenas durante o retorno do login.
-          </AppText>
-          <Link href={authPath} onPress={blurWebFocus} replace asChild>
-            <AppButton icon="login" label="Entrar para continuar" />
-          </Link>
-        </Card>
-      )}
-
-      <Link href="/" onPress={blurWebFocus} replace asChild>
-        <AppButton label="Voltar" variant="secondary" />
-      </Link>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  content: {
+    alignSelf: 'center',
+    maxWidth: 460,
+    width: '100%',
+  },
   header: {
     gap: spacing.sm,
     marginBottom: spacing.xl,
