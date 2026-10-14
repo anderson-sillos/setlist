@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -205,13 +211,17 @@ export function ShowBlockEditorDialog({
   const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
     cloneBlocks(initialBlocks),
   );
+  const [keyboardScrollPadding, setKeyboardScrollPadding] = useState(0);
   const blocksRef = useRef<ShowBlockDraft[]>(cloneBlocks(initialBlocks));
   const blockLayoutsRef = useRef(new Map<EntityId, BlockLayout>());
   const itemLayoutsRef = useRef(new Map<EntityId, ItemLayout>());
   const itemDragSessionRef = useRef<ItemDragSession | null>(null);
   const blockDragSessionRef = useRef<BlockDragSession | null>(null);
   const collectionConfirmationLockRef = useRef(false);
+  const editorBodyRef = useRef<View | null>(null);
   const scrollViewRef = useRef<ScrollView | null>(null);
+  const focusedInputRef = useRef<TextInput | null>(null);
+  const keyboardTopYRef = useRef<number | null>(null);
   const scrollFrameYRef = useRef(0);
   const scrollOffsetYRef = useRef(0);
   const scrollViewportHeightRef = useRef(0);
@@ -219,6 +229,76 @@ export function ShowBlockEditorDialog({
   const autoScrollVelocityRef = useRef(0);
   const autoScrollFrameRef = useRef<number | null>(null);
   const autoScrollTimestampRef = useRef<number | null>(null);
+  const refreshKeyboardScrollPadding = useCallback(() => {
+    const keyboardTop = keyboardTopYRef.current;
+    if (keyboardTop === null) {
+      setKeyboardScrollPadding(0);
+      return;
+    }
+
+    editorBodyRef.current?.measureInWindow((_bodyX, bodyY) => {
+      const scrollBottom =
+        bodyY + scrollFrameYRef.current + scrollViewportHeightRef.current;
+      const nextPadding = Math.max(
+        0,
+        Math.ceil(scrollBottom - keyboardTop + spacing.md),
+      );
+      setKeyboardScrollPadding((current) =>
+        current === nextPadding ? current : nextPadding,
+      );
+    });
+  }, []);
+  const keepFocusedInputVisible = useCallback((input: TextInput | null) => {
+    focusedInputRef.current = input;
+    const keyboardTop = keyboardTopYRef.current;
+    const scrollView = scrollViewRef.current;
+    if (!input || keyboardTop === null || !scrollView) return;
+
+    requestAnimationFrame(() => {
+      editorBodyRef.current?.measureInWindow((_bodyX, bodyY) => {
+        input.measureInWindow((_inputX, inputY, _inputWidth, inputHeight) => {
+          const scrollY = bodyY + scrollFrameYRef.current;
+          const height = scrollViewportHeightRef.current;
+          const visibleTop = scrollY + spacing.md;
+          const visibleBottom = Math.min(
+            scrollY + height,
+            keyboardTop - spacing.md,
+          );
+          const inputBottom = inputY + inputHeight;
+          const delta =
+            inputY < visibleTop
+              ? inputY - visibleTop
+              : inputBottom > visibleBottom
+                ? inputBottom - visibleBottom
+                : 0;
+          if (delta === 0) return;
+
+          const nextOffset = Math.max(0, scrollOffsetYRef.current + delta);
+          scrollOffsetYRef.current = nextOffset;
+          scrollView.scrollTo({ animated: true, y: nextOffset });
+        });
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const keyboardShown = Keyboard.addListener('keyboardDidShow', (event) => {
+      keyboardTopYRef.current = event.endCoordinates.screenY;
+      refreshKeyboardScrollPadding();
+      if (focusedInputRef.current) {
+        keepFocusedInputVisible(focusedInputRef.current);
+      }
+    });
+    const keyboardHidden = Keyboard.addListener('keyboardDidHide', () => {
+      keyboardTopYRef.current = null;
+      setKeyboardScrollPadding(0);
+    });
+
+    return () => {
+      keyboardShown.remove();
+      keyboardHidden.remove();
+    };
+  }, [keepFocusedInputVisible, refreshKeyboardScrollPadding]);
   useEffect(() => {
     blocksRef.current = blocks;
   }, [blocks]);
@@ -998,9 +1078,8 @@ export function ShowBlockEditorDialog({
 
   const content = (
     <>
-      <KeyboardAvoidingView
+      <View
         accessibilityViewIsModal={!fullScreen}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={fullScreen ? styles.screenLayer : styles.modalLayer}
       >
         {!fullScreen ? (
@@ -1045,7 +1124,7 @@ export function ShowBlockEditorDialog({
               </View>
             </KeyboardDismissRegion>
           ) : null}
-          <View style={styles.editorBody}>
+          <View ref={editorBodyRef} style={styles.editorBody}>
             <KeyboardDismissRegion>
               <View
                 style={styles.totalDurationBar}
@@ -1060,17 +1139,31 @@ export function ShowBlockEditorDialog({
               </View>
             </KeyboardDismissRegion>
             <ScrollView
-              contentContainerStyle={styles.content}
+              contentContainerStyle={[
+                styles.content,
+                keyboardScrollPadding > 0 && {
+                  paddingBottom: spacing.xl + keyboardScrollPadding,
+                },
+              ]}
               keyboardDismissMode={
                 Platform.OS === 'ios' ? 'interactive' : 'on-drag'
               }
               keyboardShouldPersistTaps="handled"
               onContentSizeChange={(_, height) => {
                 scrollContentHeightRef.current = height;
+                if (
+                  keyboardTopYRef.current !== null &&
+                  focusedInputRef.current
+                ) {
+                  keepFocusedInputVisible(focusedInputRef.current);
+                }
               }}
               onLayout={({ nativeEvent }) => {
                 scrollFrameYRef.current = nativeEvent.layout.y;
                 scrollViewportHeightRef.current = nativeEvent.layout.height;
+                if (keyboardTopYRef.current !== null) {
+                  refreshKeyboardScrollPadding();
+                }
               }}
               onScroll={({ nativeEvent }) => {
                 scrollOffsetYRef.current = nativeEvent.contentOffset.y;
@@ -1103,6 +1196,7 @@ export function ShowBlockEditorDialog({
                   onDelete={() => requestDeleteBlock(block.id)}
                   onEndBlockDrag={finishBlockDrag}
                   onEndItemDrag={finishItemDrag}
+                  onInputFocus={keepFocusedInputVisible}
                   onMoveBlockDrag={moveBlockDragPreview}
                   onMoveItemDrag={moveItemDrag}
                   onRegisterBlockLayout={registerBlockLayout}
@@ -1194,7 +1288,7 @@ export function ShowBlockEditorDialog({
             variant="destructive"
           />
         </OptionSheet>
-      </KeyboardAvoidingView>
+      </View>
       <OptionSheet
         closeAccessibilityLabel="Fechar opções de inclusão"
         label="Adicionar à setlist"
@@ -1568,6 +1662,7 @@ function BlockRow({
   onDelete,
   onEndBlockDrag,
   onEndItemDrag,
+  onInputFocus,
   onMoveBlockDrag,
   onMoveItemDrag,
   onRegisterBlockLayout,
@@ -1596,6 +1691,7 @@ function BlockRow({
   readonly onDelete: () => void;
   readonly onEndBlockDrag: () => void;
   readonly onEndItemDrag: () => void;
+  readonly onInputFocus: (input: TextInput | null) => void;
   readonly onMoveBlockDrag: (dy: number) => void;
   readonly onMoveItemDrag: (dy: number) => void;
   readonly onRegisterBlockLayout: (
@@ -1616,6 +1712,7 @@ function BlockRow({
   readonly songSequenceNumbers: ReadonlyMap<EntityId, number>;
 }) {
   const [deleteFocused, setDeleteFocused] = useState(false);
+  const blockNameInputRef = useRef<TextInput | null>(null);
 
   return (
     <View
@@ -1663,9 +1760,13 @@ function BlockRow({
             <TextInput
               accessibilityLabel={'Nome do bloco ' + (index + 1)}
               onChangeText={onChangeName}
-              onFocus={onSelect}
+              onFocus={() => {
+                onSelect();
+                onInputFocus(blockNameInputRef.current);
+              }}
               placeholder="Nome do bloco"
               placeholderTextColor={colors.text.muted}
+              ref={blockNameInputRef}
               style={[styles.blockNameInput, styles.blockNameField]}
               value={block.name}
             />
@@ -1720,6 +1821,7 @@ function BlockRow({
             onCancelDrag={onCancelItemDrag}
             onChange={(updater) => onChangeItem(item.id, updater)}
             onEndDrag={onEndItemDrag}
+            onInputFocus={onInputFocus}
             onMoveDrag={onMoveItemDrag}
             onRegisterLayout={(itemId, localY, height) =>
               onRegisterItemLayout(block.id, itemId, localY, height)
@@ -1743,6 +1845,7 @@ function SetlistItemRow({
   onCancelDrag,
   onChange,
   onEndDrag,
+  onInputFocus,
   onMoveDrag,
   onRegisterLayout,
   onRemove,
@@ -1759,6 +1862,7 @@ function SetlistItemRow({
     updater: (item: ShowSetlistItemDraft) => ShowSetlistItemDraft,
   ) => void;
   readonly onEndDrag: () => void;
+  readonly onInputFocus: (input: TextInput | null) => void;
   readonly onMoveDrag: (dy: number) => void;
   readonly onRegisterLayout: (
     itemId: EntityId,
@@ -1770,6 +1874,7 @@ function SetlistItemRow({
   readonly song?: Song;
   readonly songSequenceNumber?: number;
 }) {
+  const inputRef = useRef<TextInput | null>(null);
   const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
 
   if (item.type === 'separator') {
@@ -1833,8 +1938,10 @@ function SetlistItemRow({
                     : current,
                 )
               }
+              onFocus={() => onInputFocus(inputRef.current)}
               placeholder="Ex.: Troca de instrumento"
               placeholderTextColor={colors.text.muted}
+              ref={inputRef}
               style={[styles.input, styles.planningDescription]}
               value={item.description}
             />
@@ -1863,6 +1970,7 @@ function SetlistItemRow({
                 max={99}
                 maxLength={2}
                 minWidth={76}
+                onFocusInput={onInputFocus}
                 onChangeText={(hours) =>
                   onChange((current) =>
                     current.type === 'planning'
@@ -1895,6 +2003,7 @@ function SetlistItemRow({
                 max={59}
                 maxLength={2}
                 minWidth={76}
+                onFocusInput={onInputFocus}
                 onChangeText={(minutes) =>
                   onChange((current) =>
                     current.type === 'planning'
@@ -1926,6 +2035,7 @@ function SetlistItemRow({
                 max={59}
                 maxLength={2}
                 minWidth={76}
+                onFocusInput={onInputFocus}
                 onChangeText={(seconds) =>
                   onChange((current) =>
                     current.type === 'planning'
@@ -2016,8 +2126,10 @@ function SetlistItemRow({
                   : current,
               )
             }
+            onFocus={() => onInputFocus(inputRef.current)}
             placeholder="Observação opcional para este show"
             placeholderTextColor={colors.text.muted}
+            ref={inputRef}
             style={styles.input}
             value={item.notes ?? ''}
           />

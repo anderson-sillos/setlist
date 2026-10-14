@@ -20,6 +20,7 @@ interface SpinButtonProps {
   readonly minWidth?: number;
   readonly max?: number;
   readonly min?: number;
+  readonly onFocusInput?: (input: TextInput | null) => void;
   readonly onChangeText: (value: string) => void;
   readonly value: string;
 }
@@ -32,6 +33,7 @@ export function SpinButton({
   minWidth,
   max = 999,
   min = 0,
+  onFocusInput,
   onChangeText,
   value,
 }: SpinButtonProps) {
@@ -98,6 +100,7 @@ export function SpinButton({
         }}
         onFocus={() => {
           setFocused(true);
+          onFocusInput?.(inputRef.current);
           const valueToSelect = pendingFocusValueRef.current ?? value;
           pendingFocusValueRef.current = null;
           setDraftValue(valueToSelect);
