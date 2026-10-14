@@ -2,6 +2,54 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 14 de outubro de 2026 — teclado nas denúncias e Metro iOS
+
+- No iPhone 16 Pro com iOS 18.3, foi reproduzida a sobreposição do teclado aos
+  botões de Denunciar música e a ausência de dispensa ao tocar fora do campo.
+  `ContentReportDialog` também atende à denúncia de integrante.
+- O diálogo foi ajustado com área segura, adaptação ao teclado, conteúdo
+  rolável e rodapé separado. Toques em áreas sem controles dispensam o teclado;
+  o primeiro toque no fundo com o teclado aberto preserva a janela e o texto.
+  Cancelar, fechar e enviar dispensam o teclado junto da ação solicitada.
+- Tipos e lint passaram. Os sete testes do diálogo e os 18 testes da tela de
+  detalhes da música passaram (25 no total). Os casos cobrem foco no campo,
+  preservação do texto, dispensa por toque, fechamento pelo fundo e cancelamento
+  no primeiro toque.
+- Validação visual concluída no iPhone 16 Pro com iOS 18.3 usando o client de
+  desenvolvimento conectado ao Metro: tocar no campo abre o teclado nativo e
+  mantém Cancelar/Enviar acessíveis; tocar fora do campo dispensa o teclado sem
+  fechar a janela; Cancelar fecha sem enviar a denúncia. Nenhum relato real foi
+  enviado durante a investigação.
+- O client de desenvolvimento foi recuperado da instalação existente no outro
+  iPhone 16 e instalado no iPhone 16 Pro
+  (`47E1F775-4360-4637-8CB1-982864EADB51`). Ele usa Expo SDK 57 e carrega o código
+  atual `1.0.0` pelo Metro, com `.env.local` de desenvolvimento. Esse client
+  antigo não inclui `expo-application`; reconstruí-lo antes de validar a
+  identificação nativa de uma entrega. Os arquivos de versão não foram alterados.
+- O Metro está restrito a `127.0.0.1:8081`. Neste Mac, o modo localhost comum
+  escutou somente em `::1`, enquanto o manifesto gerou URLs IPv4; a inicialização
+  com `node --dns-result-order=ipv4first node_modules/expo/bin/cli start
+--dev-client --port 8081 --localhost` resolveu a conexão. O modo LAN foi
+  rejeitado pela revisão automática e não foi utilizado. O `simctl` está em
+  `/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl`;
+  usar acesso elevado para operações no simulador. O client está conectado pelo
+  endereço `exp+setlist://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081`.
+
+## Atualização de 13 de outubro de 2026 — sistemas mínimos da versão 1.0.0
+
+- Os requisitos foram conferidos nos artefatos de produção efetivamente enviados,
+  não inferidos da configuração do Expo. O AAB
+  `application-43980d8a-87ce-42ff-8778-4ef6e6a8fbe0.aab` (Android
+  `versionCode 2`) declara `minSdkVersion 24`: Android 7.0 (API 24) ou posterior.
+- O IPA iOS `1.0.0 (build 3)` declara `MinimumOSVersion 16.4`: iOS 16.4 ou
+  posterior.
+- Exemplos de modelos que alcançam os mínimos: iPhone 8, iPhone X, iPhone SE
+  (2ª geração), iPad (5ª geração), iPad mini (5ª geração), iPad Air (3ª geração),
+  Galaxy S7/S7 edge com Android Nougat ou posterior e Galaxy Tab S3. O requisito
+  efetivo depende do sistema instalado no aparelho.
+- A tabela reutilizável e a instrução para revalidar os artefatos em releases
+  futuros foram registradas em `docs/RELEASE_PROCESS.md`.
+
 ## Atualização de 9 de outubro de 2026 — seed da Banda Demo
 
 - O responsável solicitou dados completos para divulgação e testes externos,

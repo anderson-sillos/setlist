@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
   actions: {
     borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
+    flexShrink: 0,
     gap: spacing.md,
     padding: spacing.lg,
   },
@@ -236,12 +237,15 @@ const styles = StyleSheet.create({
     borderColor: colors.border.selected,
   },
   content: {
+    flexShrink: 1,
     gap: spacing.lg,
+    minHeight: 0,
     padding: spacing.xl,
   },
   dialog: {
     backgroundColor: colors.background.raised,
     borderRadius: radii.lg,
+    flexDirection: 'column',
     maxHeight: '80%',
     maxWidth: 520,
     overflow: 'hidden',
@@ -255,6 +259,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
     flexDirection: 'row',
+    flexShrink: 0,
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
@@ -267,7 +272,9 @@ const styles = StyleSheet.create({
   },
   collectionScroll: {
     flexGrow: 0,
+    flexShrink: 1,
     maxHeight: 360,
+    minHeight: 0,
   },
   pressed: {
     opacity: 0.72,

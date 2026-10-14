@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -53,12 +54,18 @@ function VisibleContentReportDialog({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [discardPromptVisible, setDiscardPromptVisible] = useState(false);
 
   const handleClose = () => {
-    if (!isSubmitting) {
-      Keyboard.dismiss();
-      onClose();
+    if (isSubmitting) return;
+
+    Keyboard.dismiss();
+    if (description.trim().length > 0 && !sent) {
+      setDiscardPromptVisible(true);
+      return;
     }
+
+    onClose();
   };
 
   const handleBackdropPress = () => {
@@ -224,6 +231,14 @@ function VisibleContentReportDialog({
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+      <UnsavedChangesPrompt
+        onContinue={() => setDiscardPromptVisible(false)}
+        onDiscard={() => {
+          setDiscardPromptVisible(false);
+          onClose();
+        }}
+        visible={discardPromptVisible}
+      />
     </Modal>
   );
 }
