@@ -5,7 +5,6 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { State } from 'react-native-gesture-handler';
 import { Platform } from 'react-native';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
@@ -45,16 +44,58 @@ jest.mock('react-native-gesture-handler', () => {
   const gestureHandler = jest.requireActual<
     typeof import('react-native-gesture-handler')
   >('react-native-gesture-handler');
+  const createPanGesture = () => {
+    const gesture = {
+      callbacks: {} as Record<string, (...args: never[]) => void>,
+      activeOffsetY: () => gesture,
+      onEnd: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onEnd = callback;
+        return gesture;
+      },
+      onFinalize: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onFinalize = callback;
+        return gesture;
+      },
+      onStart: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onStart = callback;
+        return gesture;
+      },
+      onUpdate: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onUpdate = callback;
+        return gesture;
+      },
+      runOnJS: () => gesture,
+      shouldCancelWhenOutside: () => gesture,
+      testID: '',
+      withTestId: (testID: string) => {
+        gesture.testID = testID;
+        return gesture;
+      },
+    };
+    return gesture;
+  };
 
   return {
     ...gestureHandler,
-    PanGestureHandler: ({
+    Gesture: { Pan: createPanGesture },
+    GestureDetector: ({
       children,
-      ...props
+      gesture,
     }: {
       readonly children?: import('react').ReactNode;
-      readonly [key: string]: unknown;
-    }) => React.createElement('PanGestureHandlerMock', props, children),
+      readonly gesture: ReturnType<typeof createPanGesture>;
+    }) =>
+      React.createElement(
+        'GestureDetectorMock',
+        {
+          onEnd: gesture.callbacks.onEnd,
+          onFinalize: gesture.callbacks.onFinalize,
+          onStart: gesture.callbacks.onStart,
+          onUpdate: gesture.callbacks.onUpdate,
+          testID: gesture.testID,
+        },
+        children,
+      ),
   };
 });
 
@@ -356,23 +397,17 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       'gesture-collection-song-drag-song-demo-luzes',
     );
     await act(async () => {
-      initialHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
-      });
+      initialHandle.props.onStart({});
     });
     const activeHandle = view.getByTestId(
       'gesture-collection-song-drag-song-demo-luzes',
     );
     await act(async () => {
-      activeHandle.props.onGestureEvent({
-        nativeEvent: { state: State.ACTIVE, translationY: 80 },
-      });
+      activeHandle.props.onUpdate({ translationY: 80 });
     });
     expect(view.getByTestId('collection-song-drag-preview')).toBeTruthy();
     await act(async () => {
-      activeHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.ACTIVE, state: State.END },
-      });
+      activeHandle.props.onEnd({}, true);
     });
     await fireEvent.press(
       view.getByLabelText('Remover Luzes da Cidade da coleção'),

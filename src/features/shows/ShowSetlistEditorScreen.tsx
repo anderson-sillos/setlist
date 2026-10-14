@@ -298,7 +298,6 @@ export function ShowSetlistEditorScreen({
         <ShowBlockEditorDialog
           addSheetVisible={addSheetVisible}
           errorMessage={error}
-          fullScreen
           initialBlocks={show.blocks}
           isSubmitting={submitting}
           collections={collectionsQuery.data ?? []}
@@ -308,7 +307,6 @@ export function ShowSetlistEditorScreen({
           onValidateCollection={validateCollectionPreview}
           onSubmit={(drafts) => void handleSave(drafts)}
           songs={songsQuery.data ?? []}
-          visible
         />
       ) : null}
     </BandAreaLayout>

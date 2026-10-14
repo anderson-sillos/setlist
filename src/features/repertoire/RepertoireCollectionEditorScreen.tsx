@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useRouter } from 'expo-router';
 import {
   Keyboard,
@@ -11,12 +18,7 @@ import {
   View,
   type LayoutChangeEvent,
 } from 'react-native';
-import {
-  PanGestureHandler,
-  State,
-  type PanGestureHandlerGestureEvent,
-  type PanGestureHandlerStateChangeEvent,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import {
   ErrorFeedback,
@@ -989,44 +991,56 @@ function CollectionSongDragHandle({
     callbacksRef.current = { onCancel, onEnd, onMove, onStart };
   }, [onCancel, onEnd, onMove, onStart]);
 
-  const startDrag = () => {
+  const startDrag = useCallback(() => {
     if (dragStartedRef.current) return;
     dragStartedRef.current = true;
     callbacksRef.current.onStart();
-  };
+  }, []);
 
-  const onGestureEvent = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
-    if (nativeEvent.state !== State.ACTIVE) return;
-    startDrag();
-    callbacksRef.current.onMove(nativeEvent.translationY);
-  };
-
-  const onHandlerStateChange = ({
-    nativeEvent,
-  }: PanGestureHandlerStateChangeEvent) => {
-    if (nativeEvent.state === State.ACTIVE) {
+  const updateDrag = useCallback(
+    ({ translationY }: { readonly translationY: number }) => {
       startDrag();
-      return;
-    }
-    if (!dragStartedRef.current || nativeEvent.oldState !== State.ACTIVE)
-      return;
+      callbacksRef.current.onMove(translationY);
+    },
+    [startDrag],
+  );
 
+  const endDrag = useCallback((_event: object, success: boolean) => {
+    if (!dragStartedRef.current) return;
     dragStartedRef.current = false;
-    if (nativeEvent.state === State.END) {
-      callbacksRef.current.onEnd();
-    } else {
-      callbacksRef.current.onCancel();
-    }
-  };
+    if (success) callbacksRef.current.onEnd();
+    else callbacksRef.current.onCancel();
+  }, []);
+
+  const finalizeDrag = useCallback((_event: object, success: boolean) => {
+    if (!dragStartedRef.current) return;
+    dragStartedRef.current = false;
+    if (!success) callbacksRef.current.onCancel();
+  }, []);
+
+  const panGesture = useMemo(() => {
+    let gesture = Gesture.Pan()
+      .activeOffsetY([-4, 4])
+      .shouldCancelWhenOutside(false)
+      .runOnJS(true);
+
+    // Os refs são acessados somente quando o GestureDetector dispara o evento.
+    gesture = gesture
+      // eslint-disable-next-line react-hooks/refs
+      .onStart(startDrag)
+      // eslint-disable-next-line react-hooks/refs
+      .onUpdate(updateDrag)
+      // eslint-disable-next-line react-hooks/refs
+      .onEnd(endDrag)
+      // eslint-disable-next-line react-hooks/refs
+      .onFinalize(finalizeDrag)
+      .withTestId(`gesture-${testID}`);
+
+    return gesture;
+  }, [endDrag, finalizeDrag, startDrag, testID, updateDrag]);
 
   return (
-    <PanGestureHandler
-      activeOffsetY={[-4, 4]}
-      onGestureEvent={onGestureEvent}
-      onHandlerStateChange={onHandlerStateChange}
-      shouldCancelWhenOutside={false}
-      testID={`gesture-${testID}`}
-    >
+    <GestureDetector gesture={panGesture}>
       <View
         accessible
         accessibilityLabel={accessibilityLabel}
@@ -1041,7 +1055,7 @@ function CollectionSongDragHandle({
           size={18}
         />
       </View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 }
 
