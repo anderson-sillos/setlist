@@ -81,7 +81,7 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
     expect(
       StyleSheet.flatten(
-        view.getByTestId('show-block-editor-dialog').props.style,
+        view.getByTestId('show-block-editor-dialog').parent.props.style,
       ).maxWidth,
     ).toBe(layout.contentMaxWidth);
     expect(view.getByLabelText('Nome do bloco 1')).toBeTruthy();

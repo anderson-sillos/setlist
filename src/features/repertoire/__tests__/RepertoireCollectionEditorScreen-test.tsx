@@ -47,8 +47,11 @@ jest.mock('react-native-gesture-handler', () => {
   const createPanGesture = () => {
     const gesture = {
       callbacks: {} as Record<string, (...args: never[]) => void>,
+      activeOffsetX: () => gesture,
       activeOffsetY: () => gesture,
       enabled: () => gesture,
+      failOffsetY: () => gesture,
+      maxPointers: () => gesture,
       onEnd: (callback: (...args: never[]) => void) => {
         gesture.callbacks.onEnd = callback;
         return gesture;
