@@ -34,7 +34,7 @@
 
 - [x] 5.1 Relacionar as verificações de `RepertoireCollectionRepository-test.ts` sobre duplicação, revisão, integridade e permissões às suítes de adaptadores e aos testes `supabase/tests/9.*`; registrar a correspondência em `src/testing/README.md` e cobrir na suíte responsável qualquer lacuna relevante antes de retirar uma verificação da réplica.
 - [x] 5.2 Realocar os repositórios em memória e seus testes úteis para `src/testing/repositories/`, atualizando imports e dados locais; verificar as suítes consumidoras e o TypeScript sem imports dos módulos antigos.
-- [ ] 5.3 Simplificar a réplica de mutações de coleções, mantendo apenas consultas e transições de estado necessárias aos testes de telas e hooks e preparando falhas explicitamente; verificar as suítes de consultas, coleções e adaptadores, além dos testes de banco quando sua cobertura tiver sido alterada.
+- [x] 5.3 Simplificar a réplica de mutações de coleções, mantendo apenas consultas e transições de estado necessárias aos testes de telas e hooks e preparando falhas explicitamente; verificar as suítes de consultas, coleções e adaptadores, além dos testes de banco quando sua cobertura tiver sido alterada.
 - [ ] 5.4 Tornar `repositories` e `currentUserId` obrigatórios em `TestAppProviders` e eliminar seus defaults demonstrativos; verificar todos os consumidores com TypeScript, suas suítes e os testes que confirmam o comportamento remoto do provedor de produção.
 - [ ] 5.5 Atualizar `src/testing/README.md` e `docs/ARQUITETURA_DE_TELAS.md` com a localização e o limite dos auxiliares, distinguindo simulação de interface de garantia do banco; verificar que os exemplos usam a API final e não indicam repositórios em memória como camada de produção.
 

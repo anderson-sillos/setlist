@@ -170,6 +170,8 @@ render(
 
 As suítes de coleção também declaram estados vazios e permissões sem incluir dados alheios ao caso. Durações são definidas nas músicas e conferidas com um valor esperado fixo. Para erros de gravação e revisão concorrente, substitua apenas o método usado no cenário com `jest.spyOn(...).mockRejectedValueOnce(...)`; assim a falha simulada fica visível no próprio teste.
 
+Os repositórios em memória mantêm apenas o estado necessário para as consultas seguintes dos testes. Eles não validam unicidade, permissões, disponibilidade das músicas ou revisões concorrentes; essas garantias pertencem aos testes dos adaptadores e do banco descritos acima. Quando uma tela precisa reagir a uma falha, o teste injeta essa falha no método do repositório em vez de depender de uma regra duplicada no auxiliar.
+
 ## Cenários de shows e setlists
 
 Componha shows com `createShow`, blocos com `createShowSetlistBlock` e os itens da setlist com a fábrica correspondente ao tipo. O mapa de músicas passado aos cálculos de duração deve conter as mesmas identidades referenciadas pelos itens. Em testes de tela, use `createBandScenario` para relacionar a banda, o papel atual, as músicas e os shows:

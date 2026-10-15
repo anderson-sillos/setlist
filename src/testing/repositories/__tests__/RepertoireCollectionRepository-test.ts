@@ -36,69 +36,49 @@ function createRepositories() {
       repertoireCollectionSongs: [],
     },
     {
-      createId: () => `collection-${++id}`,
-      now: () => `2026-10-08T12:00:${String(second++).padStart(2, '0')}.000Z`,
+      createId: () => 'collection-' + ++id,
+      now: () =>
+        '2026-10-08T12:00:' + String(second++).padStart(2, '0') + '.000Z',
     },
   );
 }
 
-describe('repositório em memória de coleções do repertório', () => {
-  it('cria coleções vazias e salva nome e ordem na revisão atual', async () => {
+describe('repositório em memória para estado de coleções', () => {
+  it('reflete criação, edição e ordem nos resultados das consultas', async () => {
     const repositories = createRepositories();
     const collection = await repositories.repertoireCollections.save({
       bandId,
-      name: '  Festa  ',
+      name: 'Festa',
       orderedSongIds: [],
     });
 
     expect(collection.name).toBe('Festa');
-    expect(
-      await repositories.repertoireCollections.listSongsByBandId(bandId),
-    ).toEqual([]);
-
-    const updated = await repositories.repertoireCollections.save({
-      bandId,
-      collectionId: collection.id,
-      expectedUpdatedAt: collection.updatedAt,
-      name: 'Festival',
-      orderedSongIds: [songs[2].id, songs[0].id],
-    });
-
-    expect(updated.name).toBe('Festival');
-    expect(
-      (await repositories.repertoireCollections.listSongsByBandId(bandId))
-        .filter((membership) => membership.collectionId === collection.id)
-        .map((membership) => membership.songId),
-    ).toEqual([songs[2].id, songs[0].id]);
-  });
-
-  it('reordena participações existentes sem duplicar vínculos', async () => {
-    const repositories = createRepositories();
-    const collection = await repositories.repertoireCollections.save({
-      bandId,
-      name: 'Festival',
-      orderedSongIds: [songs[0].id, songs[1].id, songs[2].id],
-    });
+    await expect(
+      repositories.repertoireCollections.listSongsByBandId(bandId),
+    ).resolves.toEqual([]);
 
     await repositories.repertoireCollections.save({
       bandId,
       collectionId: collection.id,
       expectedUpdatedAt: collection.updatedAt,
-      name: collection.name,
+      name: 'Festival',
       orderedSongIds: [songs[2].id, songs[0].id],
     });
 
+    const memberships =
+      await repositories.repertoireCollections.listSongsByBandId(bandId);
     expect(
-      (await repositories.repertoireCollections.listSongsByBandId(bandId))
-        .filter((membership) => membership.collectionId === collection.id)
-        .map(({ songId, position }) => [songId, position]),
+      memberships.map(({ songId, position }) => [songId, position]),
     ).toEqual([
       [songs[2].id, 0],
       [songs[0].id, 1],
     ]);
+    await expect(
+      repositories.repertoireCollections.findById(bandId, collection.id),
+    ).resolves.toMatchObject({ name: 'Festival' });
   });
 
-  it('anexa músicas em ordem e ignora participações já existentes', async () => {
+  it('reflete a inclusão de músicas ao final da ordem local', async () => {
     const repositories = createRepositories();
     const collection = await repositories.repertoireCollections.save({
       bandId,
@@ -109,13 +89,13 @@ describe('repositório em memória de coleções do repertório', () => {
     await repositories.repertoireCollections.appendSongs({
       bandId,
       collectionId: collection.id,
-      songIds: [songs[0].id, songs[2].id, songs[1].id],
+      songIds: [songs[2].id, songs[1].id],
     });
 
+    const memberships =
+      await repositories.repertoireCollections.listSongsByBandId(bandId);
     expect(
-      (await repositories.repertoireCollections.listSongsByBandId(bandId))
-        .filter((membership) => membership.collectionId === collection.id)
-        .map(({ songId, position }) => [songId, position]),
+      memberships.map(({ songId, position }) => [songId, position]),
     ).toEqual([
       [songs[0].id, 0],
       [songs[2].id, 1],
@@ -123,101 +103,48 @@ describe('repositório em memória de coleções do repertório', () => {
     ]);
   });
 
-  it('atualiza participações de uma música preservando ordem e rejeita revisão antiga', async () => {
+  it('atualiza vínculos selecionados e remove só a coleção', async () => {
     const repositories = createRepositories();
     const first = await repositories.repertoireCollections.save({
       bandId,
       name: 'Festa',
-      orderedSongIds: [songs[0].id, songs[1].id],
+      orderedSongIds: [songs[0].id],
     });
     const second = await repositories.repertoireCollections.save({
       bandId,
       name: 'Ao ar livre',
-      orderedSongIds: [songs[2].id],
+      orderedSongIds: [],
     });
 
     await repositories.repertoireCollections.setSongCollections({
       bandId,
-      songId: songs[2].id,
-      collectionIds: [first.id],
-      expectedRevisions: {
-        [first.id]: first.updatedAt,
-        [second.id]: second.updatedAt,
-      },
+      songId: songs[0].id,
+      collectionIds: [second.id],
+      expectedRevisions: {},
     });
-
-    const memberships =
-      await repositories.repertoireCollections.listSongsByBandId(bandId);
-    expect(
-      memberships
-        .filter((membership) => membership.collectionId === first.id)
-        .map(({ songId, position }) => [songId, position]),
-    ).toEqual([
-      [songs[0].id, 0],
-      [songs[1].id, 1],
-      [songs[2].id, 2],
-    ]);
-    expect(
-      memberships.filter((membership) => membership.collectionId === second.id),
-    ).toEqual([]);
-
-    await expect(
-      repositories.repertoireCollections.setSongCollections({
-        bandId,
-        songId: songs[1].id,
-        collectionIds: [],
-        expectedRevisions: { [first.id]: first.updatedAt },
-      }),
-    ).rejects.toMatchObject({ code: 'stale_revision' });
-  });
-
-  it('rejeita nomes equivalentes e não altera a lista em falha', async () => {
-    const repositories = createRepositories();
-    await repositories.repertoireCollections.save({
-      bandId,
-      name: 'Festa',
-      orderedSongIds: [],
-    });
-
-    await expect(
-      repositories.repertoireCollections.save({
-        bandId,
-        name: ' festa ',
-        orderedSongIds: [],
-      }),
-    ).rejects.toMatchObject({ code: 'duplicate_name' });
-    await expect(
-      repositories.repertoireCollections.save({
-        bandId,
-        name: '   ',
-        orderedSongIds: [],
-      }),
-    ).rejects.toMatchObject({ code: 'invalid_name' });
-    expect(
-      await repositories.repertoireCollections.listByBandId(bandId),
-    ).toHaveLength(1);
-  });
-
-  it('exclui vínculos da coleção, mas mantém os cadastros de música', async () => {
-    const repositories = createRepositories();
-    const collection = await repositories.repertoireCollections.save({
-      bandId,
-      name: 'Dançante',
-      orderedSongIds: [songs[0].id],
-    });
-
     await repositories.repertoireCollections.delete({
       bandId,
-      collectionId: collection.id,
-      expectedUpdatedAt: collection.updatedAt,
+      collectionId: first.id,
+      expectedUpdatedAt: first.updatedAt,
     });
 
-    expect(
-      await repositories.repertoireCollections.listByBandId(bandId),
-    ).toEqual([]);
-    expect(
-      await repositories.repertoireCollections.listSongsByBandId(bandId),
-    ).toEqual([]);
-    expect(await repositories.songs.listByBandId(bandId)).toHaveLength(3);
+    await expect(
+      repositories.repertoireCollections.listByBandId(bandId),
+    ).resolves.toEqual([
+      expect.objectContaining({ id: second.id, name: 'Ao ar livre' }),
+    ]);
+    await expect(
+      repositories.repertoireCollections.listSongsByBandId(bandId),
+    ).resolves.toEqual([
+      {
+        bandId,
+        collectionId: second.id,
+        position: 0,
+        songId: songs[0].id,
+      },
+    ]);
+    await expect(repositories.songs.listByBandId(bandId)).resolves.toHaveLength(
+      3,
+    );
   });
 });

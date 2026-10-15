@@ -8,7 +8,6 @@ import type {
   DeleteRepertoireCollectionInput,
   EntityId,
   RepertoireCollection,
-  RepertoireCollectionErrorCode,
   RepertoireCollectionRepository,
   RepertoireCollectionSong,
   SaveRepertoireCollectionInput,
@@ -20,7 +19,6 @@ import type {
   SongRepository,
   UserBand,
 } from '@/domain';
-import { RepertoireCollectionError } from '@/domain';
 
 export interface InMemoryRepositoryData {
   readonly bands: readonly Band[];
@@ -116,19 +114,16 @@ export class InMemoryShowRepository implements ShowRepository {
 export class InMemoryRepertoireCollectionRepository implements RepertoireCollectionRepository {
   private collections: RepertoireCollection[];
   private collectionSongs: RepertoireCollectionSong[];
-  private readonly songs: InMemoryRepositoryData['songs'];
   private previousTimestampMs = 0;
 
   constructor(
     collections: readonly RepertoireCollection[],
     collectionSongs: readonly RepertoireCollectionSong[],
-    songs: InMemoryRepositoryData['songs'],
     private readonly createId: () => EntityId = randomUUID,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {
     this.collections = [...collections];
     this.collectionSongs = [...collectionSongs];
-    this.songs = [...songs];
   }
 
   async listByBandId(
@@ -166,11 +161,6 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
   async save(
     input: SaveRepertoireCollectionInput,
   ): Promise<RepertoireCollection> {
-    const name = this.normalizeName(input.name);
-    this.assertUniqueName(input.bandId, name, input.collectionId);
-    this.assertUniqueSongIds(input.orderedSongIds);
-    this.assertSongsAvailable(input.bandId, input.orderedSongIds);
-
     const timestamp = this.nextTimestamp();
     let collection: RepertoireCollection;
 
@@ -181,53 +171,31 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
           candidate.id === input.collectionId,
       );
       if (!existing) {
-        throw this.error('not_found');
-      }
-      if (
-        !input.expectedUpdatedAt ||
-        input.expectedUpdatedAt !== existing.updatedAt
-      ) {
-        throw this.error('stale_revision');
+        throw new Error('Coleção ausente no cenário em memória.');
       }
 
-      collection = {
-        ...existing,
-        name,
-        updatedAt: timestamp,
-      };
+      collection = { ...existing, name: input.name, updatedAt: timestamp };
       this.collections = this.collections.map((candidate) =>
-        candidate.id === collection.id && candidate.bandId === input.bandId
+        candidate.bandId === input.bandId && candidate.id === collection.id
           ? collection
           : candidate,
       );
     } else {
-      if (input.expectedUpdatedAt) {
-        throw this.error('stale_revision');
-      }
       collection = {
         bandId: input.bandId,
         createdAt: timestamp,
         id: this.createId(),
-        name,
+        name: input.name,
         updatedAt: timestamp,
       };
       this.collections = [...this.collections, collection];
     }
 
-    this.collectionSongs = this.collectionSongs.filter(
-      (membership) =>
-        membership.collectionId !== collection.id ||
-        membership.bandId !== input.bandId,
+    this.replaceCollectionSongs(
+      input.bandId,
+      collection.id,
+      input.orderedSongIds,
     );
-    this.collectionSongs = [
-      ...this.collectionSongs,
-      ...input.orderedSongIds.map((songId, position) => ({
-        bandId: input.bandId,
-        collectionId: collection.id,
-        songId,
-        position,
-      })),
-    ];
 
     return collection;
   }
@@ -241,10 +209,8 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
         candidate.id === input.collectionId,
     );
     if (!collection) {
-      throw this.error('not_found');
+      throw new Error('Coleção ausente no cenário em memória.');
     }
-    this.assertUniqueSongIds(input.songIds);
-    this.assertSongsAvailable(input.bandId, input.songIds);
 
     const existing = this.collectionSongs
       .filter(
@@ -253,77 +219,47 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
           membership.collectionId === input.collectionId,
       )
       .sort((left, right) => left.position - right.position);
-    const existingIds = new Set(existing.map(({ songId }) => songId));
-    const newIds = input.songIds.filter((songId) => !existingIds.has(songId));
-
-    if (newIds.length > 0) {
-      const timestamp = this.nextTimestamp();
-      const updatedCollection = { ...collection, updatedAt: timestamp };
-      this.collections = this.collections.map((candidate) =>
-        candidate.id === collection.id && candidate.bandId === input.bandId
-          ? updatedCollection
-          : candidate,
-      );
-      this.collectionSongs = this.collectionSongs.filter(
-        (membership) =>
-          membership.bandId !== input.bandId ||
-          membership.collectionId !== input.collectionId,
-      );
-      this.collectionSongs = [
-        ...this.collectionSongs,
-        ...[...existing, ...newIds.map((songId) => ({ songId }))].map(
-          (membership, position) => ({
-            bandId: input.bandId,
-            collectionId: input.collectionId,
-            position,
-            songId: membership.songId,
-          }),
-        ),
-      ];
-      return updatedCollection;
+    const knownIds = new Set(existing.map(({ songId }) => songId));
+    const newIds = input.songIds.filter((songId) => {
+      if (knownIds.has(songId)) {
+        return false;
+      }
+      knownIds.add(songId);
+      return true;
+    });
+    if (newIds.length === 0) {
+      return collection;
     }
 
-    return collection;
+    const updated = { ...collection, updatedAt: this.nextTimestamp() };
+    this.collections = this.collections.map((candidate) =>
+      candidate.bandId === input.bandId && candidate.id === input.collectionId
+        ? updated
+        : candidate,
+    );
+    this.replaceCollectionSongs(input.bandId, input.collectionId, [
+      ...existing.map(({ songId }) => songId),
+      ...newIds,
+    ]);
+
+    return updated;
   }
 
   async setSongCollections(
     input: SetSongRepertoireCollectionsInput,
   ): Promise<void> {
-    this.assertSongsAvailable(input.bandId, [input.songId]);
-    this.assertUniqueCollectionIds(input.collectionIds);
-
-    const currentCollectionIds = this.collectionSongs
-      .filter(
-        (membership) =>
-          membership.bandId === input.bandId &&
-          membership.songId === input.songId,
-      )
-      .map(({ collectionId }) => collectionId);
-    const affectedIds = [
-      ...new Set([...currentCollectionIds, ...input.collectionIds]),
-    ].sort();
-    const collections = affectedIds.map((collectionId) =>
-      this.collections.find(
-        (candidate) =>
-          candidate.bandId === input.bandId && candidate.id === collectionId,
-      ),
-    );
-
-    if (collections.some((collection) => !collection)) {
-      throw this.error('not_found');
-    }
-    if (
-      Object.keys(input.expectedRevisions).length !== affectedIds.length ||
-      collections.some(
-        (collection) =>
-          !collection ||
-          input.expectedRevisions[collection.id] !== collection.updatedAt,
-      )
-    ) {
-      throw this.error('stale_revision');
-    }
-
     const desiredIds = new Set(input.collectionIds);
+    const currentIds = new Set(
+      this.collectionSongs
+        .filter(
+          (membership) =>
+            membership.bandId === input.bandId &&
+            membership.songId === input.songId,
+        )
+        .map(({ collectionId }) => collectionId),
+    );
+    const affectedIds = new Set([...currentIds, ...desiredIds]);
+
     this.collectionSongs = this.collectionSongs.filter(
       (membership) =>
         membership.bandId !== input.bandId ||
@@ -331,56 +267,45 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
         desiredIds.has(membership.collectionId),
     );
 
-    for (const collectionId of input.collectionIds) {
-      const existing = this.collectionSongs.some(
+    for (const collectionId of desiredIds) {
+      const alreadyLinked = this.collectionSongs.some(
         (membership) =>
           membership.bandId === input.bandId &&
           membership.collectionId === collectionId &&
           membership.songId === input.songId,
       );
-      if (existing) {
+      if (alreadyLinked) {
         continue;
       }
-      const position = this.collectionSongs
-        .filter(
-          (membership) =>
-            membership.bandId === input.bandId &&
-            membership.collectionId === collectionId,
-        )
-        .reduce(
-          (maximum, membership) => Math.max(maximum, membership.position),
-          -1,
-        );
+
+      const nextPosition =
+        this.collectionSongs
+          .filter(
+            (membership) =>
+              membership.bandId === input.bandId &&
+              membership.collectionId === collectionId,
+          )
+          .reduce(
+            (maximum, membership) => Math.max(maximum, membership.position),
+            -1,
+          ) + 1;
       this.collectionSongs.push({
         bandId: input.bandId,
         collectionId,
-        position: position + 1,
+        position: nextPosition,
         songId: input.songId,
       });
     }
 
     const timestamp = this.nextTimestamp();
-    const affectedSet = new Set(affectedIds);
     this.collections = this.collections.map((collection) =>
-      collection.bandId === input.bandId && affectedSet.has(collection.id)
+      collection.bandId === input.bandId && affectedIds.has(collection.id)
         ? { ...collection, updatedAt: timestamp }
         : collection,
     );
   }
 
   async delete(input: DeleteRepertoireCollectionInput): Promise<void> {
-    const collection = this.collections.find(
-      (candidate) =>
-        candidate.bandId === input.bandId &&
-        candidate.id === input.collectionId,
-    );
-    if (!collection) {
-      throw this.error('not_found');
-    }
-    if (collection.updatedAt !== input.expectedUpdatedAt) {
-      throw this.error('stale_revision');
-    }
-
     this.collections = this.collections.filter(
       (candidate) =>
         candidate.bandId !== input.bandId ||
@@ -393,12 +318,25 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
     );
   }
 
-  private normalizeName(value: string) {
-    const name = value.trim();
-    if (Array.from(name).length < 1 || Array.from(name).length > 120) {
-      throw this.error('invalid_name');
-    }
-    return name;
+  private replaceCollectionSongs(
+    bandId: EntityId,
+    collectionId: EntityId,
+    orderedSongIds: readonly EntityId[],
+  ) {
+    this.collectionSongs = this.collectionSongs.filter(
+      (membership) =>
+        membership.bandId !== bandId ||
+        membership.collectionId !== collectionId,
+    );
+    this.collectionSongs = [
+      ...this.collectionSongs,
+      ...orderedSongIds.map((songId, position) => ({
+        bandId,
+        collectionId,
+        position,
+        songId,
+      })),
+    ];
   }
 
   private nextTimestamp() {
@@ -409,65 +347,6 @@ export class InMemoryRepertoireCollectionRepository implements RepertoireCollect
     );
     this.previousTimestampMs = timestamp;
     return new Date(timestamp).toISOString();
-  }
-
-  private assertUniqueName(
-    bandId: EntityId,
-    name: string,
-    exceptCollectionId?: EntityId,
-  ) {
-    const normalizedName = name.toLowerCase();
-    if (
-      this.collections.some(
-        (collection) =>
-          collection.bandId === bandId &&
-          collection.id !== exceptCollectionId &&
-          collection.name.trim().toLowerCase() === normalizedName,
-      )
-    ) {
-      throw this.error('duplicate_name');
-    }
-  }
-
-  private assertUniqueSongIds(songIds: readonly EntityId[]) {
-    if (new Set(songIds).size !== songIds.length) {
-      throw this.error('unavailable_song');
-    }
-  }
-
-  private assertUniqueCollectionIds(collectionIds: readonly EntityId[]) {
-    if (new Set(collectionIds).size !== collectionIds.length) {
-      throw this.error('invalid_input');
-    }
-  }
-
-  private assertSongsAvailable(bandId: EntityId, songIds: readonly EntityId[]) {
-    if (
-      songIds.some(
-        (songId) =>
-          !this.songs.some(
-            (song) => song.bandId === bandId && song.id === songId,
-          ),
-      )
-    ) {
-      throw this.error('unavailable_song');
-    }
-  }
-
-  private error(code: RepertoireCollectionErrorCode) {
-    const messages: Record<RepertoireCollectionErrorCode, string> = {
-      duplicate_name: 'Já existe uma coleção com esse nome nesta banda.',
-      invalid_input: 'A seleção contém itens repetidos.',
-      invalid_name: 'Informe um nome de até 120 caracteres.',
-      not_found: 'A coleção não existe mais nesta banda.',
-      permission_denied: 'Seu papel não permite alterar coleções desta banda.',
-      request_failed: 'Não foi possível atualizar a coleção agora.',
-      stale_revision:
-        'A coleção foi alterada por outra pessoa. Saia da edição e reabra a coleção para conferir a versão atual.',
-      unavailable_song:
-        'Uma ou mais músicas não estão disponíveis neste repertório.',
-    };
-    return new RepertoireCollectionError(code, messages[code]);
   }
 }
 
@@ -480,7 +359,6 @@ export function createInMemoryRepositories(
     repertoireCollections: new InMemoryRepertoireCollectionRepository(
       data.repertoireCollections ?? [],
       data.repertoireCollectionSongs ?? [],
-      data.songs,
       options.createId,
       options.now,
     ),
