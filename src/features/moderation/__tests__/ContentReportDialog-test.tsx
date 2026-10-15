@@ -130,7 +130,7 @@ it('dispensa o teclado ao tocar nas instruções sem perder a descrição', asyn
   );
 });
 
-it('o primeiro toque no fundo dispensa o teclado e o próximo fecha a janela', async () => {
+it('o primeiro toque no fundo dispensa o teclado e o próximo pede confirmação de descarte', async () => {
   const onClose = jest.fn();
   const view = await render(
     <ContentReportDialog
@@ -161,7 +161,8 @@ it('o primeiro toque no fundo dispensa o teclado e o próximo fecha a janela', a
   await fireEvent.press(
     view.getByLabelText('Fechar janela de denúncia tocando fora'),
   );
-  expect(onClose).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+  expect(view.getByTestId('unsaved-changes-prompt')).toBeTruthy();
 });
 
 it('cancelar fecha a janela no primeiro toque com o teclado aberto', async () => {
