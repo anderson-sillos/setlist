@@ -1,10 +1,14 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { demoRepositoryData } from '@/data/demo';
 import { SongLifecycleDialog } from '@/features/repertoire/SongLifecycleDialog';
+import { createSong } from '@/testing/factories';
 
 describe('<SongLifecycleDialog />', () => {
-  const song = demoRepositoryData.songs[0];
+  const song = createSong({
+    bandId: 'band-lifecycle-test',
+    id: 'song-lifecycle-test',
+    title: 'Música em ciclo de vida',
+  });
 
   it('oferece arquivamento e exige confirmação para exclusão', async () => {
     const onArchive = jest.fn();

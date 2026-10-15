@@ -6,7 +6,7 @@ import {
   parseSongEditorValues,
   songToEditorValues,
 } from '@/features/repertoire/songEditorForm';
-import { demoRepositoryData } from '@/data/demo';
+import { createSong } from '@/testing/factories';
 
 describe('formulário de música', () => {
   it('separa e recompõe a duração por horas, minutos e segundos', () => {
@@ -116,13 +116,26 @@ describe('formulário de música', () => {
   });
 
   it('preenche o editor a partir da música selecionada', () => {
-    const song = demoRepositoryData.songs[0];
+    const song = createSong({
+      bandId: 'band-song-editor-form',
+      bpm: 124,
+      estimatedDurationMs: 225_000,
+      id: 'song-song-editor-form',
+      musicalKey: 'D',
+      notes: 'Tocar com dinâmica baixa.',
+      originalArtist: 'Artista de teste',
+      title: 'Canção de teste',
+      youtubeReference: 'https://www.youtube.com/watch?v=abc123',
+    });
 
-    expect(song).toBeDefined();
-    expect(songToEditorValues(song!)).toMatchObject({
-      title: song!.title,
-      duration: expect.any(String),
-      youtubeReference: song!.youtubeReference ?? '',
+    expect(songToEditorValues(song)).toEqual({
+      bpm: '124',
+      duration: '3:45',
+      musicalKey: 'D',
+      notes: 'Tocar com dinâmica baixa.',
+      originalArtist: 'Artista de teste',
+      title: 'Canção de teste',
+      youtubeReference: 'https://www.youtube.com/watch?v=abc123',
     });
   });
 });
