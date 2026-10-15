@@ -1,9 +1,8 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as ExpoCrypto from 'expo-crypto';
+import type { PropsWithChildren } from 'react';
 
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import type { Song } from '@/domain';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import type { AppRepositories, BandRole, Song } from '@/domain';
 import {
   acceptCurrentBandTerm,
   getCurrentBandTermAcceptance,
@@ -14,7 +13,9 @@ import {
   updateSong,
 } from '@/data/supabase/songMutations';
 import { SongEditorScreen } from '@/features/repertoire/SongEditorScreen';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+import { createSong as createSongEntity } from '@/testing/factories';
+import { createBandScenario } from '@/testing/scenarios';
+import { TestAppProviders } from '@/testing/TestAppProviders';
 
 const mockRouter = {
   back: jest.fn(),
@@ -83,35 +84,41 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(),
 }));
 
+const TEST_USER_ID = 'user-live';
+
+function AppProviders({
+  children,
+  repositories,
+}: PropsWithChildren<{ readonly repositories: AppRepositories }>) {
+  return (
+    <TestAppProviders currentUserId={TEST_USER_ID} repositories={repositories}>
+      {children}
+    </TestAppProviders>
+  );
+}
+
 function createRepositories(
-  role: 'owner' | 'editor' | 'member' = 'owner',
+  role: BandRole = 'owner',
   songOverrides: Partial<Song> = {},
 ) {
   const bandId = 'band-live';
-  const band = { ...demoRepositoryData.bands[0], id: bandId };
-  const membership = {
-    ...demoRepositoryData.bandMembers[0],
-    bandId,
-    id: 'member-live',
-    role,
-    userId: demoIds.currentUser,
-  };
-  const song = {
-    ...demoRepositoryData.songs[0],
+  const song = createSongEntity({
     ...songOverrides,
     bandId,
     id: 'song-live',
     originalArtist: 'Artista do repertório',
-  };
+  });
+  const scenario = createBandScenario({
+    bandId,
+    role,
+    songs: [song],
+    userId: TEST_USER_ID,
+  });
 
   return {
     bandId,
-    repositories: createInMemoryRepositories({
-      bands: [band],
-      bandMembers: [membership],
-      shows: [],
-      songs: [song],
-    }),
+    repositories: scenario.repositories,
+    song,
     songId: song.id,
   };
 }
@@ -206,7 +213,7 @@ describe('<SongEditorScreen />', () => {
   });
 
   it('edita metadados existentes para Editor sem sobrescrever a letra', async () => {
-    const { bandId, repositories, songId } = createRepositories('editor');
+    const { bandId, repositories, song, songId } = createRepositories('editor');
     mockUpdateSong.mockResolvedValue(undefined);
     const view = await render(
       <AppProviders repositories={repositories}>
@@ -215,14 +222,14 @@ describe('<SongEditorScreen />', () => {
     );
 
     const title = await view.findByLabelText('Título da música *');
-    expect(title.props.value).toBe(demoRepositoryData.songs[0].title);
+    expect(title.props.value).toBe(song.title);
     await fireEvent.changeText(title, 'Título atualizado');
     await fireEvent.press(view.getByText('Salvar música'));
 
     await waitFor(() =>
       expect(mockUpdateSong).toHaveBeenCalledWith({
         bandId,
-        lyrics: demoRepositoryData.songs[0]!.lyrics,
+        lyrics: song.lyrics,
         songId,
         song: expect.objectContaining({ title: 'Título atualizado' }),
       }),
