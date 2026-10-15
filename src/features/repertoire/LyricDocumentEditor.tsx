@@ -4,6 +4,7 @@ import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import type { LyricDocument } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { lyricDocumentToText, parseLyricText } from './lyricEditorText';
 
@@ -37,50 +38,56 @@ export function LyricDocumentEditor({
 
   return (
     <View style={styles.editor} testID="lyric-document-editor">
-      <View style={styles.sectionHeading}>
-        <AppText accessibilityRole="header" variant="heading">
-          Letra
-        </AppText>
-        <AppText tone="muted">Cole ou digite a letra completa abaixo.</AppText>
-      </View>
+      <KeyboardDismissRegion>
+        <View style={styles.sectionHeading}>
+          <AppText accessibilityRole="header" variant="heading">
+            Letra
+          </AppText>
+          <AppText tone="muted">
+            Cole ou digite a letra completa abaixo.
+          </AppText>
+        </View>
+      </KeyboardDismissRegion>
 
-      <View style={styles.guide}>
-        <AppText style={styles.guideTitle} variant="caption">
-          Formato rápido
-        </AppText>
-        <View style={styles.guideRow}>
-          <AppText style={styles.marker} variant="caption">
-            # Refrão
+      <KeyboardDismissRegion>
+        <View style={styles.guide}>
+          <AppText style={styles.guideTitle} variant="caption">
+            Formato rápido
           </AppText>
-          <AppText tone="muted" variant="caption">
-            cria um novo bloco da música
-          </AppText>
+          <View style={styles.guideRow}>
+            <AppText style={styles.marker} variant="caption">
+              # Refrão
+            </AppText>
+            <AppText tone="muted" variant="caption">
+              cria um novo bloco da música
+            </AppText>
+          </View>
+          <View style={styles.guideRow}>
+            <AppText style={styles.marker} variant="caption">
+              ---
+            </AppText>
+            <AppText tone="muted" variant="caption">
+              mantém uma linha em branco
+            </AppText>
+          </View>
+          <View style={styles.guideRow}>
+            <AppText style={styles.marker} variant="caption">
+              **Texto**
+            </AppText>
+            <AppText tone="muted" variant="caption">
+              destaca a linha em negrito
+            </AppText>
+          </View>
+          <View style={styles.guideRow}>
+            <AppText style={styles.marker} variant="caption">
+              ***
+            </AppText>
+            <AppText tone="muted" variant="caption">
+              insere uma linha de separação
+            </AppText>
+          </View>
         </View>
-        <View style={styles.guideRow}>
-          <AppText style={styles.marker} variant="caption">
-            ---
-          </AppText>
-          <AppText tone="muted" variant="caption">
-            mantém uma linha em branco
-          </AppText>
-        </View>
-        <View style={styles.guideRow}>
-          <AppText style={styles.marker} variant="caption">
-            **Texto**
-          </AppText>
-          <AppText tone="muted" variant="caption">
-            destaca a linha em negrito
-          </AppText>
-        </View>
-        <View style={styles.guideRow}>
-          <AppText style={styles.marker} variant="caption">
-            ***
-          </AppText>
-          <AppText tone="muted" variant="caption">
-            insere uma linha de separação
-          </AppText>
-        </View>
-      </View>
+      </KeyboardDismissRegion>
 
       <View style={styles.inputFrame}>
         <TextInput
@@ -98,12 +105,14 @@ export function LyricDocumentEditor({
           testID="lyric-full-text"
           value={draftText}
         />
-        <View style={styles.inputHint}>
-          <AppIcon color={colors.text.secondary} name="music" size={16} />
-          <AppText tone="muted" variant="caption">
-            Os marcadores são removidos na apresentação da letra.
-          </AppText>
-        </View>
+        <KeyboardDismissRegion>
+          <View style={styles.inputHint}>
+            <AppIcon color={colors.text.secondary} name="music" size={16} />
+            <AppText tone="muted" variant="caption">
+              Os marcadores são removidos na apresentação da letra.
+            </AppText>
+          </View>
+        </KeyboardDismissRegion>
       </View>
     </View>
   );

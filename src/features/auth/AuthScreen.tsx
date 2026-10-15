@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppLogo } from '@/components/ui/AppLogo';
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: spacing.md,
-    maxWidth: Platform.OS === 'web' ? 460 : undefined,
+    maxWidth: 460,
     marginBottom: spacing.lg,
     width: '100%',
   },

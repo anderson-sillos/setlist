@@ -2,6 +2,7 @@ import { useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState, type PropsWithChildren } from 'react';
 
+import { logAuthGateState } from '@/config/runtimeDiagnostics';
 import { AuthLoadingScreen } from '@/features/auth/AuthLoadingScreen';
 import { AuthScreen } from '@/features/auth/AuthScreen';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -21,6 +22,10 @@ export function AuthGate({ children }: PropsWithChildren) {
   const [authGatePreviewTimerElapsed, setAuthGatePreviewTimerElapsed] =
     useState(false);
   const authGatePreviewStarted = useRef(false);
+
+  useEffect(() => {
+    logAuthGateState(status, publicRoute);
+  }, [publicRoute, status]);
 
   useEffect(() => {
     if (splashMs === 0) {

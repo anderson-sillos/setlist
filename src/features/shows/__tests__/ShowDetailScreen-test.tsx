@@ -8,7 +8,7 @@ import {
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { ShowDetailScreen } from '@/features/shows/ShowDetailScreen';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 const mockReplace = jest.fn();
 
 const mockPush = jest.fn();

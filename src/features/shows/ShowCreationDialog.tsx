@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,6 +16,7 @@ import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import type { Show } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import {
   UnsavedChangesPrompt,
   type UnsavedChangesPromptProps,
@@ -165,7 +167,10 @@ export function ShowCreationDialog({
           accessibilityLabel="Fechar janela de show tocando fora"
           accessibilityRole="button"
           disabled={isSubmitting}
-          onPress={requestClose}
+          onPress={() => {
+            if (Keyboard.isVisible()) Keyboard.dismiss();
+            else requestClose();
+          }}
           style={styles.scrim}
         />
         <View
@@ -173,27 +178,36 @@ export function ShowCreationDialog({
           style={styles.dialog}
           testID="show-creation-dialog"
         >
-          <View style={styles.header}>
-            <AppText accessibilityRole="header" variant="heading">
-              {title}
-            </AppText>
-            <Pressable
-              accessibilityLabel="Fechar janela de show"
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              hitSlop={spacing.sm}
-              onPress={requestClose}
-              style={styles.closeButton}
-            >
-              <AppIcon color={colors.text.secondary} name="close" size={20} />
-            </Pressable>
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.header}>
+              <AppText accessibilityRole="header" variant="heading">
+                {title}
+              </AppText>
+              <Pressable
+                accessibilityLabel="Fechar janela de show"
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                hitSlop={spacing.sm}
+                onPress={requestClose}
+                style={styles.closeButton}
+              >
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
+              </Pressable>
+            </View>
+          </KeyboardDismissRegion>
           <ScrollView
             contentContainerStyle={styles.formContent}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
             keyboardShouldPersistTaps="handled"
             style={styles.formScroll}
           >
-            <AppText tone="muted">{description}</AppText>
+            <KeyboardDismissRegion>
+              <View>
+                <AppText tone="muted">{description}</AppText>
+              </View>
+            </KeyboardDismissRegion>
             <Field
               label="Nome do show"
               accessibilityLabel="Nome do show"
@@ -203,12 +217,19 @@ export function ShowCreationDialog({
             />
             <View style={styles.row}>
               <View style={[styles.fieldGroup, styles.halfField]}>
-                <AppText variant="caption">Data</AppText>
+                <KeyboardDismissRegion>
+                  <View>
+                    <AppText variant="caption">Data</AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <Pressable
                   accessibilityLabel="Selecionar data do show"
                   accessibilityRole="button"
                   disabled={isSubmitting}
-                  onPress={() => setCalendarVisible(true)}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setCalendarVisible(true);
+                  }}
                   style={({ pressed }) => [
                     styles.dateButton,
                     pressed && styles.pressed,
@@ -225,7 +246,11 @@ export function ShowCreationDialog({
                 </Pressable>
               </View>
               <View style={[styles.fieldGroup, styles.halfField]}>
-                <AppText variant="caption">Horário</AppText>
+                <KeyboardDismissRegion>
+                  <View>
+                    <AppText variant="caption">Horário</AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <View style={styles.timeRow}>
                   <SpinButton
                     accessibilityLabel="Hora do show"
@@ -291,21 +316,23 @@ export function ShowCreationDialog({
             />
           </OptionSheet>
           <UnsavedChangesPrompt {...discardPrompt} />
-          <View style={styles.actions}>
-            <AppButton
-              disabled={isSubmitting}
-              label="Cancelar"
-              onPress={requestClose}
-              variant="secondary"
-            />
-            <AppButton
-              accessibilityLabel="Confirmar criação do show"
-              disabled={!canSubmit}
-              icon="check"
-              label={isSubmitting ? 'Salvando…' : submitLabel}
-              onPress={() => onSubmit(form)}
-            />
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.actions}>
+              <AppButton
+                disabled={isSubmitting}
+                label="Cancelar"
+                onPress={requestClose}
+                variant="secondary"
+              />
+              <AppButton
+                accessibilityLabel="Confirmar criação do show"
+                disabled={!canSubmit}
+                icon="check"
+                label={isSubmitting ? 'Salvando…' : submitLabel}
+                onPress={() => onSubmit(form)}
+              />
+            </View>
+          </KeyboardDismissRegion>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -333,7 +360,11 @@ function Field({
 }) {
   return (
     <View style={[styles.fieldGroup, containerStyle]}>
-      <AppText variant="caption">{label}</AppText>
+      <KeyboardDismissRegion>
+        <View>
+          <AppText variant="caption">{label}</AppText>
+        </View>
+      </KeyboardDismissRegion>
       <TextInput
         accessibilityLabel={accessibilityLabel}
         keyboardType={keyboardType}

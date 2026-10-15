@@ -1,5 +1,4 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
-import { State } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 
 import { demoRepositoryData } from '@/data/demo';
@@ -11,23 +10,60 @@ jest.mock('react-native-gesture-handler', () => {
   const gestureHandler = jest.requireActual<
     typeof import('react-native-gesture-handler')
   >('react-native-gesture-handler');
+  const createPanGesture = () => {
+    const gesture = {
+      callbacks: {} as Record<string, (...args: never[]) => void>,
+      hitSlop: () => gesture,
+      onEnd: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onEnd = callback;
+        return gesture;
+      },
+      onFinalize: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onFinalize = callback;
+        return gesture;
+      },
+      onStart: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onStart = callback;
+        return gesture;
+      },
+      onUpdate: (callback: (...args: never[]) => void) => {
+        gesture.callbacks.onUpdate = callback;
+        return gesture;
+      },
+      activeOffsetY: () => gesture,
+      enabled: () => gesture,
+      runOnJS: () => gesture,
+      shouldCancelWhenOutside: () => gesture,
+      testID: '',
+      withTestId: (testID: string) => {
+        gesture.testID = testID;
+        return gesture;
+      },
+    };
+    return gesture;
+  };
 
   return {
     ...gestureHandler,
-    GestureHandlerRootView: ({
+    Gesture: { Pan: createPanGesture },
+    GestureDetector: ({
       children,
-      ...props
+      gesture,
     }: {
       readonly children?: import('react').ReactNode;
-      readonly [key: string]: unknown;
-    }) => React.createElement('GestureHandlerRootViewMock', props, children),
-    PanGestureHandler: ({
-      children,
-      ...props
-    }: {
-      readonly children?: import('react').ReactNode;
-      readonly [key: string]: unknown;
-    }) => React.createElement('PanGestureHandlerMock', props, children),
+      readonly gesture: ReturnType<typeof createPanGesture>;
+    }) =>
+      React.createElement(
+        'GestureDetectorMock',
+        {
+          onEnd: gesture.callbacks.onEnd,
+          onFinalize: gesture.callbacks.onFinalize,
+          onStart: gesture.callbacks.onStart,
+          onUpdate: gesture.callbacks.onUpdate,
+          testID: gesture.testID,
+        },
+        children,
+      ),
   };
 });
 
@@ -44,7 +80,6 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={onClose}
         onSubmit={jest.fn()}
         songs={[]}
-        visible
       />,
     );
 
@@ -75,7 +110,6 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={jest.fn()}
         songs={[]}
-        visible
       />,
     );
 
@@ -116,7 +150,6 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={jest.fn()}
         songs={[song]}
-        visible
       />,
     );
 
@@ -147,15 +180,12 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={jest.fn()}
         songs={[]}
-        visible
       />,
     );
 
     const handle = view.getByTestId('gesture-block-drag-handle-block-2');
     await act(async () => {
-      handle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
-      });
+      handle.props.onStart({});
     });
 
     expect(
@@ -163,9 +193,7 @@ describe('<ShowBlockEditorDialog />', () => {
         .borderWidth,
     ).toBe(2);
     await act(async () => {
-      handle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.ACTIVE, state: State.END },
-      });
+      handle.props.onEnd({}, true);
     });
   });
 
@@ -194,7 +222,6 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={jest.fn()}
         songs={[song]}
-        visible
       />,
     );
 
@@ -241,7 +268,6 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={onSubmit}
         songs={[]}
-        visible
       />,
     );
 
@@ -315,33 +341,26 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={onSubmit}
         songs={[]}
-        visible
       />,
     );
     const initialHandle = view.getByTestId('gesture-block-drag-handle-block-1');
 
     await act(async () => {
-      initialHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
-      });
+      initialHandle.props.onStart({});
     });
 
     expect(view.getByTestId('setlist-drag-preview')).toBeTruthy();
     const activeHandle = view.getByTestId('gesture-block-drag-handle-block-1');
 
     await act(async () => {
-      activeHandle.props.onGestureEvent({
-        nativeEvent: { state: State.ACTIVE, translationY: 400 },
-      });
+      activeHandle.props.onUpdate({ translationY: 400 });
     });
 
     const preview = view.getByTestId('setlist-drag-preview');
     expect(StyleSheet.flatten(preview.props.style).top).toBe(400);
 
     await act(async () => {
-      activeHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.ACTIVE, state: State.END },
-      });
+      activeHandle.props.onEnd({}, true);
     });
 
     expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
@@ -378,24 +397,19 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={jest.fn()}
         songs={[song]}
-        visible
       />,
     );
     const initialHandle = view.getByTestId('gesture-item-drag-handle-item-1');
 
     await act(async () => {
-      initialHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
-      });
+      initialHandle.props.onStart({});
     });
 
     expect(view.getByTestId('setlist-drag-preview')).toBeTruthy();
     const activeHandle = view.getByTestId('gesture-item-drag-handle-item-1');
 
     await act(async () => {
-      activeHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.ACTIVE, state: State.CANCELLED },
-      });
+      activeHandle.props.onFinalize({}, false);
     });
 
     expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
@@ -423,22 +437,17 @@ describe('<ShowBlockEditorDialog />', () => {
         onClose={jest.fn()}
         onSubmit={onSubmit}
         songs={[song]}
-        visible
       />,
     );
     const initialHandle = view.getByTestId('gesture-item-drag-handle-item-1');
 
     await act(async () => {
-      initialHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
-      });
+      initialHandle.props.onStart({});
     });
 
     const activeHandle = view.getByTestId('gesture-item-drag-handle-item-1');
     await act(async () => {
-      activeHandle.props.onGestureEvent({
-        nativeEvent: { state: State.ACTIVE, translationY: 120 },
-      });
+      activeHandle.props.onUpdate({ translationY: 120 });
     });
 
     expect(
@@ -447,9 +456,7 @@ describe('<ShowBlockEditorDialog />', () => {
     ).toBe(120);
 
     await act(async () => {
-      activeHandle.props.onHandlerStateChange({
-        nativeEvent: { oldState: State.ACTIVE, state: State.END },
-      });
+      activeHandle.props.onEnd({}, true);
     });
 
     expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
@@ -503,7 +510,6 @@ describe('<ShowBlockEditorDialog />', () => {
           onClose={jest.fn()}
           onSubmit={onSubmit}
           songs={[song]}
-          visible
         />,
       );
       const scrollView = view.getByTestId('setlist-scroll-view');
@@ -516,16 +522,12 @@ describe('<ShowBlockEditorDialog />', () => {
 
       const initialHandle = view.getByTestId('gesture-item-drag-handle-item-1');
       await act(async () => {
-        initialHandle.props.onHandlerStateChange({
-          nativeEvent: { oldState: State.BEGAN, state: State.ACTIVE },
-        });
+        initialHandle.props.onStart({});
       });
 
       const activeHandle = view.getByTestId('gesture-item-drag-handle-item-1');
       await act(async () => {
-        activeHandle.props.onGestureEvent({
-          nativeEvent: { state: State.ACTIVE, translationY: 200 },
-        });
+        activeHandle.props.onUpdate({ translationY: 200 });
       });
       expect(requestFrame).toHaveBeenCalled();
 
@@ -538,9 +540,7 @@ describe('<ShowBlockEditorDialog />', () => {
       }
 
       await act(async () => {
-        activeHandle.props.onHandlerStateChange({
-          nativeEvent: { oldState: State.ACTIVE, state: State.END },
-        });
+        activeHandle.props.onEnd({}, true);
       });
       expect(view.queryByTestId('setlist-drag-preview')).toBeNull();
       await fireEvent.press(view.getByLabelText('Salvar setlist'));

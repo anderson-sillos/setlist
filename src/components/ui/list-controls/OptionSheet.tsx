@@ -1,7 +1,10 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
   Pressable,
+  Platform,
   StyleSheet,
   View,
   type StyleProp,
@@ -136,6 +139,14 @@ export function OptionSheet({
   visible,
 }: OptionSheetProps) {
   const reducedMotion = useReducedMotionPreference();
+  const handleBackdropPress = () => {
+    blurWebFocus();
+    if (Platform.OS !== 'web' && Keyboard.isVisible()) {
+      Keyboard.dismiss();
+      return;
+    }
+    onClose();
+  };
   const handleClose = () => {
     blurWebFocus();
     onClose();
@@ -149,49 +160,55 @@ export function OptionSheet({
       transparent
       visible={visible}
     >
-      <View accessibilityViewIsModal style={styles.modalLayer}>
-        <Pressable
-          accessibilityLabel={
-            showCloseButton
-              ? `${closeAccessibilityLabel} tocando fora`
-              : closeAccessibilityLabel
-          }
-          accessibilityRole="button"
-          onPress={handleClose}
-          style={styles.modalScrim}
-        />
-        <View style={[styles.sheet, sheetStyle]} testID={testID}>
-          {showCloseButton ? (
-            <View style={styles.header}>
-              <AppText
-                accessibilityRole="header"
-                numberOfLines={1}
-                style={styles.headerLabel}
-                variant="heading"
-              >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        enabled={Platform.OS !== 'web'}
+        style={styles.keyboardAvoidingView}
+      >
+        <View accessibilityViewIsModal style={styles.modalLayer}>
+          <Pressable
+            accessibilityLabel={
+              showCloseButton
+                ? `${closeAccessibilityLabel} tocando fora`
+                : closeAccessibilityLabel
+            }
+            accessibilityRole="button"
+            onPress={handleBackdropPress}
+            style={styles.modalScrim}
+          />
+          <View style={[styles.sheet, sheetStyle]} testID={testID}>
+            {showCloseButton ? (
+              <View style={styles.header}>
+                <AppText
+                  accessibilityRole="header"
+                  numberOfLines={1}
+                  style={styles.headerLabel}
+                  variant="heading"
+                >
+                  {label}
+                </AppText>
+                <Pressable
+                  accessibilityLabel={closeAccessibilityLabel}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={handleClose}
+                  style={({ pressed }) => [
+                    styles.closeButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon color={colors.text.primary} name="close" size={20} />
+                </Pressable>
+              </View>
+            ) : (
+              <AppText accessibilityRole="header" variant="heading">
                 {label}
               </AppText>
-              <Pressable
-                accessibilityLabel={closeAccessibilityLabel}
-                accessibilityRole="button"
-                hitSlop={8}
-                onPress={handleClose}
-                style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppIcon color={colors.text.primary} name="close" size={20} />
-              </Pressable>
-            </View>
-          ) : (
-            <AppText accessibilityRole="header" variant="heading">
-              {label}
-            </AppText>
-          )}
-          {children}
+            )}
+            {children}
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -242,6 +259,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: spacing.xl,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   modalScrim: {
     backgroundColor: colors.background.overlay,

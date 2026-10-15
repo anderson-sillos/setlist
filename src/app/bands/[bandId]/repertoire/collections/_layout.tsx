@@ -19,10 +19,6 @@ export default function RepertoireCollectionsLayout() {
           presentation: 'transparentModal',
         }}
       />
-      <Stack.Screen
-        name="[collectionId]"
-        options={{ animationTypeForReplace: 'pop' }}
-      />
     </Stack>
   );
 }

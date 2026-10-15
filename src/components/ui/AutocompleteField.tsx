@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { normalizeForSearch } from '@/utils/text';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
@@ -106,7 +107,11 @@ export function AutocompleteField({
         Platform.OS === 'web' && focused && styles.fieldFocused,
       ]}
     >
-      <AppText variant="caption">{label}</AppText>
+      <KeyboardDismissRegion>
+        <View>
+          <AppText variant="caption">{label}</AppText>
+        </View>
+      </KeyboardDismissRegion>
       <TextInput
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={

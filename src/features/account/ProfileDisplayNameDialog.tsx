@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,6 +14,8 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
+import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
@@ -35,6 +38,7 @@ export function ProfileDisplayNameDialog({
 }: ProfileDisplayNameDialogProps) {
   const reducedMotion = useReducedMotionPreference();
   const [draftName, setDraftName] = useState(initialName);
+  const [discardPromptVisible, setDiscardPromptVisible] = useState(false);
 
   if (!visible) {
     return null;
@@ -43,11 +47,24 @@ export function ProfileDisplayNameDialog({
   const normalizedName = draftName.trim();
   const normalizedLength = Array.from(normalizedName).length;
   const canSave = normalizedLength > 0 && normalizedLength <= 120;
+  const hasUnsavedChanges = normalizedName !== initialName.trim();
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+
+    Keyboard.dismiss();
+    if (hasUnsavedChanges) {
+      setDiscardPromptVisible(true);
+      return;
+    }
+
+    onClose();
+  };
 
   return (
     <Modal
       animationType={reducedMotion ? 'none' : 'fade'}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       transparent
       visible
     >
@@ -62,7 +79,10 @@ export function ProfileDisplayNameDialog({
             accessibilityLabel="Fechar edição do nome"
             accessibilityRole="button"
             disabled={isSubmitting}
-            onPress={onClose}
+            onPress={() => {
+              if (Keyboard.isVisible()) Keyboard.dismiss();
+              else handleClose();
+            }}
             style={styles.scrim}
           />
           <View
@@ -70,36 +90,53 @@ export function ProfileDisplayNameDialog({
             style={styles.dialog}
             testID="profile-display-name-dialog"
           >
-            <View style={styles.header}>
-              <AppText accessibilityRole="header" variant="heading">
-                Editar nome de exibição
-              </AppText>
-              <Pressable
-                accessibilityLabel="Fechar edição do nome"
-                accessibilityRole="button"
-                disabled={isSubmitting}
-                hitSlop={spacing.sm}
-                onPress={onClose}
-                style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppIcon color={colors.text.secondary} name="close" size={20} />
-              </Pressable>
-            </View>
+            <KeyboardDismissRegion>
+              <View style={styles.header}>
+                <AppText accessibilityRole="header" variant="heading">
+                  Editar nome de exibição
+                </AppText>
+                <Pressable
+                  accessibilityLabel="Fechar edição do nome"
+                  accessibilityRole="button"
+                  disabled={isSubmitting}
+                  hitSlop={spacing.sm}
+                  onPress={handleClose}
+                  style={({ pressed }) => [
+                    styles.closeButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="close"
+                    size={20}
+                  />
+                </Pressable>
+              </View>
+            </KeyboardDismissRegion>
 
             <ScrollView
               contentContainerStyle={styles.content}
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
               keyboardShouldPersistTaps="handled"
               style={styles.formScroll}
             >
-              <AppText tone="muted">
-                Esse é o nome que aparece para você e para os integrantes das
-                suas bandas.
-              </AppText>
+              <KeyboardDismissRegion>
+                <View>
+                  <AppText tone="muted">
+                    Esse é o nome que aparece para você e para os integrantes
+                    das suas bandas.
+                  </AppText>
+                </View>
+              </KeyboardDismissRegion>
               <View style={styles.fieldGroup}>
-                <AppText variant="caption">Nome</AppText>
+                <KeyboardDismissRegion>
+                  <View>
+                    <AppText variant="caption">Nome</AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <TextInput
                   accessibilityLabel="Nome de exibição"
                   autoCapitalize="words"
@@ -123,26 +160,36 @@ export function ProfileDisplayNameDialog({
               ) : null}
             </ScrollView>
 
-            <View style={styles.actions}>
-              <AppButton
-                disabled={isSubmitting}
-                label="Cancelar"
-                onPress={onClose}
-                style={styles.actionButton}
-                variant="secondary"
-              />
-              <AppButton
-                accessibilityLabel="Salvar nome de exibição"
-                disabled={!canSave || isSubmitting}
-                icon="check"
-                label={isSubmitting ? 'Salvando…' : 'Salvar'}
-                onPress={() => onSave(normalizedName)}
-                style={styles.actionButton}
-              />
-            </View>
+            <KeyboardDismissRegion>
+              <View style={styles.actions}>
+                <AppButton
+                  disabled={isSubmitting}
+                  label="Cancelar"
+                  onPress={handleClose}
+                  style={styles.actionButton}
+                  variant="secondary"
+                />
+                <AppButton
+                  accessibilityLabel="Salvar nome de exibição"
+                  disabled={!canSave || isSubmitting}
+                  icon="check"
+                  label={isSubmitting ? 'Salvando…' : 'Salvar'}
+                  onPress={() => onSave(normalizedName)}
+                  style={styles.actionButton}
+                />
+              </View>
+            </KeyboardDismissRegion>
           </View>
         </View>
       </KeyboardAvoidingView>
+      <UnsavedChangesPrompt
+        onContinue={() => setDiscardPromptVisible(false)}
+        onDiscard={() => {
+          setDiscardPromptVisible(false);
+          onClose();
+        }}
+        visible={discardPromptVisible}
+      />
     </Modal>
   );
 }
@@ -169,7 +216,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: spacing.md,
     maxHeight: '85%',
-    maxWidth: layout.contentMaxWidth,
+    maxWidth: 520,
     padding: spacing.lg,
     width: '100%',
   },

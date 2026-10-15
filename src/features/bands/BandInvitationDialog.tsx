@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -14,6 +15,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import type { BandInvitation } from '@/domain';
 import type { CreatedInvitation } from '@/data/supabase/invitationMutations';
 import { formatDateOnly } from '@/utils/dateTime';
@@ -81,6 +83,7 @@ export function BandInvitationDialog({
   }
 
   async function handleCreate() {
+    Keyboard.dismiss();
     const created = await onCreate(label);
 
     if (created) {
@@ -156,7 +159,10 @@ export function BandInvitationDialog({
             accessibilityLabel="Fechar convites tocando fora"
             accessibilityRole="button"
             disabled={isSubmitting}
-            onPress={handleClose}
+            onPress={() => {
+              if (Keyboard.isVisible()) Keyboard.dismiss();
+              else handleClose();
+            }}
             style={styles.scrim}
           />
           <View
@@ -164,36 +170,53 @@ export function BandInvitationDialog({
             style={styles.dialog}
             testID="band-invitation-dialog"
           >
-            <View style={styles.header}>
-              <AppText accessibilityRole="header" variant="heading">
-                Convites da banda
-              </AppText>
-              <Pressable
-                accessibilityLabel="Fechar janela de convites"
-                accessibilityRole="button"
-                disabled={isSubmitting}
-                hitSlop={spacing.sm}
-                onPress={handleClose}
-                style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppIcon color={colors.text.secondary} name="close" size={20} />
-              </Pressable>
-            </View>
+            <KeyboardDismissRegion>
+              <View style={styles.header}>
+                <AppText accessibilityRole="header" variant="heading">
+                  Convites da banda
+                </AppText>
+                <Pressable
+                  accessibilityLabel="Fechar janela de convites"
+                  accessibilityRole="button"
+                  disabled={isSubmitting}
+                  hitSlop={spacing.sm}
+                  onPress={handleClose}
+                  style={({ pressed }) => [
+                    styles.closeButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon
+                    color={colors.text.secondary}
+                    name="close"
+                    size={20}
+                  />
+                </Pressable>
+              </View>
+            </KeyboardDismissRegion>
 
             <ScrollView
               contentContainerStyle={styles.formContent}
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
               keyboardShouldPersistTaps="handled"
               style={styles.formScroll}
             >
-              <AppText tone="muted">
-                Crie links de uso único. O rótulo ajuda a organizar os convites,
-                mas não limita quem pode entrar.
-              </AppText>
+              <KeyboardDismissRegion>
+                <View>
+                  <AppText tone="muted">
+                    Crie links de uso único. O rótulo ajuda a organizar os
+                    convites, mas não limita quem pode entrar.
+                  </AppText>
+                </View>
+              </KeyboardDismissRegion>
               <View style={styles.fieldGroup}>
-                <AppText variant="caption">Rótulo (opcional)</AppText>
+                <KeyboardDismissRegion>
+                  <View>
+                    <AppText variant="caption">Rótulo (opcional)</AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <TextInput
                   accessibilityLabel="Rótulo do convite"
                   maxLength={120}
@@ -265,13 +288,15 @@ export function BandInvitationDialog({
               ) : null}
             </ScrollView>
 
-            <View style={styles.actions}>
-              <AppButton
-                label="Fechar"
-                onPress={handleClose}
-                variant="secondary"
-              />
-            </View>
+            <KeyboardDismissRegion>
+              <View style={styles.actions}>
+                <AppButton
+                  label="Fechar"
+                  onPress={handleClose}
+                  variant="secondary"
+                />
+              </View>
+            </KeyboardDismissRegion>
           </View>
         </KeyboardAvoidingView>
       </Modal>

@@ -10,6 +10,7 @@ import {
 import { AppState, Platform, type AppStateStatus } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 
+import { logSignedOutAuthEvent } from '@/config/runtimeDiagnostics';
 import { getSupabaseClient } from '@/data/supabase/client';
 
 export type AuthSessionStatus =
@@ -81,8 +82,11 @@ export function AuthSessionProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let active = true;
     const client = getSupabaseClient();
-    const { data } = client.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = client.auth.onAuthStateChange((event, nextSession) => {
       if (active) {
+        if (event === 'SIGNED_OUT') {
+          logSignedOutAuthEvent();
+        }
         updateSession(nextSession);
       }
     });

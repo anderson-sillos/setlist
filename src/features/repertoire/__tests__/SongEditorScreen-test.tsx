@@ -14,7 +14,7 @@ import {
   updateSong,
 } from '@/data/supabase/songMutations';
 import { SongEditorScreen } from '@/features/repertoire/SongEditorScreen';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 const mockRouter = {
   back: jest.fn(),

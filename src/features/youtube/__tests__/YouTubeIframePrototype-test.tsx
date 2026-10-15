@@ -7,7 +7,7 @@ import {
   type YouTubePlayer,
   type YouTubePlayerOptions,
 } from '@/features/youtube/youtubePlayer';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 let mockWebViewProps:
   { readonly mediaPlaybackRequiresUserAction?: boolean } | undefined;

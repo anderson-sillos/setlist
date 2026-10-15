@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  KeyboardAvoidingView,
-  Modal,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -11,17 +17,12 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import {
-  GestureHandlerRootView,
-  PanGestureHandler,
-  State,
-  type PanGestureHandlerGestureEvent,
-  type PanGestureHandlerStateChangeEvent,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { SpinButton } from '@/components/ui/SpinButton';
@@ -31,7 +32,6 @@ import { moveSetlistItem } from '@/domain';
 import type { EntityId, ShowSetlistItem, Song } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
-import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
 import { toRomanNumeral } from '@/utils/romanNumerals';
 
@@ -71,7 +71,6 @@ interface ShowBlockEditorDialogProps {
   readonly addSheetVisible: boolean;
   readonly collections?: readonly RepertoireCollectionSummary[];
   readonly errorMessage: string | null;
-  readonly fullScreen?: boolean;
   readonly initialBlocks: readonly ShowBlockDraft[];
   readonly isSubmitting: boolean;
   readonly onAddSheetVisibilityChange: (visible: boolean) => void;
@@ -82,7 +81,6 @@ interface ShowBlockEditorDialogProps {
   ) => Promise<CollectionPreviewValidationResult>;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
   readonly songs: readonly Song[];
-  readonly visible: boolean;
 }
 
 interface BlockLayout {
@@ -188,7 +186,6 @@ export function ShowBlockEditorDialog({
   addSheetVisible,
   collections = [],
   errorMessage,
-  fullScreen = false,
   initialBlocks,
   isSubmitting,
   onAddSheetVisibilityChange,
@@ -197,19 +194,21 @@ export function ShowBlockEditorDialog({
   onValidateCollection,
   onSubmit,
   songs,
-  visible,
 }: ShowBlockEditorDialogProps) {
-  const reducedMotion = useReducedMotionPreference();
   const [blocks, setBlocks] = useState<ShowBlockDraft[]>(() =>
     cloneBlocks(initialBlocks),
   );
+  const [keyboardScrollPadding, setKeyboardScrollPadding] = useState(0);
   const blocksRef = useRef<ShowBlockDraft[]>(cloneBlocks(initialBlocks));
   const blockLayoutsRef = useRef(new Map<EntityId, BlockLayout>());
   const itemLayoutsRef = useRef(new Map<EntityId, ItemLayout>());
   const itemDragSessionRef = useRef<ItemDragSession | null>(null);
   const blockDragSessionRef = useRef<BlockDragSession | null>(null);
   const collectionConfirmationLockRef = useRef(false);
+  const editorBodyRef = useRef<View | null>(null);
   const scrollViewRef = useRef<ScrollView | null>(null);
+  const focusedInputRef = useRef<TextInput | null>(null);
+  const keyboardTopYRef = useRef<number | null>(null);
   const scrollFrameYRef = useRef(0);
   const scrollOffsetYRef = useRef(0);
   const scrollViewportHeightRef = useRef(0);
@@ -217,6 +216,76 @@ export function ShowBlockEditorDialog({
   const autoScrollVelocityRef = useRef(0);
   const autoScrollFrameRef = useRef<number | null>(null);
   const autoScrollTimestampRef = useRef<number | null>(null);
+  const refreshKeyboardScrollPadding = useCallback(() => {
+    const keyboardTop = keyboardTopYRef.current;
+    if (keyboardTop === null) {
+      setKeyboardScrollPadding(0);
+      return;
+    }
+
+    editorBodyRef.current?.measureInWindow((_bodyX, bodyY) => {
+      const scrollBottom =
+        bodyY + scrollFrameYRef.current + scrollViewportHeightRef.current;
+      const nextPadding = Math.max(
+        0,
+        Math.ceil(scrollBottom - keyboardTop + spacing.md),
+      );
+      setKeyboardScrollPadding((current) =>
+        current === nextPadding ? current : nextPadding,
+      );
+    });
+  }, []);
+  const keepFocusedInputVisible = useCallback((input: TextInput | null) => {
+    focusedInputRef.current = input;
+    const keyboardTop = keyboardTopYRef.current;
+    const scrollView = scrollViewRef.current;
+    if (!input || keyboardTop === null || !scrollView) return;
+
+    requestAnimationFrame(() => {
+      editorBodyRef.current?.measureInWindow((_bodyX, bodyY) => {
+        input.measureInWindow((_inputX, inputY, _inputWidth, inputHeight) => {
+          const scrollY = bodyY + scrollFrameYRef.current;
+          const height = scrollViewportHeightRef.current;
+          const visibleTop = scrollY + spacing.md;
+          const visibleBottom = Math.min(
+            scrollY + height,
+            keyboardTop - spacing.md,
+          );
+          const inputBottom = inputY + inputHeight;
+          const delta =
+            inputY < visibleTop
+              ? inputY - visibleTop
+              : inputBottom > visibleBottom
+                ? inputBottom - visibleBottom
+                : 0;
+          if (delta === 0) return;
+
+          const nextOffset = Math.max(0, scrollOffsetYRef.current + delta);
+          scrollOffsetYRef.current = nextOffset;
+          scrollView.scrollTo({ animated: true, y: nextOffset });
+        });
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const keyboardShown = Keyboard.addListener('keyboardDidShow', (event) => {
+      keyboardTopYRef.current = event.endCoordinates.screenY;
+      refreshKeyboardScrollPadding();
+      if (focusedInputRef.current) {
+        keepFocusedInputVisible(focusedInputRef.current);
+      }
+    });
+    const keyboardHidden = Keyboard.addListener('keyboardDidHide', () => {
+      keyboardTopYRef.current = null;
+      setKeyboardScrollPadding(0);
+    });
+
+    return () => {
+      keyboardShown.remove();
+      keyboardHidden.remove();
+    };
+  }, [keepFocusedInputVisible, refreshKeyboardScrollPadding]);
   useEffect(() => {
     blocksRef.current = blocks;
   }, [blocks]);
@@ -994,47 +1063,15 @@ export function ShowBlockEditorDialog({
     ) &&
     !isSubmitting;
 
-  const content = (
-    <>
-      <KeyboardAvoidingView
-        accessibilityViewIsModal={!fullScreen}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={fullScreen ? styles.screenLayer : styles.modalLayer}
+  return (
+    <View style={styles.screenRoot}>
+      <View
+        accessibilityLiveRegion="polite"
+        style={styles.screenContent}
+        testID="show-block-editor-dialog"
       >
-        {!fullScreen ? (
-          <Pressable
-            accessibilityLabel="Fechar edição da setlist tocando fora"
-            accessibilityRole="button"
-            disabled={isSubmitting}
-            onPress={requestClose}
-            style={styles.scrim}
-          />
-        ) : null}
-        <View
-          accessibilityLiveRegion="polite"
-          style={[styles.dialog, fullScreen && styles.screenDialog]}
-          testID="show-block-editor-dialog"
-        >
-          {!fullScreen ? (
-            <View style={styles.header}>
-              <View style={styles.headerCopy}>
-                <AppText accessibilityRole="header" variant="heading">
-                  Editar setlist
-                </AppText>
-              </View>
-              <Pressable
-                accessibilityLabel="Fechar edição de blocos"
-                accessibilityRole="button"
-                disabled={isSubmitting}
-                hitSlop={spacing.sm}
-                onPress={requestClose}
-                style={styles.closeButton}
-              >
-                <AppIcon color={colors.text.secondary} name="close" size={20} />
-              </Pressable>
-            </View>
-          ) : null}
-          <View style={styles.editorBody}>
+        <View ref={editorBodyRef} style={styles.editorBody}>
+          <KeyboardDismissRegion>
             <View
               style={styles.totalDurationBar}
               testID="setlist-total-duration"
@@ -1046,84 +1083,101 @@ export function ShowBlockEditorDialog({
                   : formatShowDuration(durations.totalMs)}
               </AppText>
             </View>
-            <ScrollView
-              contentContainerStyle={styles.content}
-              keyboardShouldPersistTaps="handled"
-              onContentSizeChange={(_, height) => {
-                scrollContentHeightRef.current = height;
-              }}
-              onLayout={({ nativeEvent }) => {
-                scrollFrameYRef.current = nativeEvent.layout.y;
-                scrollViewportHeightRef.current = nativeEvent.layout.height;
-              }}
-              onScroll={({ nativeEvent }) => {
-                scrollOffsetYRef.current = nativeEvent.contentOffset.y;
-                updateDropTargetAfterScroll(nativeEvent.contentOffset.y);
-              }}
-              ref={scrollViewRef}
-              scrollEventThrottle={16}
-              scrollEnabled={!draggingBlockId && !draggingItem}
-              testID="setlist-scroll-view"
-              style={[styles.scroll, fullScreen && styles.screenScroll]}
-            >
-              {blocks.map((block, index) => (
-                <BlockRow
-                  block={block}
-                  canDelete={blocks.length > 1}
-                  dragging={draggingBlockId === block.id}
-                  draggingItemId={draggingItem?.itemId ?? null}
-                  durationMs={durations.blockDurations.get(block.id) ?? null}
-                  index={index}
-                  isActive={activeBlockId === block.id}
-                  key={block.id}
-                  onCancelBlockDrag={cancelBlockDrag}
-                  onCancelItemDrag={cancelItemDrag}
-                  onChangeItem={(itemId, updater) =>
-                    updateItem(block.id, itemId, updater)
-                  }
-                  onChangeName={(name) =>
-                    updateBlock(block.id, (current) => ({ ...current, name }))
-                  }
-                  onDelete={() => requestDeleteBlock(block.id)}
-                  onEndBlockDrag={finishBlockDrag}
-                  onEndItemDrag={finishItemDrag}
-                  onMoveBlockDrag={moveBlockDragPreview}
-                  onMoveItemDrag={moveItemDrag}
-                  onRegisterBlockLayout={registerBlockLayout}
-                  onRegisterItemLayout={registerItemLayout}
-                  onRemoveItem={(itemId) => removeItem(block.id, itemId)}
-                  onSelect={() => setActiveBlockId(block.id)}
-                  onStartBlockDrag={startBlockDrag}
-                  onStartItemDrag={startItemDrag}
-                  songById={songById}
-                  songSequenceNumbers={songSequenceNumbers}
-                />
-              ))}
-              {errorMessage ? (
-                <AppText accessibilityRole="alert" style={styles.errorText}>
-                  {errorMessage}
-                </AppText>
-              ) : null}
-            </ScrollView>
-            {dragPreview ? (
-              <View
-                style={[
-                  styles.dragPreview,
-                  { height: dragPreview.height, top: dragPreview.top },
-                ]}
-                testID="setlist-drag-preview"
-              >
-                <AppIcon
-                  color={colors.action.primary}
-                  name={dragPreview.icon}
-                  size={18}
-                />
-                <AppText numberOfLines={1} style={styles.dragPreviewLabel}>
-                  {dragPreview.label}
-                </AppText>
-              </View>
+          </KeyboardDismissRegion>
+          <ScrollView
+            contentContainerStyle={[
+              styles.content,
+              keyboardScrollPadding > 0 && {
+                paddingBottom: spacing.xl + keyboardScrollPadding,
+              },
+            ]}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={(_, height) => {
+              scrollContentHeightRef.current = height;
+              if (keyboardTopYRef.current !== null && focusedInputRef.current) {
+                keepFocusedInputVisible(focusedInputRef.current);
+              }
+            }}
+            onLayout={({ nativeEvent }) => {
+              scrollFrameYRef.current = nativeEvent.layout.y;
+              scrollViewportHeightRef.current = nativeEvent.layout.height;
+              if (keyboardTopYRef.current !== null) {
+                refreshKeyboardScrollPadding();
+              }
+            }}
+            onScroll={({ nativeEvent }) => {
+              scrollOffsetYRef.current = nativeEvent.contentOffset.y;
+              updateDropTargetAfterScroll(nativeEvent.contentOffset.y);
+            }}
+            ref={scrollViewRef}
+            scrollEventThrottle={16}
+            scrollEnabled={!draggingBlockId && !draggingItem}
+            testID="setlist-scroll-view"
+            style={styles.screenScroll}
+          >
+            {blocks.map((block, index) => (
+              <BlockRow
+                block={block}
+                canDelete={blocks.length > 1}
+                dragging={draggingBlockId === block.id}
+                draggingItemId={draggingItem?.itemId ?? null}
+                durationMs={durations.blockDurations.get(block.id) ?? null}
+                index={index}
+                isActive={activeBlockId === block.id}
+                key={block.id}
+                onCancelBlockDrag={cancelBlockDrag}
+                onCancelItemDrag={cancelItemDrag}
+                onChangeItem={(itemId, updater) =>
+                  updateItem(block.id, itemId, updater)
+                }
+                onChangeName={(name) =>
+                  updateBlock(block.id, (current) => ({ ...current, name }))
+                }
+                onDelete={() => requestDeleteBlock(block.id)}
+                onEndBlockDrag={finishBlockDrag}
+                onEndItemDrag={finishItemDrag}
+                onInputFocus={keepFocusedInputVisible}
+                onMoveBlockDrag={moveBlockDragPreview}
+                onMoveItemDrag={moveItemDrag}
+                onRegisterBlockLayout={registerBlockLayout}
+                onRegisterItemLayout={registerItemLayout}
+                onRemoveItem={(itemId) => removeItem(block.id, itemId)}
+                onSelect={() => setActiveBlockId(block.id)}
+                onStartBlockDrag={startBlockDrag}
+                onStartItemDrag={startItemDrag}
+                songById={songById}
+                songSequenceNumbers={songSequenceNumbers}
+              />
+            ))}
+            {errorMessage ? (
+              <AppText accessibilityRole="alert" style={styles.errorText}>
+                {errorMessage}
+              </AppText>
             ) : null}
-          </View>
+          </ScrollView>
+          {dragPreview ? (
+            <View
+              style={[
+                styles.dragPreview,
+                { height: dragPreview.height, top: dragPreview.top },
+              ]}
+              testID="setlist-drag-preview"
+            >
+              <AppIcon
+                color={colors.action.primary}
+                name={dragPreview.icon}
+                size={18}
+              />
+              <AppText numberOfLines={1} style={styles.dragPreviewLabel}>
+                {dragPreview.label}
+              </AppText>
+            </View>
+          ) : null}
+        </View>
+        <KeyboardDismissRegion>
           <View style={styles.actions}>
             <AppButton
               disabled={isSubmitting}
@@ -1139,7 +1193,7 @@ export function ShowBlockEditorDialog({
               onPress={() => onSubmit(blocks)}
             />
           </View>
-        </View>
+        </KeyboardDismissRegion>
         <UnsavedChangesPrompt
           onContinue={() => setDiscardVisible(false)}
           onDiscard={() => {
@@ -1176,7 +1230,7 @@ export function ShowBlockEditorDialog({
             variant="destructive"
           />
         </OptionSheet>
-      </KeyboardAvoidingView>
+      </View>
       <OptionSheet
         closeAccessibilityLabel="Fechar opções de inclusão"
         label="Adicionar à setlist"
@@ -1516,22 +1570,7 @@ export function ShowBlockEditorDialog({
           )}
         </ScrollView>
       </OptionSheet>
-    </>
-  );
-
-  return fullScreen ? (
-    <View style={styles.screenRoot}>{content}</View>
-  ) : (
-    <Modal
-      animationType={reducedMotion ? 'none' : 'fade'}
-      onRequestClose={requestClose}
-      transparent
-      visible={visible}
-    >
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        {content}
-      </GestureHandlerRootView>
-    </Modal>
+    </View>
   );
 }
 
@@ -1550,6 +1589,7 @@ function BlockRow({
   onDelete,
   onEndBlockDrag,
   onEndItemDrag,
+  onInputFocus,
   onMoveBlockDrag,
   onMoveItemDrag,
   onRegisterBlockLayout,
@@ -1578,6 +1618,7 @@ function BlockRow({
   readonly onDelete: () => void;
   readonly onEndBlockDrag: () => void;
   readonly onEndItemDrag: () => void;
+  readonly onInputFocus: (input: TextInput | null) => void;
   readonly onMoveBlockDrag: (dy: number) => void;
   readonly onMoveItemDrag: (dy: number) => void;
   readonly onRegisterBlockLayout: (
@@ -1598,6 +1639,7 @@ function BlockRow({
   readonly songSequenceNumbers: ReadonlyMap<EntityId, number>;
 }) {
   const [deleteFocused, setDeleteFocused] = useState(false);
+  const blockNameInputRef = useRef<TextInput | null>(null);
 
   return (
     <View
@@ -1645,18 +1687,26 @@ function BlockRow({
             <TextInput
               accessibilityLabel={'Nome do bloco ' + (index + 1)}
               onChangeText={onChangeName}
-              onFocus={onSelect}
+              onFocus={() => {
+                onSelect();
+                onInputFocus(blockNameInputRef.current);
+              }}
               placeholder="Nome do bloco"
               placeholderTextColor={colors.text.muted}
+              ref={blockNameInputRef}
               style={[styles.blockNameInput, styles.blockNameField]}
               value={block.name}
             />
           </View>
-          <AppText tone="muted" variant="caption">
-            {durationMs === null
-              ? 'Duração não informada'
-              : formatShowDuration(durationMs)}
-          </AppText>
+          <KeyboardDismissRegion>
+            <View>
+              <AppText tone="muted" variant="caption">
+                {durationMs === null
+                  ? 'Duração não informada'
+                  : formatShowDuration(durationMs)}
+              </AppText>
+            </View>
+          </KeyboardDismissRegion>
         </View>
         <DragGestureHandle
           accessible
@@ -1698,6 +1748,7 @@ function BlockRow({
             onCancelDrag={onCancelItemDrag}
             onChange={(updater) => onChangeItem(item.id, updater)}
             onEndDrag={onEndItemDrag}
+            onInputFocus={onInputFocus}
             onMoveDrag={onMoveItemDrag}
             onRegisterLayout={(itemId, localY, height) =>
               onRegisterItemLayout(block.id, itemId, localY, height)
@@ -1721,6 +1772,7 @@ function SetlistItemRow({
   onCancelDrag,
   onChange,
   onEndDrag,
+  onInputFocus,
   onMoveDrag,
   onRegisterLayout,
   onRemove,
@@ -1737,6 +1789,7 @@ function SetlistItemRow({
     updater: (item: ShowSetlistItemDraft) => ShowSetlistItemDraft,
   ) => void;
   readonly onEndDrag: () => void;
+  readonly onInputFocus: (input: TextInput | null) => void;
   readonly onMoveDrag: (dy: number) => void;
   readonly onRegisterLayout: (
     itemId: EntityId,
@@ -1748,6 +1801,7 @@ function SetlistItemRow({
   readonly song?: Song;
   readonly songSequenceNumber?: number;
 }) {
+  const inputRef = useRef<TextInput | null>(null);
   const rowStyle = [styles.itemRow, dragging && styles.draggingItemRow];
 
   if (item.type === 'separator') {
@@ -1811,8 +1865,10 @@ function SetlistItemRow({
                     : current,
                 )
               }
+              onFocus={() => onInputFocus(inputRef.current)}
               placeholder="Ex.: Troca de instrumento"
               placeholderTextColor={colors.text.muted}
+              ref={inputRef}
               style={[styles.input, styles.planningDescription]}
               value={item.description}
             />
@@ -1841,6 +1897,7 @@ function SetlistItemRow({
                 max={99}
                 maxLength={2}
                 minWidth={76}
+                onFocusInput={onInputFocus}
                 onChangeText={(hours) =>
                   onChange((current) =>
                     current.type === 'planning'
@@ -1873,6 +1930,7 @@ function SetlistItemRow({
                 max={59}
                 maxLength={2}
                 minWidth={76}
+                onFocusInput={onInputFocus}
                 onChangeText={(minutes) =>
                   onChange((current) =>
                     current.type === 'planning'
@@ -1904,6 +1962,7 @@ function SetlistItemRow({
                 max={59}
                 maxLength={2}
                 minWidth={76}
+                onFocusInput={onInputFocus}
                 onChangeText={(seconds) =>
                   onChange((current) =>
                     current.type === 'planning'
@@ -1961,15 +2020,28 @@ function SetlistItemRow({
           {songSequenceNumber}.
         </AppText>
         <View style={styles.itemFields}>
-          <AppText>{song?.title ?? 'Música indisponível'}</AppText>
+          <KeyboardDismissRegion>
+            <View>
+              <AppText>{song?.title ?? 'Música indisponível'}</AppText>
+            </View>
+          </KeyboardDismissRegion>
           {song?.originalArtist ? (
-            <AppText tone="muted" variant="caption">
-              {song.originalArtist}
-            </AppText>
+            <KeyboardDismissRegion>
+              <View>
+                <AppText tone="muted" variant="caption">
+                  {song.originalArtist}
+                </AppText>
+              </View>
+            </KeyboardDismissRegion>
           ) : null}
-          <AppText tone="muted" variant="caption">
-            Duração · {formatSongDuration(song?.estimatedDurationMs ?? null)}
-          </AppText>
+          <KeyboardDismissRegion>
+            <View>
+              <AppText tone="muted" variant="caption">
+                Duração ·{' '}
+                {formatSongDuration(song?.estimatedDurationMs ?? null)}
+              </AppText>
+            </View>
+          </KeyboardDismissRegion>
           <TextInput
             accessibilityLabel={
               'Observação da música ' + (songSequenceNumber ?? index + 1)
@@ -1981,8 +2053,10 @@ function SetlistItemRow({
                   : current,
               )
             }
+            onFocus={() => onInputFocus(inputRef.current)}
             placeholder="Observação opcional para este show"
             placeholderTextColor={colors.text.muted}
+            ref={inputRef}
             style={styles.input}
             value={item.notes ?? ''}
           />
@@ -2106,45 +2180,57 @@ function DragGestureHandle({
     callbacksRef.current = callbacks;
   }, [callbacks]);
 
-  const startDrag = () => {
+  const startDrag = useCallback(() => {
     if (dragStartedRef.current) return;
     dragStartedRef.current = true;
     callbacksRef.current.onStartDrag();
-  };
+  }, []);
 
-  const onGestureEvent = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
-    if (nativeEvent.state !== State.ACTIVE) return;
-    startDrag();
-    callbacksRef.current.onMoveDrag(nativeEvent.translationY);
-  };
-
-  const onHandlerStateChange = ({
-    nativeEvent,
-  }: PanGestureHandlerStateChangeEvent) => {
-    if (nativeEvent.state === State.ACTIVE) {
+  const updateDrag = useCallback(
+    ({ translationY }: { readonly translationY: number }) => {
       startDrag();
-      return;
-    }
-    if (!dragStartedRef.current || nativeEvent.oldState !== State.ACTIVE)
-      return;
+      callbacksRef.current.onMoveDrag(translationY);
+    },
+    [startDrag],
+  );
 
+  const endDrag = useCallback((_event: object, success: boolean) => {
+    if (!dragStartedRef.current) return;
     dragStartedRef.current = false;
-    if (nativeEvent.state === State.END) {
-      callbacksRef.current.onEndDrag();
-      return;
-    }
-    callbacksRef.current.onCancelDrag();
-  };
+    if (success) callbacksRef.current.onEndDrag();
+    else callbacksRef.current.onCancelDrag();
+  }, []);
+
+  const finalizeDrag = useCallback((_event: object, success: boolean) => {
+    if (!dragStartedRef.current) return;
+    dragStartedRef.current = false;
+    if (!success) callbacksRef.current.onCancelDrag();
+  }, []);
+
+  const panGesture = useMemo(() => {
+    let gesture = Gesture.Pan()
+      .activeOffsetY([-4, 4])
+      .shouldCancelWhenOutside(false)
+      .runOnJS(true);
+
+    gesture = gesture
+      // Os refs são acessados somente quando o GestureDetector dispara o evento.
+      // eslint-disable-next-line react-hooks/refs
+      .onStart(startDrag)
+      // eslint-disable-next-line react-hooks/refs
+      .onUpdate(updateDrag)
+      // eslint-disable-next-line react-hooks/refs
+      .onEnd(endDrag)
+      // eslint-disable-next-line react-hooks/refs
+      .onFinalize(finalizeDrag)
+      .withTestId(`gesture-${testID}`);
+
+    if (hitSlop !== undefined) gesture.hitSlop(hitSlop);
+    return gesture;
+  }, [endDrag, finalizeDrag, hitSlop, startDrag, testID, updateDrag]);
 
   return (
-    <PanGestureHandler
-      activeOffsetY={[-4, 4]}
-      hitSlop={hitSlop}
-      onGestureEvent={onGestureEvent}
-      onHandlerStateChange={onHandlerStateChange}
-      shouldCancelWhenOutside={false}
-      testID={'gesture-' + testID}
-    >
+    <GestureDetector gesture={panGesture}>
       <View
         accessible={accessible}
         accessibilityLabel={accessibilityLabel}
@@ -2157,7 +2243,7 @@ function DragGestureHandle({
       >
         {children}
       </View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 }
 
@@ -2215,13 +2301,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  closeButton: {
-    alignItems: 'center',
-    borderRadius: radii.pill,
-    height: layout.minimumTouchTarget,
-    justifyContent: 'center',
-    width: layout.minimumTouchTarget,
-  },
   collectionPreviewDestination: {
     borderBottomColor: colors.border.subtle,
     borderBottomWidth: 1,
@@ -2267,24 +2346,6 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.md,
     padding: spacing.xl,
-  },
-  dialog: {
-    backgroundColor: colors.background.raised,
-    borderRadius: radii.lg,
-    ...Platform.select({
-      android: { elevation: 8 },
-      ios: {
-        shadowColor: '#08080a',
-        shadowOffset: { height: 4, width: 0 },
-        shadowOpacity: 0.18,
-        shadowRadius: 16,
-      },
-      web: { boxShadow: '0px 4px 16px rgba(23, 32, 51, 0.18)' },
-    }),
-    maxHeight: '92%',
-    maxWidth: 720,
-    overflow: 'hidden',
-    width: '94%',
   },
   dragHandle: {
     alignItems: 'center',
@@ -2373,9 +2434,6 @@ const styles = StyleSheet.create({
     minHeight: 0,
     position: 'relative',
   },
-  modalBody: {
-    position: 'relative',
-  },
   totalDurationBar: {
     alignItems: 'center',
     backgroundColor: colors.background.raised,
@@ -2390,22 +2448,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   errorText: { color: colors.semantic.danger },
-  toolbarCopy: {
-    flex: 1,
-    gap: spacing.xs,
-    minWidth: 0,
-  },
-  header: {
-    alignItems: 'center',
-    borderBottomColor: colors.border.subtle,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  headerCopy: { flex: 1, gap: spacing.xs },
   input: {
     backgroundColor: colors.background.raised,
     borderColor: colors.border.subtle,
@@ -2469,13 +2511,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     borderWidth: 2,
   },
-  modalLayer: {
-    alignItems: 'center',
-    backgroundColor: colors.background.overlay,
-    flex: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
   optionList: { gap: spacing.sm },
   planningRow: {
     alignItems: 'stretch',
@@ -2501,26 +2536,12 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   pressed: { opacity: 0.72 },
-  scrim: { ...StyleSheet.absoluteFill },
-  screenDialog: {
-    alignSelf: 'stretch',
-    borderRadius: 0,
-    flex: 1,
-    minHeight: 0,
-    maxHeight: '100%',
-    maxWidth: layout.contentMaxWidth,
-    ...Platform.select({
-      android: { elevation: 0 },
-      ios: { shadowOpacity: 0, shadowRadius: 0 },
-      web: { boxShadow: 'none' },
-    }),
-    width: '100%',
-  },
-  screenLayer: {
+  screenContent: {
     alignSelf: 'stretch',
     backgroundColor: colors.background.raised,
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
     width: '100%',
   },
   screenRoot: {
@@ -2537,7 +2558,6 @@ const styles = StyleSheet.create({
     minHeight: 0,
     width: '100%',
   },
-  scroll: { flexGrow: 0 },
   separator: {
     alignSelf: 'center',
     borderTopColor: colors.action.primary,

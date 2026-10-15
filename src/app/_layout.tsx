@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { reportAppReleaseDiagnostics } from '@/config/appReleaseDiagnostics';
+import { installFatalJavaScriptDiagnostics } from '@/config/runtimeDiagnostics';
 import { AuthGate } from '@/features/auth/AuthGate';
 import { AuthSessionProvider } from '@/features/auth/AuthSessionProvider';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
@@ -18,6 +19,7 @@ import {
 } from '@/features/navigation/SectionTransition';
 import { AppProviders } from '@/providers/AppProviders';
 
+installFatalJavaScriptDiagnostics();
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export const rootStackScreenOptions = getStackScreenOptions(Platform.OS, false);

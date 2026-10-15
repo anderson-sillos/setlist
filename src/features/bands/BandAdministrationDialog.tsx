@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -17,6 +18,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import type { Band } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
@@ -83,7 +85,10 @@ export function BandAdministrationDialog({
           accessibilityLabel="Fechar edição da banda"
           accessibilityRole="button"
           disabled={isSubmitting}
-          onPress={onClose}
+          onPress={() => {
+            if (Keyboard.isVisible()) Keyboard.dismiss();
+            else onClose();
+          }}
           style={styles.scrim}
         />
         <View
@@ -91,38 +96,51 @@ export function BandAdministrationDialog({
           style={styles.dialog}
           testID="band-administration-dialog"
         >
-          <View style={styles.header}>
-            <AppText accessibilityRole="header" variant="heading">
-              {title}
-            </AppText>
-            <Pressable
-              accessibilityLabel="Fechar edição da banda"
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              hitSlop={spacing.sm}
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.closeButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <AppIcon color={colors.text.secondary} name="close" size={20} />
-            </Pressable>
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.header}>
+              <AppText accessibilityRole="header" variant="heading">
+                {title}
+              </AppText>
+              <Pressable
+                accessibilityLabel="Fechar edição da banda"
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                hitSlop={spacing.sm}
+                onPress={onClose}
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <AppIcon color={colors.text.secondary} name="close" size={20} />
+              </Pressable>
+            </View>
+          </KeyboardDismissRegion>
 
           <ScrollView
             contentContainerStyle={styles.formContent}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
             keyboardShouldPersistTaps="handled"
             style={styles.formScroll}
             testID="band-administration-form-scroll"
           >
             {mode === 'rename' ? (
               <>
-                <AppText tone="muted">
-                  O novo nome será exibido para todos os integrantes.
-                </AppText>
+                <KeyboardDismissRegion>
+                  <View>
+                    <AppText tone="muted">
+                      O novo nome será exibido para todos os integrantes.
+                    </AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <View style={styles.fieldGroup}>
-                  <AppText variant="caption">Nome da banda</AppText>
+                  <KeyboardDismissRegion>
+                    <View>
+                      <AppText variant="caption">Nome da banda</AppText>
+                    </View>
+                  </KeyboardDismissRegion>
                   <TextInput
                     accessibilityLabel="Novo nome da banda"
                     autoCapitalize="words"
@@ -142,6 +160,7 @@ export function BandAdministrationDialog({
                     icon="delete"
                     label="Excluir banda"
                     onPress={() => {
+                      Keyboard.dismiss();
                       setConfirmationName('');
                       onModeChange('delete');
                     }}
@@ -151,13 +170,21 @@ export function BandAdministrationDialog({
               </>
             ) : (
               <>
-                <AppText>
-                  Esta ação é permanente e remove repertório, shows e
-                  integrantes da banda. Para confirmar, digite exatamente:
-                </AppText>
-                <AppText variant="heading">{band.name}</AppText>
+                <KeyboardDismissRegion>
+                  <View style={styles.confirmationCopy}>
+                    <AppText>
+                      Esta ação é permanente e remove repertório, shows e
+                      integrantes da banda. Para confirmar, digite exatamente:
+                    </AppText>
+                    <AppText variant="heading">{band.name}</AppText>
+                  </View>
+                </KeyboardDismissRegion>
                 <View style={styles.fieldGroup}>
-                  <AppText variant="caption">Confirmação</AppText>
+                  <KeyboardDismissRegion>
+                    <View>
+                      <AppText variant="caption">Confirmação</AppText>
+                    </View>
+                  </KeyboardDismissRegion>
                   <TextInput
                     accessibilityLabel="Confirmação do nome da banda"
                     autoCapitalize="none"
@@ -178,34 +205,38 @@ export function BandAdministrationDialog({
             ) : null}
           </ScrollView>
 
-          <View style={styles.actions}>
-            <AppButton
-              disabled={isSubmitting}
-              label={mode === 'rename' ? 'Cancelar' : 'Voltar'}
-              onPress={
-                mode === 'rename' ? onClose : () => onModeChange('rename')
-              }
-              variant="secondary"
-            />
-            {mode === 'rename' ? (
+          <KeyboardDismissRegion>
+            <View style={styles.actions}>
               <AppButton
-                accessibilityLabel="Confirmar novo nome da banda"
-                disabled={isSubmitting || name.trim().length === 0}
-                icon="check"
-                label={isSubmitting ? 'Salvando…' : 'Salvar nome'}
-                onPress={() => onRename(name)}
+                disabled={isSubmitting}
+                label={mode === 'rename' ? 'Cancelar' : 'Voltar'}
+                onPress={
+                  mode === 'rename' ? onClose : () => onModeChange('rename')
+                }
+                variant="secondary"
               />
-            ) : (
-              <AppButton
-                accessibilityLabel="Confirmar exclusão da banda"
-                disabled={isSubmitting || !canDelete}
-                icon="delete"
-                label={isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'}
-                onPress={onDelete}
-                variant="destructive"
-              />
-            )}
-          </View>
+              {mode === 'rename' ? (
+                <AppButton
+                  accessibilityLabel="Confirmar novo nome da banda"
+                  disabled={isSubmitting || name.trim().length === 0}
+                  icon="check"
+                  label={isSubmitting ? 'Salvando…' : 'Salvar nome'}
+                  onPress={() => onRename(name)}
+                />
+              ) : (
+                <AppButton
+                  accessibilityLabel="Confirmar exclusão da banda"
+                  disabled={isSubmitting || !canDelete}
+                  icon="delete"
+                  label={
+                    isSubmitting ? 'Excluindo…' : 'Excluir definitivamente'
+                  }
+                  onPress={onDelete}
+                  variant="destructive"
+                />
+              )}
+            </View>
+          </KeyboardDismissRegion>
         </View>
       </KeyboardAvoidingView>
       {discardPrompt ? <UnsavedChangesPrompt {...discardPrompt} /> : null}
@@ -229,6 +260,9 @@ const styles = StyleSheet.create({
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
+  },
+  confirmationCopy: {
+    gap: spacing.md,
   },
   deleteAction: {
     alignSelf: 'flex-start',

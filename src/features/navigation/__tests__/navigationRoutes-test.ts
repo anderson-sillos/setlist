@@ -4,7 +4,6 @@ import {
   getRepertoireCollectionFilterHref,
   getRepertoireCollectionCreateHref,
   getRepertoireCollectionEditHref,
-  getRepertoireCollectionHref,
   getRepertoireCollectionsHref,
   getSongCreateHref,
   getSongEditHref,
@@ -54,11 +53,6 @@ describe('rotas da navegação', () => {
     expect(getRepertoireCollectionsHref(demoIds.primaryBand)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/collections`,
     );
-    expect(
-      getRepertoireCollectionHref(demoIds.primaryBand, 'collection festa'),
-    ).toBe(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection%20festa`,
-    );
     expect(getRepertoireCollectionCreateHref(demoIds.primaryBand)).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/collections/new`,
     );
@@ -75,9 +69,6 @@ describe('rotas da navegação', () => {
       getRepertoireCollectionEditHref(demoIds.primaryBand, 'collection-festa'),
     ).toBe(
       `/bands/${demoIds.primaryBand}/repertoire/collections/collection-festa/edit`,
-    );
-    expect(getRepertoireCollectionHref(demoIds.primaryBand, 'new')).not.toBe(
-      getSongHref(demoIds.primaryBand, 'new'),
     );
     expect(getStageHref(demoIds.primaryBand, demoIds.readyShow)).toBe(
       `/bands/${demoIds.primaryBand}/shows/${demoIds.readyShow}/stage`,

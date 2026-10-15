@@ -127,6 +127,25 @@ build identificado para a plataforma/perfil solicitados e com a versão/commit
 esperados; qualquer divergência interrompe o script. Conferir também estado
 `FINISHED`, assinatura e destino antes de disponibilizar cada arquivo.
 
+### Sistemas operacionais mínimos
+
+Os mínimos devem ser confirmados nos artefatos nativos de cada release; não
+deduzi-los apenas da versão do Expo ou da configuração do checkout. Para a
+compilação de produção `1.0.0` enviada às lojas, a inspeção dos artefatos
+confirmou:
+
+| Plataforma e artefato                                                                | Campo do manifesto                                             | Mínimo confirmado    |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------- | -------------------- |
+| Android AAB, `versionCode 2`, `application-43980d8a-87ce-42ff-8778-4ef6e6a8fbe0.aab` | `base/manifest/AndroidManifest.xml` → `uses-sdk minSdkVersion` | Android 7.0 (API 24) |
+| iOS IPA, versão `1.0.0`, build `3`                                                   | `Payload/Setlist.app/Info.plist` → `MinimumOSVersion`          | iOS 16.4             |
+
+Exemplos de aparelhos que alcançam esses mínimos: iPhone 8, iPhone X, iPhone SE
+(2ª geração), iPad (5ª geração), iPad mini (5ª geração), iPad Air (3ª geração),
+Samsung Galaxy S7/S7 edge com Android Nougat ou posterior e Samsung Galaxy Tab
+S3. A compatibilidade depende da versão do sistema operacional instalada. Para
+cada release futuro, inspecionar novamente o AAB e o IPA efetivamente enviados
+e atualizar esta tabela caso os valores mudem.
+
 ### Símbolos de depuração Android
 
 Antes de enviar um AAB ao Google Play, conferir se o build de produção usa

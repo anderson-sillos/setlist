@@ -157,8 +157,10 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexShrink: 1,
     gap: spacing.sm,
     justifyContent: 'center',
+    minWidth: 0,
     position: 'relative',
     zIndex: 1,
   },
@@ -172,7 +174,10 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   label: {
+    flexShrink: 1,
     fontWeight: '700',
+    minWidth: 0,
+    textAlign: 'center',
   },
   focused: {
     borderColor: colors.border.focus,

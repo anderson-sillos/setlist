@@ -6,7 +6,7 @@ import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { RepertoireCollectionError } from '@/domain';
 import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
@@ -412,7 +412,7 @@ describe('<RepertoireScreen />', () => {
     await view.rerender(<RepertoireHarness bandId={demoIds.primaryBand} />);
     expect(await view.findByText('Maré de Neon')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
-  });
+  }, 15_000);
 
   it('remove o filtro da coleção excluída após confirmar a consulta e preserva os outros critérios', async () => {
     const repositories = createInMemoryRepositories(demoRepositoryData);

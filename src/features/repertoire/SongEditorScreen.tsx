@@ -22,6 +22,7 @@ import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt
 import { AutocompleteField } from '@/components/ui/AutocompleteField';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
+import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
 import { SpinButton } from '@/components/ui/SpinButton';
 import { acceptCurrentBandTerm } from '@/data/supabase/legalTermMutations';
 import {
@@ -420,6 +421,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         >
           <ScrollView
             contentContainerStyle={styles.formContent}
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
             keyboardShouldPersistTaps="handled"
             testID="song-editor-scroll"
           >
@@ -493,20 +497,22 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
             />
           </ScrollView>
 
-          <View style={styles.footer}>
-            <AppButton
-              disabled={isSubmitting}
-              label="Cancelar"
-              onPress={leaveEditor}
-              variant="secondary"
-            />
-            <AppButton
-              disabled={isSubmitting}
-              icon="check"
-              label={isSubmitting ? 'Salvando…' : 'Salvar música'}
-              onPress={() => void handleSave()}
-            />
-          </View>
+          <KeyboardDismissRegion>
+            <View style={styles.footer}>
+              <AppButton
+                disabled={isSubmitting}
+                label="Cancelar"
+                onPress={leaveEditor}
+                variant="secondary"
+              />
+              <AppButton
+                disabled={isSubmitting}
+                icon="check"
+                label={isSubmitting ? 'Salvando…' : 'Salvar música'}
+                onPress={() => void handleSave()}
+              />
+            </View>
+          </KeyboardDismissRegion>
         </KeyboardAvoidingView>
       ) : null}
       {!isLoading &&
@@ -550,7 +556,11 @@ function SongEditorFieldView({
 }: SongEditorFieldViewProps) {
   return (
     <View style={[styles.field, containerStyle]}>
-      <AppText variant="caption">{label}</AppText>
+      <KeyboardDismissRegion>
+        <View>
+          <AppText variant="caption">{label}</AppText>
+        </View>
+      </KeyboardDismissRegion>
       <TextInput
         accessibilityLabel={label}
         accessibilityHint={error ? `Erro: ${error}` : undefined}
@@ -602,7 +612,11 @@ function SongDurationFieldView({
 
   return (
     <View style={[styles.field, containerStyle]}>
-      <AppText variant="caption">Duração</AppText>
+      <KeyboardDismissRegion>
+        <View>
+          <AppText variant="caption">Duração</AppText>
+        </View>
+      </KeyboardDismissRegion>
       <View style={styles.durationParts}>
         <DurationPartInput
           accessibilityLabel="Horas da duração"

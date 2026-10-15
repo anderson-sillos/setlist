@@ -6,11 +6,16 @@ import {
   View,
 } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureDetector } from 'react-native-gesture-handler';
 
 import { ConnectionBanner } from '@/components/feedback';
+import {
+  beginLogoutDiagnostics,
+  finishLogoutDiagnostics,
+  logLogoutDiagnostic,
+  logLogoutFailure,
+} from '@/config/runtimeDiagnostics';
 import { getListRefreshControl } from '@/components/ui/ScreenDataRefresh';
 import { AppHeader } from '@/features/navigation/components/AppHeader';
 import { BottomNavigation } from '@/features/navigation/components/BottomNavigation';
@@ -60,10 +65,11 @@ export function AppNavigationShell({
   viewportHeight,
   viewportWidth,
 }: AppNavigationShellProps) {
-  const router = useRouter();
-  const { clearLastBand, setLastBand } = useLastBandSelection();
+  const { clearLastBand, lastBandId, setLastBand } = useLastBandSelection();
   const [stageDialogVisible, setStageDialogVisible] = useState(false);
   const stageDialogPending = useRef(false);
+  const logoutInProgressRef = useRef(false);
+  const logoutAttemptIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (bandId) {
@@ -72,14 +78,54 @@ export function AppNavigationShell({
   }, [bandId, setLastBand]);
 
   const handleLogout = useCallback(async () => {
-    try {
-      await signOut();
-      await clearLastBand();
-      router.replace('/auth' as Href);
-    } catch (error) {
-      console.error('[auth] Falha ao sair.', error);
+    if (logoutInProgressRef.current) {
+      const attemptId = logoutAttemptIdRef.current;
+      if (attemptId) {
+        logLogoutDiagnostic(attemptId, 'duplicate_tap_ignored');
+      }
+      return;
     }
-  }, [clearLastBand, router]);
+
+    logoutInProgressRef.current = true;
+    const attemptId = beginLogoutDiagnostics('navigation_panel');
+    logoutAttemptIdRef.current = attemptId;
+    let phase = 'clear_last_band';
+    let outcome: 'failed' | 'succeeded' = 'failed';
+
+    try {
+      logLogoutDiagnostic(attemptId, 'clear_last_band_started', {
+        activeSection: activeSection ?? null,
+        screenKind,
+      });
+      await clearLastBand();
+      logLogoutDiagnostic(attemptId, 'clear_last_band_completed');
+
+      phase = 'supabase_sign_out';
+      logLogoutDiagnostic(attemptId, 'supabase_sign_out_started');
+      await signOut();
+      logLogoutDiagnostic(attemptId, 'supabase_sign_out_resolved');
+
+      // AuthSessionProvider emits SIGNED_OUT and AuthGate renders the login
+      // screen. A second imperative route replacement can race that teardown.
+      outcome = 'succeeded';
+    } catch (error) {
+      logLogoutFailure(attemptId, phase, error);
+
+      if (lastBandId) {
+        try {
+          phase = 'restore_last_band';
+          await setLastBand(lastBandId);
+          logLogoutDiagnostic(attemptId, 'last_band_restored_after_failure');
+        } catch (restoreError) {
+          logLogoutFailure(attemptId, phase, restoreError);
+        }
+      }
+    } finally {
+      finishLogoutDiagnostics(attemptId, outcome);
+      logoutAttemptIdRef.current = null;
+      logoutInProgressRef.current = false;
+    }
+  }, [activeSection, clearLastBand, lastBandId, screenKind, setLastBand]);
   const window = useWindowDimensions();
   const width = viewportWidth ?? window.width;
   const height = viewportHeight ?? window.height;

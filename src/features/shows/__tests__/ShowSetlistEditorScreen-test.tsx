@@ -19,7 +19,7 @@ import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import type { AppRepositories, EntityId } from '@/domain';
 import { ShowSetlistEditorScreen } from '@/features/shows/ShowSetlistEditorScreen';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 jest.mock('@/data/supabase', () => ({
   ...jest.requireActual('@/data/supabase'),
@@ -79,11 +79,11 @@ describe('<ShowSetlistEditorScreen />', () => {
     );
 
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
-    expect(
-      StyleSheet.flatten(
-        view.getByTestId('show-block-editor-dialog').props.style,
-      ).maxWidth,
-    ).toBe(layout.contentMaxWidth);
+    const editorRoot = view.getByTestId('show-block-editor-dialog').parent;
+    if (!editorRoot) throw new Error('Container do editor não encontrado');
+    expect(StyleSheet.flatten(editorRoot.props.style).maxWidth).toBe(
+      layout.contentMaxWidth,
+    );
     expect(view.getByLabelText('Nome do bloco 1')).toBeTruthy();
 
     expect(view.getByLabelText('Adicionar à setlist')).toBeTruthy();
