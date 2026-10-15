@@ -40,7 +40,7 @@
 
 ## 6. Remoção do catálogo e cobertura de produto
 
-- [ ] 6.1 Remover `src/data/demo/`, exports e módulos antigos de `src/data/in-memory/` após migrar as expectativas funcionais pertinentes de `demoData-test.ts`; verificar ausência de consumidores e símbolos herdados no código ativo, preservando registros históricos da documentação.
+- [x] 6.1 Remover `src/data/demo/`, exports e módulos antigos de `src/data/in-memory/` após migrar as expectativas funcionais pertinentes de `demoData-test.ts`; verificar ausência de consumidores e símbolos herdados no código ativo, preservando registros históricos da documentação.
 - [ ] 6.2 Excluir somente `src/testing/**` da cobertura de produto e manter os quatro limites de 80%; executar `npm run test:ci`, comparar os mesmos arquivos de produto com a referência inicial e corrigir eventuais lacunas sem excluir módulos de produção ou reduzir limites.
 - [ ] 6.3 Registrar em `src/testing/README.md` e `docs/CODEX_HANDOFF.md` os cenários preservados, testes de catálogo removidos e comparação de cobertura; verificar a consistência dos caminhos, exemplos e resultados com a implementação final.
 

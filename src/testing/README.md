@@ -24,11 +24,11 @@ Na referência inicial, `src/testing/TestAppProviders.tsx` era o único consumid
 
 ## Situação após a migração de telas e navegação
 
-Após concluir as tarefas 4.1–4.3, a busca por imports e símbolos demonstrativos nos testes retornou dois arquivos. Na tarefa 5.2, o teste útil do repositório em memória foi movido para `src/testing/repositories/__tests__/RepertoireCollectionRepository-test.ts` e passou a construir dados locais com fábricas. A busca atual retorna somente:
+Após concluir as tarefas 4.1–4.3, a busca por imports e símbolos demonstrativos nos testes retornou dois arquivos. Na tarefa 5.2, o teste útil do repositório em memória foi movido para `src/testing/repositories/__tests__/RepertoireCollectionRepository-test.ts` e passou a construir dados locais com fábricas. Naquele momento, restava somente:
 
-- `src/data/demo/__tests__/demoData-test.ts`, que será removido junto com o catálogo após preservar as expectativas úteis (tarefa 6.1).
+- `src/data/demo/__tests__/demoData-test.ts`, removido junto com o catálogo na tarefa 6.1 após revisar suas expectativas.
 
-Os outros 22 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. O provedor de teste não importa o catálogo demonstrativo e exige `currentUserId` e `repositories` em cada uso; os wrappers de cenário fornecem esses valores explicitamente. O único teste que ainda lê `demoRepositoryData` ou `demoIds` é `src/data/demo/__tests__/demoData-test.ts`, pendente de remoção na tarefa 6.1.
+Os outros 22 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. O provedor de teste não importa o catálogo demonstrativo e exige `currentUserId` e `repositories` em cada uso; os wrappers de cenário fornecem esses valores explicitamente. As verificações removidas mediam apenas a composição do catálogo temporário. O comportamento relevante de manter uma música arquivada na setlist existente e impedir novas inclusões está coberto por `src/features/shows/__tests__/ShowSetlistEditorScreen-test.tsx`. A remoção não altera o seed promocional separado em `supabase/seeds/`.
 
 ### Papéis e isolamento entre bandas
 
