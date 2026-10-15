@@ -7,7 +7,6 @@ import {
   type YouTubePlayer,
   type YouTubePlayerOptions,
 } from '@/features/youtube/youtubePlayer';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 let mockWebViewProps:
   { readonly mediaPlaybackRequiresUserAction?: boolean } | undefined;
@@ -59,11 +58,7 @@ describe('<YouTubeIframePrototype />', () => {
   });
 
   it('renderiza o player nativo em uma WebView', async () => {
-    const view = await render(
-      <AppProviders>
-        <YouTubeIframePrototype />
-      </AppProviders>,
-    );
+    const view = await render(<YouTubeIframePrototype />);
 
     expect(view.getByTestId('youtube-mobile-player-card')).toBeTruthy();
     expect(view.getByTestId('youtube-mobile-webview')).toBeTruthy();
@@ -100,11 +95,7 @@ describe('<YouTubeIframePrototype />', () => {
 
     loadApiMock.mockResolvedValue({ Player: MockPlayer });
 
-    const view = await render(
-      <AppProviders>
-        <YouTubeIframePrototype />
-      </AppProviders>,
-    );
+    const view = await render(<YouTubeIframePrototype />);
 
     expect(loadApiMock).toHaveBeenCalledTimes(1);
     const loadedApi = await loadApiMock.mock.results[0]?.value;
