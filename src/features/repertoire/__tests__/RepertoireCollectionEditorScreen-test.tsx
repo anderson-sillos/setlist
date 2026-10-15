@@ -6,11 +6,99 @@ import {
   within,
 } from '@testing-library/react-native';
 import { Platform } from 'react-native';
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import { RepertoireCollectionError } from '@/domain';
 import { RepertoireCollectionEditorScreen } from '@/features/repertoire/RepertoireCollectionEditorScreen';
+import {
+  createBand,
+  createBandMember,
+  createRepertoireCollection,
+  createRepertoireCollectionSong,
+  createSong,
+} from '@/testing/factories';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+
+const BAND_ID = 'band-collection-editor';
+const OWNER_USER_ID = 'user-collection-editor-owner';
+const COLLECTION_UPDATED_AT = '2026-09-08T12:05:00.000Z';
+const LIGHTS_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 218_000,
+  id: 'song-luzes-da-cidade',
+  originalArtist: 'Banda Horizonte',
+  title: 'Luzes da Cidade',
+});
+const NEON_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 259_000,
+  id: 'song-mare-de-neon',
+  originalArtist: 'Coletivo Atlântico',
+  title: 'Maré de Neon',
+});
+const FESTA_COLLECTION = createRepertoireCollection({
+  bandId: BAND_ID,
+  id: 'collection-festa',
+  name: 'Festa',
+  updatedAt: COLLECTION_UPDATED_AT,
+});
+const ACOUSTIC_COLLECTION = createRepertoireCollection({
+  bandId: BAND_ID,
+  id: 'collection-acustico',
+  name: 'Acústico',
+});
+const COLLECTION_SONGS = [
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: FESTA_COLLECTION.id,
+    position: 0,
+    songId: LIGHTS_SONG.id,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: FESTA_COLLECTION.id,
+    position: 1,
+    songId: NEON_SONG.id,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: ACOUSTIC_COLLECTION.id,
+    position: 0,
+    songId: LIGHTS_SONG.id,
+  }),
+];
+
+function createRepositories({
+  collections = [FESTA_COLLECTION, ACOUSTIC_COLLECTION],
+  collectionSongs = COLLECTION_SONGS,
+  songs = [LIGHTS_SONG, NEON_SONG],
+  createId,
+}: {
+  collections?: readonly ReturnType<typeof createRepertoireCollection>[];
+  collectionSongs?: readonly ReturnType<
+    typeof createRepertoireCollectionSong
+  >[];
+  songs?: readonly ReturnType<typeof createSong>[];
+  createId?: () => string;
+} = {}) {
+  return createInMemoryRepositories(
+    {
+      bands: [createBand({ id: BAND_ID })],
+      bandMembers: [
+        createBandMember({
+          bandId: BAND_ID,
+          id: 'membership-collection-editor-owner',
+          role: 'owner',
+          userId: OWNER_USER_ID,
+        }),
+      ],
+      repertoireCollections: collections,
+      repertoireCollectionSongs: collectionSongs,
+      songs,
+      shows: [],
+    },
+    { createId },
+  );
+}
 
 const mockRouter = {
   back: jest.fn(),
@@ -125,10 +213,13 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
     try {
       const view = await render(
-        <AppProviders>
+        <AppProviders
+          currentUserId={OWNER_USER_ID}
+          repositories={createRepositories()}
+        >
           <RepertoireCollectionEditorScreen
-            bandId={demoIds.primaryBand}
-            collectionId="collection-demo-festa"
+            bandId={BAND_ID}
+            collectionId="collection-festa"
           />
         </AppProviders>,
       );
@@ -166,7 +257,7 @@ describe('<RepertoireCollectionEditorScreen />', () => {
   });
 
   it('ignora toques repetidos enquanto a gravação está em andamento', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const originalSave = repositories.repertoireCollections.save.bind(
       repositories.repertoireCollections,
     );
@@ -180,10 +271,10 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         return originalSave(input);
       });
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
-          collectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          collectionId="collection-festa"
         />
       </AppProviders>,
     );
@@ -205,15 +296,15 @@ describe('<RepertoireCollectionEditorScreen />', () => {
   });
 
   it('inicia uma coleção com as músicas escolhidas e protege o descarte', async () => {
-    const songId = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Luzes da Cidade',
-    )?.id;
-    if (!songId) throw new Error('Música de demonstração não encontrada');
+    const songId = LIGHTS_SONG.id;
 
     const view = await render(
-      <AppProviders>
+      <AppProviders
+        currentUserId={OWNER_USER_ID}
+        repositories={createRepositories()}
+      >
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
+          bandId={BAND_ID}
           initialSongIds={[songId, 'song-inexistente', songId]}
           returnToRepertoire
         />
@@ -242,18 +333,15 @@ describe('<RepertoireCollectionEditorScreen />', () => {
   });
 
   it('salva somente as músicas recebidas na criação da coleção', async () => {
-    const songId = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Luzes da Cidade',
-    )?.id;
-    if (!songId) throw new Error('Música de demonstração não encontrada');
+    const songId = LIGHTS_SONG.id;
 
-    const repositories = createInMemoryRepositories(demoRepositoryData, {
+    const repositories = createRepositories({
       createId: () => 'collection-from-repertoire',
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
+          bandId={BAND_ID}
           initialSongIds={[songId, 'song-inexistente', songId]}
           returnToRepertoire
         />
@@ -269,19 +357,15 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
     await waitFor(() =>
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-from-repertoire/edit?returnTo=repertoire`,
+        `/bands/${BAND_ID}/repertoire/collections/collection-from-repertoire/edit?returnTo=repertoire`,
       ),
     );
     const savedCollection = (
-      await repositories.repertoireCollections.listByBandId(demoIds.primaryBand)
+      await repositories.repertoireCollections.listByBandId(BAND_ID)
     ).find(({ name }) => name === 'Festa via repertório');
     expect(savedCollection).toBeTruthy();
     expect(
-      (
-        await repositories.repertoireCollections.listSongsByBandId(
-          demoIds.primaryBand,
-        )
-      )
+      (await repositories.repertoireCollections.listSongsByBandId(BAND_ID))
         .filter(({ collectionId }) => collectionId === savedCollection?.id)
         .map(({ songId: includedSongId }) => includedSongId),
     ).toEqual([songId]);
@@ -289,8 +373,11 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
   it('valida nome vazio, limite de 120 caracteres e duplicidade', async () => {
     const view = await render(
-      <AppProviders>
-        <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
+      <AppProviders
+        currentUserId={OWNER_USER_ID}
+        repositories={createRepositories()}
+      >
+        <RepertoireCollectionEditorScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -321,13 +408,13 @@ describe('<RepertoireCollectionEditorScreen />', () => {
   });
 
   it('permite salvar uma coleção vazia após nome válido', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData, {
-      createId: () => 'collection-demo-new',
+    const repositories = createRepositories({
+      createId: () => 'collection-new',
     });
     const saveSpy = jest.spyOn(repositories.repertoireCollections, 'save');
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireCollectionEditorScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -340,26 +427,26 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
     await waitFor(() => {
       expect(saveSpy).toHaveBeenCalledWith({
-        bandId: demoIds.primaryBand,
+        bandId: BAND_ID,
         name: 'Ensaios',
         orderedSongIds: [],
       });
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-new/edit`,
+        `/bands/${BAND_ID}/repertoire/collections/collection-new/edit`,
       );
     });
   });
 
   it('renomeia mantendo as músicas e a revisão existente', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData, {
-      createId: () => 'collection-demo-new',
+    const repositories = createRepositories({
+      createId: () => 'collection-new',
     });
     const saveSpy = jest.spyOn(repositories.repertoireCollections, 'save');
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
-          collectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          collectionId="collection-festa"
         />
       </AppProviders>,
     );
@@ -370,41 +457,41 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
     await waitFor(() => {
       expect(saveSpy).toHaveBeenCalledWith({
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-festa',
+        bandId: BAND_ID,
+        collectionId: 'collection-festa',
         expectedUpdatedAt: '2026-09-08T12:05:00.000Z',
         name: 'Festa de rua',
-        orderedSongIds: ['song-demo-luzes', 'song-demo-mare-neon'],
+        orderedSongIds: [LIGHTS_SONG.id, NEON_SONG.id],
       });
       expect(mockRouter.back).toHaveBeenCalledTimes(1);
     });
   });
 
   it('reordena e remove participações sem excluir músicas do repertório', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const saveSpy = jest.spyOn(repositories.repertoireCollections, 'save');
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
-          collectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          collectionId="collection-festa"
         />
       </AppProviders>,
     );
 
     await view.findByLabelText('Nome da coleção');
-    const songRow = view.getByTestId('collection-song-row-song-demo-luzes');
+    const songRow = view.getByTestId(`collection-song-row-${LIGHTS_SONG.id}`);
     await fireEvent(songRow, 'layout', {
       nativeEvent: { layout: { height: 64, width: 320, x: 0, y: 0 } },
     });
     const initialHandle = view.getByTestId(
-      'gesture-collection-song-drag-song-demo-luzes',
+      `gesture-collection-song-drag-${LIGHTS_SONG.id}`,
     );
     await act(async () => {
       initialHandle.props.onStart({});
     });
     const activeHandle = view.getByTestId(
-      'gesture-collection-song-drag-song-demo-luzes',
+      `gesture-collection-song-drag-${LIGHTS_SONG.id}`,
     );
     await act(async () => {
       activeHandle.props.onUpdate({ translationY: 80 });
@@ -420,31 +507,29 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
     await waitFor(() => {
       expect(saveSpy).toHaveBeenCalledWith({
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-festa',
+        bandId: BAND_ID,
+        collectionId: 'collection-festa',
         expectedUpdatedAt: '2026-09-08T12:05:00.000Z',
         name: 'Festa',
-        orderedSongIds: ['song-demo-mare-neon'],
+        orderedSongIds: [NEON_SONG.id],
       });
     });
-    await expect(
-      repositories.songs.listByBandId(demoIds.primaryBand),
-    ).resolves.toEqual(
+    await expect(repositories.songs.listByBandId(BAND_ID)).resolves.toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'song-demo-luzes' }),
-        expect.objectContaining({ id: 'song-demo-mare-neon' }),
+        expect.objectContaining({ id: LIGHTS_SONG.id }),
+        expect.objectContaining({ id: NEON_SONG.id }),
       ]),
     );
   });
 
   it('só exclui a coleção após confirmação e mantém as músicas', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const deleteSpy = jest.spyOn(repositories.repertoireCollections, 'delete');
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
-          collectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          collectionId="collection-festa"
         />
       </AppProviders>,
     );
@@ -469,26 +554,24 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
     await waitFor(() => {
       expect(deleteSpy).toHaveBeenCalledWith({
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-festa',
+        bandId: BAND_ID,
+        collectionId: 'collection-festa',
         expectedUpdatedAt: '2026-09-08T12:05:00.000Z',
       });
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections`,
+        `/bands/${BAND_ID}/repertoire/collections`,
       );
     });
-    await expect(
-      repositories.songs.listByBandId(demoIds.primaryBand),
-    ).resolves.toEqual(
+    await expect(repositories.songs.listByBandId(BAND_ID)).resolves.toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'song-demo-luzes' }),
-        expect.objectContaining({ id: 'song-demo-mare-neon' }),
+        expect.objectContaining({ id: LIGHTS_SONG.id }),
+        expect.objectContaining({ id: NEON_SONG.id }),
       ]),
     );
   });
 
   it('preserva a edição e oferece revisar os dados após conflito de revisão', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     jest
       .spyOn(repositories.repertoireCollections, 'save')
       .mockRejectedValueOnce(
@@ -498,10 +581,10 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         ),
       );
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
-          collectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          collectionId="collection-festa"
         />
       </AppProviders>,
     );
@@ -527,12 +610,12 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       }),
     );
     expect(mockRouter.replace).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa/edit`,
+      `/bands/${BAND_ID}/repertoire/collections/collection-festa/edit`,
     );
   });
 
   it('permite revisar a versão atual quando a exclusão encontra uma revisão nova', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     jest
       .spyOn(repositories.repertoireCollections, 'delete')
       .mockRejectedValueOnce(
@@ -542,10 +625,10 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         ),
       );
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireCollectionEditorScreen
-          bandId={demoIds.primaryBand}
-          collectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          collectionId="collection-festa"
         />
       </AppProviders>,
     );
@@ -571,12 +654,12 @@ describe('<RepertoireCollectionEditorScreen />', () => {
       view.getByRole('button', { name: 'Sair e revisar coleção atual' }),
     );
     expect(mockRouter.replace).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/collection-demo-festa/edit`,
+      `/bands/${BAND_ID}/repertoire/collections/collection-festa/edit`,
     );
   });
 
   it('preserva o texto após falha e permite tentar novamente', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const saveSpy = jest
       .spyOn(repositories.repertoireCollections, 'save')
       .mockRejectedValueOnce(
@@ -586,8 +669,8 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         ),
       );
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireCollectionEditorScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -609,12 +692,12 @@ describe('<RepertoireCollectionEditorScreen />', () => {
   });
 
   it('pede apenas o nome na criação e deixa a inclusão de músicas para o Repertório', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData, {
+    const repositories = createRepositories({
       createId: () => 'collection-name-only',
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireCollectionEditorScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireCollectionEditorScreen bandId={BAND_ID} />
       </AppProviders>,
     );
     const nameField = await view.findByLabelText('Nome da coleção');
@@ -627,19 +710,16 @@ describe('<RepertoireCollectionEditorScreen />', () => {
     await fireEvent.press(view.getByLabelText('Salvar coleção'));
     await waitFor(() =>
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/collections/collection-name-only/edit`,
+        `/bands/${BAND_ID}/repertoire/collections/collection-name-only/edit`,
       ),
     );
-    const saved = await repositories.repertoireCollections.listByBandId(
-      demoIds.primaryBand,
-    );
+    const saved =
+      await repositories.repertoireCollections.listByBandId(BAND_ID);
     expect(saved.find(({ id }) => id === 'collection-name-only')?.name).toBe(
       'Festival',
     );
     const memberships =
-      await repositories.repertoireCollections.listSongsByBandId(
-        demoIds.primaryBand,
-      );
+      await repositories.repertoireCollections.listSongsByBandId(BAND_ID);
     expect(
       memberships.filter(
         ({ collectionId }) => collectionId === 'collection-name-only',

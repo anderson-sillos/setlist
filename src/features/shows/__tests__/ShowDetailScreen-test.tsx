@@ -5,10 +5,183 @@ import {
   updateShow,
   updateShowStatus,
 } from '@/data/supabase/showUpdateMutations';
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import type { BandRole } from '@/domain';
 import { ShowDetailScreen } from '@/features/shows/ShowDetailScreen';
+import {
+  createLyricsForStatus,
+  createShow,
+  createShowPlanningSetlistItem,
+  createShowSeparatorSetlistItem,
+  createShowSetlistBlock,
+  createShowSongSetlistItem,
+  createSong,
+} from '@/testing/factories';
+import { createBandScenario } from '@/testing/scenarios';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+const BAND_ID = 'band-show-detail';
+const OWNER_USER_ID = 'user-show-detail-owner';
+const MEMBER_USER_ID = 'user-show-detail-member';
+const FESTIVAL_SHOW_ID = 'show-festival-praca';
+const CLUB_SHOW_ID = 'show-noite-no-clube';
+const LIGHTS_SONG = createSong({
+  id: 'song-lights-city',
+  bandId: BAND_ID,
+  title: 'Luzes da Cidade',
+  originalArtist: 'Banda Horizonte',
+  estimatedDurationMs: 218_000,
+  lyricStatus: 'static',
+  lyrics: createLyricsForStatus('static'),
+});
+const INSTRUMENTAL_SONG = createSong({
+  id: 'song-opening-instrumental',
+  bandId: BAND_ID,
+  title: 'Instrumental de Abertura',
+  estimatedDurationMs: 95_000,
+});
+const BRIDGES_SONG = createSong({
+  id: 'song-entre-pontes',
+  bandId: BAND_ID,
+  title: 'Entre Pontes',
+  estimatedDurationMs: 220_000,
+  lyricStatus: 'synchronized',
+  lyrics: createLyricsForStatus('synchronized'),
+});
+const RAIN_SONG = createSong({
+  id: 'song-depois-da-chuva',
+  bandId: BAND_ID,
+  title: 'Depois da Chuva',
+  estimatedDurationMs: 216_000,
+  lyricStatus: 'incomplete',
+  lyrics: createLyricsForStatus('incomplete'),
+});
+const SONGS = [LIGHTS_SONG, INSTRUMENTAL_SONG, BRIDGES_SONG, RAIN_SONG];
+const FESTIVAL_SHOW = createShow({
+  id: FESTIVAL_SHOW_ID,
+  bandId: BAND_ID,
+  name: 'Festival da Praça',
+  startsAt: '2027-02-20T21:00:00-03:00',
+  venue: 'Praça Central',
+  notes: 'Passagem de som às 17h. Show com dois blocos e bis.',
+  status: 'ready',
+  blocks: [
+    createShowSetlistBlock({
+      id: 'show-block-festival-abertura',
+      name: 'Abertura',
+      items: [
+        createShowSongSetlistItem({
+          id: 'show-item-festival-instrumental',
+          songId: INSTRUMENTAL_SONG.id,
+          notes: 'Começar com luz baixa.',
+        }),
+        createShowPlanningSetlistItem({
+          id: 'show-item-festival-apresentacao',
+          description: 'Entrada e apresentação da banda',
+          estimatedDurationMs: 90_000,
+        }),
+        createShowSongSetlistItem({
+          id: 'show-item-festival-luzes-abertura',
+          songId: LIGHTS_SONG.id,
+        }),
+      ],
+    }),
+    createShowSetlistBlock({
+      id: 'show-block-festival-segundo',
+      name: 'Segundo Set',
+      items: [
+        createShowSongSetlistItem({
+          id: 'show-item-festival-pontes',
+          songId: BRIDGES_SONG.id,
+          notes: 'Emendar diretamente da fala do vocalista.',
+        }),
+        createShowPlanningSetlistItem({
+          id: 'show-item-festival-afinacao',
+          description: 'Troca de violão e afinação',
+          estimatedDurationMs: 120_000,
+        }),
+        createShowPlanningSetlistItem({
+          id: 'show-item-festival-interacao',
+          description: 'Interação com o público',
+        }),
+        createShowSeparatorSetlistItem({ id: 'show-item-festival-separator' }),
+        createShowSongSetlistItem({
+          id: 'show-item-festival-luzes-bis',
+          songId: LIGHTS_SONG.id,
+          notes: 'Usar a versão curta no bis.',
+        }),
+        createShowSongSetlistItem({
+          id: 'show-item-festival-chuva',
+          songId: RAIN_SONG.id,
+        }),
+      ],
+    }),
+  ],
+});
+const CLUB_SHOW = createShow({
+  id: CLUB_SHOW_ID,
+  bandId: BAND_ID,
+  name: 'Noite no Clube',
+  startsAt: '2027-03-14T20:30:00-03:00',
+  venue: 'Clube das Artes',
+  notes: 'Repertório ainda em preparação.',
+  status: 'draft',
+  blocks: [
+    createShowSetlistBlock({
+      id: 'show-block-clube-principal',
+      name: 'Principal',
+      items: [
+        createShowSongSetlistItem({
+          id: 'show-item-clube-pontes',
+          songId: BRIDGES_SONG.id,
+        }),
+        createShowSongSetlistItem({
+          id: 'show-item-clube-luzes',
+          songId: LIGHTS_SONG.id,
+        }),
+      ],
+    }),
+  ],
+});
+const MEMBER_SHOW = createShow({
+  id: 'show-encontro-dezembro',
+  bandId: BAND_ID,
+  name: 'Encontro de Dezembro',
+  startsAt: '2026-12-05T20:30:00-03:00',
+  venue: 'Casa das Artes',
+});
+
+function renderShowDetail({
+  showId,
+  role = 'owner',
+  viewportWidth,
+  shows = [FESTIVAL_SHOW, CLUB_SHOW, MEMBER_SHOW],
+}: {
+  showId: string;
+  role?: BandRole;
+  viewportWidth?: number;
+  shows?: readonly ReturnType<typeof createShow>[];
+}) {
+  const currentUserId = role === 'member' ? MEMBER_USER_ID : OWNER_USER_ID;
+  const scenario = createBandScenario({
+    bandId: BAND_ID,
+    userId: currentUserId,
+    role,
+    songs: SONGS,
+    shows,
+  });
+
+  return render(
+    <AppProviders
+      currentUserId={scenario.currentUserId}
+      repositories={scenario.repositories}
+    >
+      <ShowDetailScreen
+        bandId={scenario.band.id}
+        showId={showId}
+        viewportWidth={viewportWidth}
+      />
+    </AppProviders>,
+  );
+}
 const mockReplace = jest.fn();
 
 const mockPush = jest.fn();
@@ -32,15 +205,10 @@ jest.mock('expo-router', () => ({
 
 describe('<ShowDetailScreen />', () => {
   it('mostra dados, blocos, ordem e observações do show', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId={demoIds.readyShow}
-          viewportWidth={1440}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({
+      showId: FESTIVAL_SHOW_ID,
+      viewportWidth: 1440,
+    });
 
     expect(await view.findByText('Festival da Praça')).toBeTruthy();
     expect(view.getByTestId('show-detail-desktop')).toBeTruthy();
@@ -79,14 +247,7 @@ describe('<ShowDetailScreen />', () => {
   });
 
   it('abre a edição da setlist em uma tela própria para shows editáveis', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     expect(await view.findByText('Noite no Clube')).toBeTruthy();
     expect(view.getByTestId('show-setlist-header')).toBeTruthy();
@@ -95,19 +256,12 @@ describe('<ShowDetailScreen />', () => {
     await fireEvent.press(view.getByLabelText('Editar setlist'));
 
     expect(mockPush).toHaveBeenCalledWith(
-      '/bands/band-demo-horizonte/shows/show-demo-clube/edit',
+      `/bands/${BAND_ID}/shows/${CLUB_SHOW_ID}/edit`,
     );
   });
 
   it('concentra as ações do show no popup de mais opções', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     await view.findByText('Noite no Clube');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -126,14 +280,7 @@ describe('<ShowDetailScreen />', () => {
   });
 
   it('apresenta as transições de status disponíveis para quem edita', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId={demoIds.readyShow}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: FESTIVAL_SHOW_ID });
 
     await view.findByText('Festival da Praça');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -144,14 +291,7 @@ describe('<ShowDetailScreen />', () => {
   });
 
   it('lista pendências de letras sem bloquear a confirmação de show pronto', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     await view.findByText('Noite no Clube');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -164,16 +304,7 @@ describe('<ShowDetailScreen />', () => {
   });
 
   it('mostra um estado quando o show não é encontrado', async () => {
-    const emptyRepositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      shows: [],
-      songs: [],
-    });
-    const view = await render(
-      <AppProviders repositories={emptyRepositories}>
-        <ShowDetailScreen bandId={demoIds.primaryBand} showId="unknown" />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: 'unknown', shows: [] });
 
     expect(await view.findByText('Show indisponível')).toBeTruthy();
   });
@@ -181,14 +312,7 @@ describe('<ShowDetailScreen />', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('salva atualizações dos dados do show', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     await view.findByText('Noite no Clube');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -202,8 +326,8 @@ describe('<ShowDetailScreen />', () => {
     await waitFor(() => {
       expect(updateShow).toHaveBeenCalledWith(
         expect.objectContaining({
-          bandId: demoIds.primaryBand,
-          showId: 'show-demo-clube',
+          bandId: BAND_ID,
+          showId: CLUB_SHOW_ID,
           name: 'Noite atualizada',
         }),
       );
@@ -211,14 +335,7 @@ describe('<ShowDetailScreen />', () => {
   });
 
   it('duplica o show e navega para o novo registro', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     await view.findByText('Noite no Clube');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -232,25 +349,18 @@ describe('<ShowDetailScreen />', () => {
     await waitFor(() => {
       expect(duplicateShow).toHaveBeenCalledWith(
         expect.objectContaining({
-          bandId: demoIds.primaryBand,
+          bandId: BAND_ID,
           name: 'Noite duplicada',
         }),
       );
       expect(mockPush).toHaveBeenCalledWith(
-        '/bands/band-demo-horizonte/shows/show-duplicated',
+        `/bands/${BAND_ID}/shows/show-duplicated`,
       );
     });
   });
 
   it('confirma uma transição de status e atualiza os dados do show', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId={demoIds.readyShow}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: FESTIVAL_SHOW_ID });
 
     await view.findByText('Festival da Praça');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -260,9 +370,9 @@ describe('<ShowDetailScreen />', () => {
     await waitFor(() => {
       expect(updateShowStatus).toHaveBeenCalledWith(
         expect.objectContaining({
-          bandId: demoIds.primaryBand,
+          bandId: BAND_ID,
           currentStatus: 'ready',
-          showId: demoIds.readyShow,
+          showId: FESTIVAL_SHOW_ID,
           status: 'draft',
         }),
       );
@@ -270,14 +380,7 @@ describe('<ShowDetailScreen />', () => {
   });
 
   it('exclui definitivamente o show e retorna à lista', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     await view.findByText('Noite no Clube');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -288,24 +391,18 @@ describe('<ShowDetailScreen />', () => {
 
     await waitFor(() => {
       expect(deleteShow).toHaveBeenCalledWith({
-        bandId: demoIds.primaryBand,
-        showId: 'show-demo-clube',
+        bandId: BAND_ID,
+        showId: CLUB_SHOW_ID,
       });
-      expect(mockReplace).toHaveBeenCalledWith(
-        '/bands/band-demo-horizonte/shows',
-      );
+      expect(mockReplace).toHaveBeenCalledWith(`/bands/${BAND_ID}/shows`);
     });
   });
 
   it('oculta ações para integrante sem permissão de edição', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.secondaryBand}
-          showId="show-demo-aurora-dezembro"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({
+      showId: MEMBER_SHOW.id,
+      role: 'member',
+    });
 
     await view.findByText('Encontro de Dezembro');
     expect(view.queryByLabelText('Mais opções do show')).toBeNull();
@@ -331,14 +428,7 @@ describe('<ShowDetailScreen />', () => {
     async (_kind, error, message) => {
       jest.mocked(updateShowStatus).mockRejectedValueOnce(error);
 
-      const view = await render(
-        <AppProviders>
-          <ShowDetailScreen
-            bandId={demoIds.primaryBand}
-            showId={demoIds.readyShow}
-          />
-        </AppProviders>,
-      );
+      const view = await renderShowDetail({ showId: FESTIVAL_SHOW_ID });
 
       await view.findByText('Festival da Praça');
       await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -368,14 +458,7 @@ describe('<ShowDetailScreen />', () => {
   ])('mostra feedback de %s ao excluir show', async (_kind, error, message) => {
     jest.mocked(deleteShow).mockRejectedValueOnce(error);
 
-    const view = await render(
-      <AppProviders>
-        <ShowDetailScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
-    );
+    const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
     await view.findByText('Noite no Clube');
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
@@ -406,14 +489,7 @@ describe('<ShowDetailScreen />', () => {
     async (_kind, error, message) => {
       jest.mocked(updateShow).mockRejectedValueOnce(error);
 
-      const view = await render(
-        <AppProviders>
-          <ShowDetailScreen
-            bandId={demoIds.primaryBand}
-            showId="show-demo-clube"
-          />
-        </AppProviders>,
-      );
+      const view = await renderShowDetail({ showId: CLUB_SHOW_ID });
 
       await view.findByText('Noite no Clube');
       await fireEvent.press(view.getByLabelText('Mais opções do show'));

@@ -1,7 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
 
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import { BandCreationError, createBand } from '@/data/supabase/bandMutations';
+import type { AppRepositories, EntityId } from '@/domain';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
 import {
@@ -9,7 +11,77 @@ import {
   readLastBandId,
   writeLastBandId,
 } from '@/features/bands/lastBandStorage';
+import {
+  createBand as createBandFixture,
+  createBandMember,
+  createShow,
+} from '@/testing/factories';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+
+const CURRENT_USER_ID = 'user-bands-screen';
+const HORIZONTE_BAND_ID = 'band-horizonte-test';
+const AURORA_BAND_ID = 'band-aurora-test';
+const DEFAULT_REPOSITORY_DATA = {
+  bands: [
+    createBandFixture({ id: HORIZONTE_BAND_ID, name: 'Banda Horizonte' }),
+    createBandFixture({ id: AURORA_BAND_ID, name: 'Trio Aurora' }),
+  ],
+  bandMembers: [
+    createBandMember({
+      id: 'membership-horizonte-owner',
+      bandId: HORIZONTE_BAND_ID,
+      role: 'owner',
+      userId: CURRENT_USER_ID,
+    }),
+    createBandMember({
+      id: 'membership-aurora-member',
+      bandId: AURORA_BAND_ID,
+      role: 'member',
+      userId: CURRENT_USER_ID,
+    }),
+  ],
+  repertoireCollections: [],
+  repertoireCollectionSongs: [],
+  songs: [],
+  shows: [
+    createShow({
+      id: 'show-horizonte-next',
+      bandId: HORIZONTE_BAND_ID,
+      name: 'Ensaio Aberto',
+      startsAt: '2026-09-19T16:00:00-03:00',
+      venue: 'Estúdio Central',
+    }),
+    createShow({
+      id: 'show-aurora-next',
+      bandId: AURORA_BAND_ID,
+      name: 'Domingo no Café',
+      startsAt: '2026-09-20T17:00:00-03:00',
+      venue: 'Café da Esquina',
+    }),
+  ],
+};
+
+function createTestRepositories(
+  data: Partial<typeof DEFAULT_REPOSITORY_DATA> = {},
+): AppRepositories {
+  return createInMemoryRepositories({ ...DEFAULT_REPOSITORY_DATA, ...data });
+}
+
+function BandsTestProviders({
+  children,
+  currentUserId = CURRENT_USER_ID,
+  repositories = createTestRepositories(),
+}: {
+  children: ReactNode;
+  currentUserId?: EntityId;
+  repositories?: AppRepositories;
+}) {
+  return (
+    <AppProviders currentUserId={currentUserId} repositories={repositories}>
+      {children}
+    </AppProviders>
+  );
+}
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -40,15 +112,15 @@ describe('<BandsScreen />', () => {
   });
 
   it('carrega Minhas bandas do repositório conectado', async () => {
-    await writeLastBandId('band-demo-horizonte');
+    await writeLastBandId(HORIZONTE_BAND_ID);
     const view = await render(
-      <AppProviders>
+      <BandsTestProviders>
         <BandsScreen
           now={new Date('2026-09-09T12:00:00-03:00')}
           viewportHeight={900}
           viewportWidth={1440}
         />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     expect(await view.findByText('Banda Horizonte')).toBeTruthy();
@@ -99,9 +171,9 @@ describe('<BandsScreen />', () => {
 
   it('bloqueia a criação quando o termo não foi aceito', async () => {
     const view = await render(
-      <AppProviders>
+      <BandsTestProviders>
         <BandsScreen />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     await view.findByText('Banda Horizonte');
@@ -124,9 +196,9 @@ describe('<BandsScreen />', () => {
       ),
     );
     const view = await render(
-      <AppProviders>
+      <BandsTestProviders>
         <BandsScreen />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     await view.findByText('Banda Horizonte');
@@ -150,9 +222,9 @@ describe('<BandsScreen />', () => {
 
   it('busca bandas pelo nome', async () => {
     const view = await render(
-      <AppProviders>
+      <BandsTestProviders>
         <BandsScreen />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     await view.findByText('Banda Horizonte');
@@ -167,9 +239,9 @@ describe('<BandsScreen />', () => {
 
   it('persiste a banda escolhida para a próxima abertura', async () => {
     const view = await render(
-      <AppProviders>
+      <BandsTestProviders>
         <BandsScreen />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     await view.findByText('Banda Horizonte');
@@ -181,8 +253,8 @@ describe('<BandsScreen />', () => {
 
   it('mostra o estado neutro quando a pessoa ainda não participa de uma banda', async () => {
     const view = await render(
-      <AppProviders
-        repositories={createInMemoryRepositories({
+      <BandsTestProviders
+        repositories={createTestRepositories({
           bandMembers: [],
           bands: [],
           shows: [],
@@ -190,7 +262,7 @@ describe('<BandsScreen />', () => {
         })}
       >
         <BandsScreen />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     expect(await view.findByText('Seu palco ainda está vazio')).toBeTruthy();
@@ -206,9 +278,9 @@ describe('<BandsScreen />', () => {
     await writeLastBandId('band-no-longer-authorized');
 
     const view = await render(
-      <AppProviders>
+      <BandsTestProviders>
         <BandsScreen />
-      </AppProviders>,
+      </BandsTestProviders>,
     );
 
     await view.findByText('Banda Horizonte');

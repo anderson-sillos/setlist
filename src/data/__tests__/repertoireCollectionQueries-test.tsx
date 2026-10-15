@@ -1,65 +1,71 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { demoRepositoryData } from '@/data/demo/demoData';
 import {
   useAppendRepertoireCollectionSongs,
   useRepertoireCollections,
 } from '@/data/queries';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
+import {
+  createBand,
+  createRepertoireCollection,
+  createRepertoireCollectionSong,
+  createSong,
+} from '@/testing/factories';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 const bandId = 'band-collection-query-test';
+const currentUserId = 'user-collection-query-test';
 const collectionId = 'collection-query-test';
 const emptyCollectionId = 'collection-query-empty-test';
-const firstSong = {
-  ...demoRepositoryData.songs[0],
+const firstSong = createSong({
   bandId,
   estimatedDurationMs: 180_000,
   id: 'song-query-active',
-};
-const archivedSong = {
-  ...demoRepositoryData.songs[1],
-  archivedAt: '2026-10-01T12:00:00.000Z',
+  title: 'Primeira música',
+});
+const archivedSong = createSong({
   bandId,
+  archivedAt: '2026-10-01T12:00:00.000Z',
   estimatedDurationMs: null,
   id: 'song-query-archived',
-};
+  title: 'Música arquivada',
+});
 
 function createRepositories() {
   return createInMemoryRepositories({
-    bands: [{ ...demoRepositoryData.bands[0], id: bandId }],
+    bands: [createBand({ id: bandId })],
     bandMembers: [],
     songs: [firstSong, archivedSong],
     shows: [],
     repertoireCollections: [
-      {
+      createRepertoireCollection({
         bandId,
-        createdAt: '2026-10-01T11:55:00.000Z',
         id: emptyCollectionId,
         name: 'Acústico',
+        createdAt: '2026-10-01T11:55:00.000Z',
         updatedAt: '2026-10-01T11:55:00.000Z',
-      },
-      {
+      }),
+      createRepertoireCollection({
         bandId,
-        createdAt: '2026-10-01T12:00:00.000Z',
         id: collectionId,
         name: 'Festa',
+        createdAt: '2026-10-01T12:00:00.000Z',
         updatedAt: '2026-10-01T12:00:00.000Z',
-      },
+      }),
     ],
     repertoireCollectionSongs: [
-      {
+      createRepertoireCollectionSong({
         bandId,
         collectionId,
         position: 0,
         songId: firstSong.id,
-      },
-      {
+      }),
+      createRepertoireCollectionSong({
         bandId,
         collectionId,
         position: 1,
         songId: archivedSong.id,
-      },
+      }),
     ],
   });
 }
@@ -80,7 +86,12 @@ describe('consultas de coleções do repertório', () => {
       () => useRepertoireCollections(bandId),
       {
         wrapper: ({ children }) => (
-          <AppProviders repositories={repositories}>{children}</AppProviders>
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
         ),
       },
     );
@@ -124,7 +135,12 @@ describe('consultas de coleções do repertório', () => {
       }),
       {
         wrapper: ({ children }) => (
-          <AppProviders repositories={repositories}>{children}</AppProviders>
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
         ),
       },
     );

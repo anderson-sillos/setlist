@@ -1,9 +1,10 @@
 import { render } from '@testing-library/react-native';
 
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import { createInMemoryRepositories } from '@/data/in-memory';
 import { StageHubScreen } from '@/features/stage/StageHubScreen';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+import {
+  stageTestIds,
+  StageTestProviders,
+} from '@/testing/scenarios/stageTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -12,11 +13,10 @@ jest.mock('expo-router', () => ({
 
 describe('<StageHubScreen />', () => {
   it('apresenta os shows do palco com os mesmos metadados da lista de shows', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <StageHubScreen bandId={demoIds.primaryBand} />
-      </AppProviders>,
+      <StageTestProviders>
+        <StageHubScreen bandId={stageTestIds.band} />
+      </StageTestProviders>,
     );
 
     expect(

@@ -1,9 +1,10 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import { createInMemoryRepositories } from '@/data/in-memory';
 import { StageScreen, buildStageItems } from '@/features/stage/StageScreen';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+import {
+  stageTestIds,
+  StageTestProviders,
+} from '@/testing/scenarios/stageTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -16,18 +17,17 @@ describe('<StageScreen />', () => {
   });
 
   it.each([
-    [demoIds.calendarShow, 'Ensaio Aberto'],
-    [demoIds.readyShow, 'Festival da Praça'],
+    [stageTestIds.draftShow, 'Ensaio Aberto'],
+    [stageTestIds.readyShow, 'Show do Bairro'],
   ])('abre o show %s a partir do repositório', async (showId, showName) => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <StageTestProviders>
         <StageScreen
-          bandId={demoIds.primaryBand}
+          bandId={stageTestIds.band}
           showId={showId}
           viewportWidth={390}
         />
-      </AppProviders>,
+      </StageTestProviders>,
     );
 
     expect(await view.findByText(showName)).toBeTruthy();
@@ -39,13 +39,13 @@ describe('<StageScreen />', () => {
 
   it('mostra letra estática, setlist e controla o cronômetro local', async () => {
     const view = await render(
-      <AppProviders>
+      <StageTestProviders>
         <StageScreen
-          bandId={demoIds.primaryBand}
-          showId={demoIds.readyShow}
+          bandId={stageTestIds.band}
+          showId={stageTestIds.readyShow}
           viewportWidth={390}
         />
-      </AppProviders>,
+      </StageTestProviders>,
     );
 
     expect(await view.findByText('A rua acende devagar')).toBeTruthy();
@@ -79,13 +79,13 @@ describe('<StageScreen />', () => {
 
   it('bloqueia o modo palco para show cancelado', async () => {
     const view = await render(
-      <AppProviders>
+      <StageTestProviders>
         <StageScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-arquivo"
+          bandId={stageTestIds.band}
+          showId={stageTestIds.cancelledShow}
           viewportWidth={1440}
         />
-      </AppProviders>,
+      </StageTestProviders>,
     );
 
     expect(await view.findByText('Show cancelado')).toBeTruthy();
@@ -96,7 +96,7 @@ describe('<StageScreen />', () => {
 
   it('mantém referência nula quando uma música da setlist não está disponível', () => {
     const show = {
-      bandId: demoIds.primaryBand,
+      bandId: stageTestIds.band,
       blocks: [
         {
           id: 'block',

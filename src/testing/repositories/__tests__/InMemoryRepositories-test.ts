@@ -1,7 +1,7 @@
 import {
   createInMemoryRepositories,
   type InMemoryRepositoryData,
-} from '@/data/in-memory';
+} from '@/testing/repositories';
 import type { Band, BandMember, LyricDocument, Show, Song } from '@/domain';
 
 const createdAt = '2026-09-01T12:00:00.000Z';

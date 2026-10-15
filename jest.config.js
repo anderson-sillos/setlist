@@ -3,6 +3,7 @@ module.exports = {
   preset: 'jest-expo',
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
+    '!src/testing/**',
     '!src/app/_layout.tsx',
     '!src/**/*.d.ts',
   ],

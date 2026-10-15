@@ -1,13 +1,28 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import type { PropsWithChildren } from 'react';
 import { Platform } from 'react-native';
 
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import { createInMemoryRepositories } from '@/data/in-memory';
 import { sendContentReport } from '@/data/supabase/contentReports';
+import type {
+  AppRepositories,
+  BandRole,
+  RepertoireCollection,
+  RepertoireCollectionSong,
+  Song,
+} from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
+import {
+  createLyricBlock,
+  createLyricDocument,
+  createLyricLine,
+  createRepertoireCollection,
+  createRepertoireCollectionSong,
+  createSong,
+} from '@/testing/factories';
+import { createBandScenario } from '@/testing/scenarios';
+import { TestAppProviders } from '@/testing/TestAppProviders';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -49,6 +64,140 @@ const mockNavigation = {
   dispatch: mockDispatch,
 };
 
+const BAND_ID = 'band-song-detail';
+const OWNER_USER_ID = 'user-song-detail-owner';
+const MEMBER_USER_ID = 'user-song-detail-member';
+const LIGHTS_SONG = createSong({
+  bandId: BAND_ID,
+  bpm: 118,
+  estimatedDurationMs: 218_000,
+  id: 'song-luzes-detail',
+  lyrics: createLyricDocument({
+    blocks: [
+      createLyricBlock({
+        id: 'block-luzes-verse',
+        name: 'Verso',
+        lines: [
+          createLyricLine({
+            id: 'line-luzes-first',
+            text: 'A rua acende devagar',
+          }),
+          createLyricLine({
+            id: 'line-luzes-second',
+            text: 'Nosso caminho ganha cor',
+          }),
+        ],
+      }),
+    ],
+  }),
+  lyricStatus: 'static',
+  musicalKey: 'G',
+  notes: 'Abrir com guitarra limpa.',
+  originalArtist: 'Banda Horizonte',
+  title: 'Luzes da Cidade',
+  updatedAt: '2026-09-06T12:00:00.000Z',
+  youtubeReference: 'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+});
+const INSTRUMENTAL_SONG = createSong({
+  bandId: BAND_ID,
+  id: 'song-instrumental-detail',
+  originalArtist: 'Banda Horizonte',
+  title: 'Instrumental de Abertura',
+});
+const OTHER_SONGS = [
+  createSong({
+    bandId: BAND_ID,
+    id: 'song-ceu-outubro',
+    title: 'Céu de Outubro',
+  }),
+  createSong({
+    bandId: BAND_ID,
+    id: 'song-depois-chuva',
+    title: 'Depois da Chuva',
+  }),
+  createSong({ bandId: BAND_ID, id: 'song-mare-neon', title: 'Maré de Neon' }),
+] satisfies readonly Song[];
+const REPERTOIRE_SONGS = [LIGHTS_SONG, INSTRUMENTAL_SONG, ...OTHER_SONGS];
+const ACUSTICO_COLLECTION = createRepertoireCollection({
+  bandId: BAND_ID,
+  id: 'collection-demo-acustico',
+  name: 'Acústico',
+});
+const FESTA_COLLECTION = createRepertoireCollection({
+  bandId: BAND_ID,
+  id: 'collection-demo-festa',
+  name: 'Festa',
+});
+const REPERTOIRE_COLLECTIONS = [ACUSTICO_COLLECTION, FESTA_COLLECTION];
+const REPERTOIRE_COLLECTION_SONGS = [
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: ACUSTICO_COLLECTION.id,
+    position: 0,
+    songId: OTHER_SONGS[0].id,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: ACUSTICO_COLLECTION.id,
+    position: 1,
+    songId: OTHER_SONGS[1].id,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: FESTA_COLLECTION.id,
+    position: 0,
+    songId: LIGHTS_SONG.id,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: FESTA_COLLECTION.id,
+    position: 1,
+    songId: OTHER_SONGS[2].id,
+  }),
+] satisfies readonly RepertoireCollectionSong[];
+
+interface SongDetailScenarioOptions {
+  readonly userId?: string;
+  readonly role?: BandRole;
+  readonly songs?: readonly Song[];
+  readonly collections?: readonly RepertoireCollection[];
+  readonly collectionSongs?: readonly RepertoireCollectionSong[];
+}
+
+function createRepositories({
+  userId = OWNER_USER_ID,
+  role = 'owner',
+  songs = REPERTOIRE_SONGS,
+  collections = REPERTOIRE_COLLECTIONS,
+  collectionSongs = REPERTOIRE_COLLECTION_SONGS,
+}: SongDetailScenarioOptions = {}): AppRepositories {
+  return createBandScenario({
+    bandId: BAND_ID,
+    collections,
+    collectionSongs,
+    role,
+    songs,
+    userId,
+  }).repositories;
+}
+
+interface SongDetailTestProvidersProps extends PropsWithChildren {
+  readonly currentUserId: string;
+  readonly repositories: AppRepositories;
+}
+
+function AppProviders({
+  children,
+  currentUserId,
+  repositories,
+}: SongDetailTestProvidersProps) {
+  return (
+    <TestAppProviders currentUserId={currentUserId} repositories={repositories}>
+      {children}
+    </TestAppProviders>
+  );
+}
+
 describe('<SongDetailScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,12 +222,13 @@ describe('<SongDetailScreen />', () => {
       width: 1440,
     },
   ])('adapta os detalhes ao modo $mode', async ({ height, mode, width }) => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <SongDetailScreen
-          bandId={demoIds.primaryBand}
+          bandId={BAND_ID}
           now={new Date('2026-09-09T12:00:00-03:00')}
-          songId={demoIds.stageSong}
+          songId={LIGHTS_SONG.id}
           viewportHeight={height}
           viewportWidth={width}
         />
@@ -104,21 +254,16 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('não renderiza o cartão contextual quando não há notas nem referência', async () => {
-    const songs = demoRepositoryData.songs.map((song) =>
-      song.id === demoIds.stageSong
-        ? { ...song, notes: null, youtubeReference: null }
-        : song,
-    );
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      songs,
+    const repositories = createRepositories({
+      songs: REPERTOIRE_SONGS.map((song) =>
+        song.id === LIGHTS_SONG.id
+          ? { ...song, notes: null, youtubeReference: null }
+          : song,
+      ),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -129,32 +274,27 @@ describe('<SongDetailScreen />', () => {
   it('mostra as coleções vinculadas, incluindo nomes longos', async () => {
     const longCollectionName =
       'Festival independente ao ar livre com repertório acústico';
-    const repertoireCollections = demoRepositoryData.repertoireCollections.map(
-      (collection) =>
-        collection.id === 'collection-demo-festa'
-          ? { ...collection, name: longCollectionName }
-          : collection,
+    const repertoireCollections = REPERTOIRE_COLLECTIONS.map((collection) =>
+      collection.id === FESTA_COLLECTION.id
+        ? { ...collection, name: longCollectionName }
+        : collection,
     );
     const repertoireCollectionSongs = [
-      ...demoRepositoryData.repertoireCollectionSongs,
-      {
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-acustico',
-        songId: demoIds.stageSong,
+      ...REPERTOIRE_COLLECTION_SONGS,
+      createRepertoireCollectionSong({
+        bandId: BAND_ID,
+        collectionId: ACUSTICO_COLLECTION.id,
+        songId: LIGHTS_SONG.id,
         position: 2,
-      },
+      }),
     ];
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      repertoireCollections,
-      repertoireCollectionSongs,
+    const repositories = createRepositories({
+      collections: repertoireCollections,
+      collectionSongs: repertoireCollectionSongs,
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -175,19 +315,14 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('não mostra seção vazia nem convite quando a música não tem coleção', async () => {
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      repertoireCollectionSongs:
-        demoRepositoryData.repertoireCollectionSongs.filter(
-          ({ songId }) => songId !== demoIds.stageSong,
-        ),
+    const repositories = createRepositories({
+      collectionSongs: REPERTOIRE_COLLECTION_SONGS.filter(
+        ({ songId }) => songId !== LIGHTS_SONG.id,
+      ),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -206,13 +341,10 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('salva as participações em conjunto e preserva a ordem das outras músicas', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -242,12 +374,10 @@ describe('<SongDetailScreen />', () => {
     await act(async () => mockBeforeRemove?.(routeEvent));
     expect(routeEvent.preventDefault).not.toHaveBeenCalled();
     const memberships =
-      await repositories.repertoireCollections.listSongsByBandId(
-        demoIds.primaryBand,
-      );
+      await repositories.repertoireCollections.listSongsByBandId(BAND_ID);
     expect(
       memberships
-        .filter(({ songId }) => songId === demoIds.stageSong)
+        .filter(({ songId }) => songId === LIGHTS_SONG.id)
         .map(({ collectionId }) => collectionId),
     ).toEqual(['collection-demo-acustico']);
     expect(
@@ -258,22 +388,21 @@ describe('<SongDetailScreen />', () => {
         .sort((left, right) => left.position - right.position)
         .map(({ songId, position }) => ({ songId, position })),
     ).toEqual([
-      { position: 0, songId: 'song-demo-ceu-outubro' },
-      { position: 1, songId: 'song-demo-chuva' },
-      { position: 2, songId: demoIds.stageSong },
+      { position: 0, songId: OTHER_SONGS[0].id },
+      { position: 1, songId: OTHER_SONGS[1].id },
+      { position: 2, songId: LIGHTS_SONG.id },
     ]);
     expect(
       memberships.find(
         ({ collectionId, songId }) =>
-          collectionId === 'collection-demo-festa' &&
-          songId === 'song-demo-mare-neon',
+          collectionId === FESTA_COLLECTION.id && songId === OTHER_SONGS[2].id,
       )?.position,
     ).toBe(1);
   });
 
   it('preserva as alterações ao pedir confirmação para cancelar o gerenciador', async () => {
     const originalPlatform = Platform.OS;
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const setSongCollections = jest.spyOn(
       repositories.repertoireCollections,
       'setSongCollections',
@@ -282,11 +411,8 @@ describe('<SongDetailScreen />', () => {
 
     try {
       const view = await render(
-        <AppProviders repositories={repositories}>
-          <SongDetailScreen
-            bandId={demoIds.primaryBand}
-            songId={demoIds.stageSong}
-          />
+        <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+          <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
         </AppProviders>,
       );
 
@@ -316,7 +442,7 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('mantém as escolhas após falha e permite tentar salvar novamente', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const originalSetSongCollections =
       repositories.repertoireCollections.setSongCollections.bind(
         repositories.repertoireCollections,
@@ -331,11 +457,8 @@ describe('<SongDetailScreen />', () => {
       )
       .mockImplementation(originalSetSongCollections);
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -367,12 +490,10 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('apresenta a edição da música como ação contextual acessível', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -384,12 +505,10 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('permite denunciar a música exibida e envia o identificador correto', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -405,10 +524,10 @@ describe('<SongDetailScreen />', () => {
 
     await waitFor(() =>
       expect(mockSendContentReport).toHaveBeenCalledWith({
-        bandId: demoIds.primaryBand,
+        bandId: BAND_ID,
         description: 'Conteúdo indevido nesta música',
         kind: 'song',
-        targetId: demoIds.stageSong,
+        targetId: LIGHTS_SONG.id,
       }),
     );
   });
@@ -430,12 +549,10 @@ describe('<SongDetailScreen />', () => {
     });
 
     try {
+      const repositories = createRepositories();
       const view = await render(
-        <AppProviders>
-          <SongDetailScreen
-            bandId={demoIds.primaryBand}
-            songId={demoIds.stageSong}
-          />
+        <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+          <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
         </AppProviders>,
       );
 
@@ -461,43 +578,41 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('renderiza os blocos e os formatos cadastrados na letra', async () => {
-    const formattedSong = {
-      ...demoRepositoryData.songs[0],
+    const formattedSong = createSong({
+      bandId: BAND_ID,
       id: 'song-with-formatted-lyrics',
-      lyrics: {
+      lyrics: createLyricDocument({
         blocks: [
-          {
+          createLyricBlock({
             id: 'formatted-verse',
             name: 'Verso',
             lines: [
-              {
+              createLyricLine({
                 bold: true,
                 id: 'bold-line',
-                startTimeMs: null,
                 text: 'Linha em destaque',
-              },
-              {
+              }),
+              createLyricLine({
                 id: 'separator-line',
-                kind: 'separator' as const,
-                startTimeMs: null,
+                kind: 'separator',
                 text: '',
-              },
-              { id: 'blank-line', startTimeMs: null, text: '' },
+              }),
+              createLyricLine({ id: 'blank-line', text: '' }),
             ],
-          },
+          }),
         ],
-      },
-    };
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
+      }),
+      lyricStatus: 'static',
+      title: 'Música com letra formatada',
+    });
+    const repositories = createRepositories({
       songs: [formattedSong],
+      collections: [],
+      collectionSongs: [],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={formattedSong.id}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={formattedSong.id} />
       </AppProviders>,
     );
 
@@ -520,12 +635,13 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('oculta ações de edição dos detalhes para integrante', async () => {
+    const repositories = createRepositories({
+      role: 'member',
+      userId: MEMBER_USER_ID,
+    });
     const view = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={MEMBER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -537,12 +653,10 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('trata música sem letra e conteúdo não encontrado', async () => {
+    const repositories = createRepositories();
     const instrumentalView = await render(
-      <AppProviders>
-        <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId="song-demo-instrumental"
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongDetailScreen bandId={BAND_ID} songId={INSTRUMENTAL_SONG.id} />
       </AppProviders>,
     );
 
@@ -554,14 +668,17 @@ describe('<SongDetailScreen />', () => {
       instrumentalView.queryByLabelText('Abrir letra em tela cheia'),
     ).toBeNull();
 
-    const emptyRepositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      shows: [],
+    const emptyRepositories = createRepositories({
       songs: [],
+      collections: [],
+      collectionSongs: [],
     });
     const missingSongView = await render(
-      <AppProviders repositories={emptyRepositories}>
-        <SongDetailScreen bandId={demoIds.primaryBand} songId="unknown" />
+      <AppProviders
+        currentUserId={OWNER_USER_ID}
+        repositories={emptyRepositories}
+      >
+        <SongDetailScreen bandId={BAND_ID} songId="unknown" />
       </AppProviders>,
     );
 
@@ -571,12 +688,10 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('apresenta a letra em uma tela imersiva', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <SongLyricsScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongLyricsScreen bandId={BAND_ID} songId={LIGHTS_SONG.id} />
       </AppProviders>,
     );
 
@@ -587,12 +702,10 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('informa quando a música não possui letra em tela cheia', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <SongLyricsScreen
-          bandId={demoIds.primaryBand}
-          songId="song-demo-instrumental"
-        />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongLyricsScreen bandId={BAND_ID} songId={INSTRUMENTAL_SONG.id} />
       </AppProviders>,
     );
 
@@ -600,13 +713,14 @@ describe('<SongDetailScreen />', () => {
   });
 
   it('informa quando a música não está disponível em tela cheia', async () => {
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
+    const repositories = createRepositories({
       songs: [],
+      collections: [],
+      collectionSongs: [],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <SongLyricsScreen bandId={demoIds.primaryBand} songId="unknown" />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongLyricsScreen bandId={BAND_ID} songId="unknown" />
       </AppProviders>,
     );
 

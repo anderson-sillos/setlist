@@ -5,6 +5,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { Platform, StyleSheet } from 'react-native';
 import { layout } from '@/theme/tokens';
@@ -15,11 +16,187 @@ import {
   replaceShowBlockItems,
 } from '@/data/supabase';
 
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import { createInMemoryRepositories } from '@/data/in-memory';
-import type { AppRepositories, EntityId } from '@/domain';
+import { createInMemoryRepositories } from '@/testing/repositories';
+import type {
+  AppRepositories,
+  BandRole,
+  EntityId,
+  RepertoireCollection,
+  RepertoireCollectionSong,
+  Show,
+  Song,
+} from '@/domain';
 import { ShowSetlistEditorScreen } from '@/features/shows/ShowSetlistEditorScreen';
+import {
+  createBand,
+  createBandMember,
+  createRepertoireCollection,
+  createRepertoireCollectionSong,
+  createShow,
+  createShowSetlistBlock,
+  createShowSongSetlistItem,
+  createSong,
+} from '@/testing/factories';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+
+const BAND_ID = 'band-setlist-editor';
+const OWNER_USER_ID = 'user-setlist-editor-owner';
+const MEMBER_USER_ID = 'user-setlist-editor-member';
+const CLUB_SHOW_ID = 'show-noite-no-clube';
+const READY_SHOW_ID = 'show-ready';
+const COLLECTION_ID = 'collection-acustico';
+const LIGHTS_SONG_ID = 'song-luzes-da-cidade';
+const NEON_SONG_ID = 'song-mare-de-neon';
+const BRIDGES_SONG_ID = 'song-entre-pontes';
+const RAIN_SONG_ID = 'song-depois-da-chuva';
+const LIGHTS_SONG = createSong({
+  id: LIGHTS_SONG_ID,
+  bandId: BAND_ID,
+  title: 'Luzes da Cidade',
+  originalArtist: 'Banda Horizonte',
+  estimatedDurationMs: 218_000,
+});
+const NEON_SONG = createSong({
+  id: NEON_SONG_ID,
+  bandId: BAND_ID,
+  title: 'Maré de Neon',
+  originalArtist: 'Coletivo Atlântico',
+  estimatedDurationMs: 252_000,
+});
+const BRIDGES_SONG = createSong({
+  id: BRIDGES_SONG_ID,
+  bandId: BAND_ID,
+  title: 'Entre Pontes',
+  originalArtist: 'Banda Horizonte',
+  estimatedDurationMs: 204_000,
+});
+const RAIN_SONG = createSong({
+  id: RAIN_SONG_ID,
+  bandId: BAND_ID,
+  title: 'Depois da Chuva',
+  originalArtist: 'Banda Horizonte',
+  estimatedDurationMs: 232_000,
+});
+const SONGS = [LIGHTS_SONG, NEON_SONG, BRIDGES_SONG, RAIN_SONG];
+const ACOUSTIC_COLLECTION = createRepertoireCollection({
+  id: COLLECTION_ID,
+  bandId: BAND_ID,
+  name: 'Acústico',
+});
+const COLLECTION_SONGS = [
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: COLLECTION_ID,
+    position: 0,
+    songId: LIGHTS_SONG_ID,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: COLLECTION_ID,
+    position: 1,
+    songId: NEON_SONG_ID,
+  }),
+];
+const CLUB_SHOW = createShow({
+  id: CLUB_SHOW_ID,
+  bandId: BAND_ID,
+  name: 'Noite no Clube',
+  startsAt: '2027-03-14T20:30:00-03:00',
+  venue: 'Clube das Artes',
+  status: 'draft',
+  blocks: [
+    createShowSetlistBlock({
+      id: 'show-block-clube-principal',
+      name: 'Principal',
+      items: [
+        createShowSongSetlistItem({
+          id: 'show-item-clube-pontes',
+          songId: BRIDGES_SONG_ID,
+        }),
+        createShowSongSetlistItem({
+          id: 'show-item-clube-luzes',
+          songId: LIGHTS_SONG_ID,
+        }),
+      ],
+    }),
+  ],
+});
+const READY_SHOW = createShow({
+  id: READY_SHOW_ID,
+  bandId: BAND_ID,
+  name: 'Show pronto',
+  status: 'ready',
+});
+const DEFAULT_REPOSITORY_DATA = {
+  bands: [createBand({ id: BAND_ID })],
+  bandMembers: [
+    createBandMember({
+      id: 'membership-setlist-editor',
+      bandId: BAND_ID,
+      role: 'owner',
+      userId: OWNER_USER_ID,
+    }),
+  ],
+  repertoireCollections: [ACOUSTIC_COLLECTION],
+  repertoireCollectionSongs: COLLECTION_SONGS,
+  songs: SONGS,
+  shows: [CLUB_SHOW, READY_SHOW],
+};
+
+function createRepositories({
+  role = 'owner',
+  bands = DEFAULT_REPOSITORY_DATA.bands,
+  bandMembers = [
+    createBandMember({
+      id: 'membership-setlist-editor',
+      bandId: BAND_ID,
+      role,
+      userId: role === 'member' ? MEMBER_USER_ID : OWNER_USER_ID,
+    }),
+  ],
+  repertoireCollections = DEFAULT_REPOSITORY_DATA.repertoireCollections,
+  repertoireCollectionSongs = DEFAULT_REPOSITORY_DATA.repertoireCollectionSongs,
+  songs = DEFAULT_REPOSITORY_DATA.songs,
+  shows = DEFAULT_REPOSITORY_DATA.shows,
+  createId,
+}: {
+  role?: BandRole;
+  bands?: readonly ReturnType<typeof createBand>[];
+  bandMembers?: ReturnType<typeof createBandMember>[];
+  repertoireCollections?: readonly RepertoireCollection[];
+  repertoireCollectionSongs?: readonly RepertoireCollectionSong[];
+  songs?: readonly Song[];
+  shows?: readonly Show[];
+  createId?: () => string;
+} = {}): AppRepositories {
+  return createInMemoryRepositories(
+    {
+      bands,
+      bandMembers,
+      repertoireCollections,
+      repertoireCollectionSongs,
+      songs,
+      shows,
+    },
+    { createId },
+  );
+}
+
+function TestProviders({
+  children,
+  currentUserId = OWNER_USER_ID,
+  repositories = createRepositories(),
+}: {
+  children: ReactNode;
+  currentUserId?: EntityId;
+  repositories?: AppRepositories;
+}) {
+  return (
+    <AppProviders currentUserId={currentUserId} repositories={repositories}>
+      {children}
+    </AppProviders>
+  );
+}
 
 jest.mock('@/data/supabase', () => ({
   ...jest.requireActual('@/data/supabase'),
@@ -55,7 +232,7 @@ function getNativeDismiss(
 
 async function openCollectionPreview(
   view: Awaited<ReturnType<typeof render>>,
-  collectionId = 'collection-demo-festa',
+  collectionId = COLLECTION_ID,
 ) {
   await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
   await fireEvent.press(view.getByTestId('show-add-collection-action'));
@@ -70,12 +247,9 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('monta o editor em tela própria para um show em rascunho', async () => {
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
@@ -92,14 +266,10 @@ describe('<ShowSetlistEditorScreen />', () => {
     await fireEvent.press(view.getByTestId('show-add-collection-action'));
     expect(view.getByTestId('show-collection-picker-sheet')).toBeTruthy();
     expect(
-      view.getByTestId(
-        `show-preview-collection-${demoRepositoryData.repertoireCollections[1].id}`,
-      ),
+      view.getByTestId(`show-preview-collection-${COLLECTION_ID}`),
     ).toBeTruthy();
     await fireEvent.press(
-      view.getByTestId(
-        `show-preview-collection-${demoRepositoryData.repertoireCollections[1].id}`,
-      ),
+      view.getByTestId(`show-preview-collection-${COLLECTION_ID}`),
     );
 
     const preview = view.getByTestId('show-collection-preview-sheet');
@@ -117,11 +287,11 @@ describe('<ShowSetlistEditorScreen />', () => {
         .getAllByTestId(/^show-collection-preview-song-/)
         .map(({ props }) => props.testID),
     ).toEqual([
-      `show-collection-preview-song-${demoIds.stageSong}`,
-      'show-collection-preview-song-song-demo-mare-neon',
+      `show-collection-preview-song-${LIGHTS_SONG_ID}`,
+      `show-collection-preview-song-${NEON_SONG_ID}`,
     ]);
     expect(
-      view.getByTestId('show-collection-preview-repeat-' + demoIds.stageSong),
+      view.getByTestId('show-collection-preview-repeat-' + LIGHTS_SONG_ID),
     ).toBeTruthy();
     expect(
       view.getByTestId('show-confirm-add-collection').props.accessibilityState
@@ -131,17 +301,14 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('mantém as opções habituais quando a banda não tem coleções', async () => {
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
+      ...DEFAULT_REPOSITORY_DATA,
       repertoireCollections: [],
       repertoireCollectionSongs: [],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -154,20 +321,17 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('mantém músicas arquivadas já no show, mas não oferece novas inclusões', async () => {
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      songs: demoRepositoryData.songs.map((song) =>
-        song.id === demoIds.stageSong
+      ...DEFAULT_REPOSITORY_DATA,
+      songs: SONGS.map((song) =>
+        song.id === LIGHTS_SONG_ID
           ? { ...song, archivedAt: '2026-09-09T12:00:00.000Z' }
           : song,
       ),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -191,9 +355,9 @@ describe('<ShowSetlistEditorScreen />', () => {
   it('mantém a cópia no show após reordenar e excluir a coleção, usando os dados atuais', async () => {
     const updatedSongTitle = 'Luzes da Cidade (versão atual)';
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      songs: demoRepositoryData.songs.map((song) =>
-        song.id === demoIds.stageSong
+      ...DEFAULT_REPOSITORY_DATA,
+      songs: SONGS.map((song) =>
+        song.id === LIGHTS_SONG_ID
           ? {
               ...song,
               estimatedDurationMs: 240_000,
@@ -204,12 +368,9 @@ describe('<ShowSetlistEditorScreen />', () => {
       ),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -233,27 +394,24 @@ describe('<ShowSetlistEditorScreen />', () => {
     ).toBeTruthy();
 
     const collection = await repositories.repertoireCollections.findById(
-      demoIds.primaryBand,
-      'collection-demo-festa',
+      BAND_ID,
+      COLLECTION_ID,
     );
     expect(collection).not.toBeNull();
     const reorderedCollection = await repositories.repertoireCollections.save({
-      bandId: demoIds.primaryBand,
-      collectionId: 'collection-demo-festa',
+      bandId: BAND_ID,
+      collectionId: COLLECTION_ID,
       expectedUpdatedAt: collection!.updatedAt,
       name: collection!.name,
-      orderedSongIds: ['song-demo-mare-neon', demoIds.stageSong],
+      orderedSongIds: [NEON_SONG_ID, LIGHTS_SONG_ID],
     });
     await repositories.repertoireCollections.delete({
-      bandId: demoIds.primaryBand,
-      collectionId: 'collection-demo-festa',
+      bandId: BAND_ID,
+      collectionId: COLLECTION_ID,
       expectedUpdatedAt: reorderedCollection.updatedAt,
     });
     expect(
-      await repositories.repertoireCollections.findById(
-        demoIds.primaryBand,
-        'collection-demo-festa',
-      ),
+      await repositories.repertoireCollections.findById(BAND_ID, COLLECTION_ID),
     ).toBeNull();
 
     const rowsAfterCollectionRemoval =
@@ -271,8 +429,8 @@ describe('<ShowSetlistEditorScreen />', () => {
         expect.objectContaining({
           blockId: 'show-block-clube-principal',
           items: expect.arrayContaining([
-            expect.objectContaining({ songId: demoIds.stageSong }),
-            expect.objectContaining({ songId: 'song-demo-mare-neon' }),
+            expect.objectContaining({ songId: LIGHTS_SONG_ID }),
+            expect.objectContaining({ songId: NEON_SONG_ID }),
           ]),
         }),
       );
@@ -281,12 +439,9 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('oferece o descarte padrão após adicionar uma coleção ao rascunho', async () => {
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -309,28 +464,25 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('desabilita a confirmação quando a coleção está vazia', async () => {
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
+      ...DEFAULT_REPOSITORY_DATA,
       repertoireCollections: [
-        demoRepositoryData.repertoireCollections.find(
-          ({ id }) => id === 'collection-demo-festa',
+        DEFAULT_REPOSITORY_DATA.repertoireCollections.find(
+          ({ id }) => id === COLLECTION_ID,
         )!,
       ],
       repertoireCollectionSongs: [],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
     await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
     await fireEvent.press(view.getByTestId('show-add-collection-action'));
     await fireEvent.press(
-      view.getByTestId('show-preview-collection-collection-demo-festa'),
+      view.getByTestId(`show-preview-collection-${COLLECTION_ID}`),
     );
 
     const preview = view.getByTestId('show-collection-preview-sheet');
@@ -347,41 +499,37 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('informa quando todas as músicas elegíveis estão arquivadas', async () => {
     const collectionSongIds = new Set<string>(
-      demoRepositoryData.repertoireCollectionSongs
-        .filter(({ collectionId }) => collectionId === 'collection-demo-festa')
-        .map(({ songId }) => songId),
+      COLLECTION_SONGS.filter(
+        ({ collectionId }) => collectionId === COLLECTION_ID,
+      ).map(({ songId }) => songId),
     );
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
+      ...DEFAULT_REPOSITORY_DATA,
       repertoireCollections: [
-        demoRepositoryData.repertoireCollections.find(
-          ({ id }) => id === 'collection-demo-festa',
+        DEFAULT_REPOSITORY_DATA.repertoireCollections.find(
+          ({ id }) => id === COLLECTION_ID,
         )!,
       ],
-      repertoireCollectionSongs:
-        demoRepositoryData.repertoireCollectionSongs.filter(
-          ({ collectionId }) => collectionId === 'collection-demo-festa',
-        ),
-      songs: demoRepositoryData.songs.map((song) =>
+      repertoireCollectionSongs: COLLECTION_SONGS.filter(
+        ({ collectionId }) => collectionId === COLLECTION_ID,
+      ),
+      songs: SONGS.map((song) =>
         collectionSongIds.has(song.id)
           ? { ...song, archivedAt: '2026-09-09T12:00:00.000Z' }
           : song,
       ),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
     await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
     await fireEvent.press(view.getByTestId('show-add-collection-action'));
     await fireEvent.press(
-      view.getByTestId('show-preview-collection-collection-demo-festa'),
+      view.getByTestId(`show-preview-collection-${COLLECTION_ID}`),
     );
 
     const preview = view.getByTestId('show-collection-preview-sheet');
@@ -400,34 +548,30 @@ describe('<ShowSetlistEditorScreen />', () => {
   });
 
   it('não revela músicas não consultáveis na prévia da coleção', async () => {
-    const hiddenSongId = 'song-demo-mare-neon';
+    const hiddenSongId = NEON_SONG_ID;
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
+      ...DEFAULT_REPOSITORY_DATA,
       repertoireCollections: [
-        demoRepositoryData.repertoireCollections.find(
-          ({ id }) => id === 'collection-demo-festa',
+        DEFAULT_REPOSITORY_DATA.repertoireCollections.find(
+          ({ id }) => id === COLLECTION_ID,
         )!,
       ],
-      repertoireCollectionSongs:
-        demoRepositoryData.repertoireCollectionSongs.filter(
-          ({ collectionId }) => collectionId === 'collection-demo-festa',
-        ),
-      songs: demoRepositoryData.songs.filter(({ id }) => id !== hiddenSongId),
+      repertoireCollectionSongs: COLLECTION_SONGS.filter(
+        ({ collectionId }) => collectionId === COLLECTION_ID,
+      ),
+      songs: SONGS.filter(({ id }) => id !== hiddenSongId),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
     await fireEvent.press(view.getByLabelText('Adicionar à setlist'));
     await fireEvent.press(view.getByTestId('show-add-collection-action'));
     await fireEvent.press(
-      view.getByTestId('show-preview-collection-collection-demo-festa'),
+      view.getByTestId(`show-preview-collection-${COLLECTION_ID}`),
     );
 
     const preview = view.getByTestId('show-collection-preview-sheet');
@@ -436,22 +580,19 @@ describe('<ShowSetlistEditorScreen />', () => {
   });
 
   it('atualiza a prévia e não inclui parcialmente se a coleção mudou', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
     await openCollectionPreview(view);
     await repositories.repertoireCollections.appendSongs({
-      bandId: demoIds.primaryBand,
-      collectionId: 'collection-demo-festa',
-      songIds: ['song-demo-chuva'],
+      bandId: BAND_ID,
+      collectionId: COLLECTION_ID,
+      songIds: [RAIN_SONG_ID],
     });
 
     await fireEvent.press(view.getByTestId('show-confirm-add-collection'));
@@ -477,12 +618,9 @@ describe('<ShowSetlistEditorScreen />', () => {
       isInternetReachable: false,
     } as Awaited<ReturnType<typeof NetInfo.fetch>>);
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -504,7 +642,7 @@ describe('<ShowSetlistEditorScreen />', () => {
   });
 
   it('revalida o papel de edição antes de confirmar', async () => {
-    const inMemoryRepositories = createInMemoryRepositories(demoRepositoryData);
+    const inMemoryRepositories = createRepositories();
     let accessRevoked = false;
     const repositories: AppRepositories = {
       ...inMemoryRepositories,
@@ -516,7 +654,7 @@ describe('<ShowSetlistEditorScreen />', () => {
             await inMemoryRepositories.bands.listForUser(userId);
           if (!accessRevoked) return userBands;
           return userBands.map((userBand) =>
-            userBand.band.id === demoIds.primaryBand
+            userBand.band.id === BAND_ID
               ? {
                   ...userBand,
                   membership: { ...userBand.membership, role: 'member' },
@@ -527,12 +665,9 @@ describe('<ShowSetlistEditorScreen />', () => {
       },
     };
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -549,9 +684,9 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('inclui a coleção uma vez ao fim do bloco ativo e só grava ao salvar', async () => {
     const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      shows: demoRepositoryData.shows.map((show) =>
-        show.id === 'show-demo-clube'
+      ...DEFAULT_REPOSITORY_DATA,
+      shows: DEFAULT_REPOSITORY_DATA.shows.map((show) =>
+        show.id === CLUB_SHOW_ID
           ? {
               ...show,
               blocks: [
@@ -562,7 +697,7 @@ describe('<ShowSetlistEditorScreen />', () => {
                     {
                       id: 'show-item-preserved-song',
                       notes: null,
-                      songId: 'song-demo-pontes',
+                      songId: BRIDGES_SONG_ID,
                       type: 'song' as const,
                     },
                     {
@@ -584,7 +719,7 @@ describe('<ShowSetlistEditorScreen />', () => {
                     {
                       id: 'show-item-bis-luzes',
                       notes: null,
-                      songId: demoIds.stageSong,
+                      songId: LIGHTS_SONG_ID,
                       type: 'song' as const,
                     },
                   ],
@@ -595,12 +730,9 @@ describe('<ShowSetlistEditorScreen />', () => {
       ),
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -652,12 +784,9 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('não permite editar setlist de show que já saiu de rascunho', async () => {
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId={demoIds.readyShow}
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={READY_SHOW_ID} />
+      </TestProviders>,
     );
     expect(
       await view.findByText(
@@ -668,13 +797,11 @@ describe('<ShowSetlistEditorScreen />', () => {
   });
 
   it('mostra indisponibilidade quando o usuário não tem permissão de edição', async () => {
+    const repositories = createRepositories({ role: 'member' });
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.secondaryBand}
-          showId="show-demo-aurora-dezembro"
-        />
-      </AppProviders>,
+      <TestProviders currentUserId={MEMBER_USER_ID} repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     expect(
@@ -684,13 +811,11 @@ describe('<ShowSetlistEditorScreen />', () => {
   });
 
   it('não oferece inclusão de coleção para integrante sem papel de edição', async () => {
+    const repositories = createRepositories({ role: 'member' });
     const view = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders currentUserId={MEMBER_USER_ID} repositories={repositories}>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     expect(
@@ -701,12 +826,9 @@ describe('<ShowSetlistEditorScreen />', () => {
   });
   it('salva setlist sem mudanças de bloco e sincroniza seus itens', async () => {
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -714,7 +836,7 @@ describe('<ShowSetlistEditorScreen />', () => {
 
     await waitFor(() => {
       expect(reorderShowBlocks).toHaveBeenCalledWith(
-        expect.objectContaining({ showId: 'show-demo-clube' }),
+        expect.objectContaining({ showId: CLUB_SHOW_ID }),
       );
       expect(replaceShowBlockItems).toHaveBeenCalled();
     });
@@ -722,12 +844,9 @@ describe('<ShowSetlistEditorScreen />', () => {
 
   it('persiste renomeação de bloco durante o salvamento da setlist', async () => {
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -751,12 +870,9 @@ describe('<ShowSetlistEditorScreen />', () => {
     jest.mocked(reorderShowBlocks).mockRejectedValueOnce(new Error('falha'));
 
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');
@@ -779,12 +895,9 @@ describe('<ShowSetlistEditorScreen />', () => {
       );
 
     const view = await render(
-      <AppProviders>
-        <ShowSetlistEditorScreen
-          bandId={demoIds.primaryBand}
-          showId="show-demo-clube"
-        />
-      </AppProviders>,
+      <TestProviders>
+        <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
+      </TestProviders>,
     );
 
     await view.findByTestId('show-block-editor-dialog');

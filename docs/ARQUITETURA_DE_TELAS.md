@@ -49,32 +49,32 @@ histórico técnico permanece registrado no handoff e no design.
 
 ## Componentes estruturais
 
-| Responsabilidade                             | Arquivo                                                                                                         |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Composição da estrutura geral                | `src/features/navigation/AppNavigationShell.tsx`                                                                |
-| Cabeçalho fixo                               | `src/features/navigation/components/AppHeader.tsx`                                                              |
-| Barra inferior móvel                         | `src/features/navigation/components/BottomNavigation.tsx`                                                       |
-| Conteúdo do menu lateral                     | `src/features/navigation/components/NavigationPanel.tsx`                                                        |
-| Drawer e fundo do menu móvel                 | `src/features/navigation/components/MobileNavigationDrawer.tsx`                                                 |
-| Estado, animação e gesto do drawer           | `src/features/navigation/hooks/useNavigationDrawer.ts`                                                          |
-| Restauração de rota e rolagem da seção       | `src/features/navigation/hooks/useBandNavigationState.ts` e `NavigationMemory.tsx`                              |
-| Definição das seções de navegação            | `src/features/navigation/navigationItems.ts`                                                                    |
-| Contexto visual da banda selecionada         | `src/features/navigation/BandAreaLayout.tsx`                                                                    |
-| Persistência da última banda autorizada      | `src/features/bands/LastBandSelection.tsx` e `lastBandStorage.ts`                                               |
-| Criação de banda e aceite do termo           | `src/features/bands/BandCreationDialog.tsx`, `legalTerm.ts` e `src/data/supabase/bandMutations.ts`              |
-| Perfil, exclusão de conta e limpeza local    | `src/features/account/AccountScreen.tsx`, `AccountDeletionDialog.tsx` e `src/data/supabase/accountMutations.ts` |
-| Consulta remota de bandas e integrantes      | `src/data/supabase/repositories.ts` e `src/providers/AppProviders.tsx`                                          |
-| Consulta remota e edição de músicas          | `src/data/supabase/songRepository.ts`, `songMutations.ts` e `src/providers/AppProviders.tsx`                    |
-| Repositórios e dados de teste                | `src/testing/TestAppProviders.tsx`, `src/data/demo/` e `src/data/in-memory/`                                    |
-| Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                                             |
-| Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                                                |
-| Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                                       |
-| Cronômetro manual                            | `src/features/stage/useManualTimer.ts`                                                                          |
-| Formatação de datas e chaves civis           | `src/utils/dateTime.ts`                                                                                         |
-| Formatação de durações                       | `src/utils/duration.ts`                                                                                         |
-| Normalização de buscas                       | `src/utils/text.ts`                                                                                             |
-| Cálculo de duração da setlist                | `src/domain/setlistDuration.ts`                                                                                 |
-| Rótulos visuais de Shows e Repertório        | `src/features/shows/showPresentation.ts` e `src/features/repertoire/songPresentation.ts`                        |
+| Responsabilidade                             | Arquivo                                                                                                              |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Composição da estrutura geral                | `src/features/navigation/AppNavigationShell.tsx`                                                                     |
+| Cabeçalho fixo                               | `src/features/navigation/components/AppHeader.tsx`                                                                   |
+| Barra inferior móvel                         | `src/features/navigation/components/BottomNavigation.tsx`                                                            |
+| Conteúdo do menu lateral                     | `src/features/navigation/components/NavigationPanel.tsx`                                                             |
+| Drawer e fundo do menu móvel                 | `src/features/navigation/components/MobileNavigationDrawer.tsx`                                                      |
+| Estado, animação e gesto do drawer           | `src/features/navigation/hooks/useNavigationDrawer.ts`                                                               |
+| Restauração de rota e rolagem da seção       | `src/features/navigation/hooks/useBandNavigationState.ts` e `NavigationMemory.tsx`                                   |
+| Definição das seções de navegação            | `src/features/navigation/navigationItems.ts`                                                                         |
+| Contexto visual da banda selecionada         | `src/features/navigation/BandAreaLayout.tsx`                                                                         |
+| Persistência da última banda autorizada      | `src/features/bands/LastBandSelection.tsx` e `lastBandStorage.ts`                                                    |
+| Criação de banda e aceite do termo           | `src/features/bands/BandCreationDialog.tsx`, `legalTerm.ts` e `src/data/supabase/bandMutations.ts`                   |
+| Perfil, exclusão de conta e limpeza local    | `src/features/account/AccountScreen.tsx`, `AccountDeletionDialog.tsx` e `src/data/supabase/accountMutations.ts`      |
+| Consulta remota de bandas e integrantes      | `src/data/supabase/repositories.ts` e `src/providers/AppProviders.tsx`                                               |
+| Consulta remota e edição de músicas          | `src/data/supabase/songRepository.ts`, `songMutations.ts` e `src/providers/AppProviders.tsx`                         |
+| Fábricas, cenários e repositórios de teste   | `src/testing/factories/`, `src/testing/scenarios/`, `src/testing/repositories/` e `src/testing/TestAppProviders.tsx` |
+| Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                                                  |
+| Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                                                     |
+| Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                                            |
+| Cronômetro manual                            | `src/features/stage/useManualTimer.ts`                                                                               |
+| Formatação de datas e chaves civis           | `src/utils/dateTime.ts`                                                                                              |
+| Formatação de durações                       | `src/utils/duration.ts`                                                                                              |
+| Normalização de buscas                       | `src/utils/text.ts`                                                                                                  |
+| Cálculo de duração da setlist                | `src/domain/setlistDuration.ts`                                                                                      |
+| Rótulos visuais de Shows e Repertório        | `src/features/shows/showPresentation.ts` e `src/features/repertoire/songPresentation.ts`                             |
 
 ## Organização dos testes
 
@@ -94,3 +94,9 @@ histórico técnico permanece registrado no handoff e no design.
 | Aviso de indisponibilidade do modo palco    | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                                                   |
 
 Ao criar uma tela, primeiro escolha o domínio responsável, crie o arquivo da tela nele e depois adicione uma entrada pequena em `src/app`. A entrada de rota não deve conter regras de negócio nem estilos da tela.
+
+## Dados e limites dos testes
+
+Os auxiliares de teste ficam em `src/testing/` e não são usados pelo aplicativo em produção. Fábricas criam entidades tipadas; cenários compõem somente os dados relacionados ao caso; repositórios em memória mantêm estado para que telas e hooks consultem o resultado de uma interação. `TestAppProviders` exige que o teste informe usuário e repositórios, sem carregar um catálogo implícito.
+
+Testes de tela verificam apresentação, interação, consultas e reação a falhas explicitamente simuladas. Testes de adaptador verificam argumentos, mapeamento e propagação de erros do Supabase. Regras de integridade, acesso, concorrência e atomicidade são verificadas pelos testes do banco e não são garantidas pelos auxiliares em memória. Consulte `src/testing/README.md` para exemplos e comandos.
