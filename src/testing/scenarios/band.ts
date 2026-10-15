@@ -7,7 +7,7 @@ import type {
   Show,
   Song,
 } from '@/domain';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import { createBand, createBandMember } from '@/testing/factories';
 
 export interface BandScenario {

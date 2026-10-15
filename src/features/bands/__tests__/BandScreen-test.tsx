@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import { sendContentReport } from '@/data/supabase/contentReports';
 import { createBand } from '@/data/supabase/bandMutations';
 import type {

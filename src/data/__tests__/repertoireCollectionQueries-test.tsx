@@ -4,7 +4,7 @@ import {
   useAppendRepertoireCollectionSongs,
   useRepertoireCollections,
 } from '@/data/queries';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import {
   createBand,
   createRepertoireCollection,

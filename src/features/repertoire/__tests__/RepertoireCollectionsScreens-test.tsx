@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import {
   createBand,
   createBandMember,

@@ -1,19 +1,34 @@
-import { demoRepositoryData } from '@/data/demo/demoData';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createBand, createSong } from '@/testing/factories';
+import { createInMemoryRepositories } from '@/testing/repositories';
 
 const bandId = 'band-collections-test';
-const songs = demoRepositoryData.songs.slice(0, 3).map((song, index) => ({
-  ...song,
-  bandId,
-  id: `song-${index + 1}`,
-}));
+const songs = [
+  createSong({
+    bandId,
+    estimatedDurationMs: 180_000,
+    id: 'song-one',
+    title: 'Abertura',
+  }),
+  createSong({
+    bandId,
+    estimatedDurationMs: 210_000,
+    id: 'song-two',
+    title: 'Caminho aberto',
+  }),
+  createSong({
+    bandId,
+    estimatedDurationMs: 240_000,
+    id: 'song-three',
+    title: 'Luzes da cidade',
+  }),
+] as const;
 
 function createRepositories() {
   let id = 0;
   let second = 0;
   return createInMemoryRepositories(
     {
-      bands: [{ ...demoRepositoryData.bands[0], id: bandId }],
+      bands: [createBand({ id: bandId, name: 'Banda das coleções' })],
       bandMembers: [],
       shows: [],
       songs,

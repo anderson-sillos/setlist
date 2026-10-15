@@ -16,7 +16,7 @@ import {
   replaceShowBlockItems,
 } from '@/data/supabase';
 
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import type {
   AppRepositories,
   BandRole,

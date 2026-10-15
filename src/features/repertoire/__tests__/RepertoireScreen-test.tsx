@@ -2,7 +2,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Platform } from 'react-native';
 
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import type {
   AppRepositories,
   BandRole,

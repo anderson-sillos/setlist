@@ -1,7 +1,7 @@
 import {
   createInMemoryRepositories,
   type InMemoryRepositoryData,
-} from '@/data/in-memory';
+} from '@/testing/repositories';
 import type { AppRepositories } from '@/domain';
 
 const createdAt = '2026-08-10T14:00:00.000Z';

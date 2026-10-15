@@ -24,12 +24,11 @@ Fora dos testes, `src/testing/TestAppProviders.tsx` era o único consumidor do c
 
 ## Situação após a migração de telas e navegação
 
-Após concluir as tarefas 4.1–4.3, a busca por imports e símbolos demonstrativos nos testes retorna somente dois arquivos:
+Após concluir as tarefas 4.1–4.3, a busca por imports e símbolos demonstrativos nos testes retornou dois arquivos. Na tarefa 5.2, o teste útil do repositório em memória foi movido para `src/testing/repositories/__tests__/RepertoireCollectionRepository-test.ts` e passou a construir dados locais com fábricas. A busca atual retorna somente:
 
-- `src/data/in-memory/__tests__/RepertoireCollectionRepository-test.ts`, cuja cobertura de garantias deve ser realocada ou relacionada aos testes do Supabase antes de remover a réplica (tarefas 5.1–5.3).
 - `src/data/demo/__tests__/demoData-test.ts`, que será removido junto com o catálogo após preservar as expectativas úteis (tarefa 6.1).
 
-Os outros 21 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os três consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. A nova busca por `TestAppProviders` encontra 13 arquivos de teste, incluindo os auxiliares de cenário. O próprio provedor ainda mantém `currentUserId` e `repositories` opcionais com defaults demonstrativos; a remoção desses defaults é a tarefa 5.4.
+Os outros 22 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os três consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. A nova busca por `TestAppProviders` encontra 13 arquivos de teste, incluindo os auxiliares de cenário. O próprio provedor ainda mantém `currentUserId` e `repositories` opcionais com defaults demonstrativos; a remoção desses defaults é a tarefa 5.4.
 
 ### Papéis e isolamento entre bandas
 

@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { Platform } from 'react-native';
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import { RepertoireCollectionError } from '@/domain';
 import { RepertoireCollectionEditorScreen } from '@/features/repertoire/RepertoireCollectionEditorScreen';
 import {

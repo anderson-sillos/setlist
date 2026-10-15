@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
-import { createInMemoryRepositories } from '@/data/in-memory';
+import { createInMemoryRepositories } from '@/testing/repositories';
 import { BandCreationError, createBand } from '@/data/supabase/bandMutations';
 import type { AppRepositories, EntityId } from '@/domain';
 import { BandsScreen } from '@/features/bands/BandsScreen';
