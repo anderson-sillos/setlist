@@ -1,9 +1,16 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { demoRepositoryData } from '@/data/demo';
 import { ShowBlockEditorDialog } from '@/features/shows/ShowBlockEditorDialog';
+import { createSong } from '@/testing/factories';
 import { formatSongDuration } from '@/utils/duration';
+
+const TEST_SONG = createSong({
+  bandId: 'band-block-editor',
+  estimatedDurationMs: 218_000,
+  id: 'song-block-editor',
+  title: 'Luzes da Cidade',
+});
 
 jest.mock('react-native-gesture-handler', () => {
   const React = jest.requireActual<typeof import('react')>('react');
@@ -126,7 +133,7 @@ describe('<ShowBlockEditorDialog />', () => {
   });
 
   it('exibe a exclusão à esquerda e o arraste no próprio item', async () => {
-    const song = demoRepositoryData.songs[0];
+    const song = TEST_SONG;
     const view = await render(
       <ShowBlockEditorDialog
         addSheetVisible={false}
@@ -198,7 +205,7 @@ describe('<ShowBlockEditorDialog />', () => {
   });
 
   it('seleciona o bloco como destino ao tocar em um de seus itens', async () => {
-    const song = demoRepositoryData.songs[0];
+    const song = TEST_SONG;
     const view = await render(
       <ShowBlockEditorDialog
         addSheetVisible={false}
@@ -373,7 +380,7 @@ describe('<ShowBlockEditorDialog />', () => {
   });
 
   it('limpa a prévia do item quando o sistema cancela o gesto', async () => {
-    const song = demoRepositoryData.songs[0];
+    const song = TEST_SONG;
     const view = await render(
       <ShowBlockEditorDialog
         addSheetVisible={false}
@@ -416,7 +423,7 @@ describe('<ShowBlockEditorDialog />', () => {
   });
 
   it('move o item fantasma e aplica a nova ordem ao soltar', async () => {
-    const song = demoRepositoryData.songs[0];
+    const song = TEST_SONG;
     const onSubmit = jest.fn();
     const view = await render(
       <ShowBlockEditorDialog
@@ -473,7 +480,7 @@ describe('<ShowBlockEditorDialog />', () => {
   });
 
   it('rola automaticamente enquanto o item permanece perto da borda inferior', async () => {
-    const song = demoRepositoryData.songs[0];
+    const song = TEST_SONG;
     const onSubmit = jest.fn();
     const frames: FrameRequestCallback[] = [];
     let frameId = 0;
