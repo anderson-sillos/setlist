@@ -8,7 +8,6 @@ import {
 import { Platform, StyleSheet } from 'react-native';
 
 import { rootStackScreenOptions } from '@/app/_layout';
-import { demoIds } from '@/data/demo';
 import { getUserProfile } from '@/data/supabase/profileMutations';
 import {
   AuthSessionContext,
@@ -17,15 +16,18 @@ import {
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+import {
+  NavigationTestProviders as AppProviders,
+  navigationTestIds,
+} from './navigationTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({
-    bandId: 'band-demo-horizonte',
-    showId: 'show-demo-festival',
-    songId: 'song-demo-luzes',
+    bandId: 'band-navigation-test',
+    showId: 'show-navigation-test',
+    songId: 'song-navigation-test',
   }),
   useRouter: () => ({ navigate: jest.fn(), replace: jest.fn() }),
   useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
@@ -106,7 +108,7 @@ describe('shell de navegação', () => {
       const view = await render(
         <AppProviders>
           <ShowsScreen
-            bandId={demoIds.primaryBand}
+            bandId={navigationTestIds.band}
             viewportHeight={height}
             viewportWidth={width}
           />
@@ -177,7 +179,7 @@ describe('shell de navegação', () => {
     const view = await render(
       <AppProviders>
         <ShowsScreen
-          bandId={demoIds.primaryBand}
+          bandId={navigationTestIds.band}
           viewportHeight={844}
           viewportWidth={390}
         />
@@ -209,7 +211,7 @@ describe('shell de navegação', () => {
     const view = await render(
       <AppProviders>
         <ShowsScreen
-          bandId={demoIds.primaryBand}
+          bandId={navigationTestIds.band}
           viewportHeight={844}
           viewportWidth={390}
         />
@@ -260,9 +262,9 @@ describe('shell de navegação', () => {
         <AppProviders>
           <AppNavigationShell
             activeSection="shows"
-            bandId={demoIds.primaryBand}
+            bandId={navigationTestIds.band}
             bandName="Banda Horizonte"
-            currentRoute={`/bands/${demoIds.primaryBand}/shows`}
+            currentRoute={`/bands/${navigationTestIds.band}/shows`}
             title="Shows"
             viewportHeight={844}
             viewportWidth={390}
@@ -315,7 +317,7 @@ describe('shell de navegação', () => {
       <AuthSessionContext.Provider value={authSession}>
         <AppProviders>
           <ShowsScreen
-            bandId={demoIds.primaryBand}
+            bandId={navigationTestIds.band}
             viewportHeight={900}
             viewportWidth={1440}
           />
@@ -385,8 +387,8 @@ describe('shell de navegação', () => {
     const view = await render(
       <AppProviders>
         <SongDetailScreen
-          bandId={demoIds.primaryBand}
-          songId={demoIds.stageSong}
+          bandId={navigationTestIds.band}
+          songId={navigationTestIds.song}
           viewportHeight={844}
           viewportWidth={390}
         />
@@ -412,9 +414,9 @@ describe('shell de navegação', () => {
         <AppProviders>
           <AppNavigationShell
             activeSection="repertoire"
-            bandId={demoIds.primaryBand}
+            bandId={navigationTestIds.band}
             bandName="Banda Horizonte"
-            currentRoute={`/bands/${demoIds.primaryBand}/repertoire/demo/edit`}
+            currentRoute={`/bands/${navigationTestIds.band}/repertoire/song-navigation-test/edit`}
             editActions={{ onCancel, onSave }}
             screenKind="edit"
             title="Editar música"

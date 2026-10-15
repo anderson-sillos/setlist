@@ -8,15 +8,15 @@ import ShowsRoute from '@/app/bands/[bandId]/shows';
 import ShowDetailRoute from '@/app/bands/[bandId]/shows/[showId]';
 import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
 import { useAppData } from '@/providers/AppProviders';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+import { NavigationTestProviders as AppProviders } from './navigationTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
   useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({
-    bandId: 'band-demo-horizonte',
-    showId: 'show-demo-festival',
-    songId: 'song-demo-luzes',
+    bandId: 'band-navigation-test',
+    showId: 'show-navigation-test',
+    songId: 'song-navigation-test',
   }),
   useRouter: () => ({ replace: jest.fn() }),
   useNavigation: () => ({ addListener: () => jest.fn(), dispatch: jest.fn() }),
@@ -46,7 +46,7 @@ describe('integração das rotas', () => {
       Route: BandRoute,
       backLabel: undefined,
       navigationLabel: 'Ir para Banda',
-      content: 'Ana Martins',
+      content: 'Integrante de teste',
     },
   ])(
     'carrega a rota $navigationLabel com os dados da banda',
@@ -59,7 +59,7 @@ describe('integração das rotas', () => {
 
       expect(await view.findByText(content)).toBeTruthy();
       expect(
-        (await view.findAllByText('Banda Horizonte')).length,
+        (await view.findAllByText('Banda de teste')).length,
       ).toBeGreaterThan(0);
       expect(view.getByLabelText(navigationLabel)).toBeTruthy();
       expect(view.getByLabelText(backLabel ?? 'Abrir menu geral')).toBeTruthy();

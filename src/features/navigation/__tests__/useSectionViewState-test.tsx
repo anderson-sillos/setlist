@@ -6,12 +6,13 @@ import {
 } from '@testing-library/react-native';
 import { Pressable, Text } from 'react-native';
 
-import { demoIds } from '@/data/demo';
 import {
   NavigationMemoryProvider,
   useNavigationMemory,
 } from '@/features/navigation/NavigationMemory';
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
+
+const BAND_ID = 'band-section-state-test';
 
 describe('useSectionViewState', () => {
   it('restaura a rolagem apenas na montagem e preserva a memória para o próximo acesso', async () => {
@@ -21,7 +22,7 @@ describe('useSectionViewState', () => {
     const { result, rerender } = await renderHook(
       () => {
         const memory = useNavigationMemory();
-        const view = useSectionViewState(demoIds.primaryBand, 'shows', {
+        const view = useSectionViewState(BAND_ID, 'shows', {
           search: '',
         });
         return { memory, view };
@@ -38,14 +39,15 @@ describe('useSectionViewState', () => {
 
     expect(result.current.view.initialScrollOffset).toBe(0);
     expect(result.current.view.state.search).toBe('show');
-    expect(
-      result.current.memory.getSectionMemory(demoIds.primaryBand, 'shows'),
-    ).toEqual({ scrollOffset: 420, viewState: { search: 'show' } });
+    expect(result.current.memory.getSectionMemory(BAND_ID, 'shows')).toEqual({
+      scrollOffset: 420,
+      viewState: { search: 'show' },
+    });
   });
   it('restaura a última posição ao montar a seção novamente', async () => {
     function Section() {
       const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
-        demoIds.primaryBand,
+        BAND_ID,
         'repertoire',
         { search: '' },
       );
