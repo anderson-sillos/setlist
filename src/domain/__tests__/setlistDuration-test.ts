@@ -1,71 +1,144 @@
-import { demoIds, demoRepositoryData } from '@/data/demo';
-import type { Show, Song } from '@/domain';
+import {
+  createShow,
+  createShowPlanningSetlistItem,
+  createShowSeparatorSetlistItem,
+  createShowSetlistBlock,
+  createShowSongSetlistItem,
+  createSong,
+} from '@/testing/factories';
 import {
   getBlockDurationBreakdown,
   getShowDurationBreakdown,
   getShowDurationMs,
 } from '@/domain/setlistDuration';
 
+const BAND_ID = 'band-setlist-duration';
+const OPENING_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 120_000,
+  id: 'song-opening',
+});
+const ANTHEM_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 193_000,
+  id: 'song-anthem',
+});
+const SECOND_PART_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 320_000,
+  id: 'song-second-part',
+});
+const CLOSING_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 334_000,
+  id: 'song-closing',
+});
+const SHOW = createShow({
+  bandId: BAND_ID,
+  id: 'show-duration',
+  blocks: [
+    createShowSetlistBlock({
+      id: 'block-opening',
+      name: 'Abertura',
+      items: [
+        createShowSongSetlistItem({
+          id: 'item-opening',
+          songId: OPENING_SONG.id,
+        }),
+        createShowPlanningSetlistItem({
+          id: 'item-interval-one',
+          description: 'Troca de instrumentos',
+          estimatedDurationMs: 90_000,
+        }),
+        createShowSongSetlistItem({
+          id: 'item-anthem',
+          songId: ANTHEM_SONG.id,
+        }),
+      ],
+    }),
+    createShowSetlistBlock({
+      id: 'block-middle',
+      name: 'Meio do show',
+      items: [
+        createShowSongSetlistItem({
+          id: 'item-second-part',
+          songId: SECOND_PART_SONG.id,
+        }),
+        createShowPlanningSetlistItem({
+          id: 'item-interval-two',
+          description: 'Interação com o público',
+          estimatedDurationMs: 60_000,
+        }),
+      ],
+    }),
+    createShowSetlistBlock({
+      id: 'block-closing',
+      name: 'Encerramento',
+      items: [
+        createShowSongSetlistItem({
+          id: 'item-closing',
+          songId: CLOSING_SONG.id,
+        }),
+        createShowPlanningSetlistItem({
+          id: 'item-bow',
+          description: 'Agradecimentos',
+          estimatedDurationMs: 60_000,
+        }),
+      ],
+    }),
+  ],
+});
+const SONGS_BY_ID = new Map(
+  [OPENING_SONG, ANTHEM_SONG, SECOND_PART_SONG, CLOSING_SONG].map((song) => [
+    song.id,
+    song,
+  ]),
+);
+
 describe('duração planejada da setlist', () => {
   it('separa músicas e planejamento no bloco e no total do show', () => {
-    const show = demoRepositoryData.shows.find(
-      ({ id }) => id === demoIds.readyShow,
-    ) as Show;
-    const songsById = new Map(
-      (demoRepositoryData.songs as readonly Song[]).map((song) => [
-        song.id,
-        song,
-      ]),
-    );
-
-    expect(getBlockDurationBreakdown(show.blocks[0], songsById)).toEqual({
+    expect(getBlockDurationBreakdown(SHOW.blocks[0]!, SONGS_BY_ID)).toEqual({
       hasDuration: true,
       musicMs: 313_000,
       planningMs: 90_000,
       totalMs: 403_000,
     });
-    expect(getShowDurationBreakdown(show, songsById)).toEqual({
+    expect(getShowDurationBreakdown(SHOW, SONGS_BY_ID)).toEqual({
       hasDuration: true,
       musicMs: 967_000,
       planningMs: 210_000,
       totalMs: 1_177_000,
     });
-    expect(getShowDurationMs(show, songsById)).toBe(1_177_000);
+    expect(getShowDurationMs(SHOW, SONGS_BY_ID)).toBe(1_177_000);
   });
 
   it('ignora separadores e tempos ausentes sem avisar duração parcial', () => {
-    const show: Show = {
+    const show = createShow({
       id: 'show-without-duration',
-      bandId: demoIds.primaryBand,
+      bandId: BAND_ID,
       name: 'Show sem tempo',
       startsAt: '2026-09-20T18:00:00-03:00',
       venue: 'Local',
-      notes: null,
-      status: 'draft',
       blocks: [
-        {
-          id: 'block',
+        createShowSetlistBlock({
+          id: 'block-without-duration',
           name: 'Principal',
           items: [
-            {
-              id: 'planning',
-              type: 'planning',
+            createShowPlanningSetlistItem({
+              id: 'planning-without-duration',
               description: 'Pausa sem previsão',
-              estimatedDurationMs: null,
-            },
-            { id: 'separator', type: 'separator' },
-            {
-              id: 'song',
-              type: 'song',
-              songId: 'unknown',
-              notes: null,
-            },
+            }),
+            createShowSeparatorSetlistItem({
+              id: 'separator-without-duration',
+            }),
+            createShowSongSetlistItem({
+              id: 'song-without-duration',
+              songId: 'song-unknown',
+            }),
           ],
-        },
+        }),
       ],
-      createdAt: '2026-09-01T00:00:00.000Z',
-      updatedAt: '2026-09-01T00:00:00.000Z',
-    };
+    });
 
     expect(getShowDurationBreakdown(show, new Map())).toEqual({
       hasDuration: false,

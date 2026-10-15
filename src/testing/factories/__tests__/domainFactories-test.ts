@@ -8,6 +8,11 @@ import {
   createLyricsForStatus,
   createRepertoireCollection,
   createRepertoireCollectionSong,
+  createShow,
+  createShowPlanningSetlistItem,
+  createShowSeparatorSetlistItem,
+  createShowSetlistBlock,
+  createShowSongSetlistItem,
   createSong,
 } from '@/testing/factories';
 
@@ -78,5 +83,32 @@ describe('factories for domain entities', () => {
       position: 2,
       songId: 'song-live',
     });
+  });
+
+  it('creates independent show blocks and setlist item variants', () => {
+    const block = createShowSetlistBlock({
+      id: 'block-live',
+      items: [
+        createShowSongSetlistItem({
+          id: 'setlist-song-live',
+          songId: 'song-live',
+        }),
+        createShowPlanningSetlistItem({
+          id: 'setlist-planning-live',
+          estimatedDurationMs: 30_000,
+        }),
+        createShowSeparatorSetlistItem({ id: 'setlist-separator-live' }),
+      ],
+    });
+    const show = createShow({
+      bandId: 'band-live',
+      id: 'show-live',
+      blocks: [block],
+    });
+
+    expect(show.blocks[0]).not.toBe(block);
+    expect(show.blocks[0]?.items).not.toBe(block.items);
+    expect(show.blocks[0]?.items[0]).not.toBe(block.items[0]);
+    expect(show.blocks[0]?.items).toEqual(block.items);
   });
 });
