@@ -1,7 +1,10 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 
 import { StageScreen, buildStageItems } from '@/features/stage/StageScreen';
-import { stageTestIds, StageTestProviders } from './stageTestScenario';
+import {
+  stageTestIds,
+  StageTestProviders,
+} from '@/testing/scenarios/stageTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,

@@ -19,7 +19,7 @@ import { ShowsScreen } from '@/features/shows/ShowsScreen';
 import {
   NavigationTestProviders as AppProviders,
   navigationTestIds,
-} from './navigationTestScenario';
+} from '@/testing/scenarios/navigationTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
