@@ -47,4 +47,4 @@
 ## 7. Verificação integrada
 
 - [x] 7.1 Executar formatação, lint e tipos e conferir o resultado da suíte completa da implementação final; verificar que não restam imports de auxiliares de teste em código de produção nem alterações nos seeds promocionais, e repetir testes somente se houver novas mudanças, falhas ou dúvidas pendentes.
-- [ ] 7.2 Validar a change com OpenSpec e conferir os checks remotos de qualidade, banco e smoke test Web no commit final da PR de implementação; registrar os resultados necessários à revisão e ao encerramento da change pelo fluxo de PR do projeto.
+- [x] 7.2 Validar a change com OpenSpec e conferir os checks remotos de qualidade, banco e smoke test Web no commit final da PR de implementação; registrar os resultados necessários à revisão e ao encerramento da change pelo fluxo de PR do projeto.
