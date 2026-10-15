@@ -2,6 +2,15 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 15 de outubro de 2026 — cenários explícitos para testes
+
+- A change OpenSpec `substituir-dados-demo-nos-testes` foi planejada e validada. A proposta, o desenho e as 28 tarefas estão em `openspec/changes/substituir-dados-demo-nos-testes/`; `skip_specs: true` foi usado porque o escopo remove infraestrutura de teste sem alterar requisitos ou comportamento do produto.
+- Objetivo: substituir o catálogo legado `demoRepositoryData` por fábricas e cenários mínimos, exigir repositórios e usuário explícitos em `TestAppProviders`, mover e simplificar repositórios em memória para uso exclusivo de testes, migrar os consumidores e medir cobertura somente sobre código de produto, mantendo 80% nas quatro métricas.
+- A migração deve preservar testes de telas e hooks, testes de mapeamento dos adaptadores Supabase e garantias de permissões, integridade e concorrência nas suítes locais do banco. O seed promocional `Banda Demo` e seus geradores não fazem parte do escopo.
+- Estado inicial registrado antes da implementação: 0/28 tarefas concluídas. Os grupos são fábricas e primeira migração; repertório e coleções; shows e setlists; bandas e navegação; repositórios auxiliares e provedor explícito; remoção do catálogo e cobertura; validação integrada.
+- Nesta etapa, ainda não houve alteração de código de produção/testes nem commit. O próximo passo autorizado é criar o commit inicial dos artefatos e deste handoff, abrir uma PR contra `main` e continuar a implementação nessa branch, atualizando o checklist conforme cada tarefa for concluída.
+- O fluxo Git/GitHub obrigatório permanece: criar commits destinados ao remoto, atualizar refs remotas, fazer push e criar/editar/mesclar PR somente com acesso elevado; confirmar SHA remoto e metadados da PR após cada operação.
+
 ## Atualização de 14 de outubro de 2026 — teclado nas denúncias e Metro iOS
 
 - No iPhone 16 Pro com iOS 18.3, foi reproduzida a sobreposição do teclado aos
