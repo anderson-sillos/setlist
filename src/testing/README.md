@@ -115,3 +115,60 @@ render(
 ```
 
 As suítes de coleção também declaram estados vazios e permissões sem incluir dados alheios ao caso. Durações são definidas nas músicas e conferidas com um valor esperado fixo. Para erros de gravação e revisão concorrente, substitua apenas o método usado no cenário com `jest.spyOn(...).mockRejectedValueOnce(...)`; assim a falha simulada fica visível no próprio teste.
+
+## Cenários de shows e setlists
+
+Componha shows com `createShow`, blocos com `createShowSetlistBlock` e os itens da setlist com a fábrica correspondente ao tipo. O mapa de músicas passado aos cálculos de duração deve conter as mesmas identidades referenciadas pelos itens. Em testes de tela, use `createBandScenario` para relacionar a banda, o papel atual, as músicas e os shows:
+
+```tsx
+const bandId = 'band-show-editor';
+const currentUserId = 'user-show-editor';
+const song = createSong({
+  id: 'song-opening',
+  bandId,
+  title: 'Abertura',
+  estimatedDurationMs: 180_000,
+});
+const show = createShow({
+  id: 'show-draft',
+  bandId,
+  name: 'Noite no Clube',
+  startsAt: '2026-11-14T21:00:00-03:00',
+  blocks: [
+    createShowSetlistBlock({
+      id: 'block-opening',
+      name: 'Abertura',
+      items: [
+        createShowSongSetlistItem({
+          id: 'item-opening',
+          songId: song.id,
+        }),
+        createShowPlanningSetlistItem({
+          id: 'item-interval',
+          description: 'Troca de instrumento',
+          estimatedDurationMs: 30_000,
+        }),
+        createShowSeparatorSetlistItem({ id: 'item-separator' }),
+      ],
+    }),
+  ],
+});
+const scenario = createBandScenario({
+  bandId,
+  userId: currentUserId,
+  role: 'owner',
+  songs: [song],
+  shows: [show],
+});
+
+render(
+  <TestAppProviders
+    currentUserId={scenario.currentUserId}
+    repositories={scenario.repositories}
+  >
+    <ShowSetlistEditorScreen bandId={bandId} showId={show.id} />
+  </TestAppProviders>,
+);
+```
+
+For screens whose filtering depends on the current day, pass a fixed `now` to `ShowsScreen`; `MonthCalendar` receives an explicit `initialDate`. This keeps tests for past, upcoming and same-day shows independent of the machine clock. Tests that verify formatting, ordering or total duration should write those expected values directly, without deriving the expectation from the function under test.
