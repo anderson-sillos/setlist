@@ -1,6 +1,7 @@
 .agents/
 .codex/
 .expo/
+.cache/
 coverage/
 dist/
 node_modules/

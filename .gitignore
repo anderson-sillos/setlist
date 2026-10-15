@@ -3,6 +3,7 @@ node_modules/
 
 # Expo and build output
 .expo/
+.cache/
 coverage/
 dist/
 web-build/
