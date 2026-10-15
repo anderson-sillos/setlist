@@ -69,3 +69,49 @@ render(
 ```
 
 Na suíte real de `SongEditorScreen`, `createSong` e `createBandScenario` são usados da mesma forma. O teste declara o título, a letra, o papel e as relações que serão verificadas; nenhuma banda ou música adicional é carregada por padrão. Ao migrar `TestAppProviders` para propriedades obrigatórias, esse exemplo permanece válido sem mudanças.
+
+## Cenários de repertório e coleções
+
+Use `createRepertoireCollection` e `createRepertoireCollectionSong` para declarar a coleção, as músicas relacionadas e a ordem usada no cenário. Quando a tela precisar de uma banda e um papel, componha esses dados com `createBandScenario`; para controlar IDs gerados durante a criação, um teste pode preparar `createInMemoryRepositories` diretamente com os mesmos dados explícitos.
+
+```tsx
+const bandId = 'band-repertoire-test';
+const currentUserId = 'user-repertoire-owner';
+const song = createSong({
+  id: 'song-opening',
+  bandId,
+  title: 'Abertura',
+  estimatedDurationMs: 180_000,
+});
+const collection = createRepertoireCollection({
+  id: 'collection-acoustic',
+  bandId,
+  name: 'Acústico',
+});
+const scenario = createBandScenario({
+  bandId,
+  userId: currentUserId,
+  role: 'owner',
+  songs: [song],
+  collections: [collection],
+  collectionSongs: [
+    createRepertoireCollectionSong({
+      bandId,
+      collectionId: collection.id,
+      songId: song.id,
+      position: 0,
+    }),
+  ],
+});
+
+render(
+  <TestAppProviders
+    currentUserId={scenario.currentUserId}
+    repositories={scenario.repositories}
+  >
+    <RepertoireCollectionsScreen bandId={scenario.band.id} />
+  </TestAppProviders>,
+);
+```
+
+As suítes de coleção também declaram estados vazios e permissões sem incluir dados alheios ao caso. Durações são definidas nas músicas e conferidas com um valor esperado fixo. Para erros de gravação e revisão concorrente, substitua apenas o método usado no cenário com `jest.spyOn(...).mockRejectedValueOnce(...)`; assim a falha simulada fica visível no próprio teste.
