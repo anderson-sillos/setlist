@@ -79,10 +79,10 @@ describe('<ShowSetlistEditorScreen />', () => {
     );
 
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
+    const editorRoot = view.getByTestId('show-block-editor-dialog').parent;
+    if (!editorRoot) throw new Error('Container do editor não encontrado');
     expect(
-      StyleSheet.flatten(
-        view.getByTestId('show-block-editor-dialog').parent.props.style,
-      ).maxWidth,
+      StyleSheet.flatten(editorRoot.props.style).maxWidth,
     ).toBe(layout.contentMaxWidth);
     expect(view.getByLabelText('Nome do bloco 1')).toBeTruthy();
 
