@@ -33,6 +33,11 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
       PUBLISH_CURRENT_LEGAL_DOCS: ${{ inputs.publish_current_legal_docs || false }}
+      EXPO_PUBLIC_APP_ENV: production
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      EXPO_PUBLIC_WEB_BASE_URL: https://setlistbr.app.br
+      EXPO_WEB_BASE_URL: .
 
     steps:
       - name: Obter código
@@ -42,13 +47,20 @@ jobs:
           fetch-depth: 0
 
       - name: Configurar Node.js
+        id: node
         uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Configurar npm
+        run: |
+          if [ "$(npm --version)" != "11.20.0" ]; then
+            npm install --global npm@11.20.0 --prefer-offline --no-fund
+          fi
+
       - name: Instalar dependências
-        run: npm ci
+        run: /usr/bin/time -v npm ci --prefer-offline --no-fund
 
       - name: Obter documentos legais atuais da branch principal
         if: env.PUBLISH_CURRENT_LEGAL_DOCS == 'true'
@@ -128,14 +140,29 @@ jobs:
           SETLIST_IOS_TEAM_ID: ${{ vars.SETLIST_IOS_TEAM_ID }}
         run: npm run links:prepare
 
+      - name: Identificar cache Metro
+        id: metro
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { appendFileSync } from 'node:fs';
+          import { tmpdir } from 'node:os';
+          import { join } from 'node:path';
+          const environment = Object.entries(process.env).filter(([key]) => key.startsWith('EXPO_PUBLIC_') || ['EXPO_WEB_BASE_URL', 'NODE_ENV', 'BABEL_ENV'].includes(key)).sort(([a], [b]) => a.localeCompare(b));
+          const fingerprint = createHash('sha256').update(JSON.stringify(environment)).digest('hex');
+          appendFileSync(process.env.GITHUB_OUTPUT, `path=${join(tmpdir(), 'metro-cache')}\nenvironment=${fingerprint}\n`);
+          NODE
+
+      - name: Restaurar transformações Metro de produção
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.metro.outputs.path }}
+          key: metro-production-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.*', 'metro.config.*', 'babel.config.*', 'tsconfig.json') }}-${{ env.SETLIST_RELEASE_COMMIT }}
+          restore-keys: |
+            metro-production-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.*', 'metro.config.*', 'babel.config.*', 'tsconfig.json') }}-
+
       - name: Exportar aplicação web
-        env:
-          EXPO_PUBLIC_APP_ENV: production
-          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          EXPO_PUBLIC_WEB_BASE_URL: https://setlistbr.app.br
-          EXPO_WEB_BASE_URL: .
-        run: npm run export:web -- --output-dir dist
+        run: /usr/bin/time -v npm run export:web -- --output-dir dist
 
       - name: Incluir apresentação, documentos legais e fallback de rotas
         run: |

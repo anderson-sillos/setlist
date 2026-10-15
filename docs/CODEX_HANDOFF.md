@@ -2,6 +2,14 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 15 de outubro de 2026 — manutenção do CI
+
+- Após a auditoria dos três workflows, o responsável autorizou otimizar o CI. A manutenção está isolada na branch `ci/cache-and-scope-workflows`, baseada na `main` `28f52a8`. A refatoração de dados permanece pausada em 4/28 tarefas na PR #39, branch `refactor/replace-demo-test-data`.
+- Os nomes dos três checks obrigatórios foram preservados. Em PRs somente documentais, o diff completo contra a base de merge dispensa as etapas pesadas e mantém formatação, versão e testes da classificação. Código removido/renomeado ou caminho desconhecido exige checks completos; erro no diff falha a validação. Push na `main` sempre executa tudo.
+- Foram adicionados caches de Jest/ESLint, transformações Metro separadas por ambiente e imagens de serviços do Supabase. O banco continua sendo criado do zero com todas as migrações e seed; dados e volumes não são armazenados. Os logs passam a registrar tempo, CPU e memória das etapas mais custosas. Ver `docs/CI.md` para a referência de desempenho e o procedimento de comparação.
+- O workflow aproveita `psql` do runner quando presente, instala apenas Chromium Headless Shell e mantém `npm ci` com downloads npm reaproveitados. O Pages mantém auxiliares inline para conseguir exportar tags antigas.
+- Cadência adotada: commits por tarefa podem permanecer locais; agrupar push e atualização da PR ao final do grupo validado, salvo checkpoint solicitado. A auditoria encontrou cerca de 12min20 acumulados em sete jobs cancelados pelos pushes recentes da PR #39.
+
 ## Atualização de 14 de outubro de 2026 — teclado nas denúncias e Metro iOS
 
 - No iPhone 16 Pro com iOS 18.3, foi reproduzida a sobreposição do teclado aos

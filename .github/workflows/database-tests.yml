@@ -18,33 +18,72 @@ jobs:
     name: Migrações e testes pgTAP
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SUPABASE_CLI_VERSION: 2.117.0
 
     steps:
       - name: Obter código
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Classificar alterações
+        id: scope
+        run: node scripts/ci-scope.mjs
 
       - name: Configurar Supabase CLI
+        if: steps.scope.outputs.run_checks == 'true'
         uses: supabase/setup-cli@v1
         with:
-          version: 2.117.0
+          version: ${{ env.SUPABASE_CLI_VERSION }}
 
-      - name: Instalar cliente PostgreSQL
+      - name: Conferir cliente PostgreSQL
+        if: steps.scope.outputs.run_checks == 'true'
         run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y postgresql-client
+          if command -v psql >/dev/null 2>&1; then
+            psql --version
+          else
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends -y postgresql-client
+          fi
+
+      - name: Restaurar imagens do Supabase
+        if: steps.scope.outputs.run_checks == 'true'
+        id: images
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/setlist-supabase-images.tar
+          key: supabase-images-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.SUPABASE_CLI_VERSION }}-${{ hashFiles('supabase/config.toml', 'scripts/ci-supabase-images.sh') }}
+
+      - name: Carregar imagens restauradas
+        if: steps.scope.outputs.run_checks == 'true' && steps.images.outputs.cache-hit == 'true'
+        run: bash scripts/ci-supabase-images.sh restore "$RUNNER_TEMP/setlist-supabase-images.tar"
 
       - name: Iniciar banco local com migrações e seed
-        run: supabase db start
+        if: steps.scope.outputs.run_checks == 'true'
+        id: start_db
+        run: /usr/bin/time -v supabase db start
 
       - name: Verificar inclusões concorrentes em coleções
+        if: steps.scope.outputs.run_checks == 'true'
         run: bash scripts/test-repertoire-collection-concurrency.sh
 
       - name: Verificar schema e tipos
+        if: steps.scope.outputs.run_checks == 'true'
         run: supabase db lint --local --schema public --fail-on error
 
       - name: Executar testes pgTAP
+        if: steps.scope.outputs.run_checks == 'true'
         run: supabase test db
 
+      - name: Preparar cache das imagens utilizadas
+        if: success() && steps.scope.outputs.run_checks == 'true' && steps.images.outputs.cache-hit != 'true'
+        run: bash scripts/ci-supabase-images.sh save "$RUNNER_TEMP/setlist-supabase-images.tar"
+
       - name: Parar banco local
-        if: always()
+        if: always() && steps.start_db.outcome != '' && steps.start_db.outcome != 'skipped'
         run: supabase stop --no-backup
+
+      - name: Registrar dispensa dos testes de banco
+        if: steps.scope.outputs.run_checks == 'false'
+        run: echo 'PR somente documental. Preparação do Supabase, migrações e testes de banco dispensados.' >> "$GITHUB_STEP_SUMMARY"
