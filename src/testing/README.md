@@ -22,11 +22,53 @@ Há 16 consumidores de `TestAppProviders`; 13 também estão na lista direta aci
 
 Fora dos testes, `src/testing/TestAppProviders.tsx` era o único consumidor do catálogo como fallback. O inventário precisa ser repetido após cada migração, pois novos usos podem ser introduzidos durante o trabalho.
 
+## Situação após a migração de telas e navegação
+
+Após concluir as tarefas 4.1–4.3, a busca por imports e símbolos demonstrativos nos testes retorna somente dois arquivos:
+
+- `src/data/in-memory/__tests__/RepertoireCollectionRepository-test.ts`, cuja cobertura de garantias deve ser realocada ou relacionada aos testes do Supabase antes de remover a réplica (tarefas 5.1–5.3).
+- `src/data/demo/__tests__/demoData-test.ts`, que será removido junto com o catálogo após preservar as expectativas úteis (tarefa 6.1).
+
+Os outros 21 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os três consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. A nova busca por `TestAppProviders` encontra 13 arquivos de teste, incluindo os auxiliares de cenário. O próprio provedor ainda mantém `currentUserId` e `repositories` opcionais com defaults demonstrativos; a remoção desses defaults é a tarefa 5.4.
+
+### Papéis e isolamento entre bandas
+
+Cada chamada a `createBandScenario` cria seus próprios repositórios. Declare papel, usuário e banda no cenário usado pelo teste; não compartilhe uma instância entre casos que precisem de dados ou permissões diferentes:
+
+```ts
+const ownerScenario = createBandScenario({
+  bandId: 'band-owner-case',
+  userId: 'user-owner-case',
+  role: 'owner',
+});
+const memberScenario = createBandScenario({
+  bandId: 'band-member-case',
+  userId: 'user-member-case',
+  role: 'member',
+});
+
+const ownerBands = await ownerScenario.repositories.bands.listForUser(
+  ownerScenario.currentUserId,
+);
+const memberBands = await memberScenario.repositories.bands.listForUser(
+  memberScenario.currentUserId,
+);
+const crossScenarioBands = await ownerScenario.repositories.bands.listForUser(
+  memberScenario.currentUserId,
+);
+
+expect(ownerBands[0]?.membership.role).toBe('owner');
+expect(memberBands[0]?.membership.role).toBe('member');
+expect(crossScenarioBands).toEqual([]);
+```
+
+`src/testing/factories/__tests__/domainFactories-test.ts` verifica as estruturas das fábricas; `src/testing/scenarios/__tests__/bandScenario-test.ts` verifica que cada cenário tem repositórios independentes. O exemplo destaca a relação que a tela consome: a mesma banda tem um papel por usuário, e um repositório não expõe o conteúdo do cenário vizinho.
+
 ## Verificações
 
 - `npm run test:ci` executa Jest em CI e gera `coverage/coverage-final.json`.
 - `rg -l "@/data/demo|src/data/demo|demoRepositoryData|demoIds|createDemoRepositories" src` procura usos diretos do catálogo e dos símbolos removidos.
-- `rg -l "TestAppProviders" src --glob '*test*'` procura testes que dependem do provedor.
+- `rg -l "TestAppProviders" src --glob '**/__tests__/**'` procura testes e auxiliares que dependem do provedor.
 - Os quatro limites globais de cobertura devem permanecer em 80%. Ao comparar a referência e o resultado final, use o mesmo conjunto de arquivos de produto.
 
 ## Limites das camadas
