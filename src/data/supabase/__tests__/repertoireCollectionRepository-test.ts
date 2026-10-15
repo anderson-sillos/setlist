@@ -177,4 +177,107 @@ describe('repositório de coleções do Supabase', () => {
       }),
     ).rejects.toMatchObject({ code: 'stale_revision' });
   });
+
+  it.each([
+    {
+      databaseCode: 'P0001',
+      databaseMessage: 'COLLECTION_NAME_INVALID',
+      expectedCode: 'invalid_name',
+      operation: 'save',
+    },
+    {
+      databaseCode: '23505',
+      databaseMessage:
+        'duplicate key violates repertoire_collections_band_name_key',
+      expectedCode: 'duplicate_name',
+      operation: 'save',
+    },
+    {
+      databaseCode: 'P0001',
+      databaseMessage: 'COLLECTION_REVISION_INVALID',
+      expectedCode: 'stale_revision',
+      operation: 'delete',
+    },
+    {
+      databaseCode: 'P0001',
+      databaseMessage: 'COLLECTION_NOT_FOUND',
+      expectedCode: 'not_found',
+      operation: 'delete',
+    },
+    {
+      databaseCode: '42501',
+      databaseMessage: 'COLLECTION_SONG_UNAVAILABLE',
+      expectedCode: 'unavailable_song',
+      operation: 'append',
+    },
+    {
+      databaseCode: '42501',
+      databaseMessage: 'COLLECTION_ROLE_REQUIRED',
+      expectedCode: 'permission_denied',
+      operation: 'append',
+    },
+    {
+      databaseCode: 'P0001',
+      databaseMessage: 'COLLECTION_SONG_DUPLICATE',
+      expectedCode: 'invalid_input',
+      operation: 'append',
+    },
+    {
+      databaseCode: 'P0001',
+      databaseMessage: 'COLLECTION_SONGS_INVALID',
+      expectedCode: 'invalid_input',
+      operation: 'append',
+    },
+    {
+      databaseCode: 'P0001',
+      databaseMessage: 'COLLECTION_REVISIONS_INVALID',
+      expectedCode: 'invalid_input',
+      operation: 'set-song-collections',
+    },
+    {
+      databaseCode: 'XX000',
+      databaseMessage: 'unexpected database failure',
+      expectedCode: 'request_failed',
+      operation: 'append',
+    },
+  ] as const)(
+    'traduz $databaseMessage para $expectedCode',
+    async ({ databaseCode, databaseMessage, expectedCode, operation }) => {
+      rpc.mockResolvedValue({
+        data: null,
+        error: { code: databaseCode, message: databaseMessage },
+      });
+      const repository = new SupabaseRepertoireCollectionRepository();
+      let request: Promise<unknown>;
+
+      if (operation === 'save') {
+        request = repository.save({
+          bandId: 'band-real',
+          name: 'Festa',
+          orderedSongIds: [],
+        });
+      } else if (operation === 'delete') {
+        request = repository.delete({
+          bandId: 'band-real',
+          collectionId: 'collection-real',
+          expectedUpdatedAt: collectionRow.updated_at,
+        });
+      } else if (operation === 'set-song-collections') {
+        request = repository.setSongCollections({
+          bandId: 'band-real',
+          collectionIds: [],
+          expectedRevisions: {},
+          songId: 'song-real',
+        });
+      } else {
+        request = repository.appendSongs({
+          bandId: 'band-real',
+          collectionId: 'collection-real',
+          songIds: ['song-real'],
+        });
+      }
+
+      await expect(request).rejects.toMatchObject({ code: expectedCode });
+    },
+  );
 });

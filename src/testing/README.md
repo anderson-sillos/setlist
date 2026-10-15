@@ -79,6 +79,19 @@ expect(crossScenarioBands).toEqual([]);
 - Testes de adaptadores verificam mapeamento, argumentos e propagação de erros usando respostas remotas simuladas.
 - Integridade, permissões, concorrência e atomicidade são garantidas pelas suítes locais do Supabase, não pelo repositório em memória.
 
+## Cobertura de coleções: réplica e banco
+
+As verificações de `RepertoireCollectionRepository-test.ts` eram úteis para testar o comportamento da réplica em memória, mas não provavam as garantias da aplicação. Antes de simplificar/remover essas verificações, cada regra foi relacionada à suíte que cobre a fonte de verdade:
+
+| Regra exercitada na réplica                                                                                                                                            | Garantia responsável                                         | Cobertura existente                                                                                        |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Uma música não se repete na mesma coleção; nomes e posições são únicos; vínculos pertencem à mesma banda; posição é não negativa.                                      | Constraints, chaves e relacionamentos do banco.              | `supabase/tests/9.1-repertoire-collections.sql`                                                            |
+| Salvar e reordenar a coleção, acrescentar músicas sem duplicar, editar participações, rejeitar revisão antiga e excluir vínculos sem apagar músicas ou itens de shows. | RPCs transacionais e suas regras de concorrência.            | `supabase/tests/9.3-repertoire-collections-rpcs.sql`                                                       |
+| Consulta com RLS, separação por banda e restrições por papel.                                                                                                          | Políticas de leitura e autorização das RPCs.                 | `supabase/tests/9.2-repertoire-collections-rls.sql` e `supabase/tests/9.3-repertoire-collections-rpcs.sql` |
+| Arquivar/restaurar música preserva vínculos; exclusão definitiva limpa só vínculos elegíveis; músicas usadas em shows permanecem.                                      | Ciclo de vida coordenado entre músicas, coleções e setlists. | `supabase/tests/9.4-repertoire-collections-song-lifecycle.sql`                                             |
+
+As suítes pgTAP cobrem essas invariantes. Foi identificada uma lacuna separada no adaptador: seus testes validavam a conversão de revisão desatualizada, mas não a tradução dos demais erros do banco para `RepertoireCollectionError`. `src/data/supabase/__tests__/repertoireCollectionRepository-test.ts` agora verifica os códigos de nome inválido/duplicado, revisão, ausência, música indisponível, permissão, entrada inválida e falha genérica. Essa cobertura verifica o contrato do adaptador e não duplica as garantias de integridade do banco.
+
 ## Exemplo de preparação de um teste
 
 Construa a música com os valores que o cenário usa e passe uma banda, o papel e o usuário explicitamente ao cenário. O cenário cria repositórios isolados; o provedor recebe esses repositórios e a mesma identidade do usuário:
