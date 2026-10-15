@@ -47,18 +47,6 @@ jobs:
             sudo apt-get install --no-install-recommends -y postgresql-client
           fi
 
-      - name: Restaurar imagens do Supabase
-        if: steps.scope.outputs.run_checks == 'true'
-        id: images
-        uses: actions/cache@v6
-        with:
-          path: ${{ runner.temp }}/setlist-supabase-images.tar
-          key: supabase-images-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.SUPABASE_CLI_VERSION }}-${{ hashFiles('supabase/config.toml', 'scripts/ci-supabase-images.sh') }}
-
-      - name: Carregar imagens restauradas
-        if: steps.scope.outputs.run_checks == 'true' && steps.images.outputs.cache-hit == 'true'
-        run: bash scripts/ci-supabase-images.sh restore "$RUNNER_TEMP/setlist-supabase-images.tar"
-
       - name: Iniciar banco local com migrações e seed
         if: steps.scope.outputs.run_checks == 'true'
         id: start_db
@@ -75,10 +63,6 @@ jobs:
       - name: Executar testes pgTAP
         if: steps.scope.outputs.run_checks == 'true'
         run: supabase test db
-
-      - name: Preparar cache das imagens utilizadas
-        if: success() && steps.scope.outputs.run_checks == 'true' && steps.images.outputs.cache-hit != 'true'
-        run: bash scripts/ci-supabase-images.sh save "$RUNNER_TEMP/setlist-supabase-images.tar"
 
       - name: Parar banco local
         if: always() && steps.start_db.outcome != '' && steps.start_db.outcome != 'skipped'
