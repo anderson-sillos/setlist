@@ -6,7 +6,7 @@
 - [x] 1.2 Criar fábricas tipadas para bandas, integrantes, músicas e letras em `src/testing/factories/`, com identidades relacionadas explícitas, valores neutros e estruturas novas por chamada; verificar tipos e casos focados de independência de listas internas e coerência dos quatro estados de letra.
 - [x] 1.3 Criar a composição mínima de banda em `src/testing/scenarios/`, retornando referências e repositórios novos com usuário e papel informados; verificar dois cenários independentes, ausência de conteúdo não solicitado e geração determinística de IDs e datas quando utilizada.
 - [x] 1.4 Migrar `SongEditorScreen-test.tsx` para o novo padrão, preservando os casos de criação, edição, letras, falhas e papéis; verificar a suíte da tela e a ausência de imports do catálogo demonstrativo nesse arquivo.
-- [ ] 1.5 Documentar em `src/testing/README.md` o exemplo de criação de uma música e o uso explícito do cenário no provedor; verificar que o exemplo corresponde à API exercitada pela suíte migrada.
+- [x] 1.5 Documentar em `src/testing/README.md` o exemplo de criação de uma música e o uso explícito do cenário no provedor; verificar que o exemplo corresponde à API exercitada pela suíte migrada.
 
 ## 2. Repertório, coleções e consultas
 

@@ -36,3 +36,36 @@ Fora dos testes, `src/testing/TestAppProviders.tsx` era o único consumidor do c
 - Testes de telas podem injetar repositórios em memória e falhas explícitas para verificar a reação da interface.
 - Testes de adaptadores verificam mapeamento, argumentos e propagação de erros usando respostas remotas simuladas.
 - Integridade, permissões, concorrência e atomicidade são garantidas pelas suítes locais do Supabase, não pelo repositório em memória.
+
+## Exemplo de preparação de um teste
+
+Construa a música com os valores que o cenário usa e passe uma banda, o papel e o usuário explicitamente ao cenário. O cenário cria repositórios isolados; o provedor recebe esses repositórios e a mesma identidade do usuário:
+
+```tsx
+const currentUserId = 'user-song-editor';
+const song = createSong({
+  id: 'song-to-edit',
+  bandId: 'band-song-editor',
+  title: 'Faixa em edição',
+  originalArtist: 'Artista de teste',
+  lyrics: createLyricsForStatus('static'),
+  lyricStatus: 'static',
+});
+const scenario = createBandScenario({
+  bandId: song.bandId,
+  userId: currentUserId,
+  role: 'editor',
+  songs: [song],
+});
+
+render(
+  <TestAppProviders
+    currentUserId={scenario.currentUserId}
+    repositories={scenario.repositories}
+  >
+    <SongEditorScreen bandId={scenario.band.id} songId={song.id} />
+  </TestAppProviders>,
+);
+```
+
+Na suíte real de `SongEditorScreen`, `createSong` e `createBandScenario` são usados da mesma forma. O teste declara o título, a letra, o papel e as relações que serão verificadas; nenhuma banda ou música adicional é carregada por padrão. Ao migrar `TestAppProviders` para propriedades obrigatórias, esse exemplo permanece válido sem mudanças.
