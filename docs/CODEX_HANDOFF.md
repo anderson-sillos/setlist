@@ -13,6 +13,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Próxima tarefa: 1.5, documentar em `src/testing/README.md` um exemplo de música e o uso explícito do cenário no provedor. O restante do grupo 1 e os grupos seguintes ainda não começaram.
 - O fluxo Git/GitHub obrigatório permanece: criar commits destinados ao remoto, atualizar refs remotas, fazer push e criar/editar/mesclar PR somente com acesso elevado; confirmar SHA remoto e metadados da PR após cada operação.
 
+## Atualização de 15 de outubro de 2026 — manutenção do CI
+
+- Após a auditoria dos três workflows, o responsável autorizou otimizar o CI. A PR #40 foi integrada à `main` por squash em `a93c9a1`; a refatoração de dados continua na PR #39, branch `refactor/replace-demo-test-data`.
+- Os nomes dos três checks obrigatórios foram preservados. Em PRs somente documentais, o diff completo contra a base de merge dispensa as etapas pesadas e mantém formatação, versão e testes da classificação. Código removido/renomeado ou caminho desconhecido exige checks completos; erro no diff falha a validação. Push na `main` sempre executa tudo.
+- A PR #40 reúne caches de Jest/ESLint e transformações Metro separadas por ambiente. O experimento de cache Docker foi retirado: restauração e carregamento custaram 73 s, frente a cerca de 55 s de downloads na referência anterior. O banco continua sendo criado do zero com todas as migrações e seed. Os logs registram tempo, CPU e memória das etapas mais custosas. Ver `docs/CI.md` para medições e limites.
+- O workflow aproveita `psql` do runner quando presente, instala apenas Chromium Headless Shell e mantém `npm ci` com downloads npm reaproveitados. O Pages mantém auxiliares inline para conseguir exportar tags antigas.
+- Cadência adotada: commits por tarefa podem permanecer locais; agrupar push e atualização da PR ao final do grupo validado, salvo checkpoint solicitado. A auditoria encontrou cerca de 12min20 acumulados em sete jobs cancelados pelos pushes recentes da PR #39.
+- Comparação do mesmo commit `6cd7024` no GitHub, com os três checks aprovados nas duas tentativas: qualidade 142→103 s; Jest 68→51 s (109 suítes/790 testes); lint 19→2 s; smoke Web 138→61 s (4 testes); exportação Web 68→6 s. A classificação documental passou três testes, incluindo renome de código, histórico raso e falha quando falta a base. Workflows passaram actionlint, validação dos comandos shell, formatação e lint. O Pages não foi publicado nesta manutenção.
+
 ## Atualização de 14 de outubro de 2026 — teclado nas denúncias e Metro iOS
 
 - No iPhone 16 Pro com iOS 18.3, foi reproduzida a sobreposição do teclado aos

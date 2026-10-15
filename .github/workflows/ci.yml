@@ -22,33 +22,72 @@ jobs:
     steps:
       - name: Obter código
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Verificar classificação dos caminhos
+        run: node --test scripts/__tests__/ci-scope.test.mjs
+
+      - name: Classificar alterações
+        id: scope
+        run: node scripts/ci-scope.mjs
 
       - name: Configurar Node.js
+        id: node
         uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Configurar npm
-        run: npm install --global npm@11.20.0
+        run: |
+          if [ "$(npm --version)" != "11.20.0" ]; then
+            npm install --global npm@11.20.0 --prefer-offline --no-fund
+          fi
 
       - name: Instalar dependências
-        run: npm ci
+        if: steps.scope.outputs.run_checks == 'true'
+        run: /usr/bin/time -v npm ci --prefer-offline --no-fund
 
       - name: Verificar formatação
+        if: steps.scope.outputs.run_checks == 'true'
         run: npm run format:check
+
+      - name: Verificar formatação da PR documental
+        if: steps.scope.outputs.run_checks == 'false'
+        run: |
+          prettier_version="$(node -p "require('./package-lock.json').packages['node_modules/prettier'].version")"
+          npx --yes --prefer-offline --package="prettier@$prettier_version" prettier --check .
 
       - name: Conferir versão comum de Android, iOS e Web
         run: npm run release:check
 
+      - name: Restaurar transformações Jest e cache ESLint
+        if: steps.scope.outputs.run_checks == 'true'
+        uses: actions/cache@v6
+        with:
+          path: |
+            .cache/jest
+            .expo/cache/eslint
+          key: quality-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json', 'jest.config.js', 'jest.setup.js', 'eslint.config.js', '.prettierrc.json', 'tsconfig.json', 'babel.config.*') }}-${{ github.sha }}
+          restore-keys: |
+            quality-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json', 'jest.config.js', 'jest.setup.js', 'eslint.config.js', '.prettierrc.json', 'tsconfig.json', 'babel.config.*') }}-
+
       - name: Executar lint
-        run: npm run lint
+        if: steps.scope.outputs.run_checks == 'true'
+        run: /usr/bin/time -v npm run lint -- -- --cache-strategy content
 
       - name: Verificar tipos
+        if: steps.scope.outputs.run_checks == 'true'
         run: npm run typecheck
 
       - name: Executar testes
-        run: npm run test:ci
+        if: steps.scope.outputs.run_checks == 'true'
+        run: /usr/bin/time -v npm run test:ci -- --cacheDirectory=.cache/jest
+
+      - name: Registrar validação documental
+        if: steps.scope.outputs.run_checks == 'false'
+        run: echo 'PR somente documental. Formatação, classificação dos caminhos e versão verificadas; lint, tipos e Jest dispensados.' >> "$GITHUB_STEP_SUMMARY"
 
   web-e2e:
     name: Smoke test Web (Playwright)
@@ -64,24 +103,67 @@ jobs:
     steps:
       - name: Obter código
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Classificar alterações
+        id: scope
+        run: node scripts/ci-scope.mjs
 
       - name: Configurar Node.js
+        if: steps.scope.outputs.run_checks == 'true'
+        id: node
         uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Configurar npm
-        run: npm install --global npm@11.20.0
+        if: steps.scope.outputs.run_checks == 'true'
+        run: |
+          if [ "$(npm --version)" != "11.20.0" ]; then
+            npm install --global npm@11.20.0 --prefer-offline --no-fund
+          fi
 
       - name: Instalar dependências
-        run: npm ci
+        if: steps.scope.outputs.run_checks == 'true'
+        run: /usr/bin/time -v npm ci --prefer-offline --no-fund
+
+      - name: Identificar cache Metro
+        if: steps.scope.outputs.run_checks == 'true'
+        id: metro
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { appendFileSync } from 'node:fs';
+          import { tmpdir } from 'node:os';
+          import { join } from 'node:path';
+          const environment = Object.entries(process.env).filter(([key]) => key.startsWith('EXPO_PUBLIC_') || ['EXPO_WEB_BASE_URL', 'NODE_ENV', 'BABEL_ENV'].includes(key)).sort(([a], [b]) => a.localeCompare(b));
+          const fingerprint = createHash('sha256').update(JSON.stringify(environment)).digest('hex');
+          appendFileSync(process.env.GITHUB_OUTPUT, `path=${join(tmpdir(), 'metro-cache')}\nenvironment=${fingerprint}\n`);
+          NODE
+
+      - name: Restaurar transformações Metro
+        if: steps.scope.outputs.run_checks == 'true'
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.metro.outputs.path }}
+          key: metro-development-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.*', 'metro.config.*', 'babel.config.*', 'tsconfig.json') }}-${{ github.sha }}
+          restore-keys: |
+            metro-development-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.*', 'metro.config.*', 'babel.config.*', 'tsconfig.json') }}-
 
       - name: Gerar export Web
-        run: npm run export:web
+        if: steps.scope.outputs.run_checks == 'true'
+        run: /usr/bin/time -v npm run export:web
 
-      - name: Instalar Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Instalar Chromium Headless Shell
+        if: steps.scope.outputs.run_checks == 'true'
+        run: npx playwright install --with-deps --only-shell chromium
 
       - name: Executar smoke test Web
+        if: steps.scope.outputs.run_checks == 'true'
         run: npm run test:e2e:web
+
+      - name: Registrar dispensa do smoke test
+        if: steps.scope.outputs.run_checks == 'false'
+        run: echo 'PR somente documental. Exportação, instalação do navegador e smoke test dispensados.' >> "$GITHUB_STEP_SUMMARY"
