@@ -1,4 +1,12 @@
-import type { AppRepositories, BandRole, EntityId, Show, Song } from '@/domain';
+import type {
+  AppRepositories,
+  BandRole,
+  EntityId,
+  RepertoireCollection,
+  RepertoireCollectionSong,
+  Show,
+  Song,
+} from '@/domain';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { createBand, createBandMember } from '@/testing/factories';
 
@@ -13,6 +21,8 @@ export interface CreateBandScenarioInput {
   readonly bandId: EntityId;
   readonly userId: EntityId;
   readonly role: BandRole;
+  readonly collections?: readonly RepertoireCollection[];
+  readonly collectionSongs?: readonly RepertoireCollectionSong[];
   readonly songs?: readonly Song[];
   readonly shows?: readonly Show[];
 }
@@ -22,6 +32,8 @@ export function createBandScenario({
   bandId,
   userId,
   role,
+  collections = [],
+  collectionSongs = [],
   songs = [],
   shows = [],
 }: CreateBandScenarioInput): BandScenario {
@@ -36,8 +48,8 @@ export function createBandScenario({
   const repositories = createInMemoryRepositories({
     bands: [band],
     bandMembers: [membership],
-    repertoireCollections: [],
-    repertoireCollectionSongs: [],
+    repertoireCollections: [...collections],
+    repertoireCollectionSongs: [...collectionSongs],
     songs: [...songs],
     shows: [...shows],
   });

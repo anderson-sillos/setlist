@@ -1,12 +1,27 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import type { ReactElement } from 'react';
+import type { PropsWithChildren, ReactElement } from 'react';
 import { Platform } from 'react-native';
 
-import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
+import type {
+  AppRepositories,
+  BandRole,
+  RepertoireCollection,
+  RepertoireCollectionSong,
+  Song,
+} from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
-import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+import {
+  createBand,
+  createBandMember,
+  createRepertoireCollection,
+  createRepertoireCollectionSong,
+  createSong,
+  createLyricsForStatus,
+} from '@/testing/factories';
+import { createBandScenario } from '@/testing/scenarios';
+import { TestAppProviders } from '@/testing/TestAppProviders';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
@@ -57,6 +72,144 @@ interface MockLinkEvent {
   preventDefault: () => void;
 }
 
+const BAND_ID = 'band-repertoire-screen';
+const SECOND_BAND_ID = 'band-repertoire-other';
+const OWNER_USER_ID = 'user-repertoire-owner';
+const MEMBER_USER_ID = 'user-repertoire-member';
+
+const LIGHTS_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 218_000,
+  id: 'song-luzes-da-cidade',
+  lyrics: createLyricsForStatus('static'),
+  lyricStatus: 'static',
+  musicalKey: 'G',
+  originalArtist: 'Banda Horizonte',
+  title: 'Luzes da Cidade',
+});
+const BRIDGES_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 204_000,
+  id: 'song-entre-pontes',
+  lyrics: createLyricsForStatus('synchronized'),
+  lyricStatus: 'synchronized',
+  originalArtist: 'Banda Horizonte',
+  title: 'Entre Pontes',
+});
+const NEON_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 252_000,
+  id: 'song-mare-de-neon',
+  lyrics: createLyricsForStatus('synchronized'),
+  lyricStatus: 'synchronized',
+  originalArtist: 'Coletivo Atlântico',
+  title: 'Maré de Neon',
+});
+const INCOMPLETE_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 232_000,
+  id: 'song-depois-da-chuva',
+  lyrics: createLyricsForStatus('incomplete'),
+  lyricStatus: 'incomplete',
+  originalArtist: 'Banda Horizonte',
+  title: 'Depois da Chuva',
+});
+const OPENING_SONG = createSong({
+  bandId: BAND_ID,
+  estimatedDurationMs: 95_000,
+  id: 'song-instrumental-abertura',
+  originalArtist: 'Banda Horizonte',
+  title: 'Instrumental de Abertura',
+});
+const ARCHIVED_SONG = createSong({
+  archivedAt: '2026-10-01T12:00:00.000Z',
+  bandId: BAND_ID,
+  estimatedDurationMs: 190_000,
+  id: 'song-rota-antiga',
+  originalArtist: 'Banda Horizonte',
+  title: 'Rota Antiga',
+});
+const REPERTOIRE_SONGS = [
+  LIGHTS_SONG,
+  BRIDGES_SONG,
+  NEON_SONG,
+  INCOMPLETE_SONG,
+  OPENING_SONG,
+  ARCHIVED_SONG,
+] satisfies readonly Song[];
+const FESTA_COLLECTION = createRepertoireCollection({
+  bandId: BAND_ID,
+  createdAt: '2026-10-01T12:00:00.000Z',
+  id: 'collection-repertoire-festa',
+  name: 'Festa',
+  updatedAt: '2026-10-01T12:00:00.000Z',
+});
+const ACUSTICO_COLLECTION = createRepertoireCollection({
+  bandId: BAND_ID,
+  createdAt: '2026-10-01T11:55:00.000Z',
+  id: 'collection-repertoire-acustico',
+  name: 'Acústico',
+  updatedAt: '2026-10-01T11:55:00.000Z',
+});
+const FESTA_MEMBERSHIPS = [
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: FESTA_COLLECTION.id,
+    position: 0,
+    songId: LIGHTS_SONG.id,
+  }),
+  createRepertoireCollectionSong({
+    bandId: BAND_ID,
+    collectionId: FESTA_COLLECTION.id,
+    position: 1,
+    songId: NEON_SONG.id,
+  }),
+] satisfies readonly RepertoireCollectionSong[];
+
+interface RepertoireScenarioOptions {
+  readonly bandId?: string;
+  readonly role?: BandRole;
+  readonly userId?: string;
+  readonly songs?: readonly Song[];
+  readonly collections?: readonly RepertoireCollection[];
+  readonly collectionSongs?: readonly RepertoireCollectionSong[];
+}
+
+function createRepositories({
+  bandId = BAND_ID,
+  role = 'owner',
+  userId = OWNER_USER_ID,
+  songs = REPERTOIRE_SONGS,
+  collections = [ACUSTICO_COLLECTION, FESTA_COLLECTION],
+  collectionSongs = FESTA_MEMBERSHIPS,
+}: RepertoireScenarioOptions = {}): AppRepositories {
+  return createBandScenario({
+    bandId,
+    collections,
+    collectionSongs,
+    role,
+    songs,
+    userId,
+  }).repositories;
+}
+
+interface RepertoireTestProvidersProps extends PropsWithChildren {
+  readonly currentUserId: string;
+  readonly repositories: AppRepositories;
+}
+
+function AppProviders({
+  children,
+  currentUserId,
+  repositories,
+}: RepertoireTestProvidersProps) {
+  return (
+    <TestAppProviders currentUserId={currentUserId} repositories={repositories}>
+      {children}
+    </TestAppProviders>
+  );
+}
+
 async function pressActionMenu(
   view: Awaited<ReturnType<typeof render>>,
   triggerLabel: string,
@@ -95,9 +248,10 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('apresenta o repertório e os metadados em modo somente leitura', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} viewportWidth={820} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} viewportWidth={820} />
       </AppProviders>,
     );
 
@@ -118,9 +272,10 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('busca, filtra e ordena o repertório sem tirar os controles da tela', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} viewportWidth={390} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} viewportWidth={390} />
       </AppProviders>,
     );
 
@@ -181,21 +336,20 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('combina coleção, status e busca sem duplicar músicas e preserva a ordenação', async () => {
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      repertoireCollectionSongs: [
-        ...demoRepositoryData.repertoireCollectionSongs,
-        {
-          bandId: demoIds.primaryBand,
-          collectionId: 'collection-demo-festa',
-          songId: demoIds.stageSong,
+    const repositories = createRepositories({
+      collectionSongs: [
+        ...FESTA_MEMBERSHIPS,
+        createRepertoireCollectionSong({
+          bandId: BAND_ID,
+          collectionId: FESTA_COLLECTION.id,
+          songId: LIGHTS_SONG.id,
           position: 2,
-        },
+        }),
       ],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -236,9 +390,10 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('mantém o espaço da toolbar fixo ao aplicar coleção e ocultar os controles na rolagem', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
     await view.findByText('Luzes da Cidade');
@@ -279,14 +434,13 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('não apresenta opções de coleção no filtro quando a banda não tem coleções', async () => {
-    const repositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      repertoireCollections: [],
-      repertoireCollectionSongs: [],
+    const repositories = createRepositories({
+      collections: [],
+      collectionSongs: [],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -300,17 +454,18 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('abre com a coleção indicada pela rota e preserva o filtro ao retornar', async () => {
+    const repositories = createRepositories();
     function RepertoireHarness({
       visible = true,
     }: {
       readonly visible?: boolean;
     }) {
       return (
-        <AppProviders>
+        <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
           {visible ? (
             <RepertoireScreen
-              bandId={demoIds.primaryBand}
-              initialCollectionId="collection-demo-festa"
+              bandId={BAND_ID}
+              initialCollectionId={FESTA_COLLECTION.id}
             />
           ) : null}
         </AppProviders>
@@ -335,7 +490,31 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('restaura o filtro ao voltar do detalhe e mantém estado separado por banda durante o refresh', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const secondarySong = createSong({
+      bandId: SECOND_BAND_ID,
+      id: 'song-mare-serena',
+      originalArtist: 'Coletivo Continental',
+      title: 'Maré Serena',
+    });
+    const repositories = createInMemoryRepositories({
+      bands: [createBand({ id: BAND_ID }), createBand({ id: SECOND_BAND_ID })],
+      bandMembers: [
+        createBandMember({
+          bandId: BAND_ID,
+          role: 'owner',
+          userId: OWNER_USER_ID,
+        }),
+        createBandMember({
+          bandId: SECOND_BAND_ID,
+          role: 'owner',
+          userId: OWNER_USER_ID,
+        }),
+      ],
+      songs: [...REPERTOIRE_SONGS, secondarySong],
+      shows: [],
+      repertoireCollections: [ACUSTICO_COLLECTION, FESTA_COLLECTION],
+      repertoireCollectionSongs: FESTA_MEMBERSHIPS,
+    });
     const listCollections = jest.spyOn(
       repositories.repertoireCollections,
       'listByBandId',
@@ -348,15 +527,13 @@ describe('<RepertoireScreen />', () => {
       readonly visible?: boolean;
     }) {
       return (
-        <AppProviders repositories={repositories}>
+        <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
           {visible ? <RepertoireScreen bandId={bandId} /> : null}
         </AppProviders>
       );
     }
 
-    const view = await render(
-      <RepertoireHarness bandId={demoIds.primaryBand} />,
-    );
+    const view = await render(<RepertoireHarness bandId={BAND_ID} />);
     await view.findByText('Luzes da Cidade');
     await fireEvent.press(view.getByLabelText('Alterar filtros do repertório'));
     await fireEvent.press(view.getByLabelText('Festa'));
@@ -381,12 +558,8 @@ describe('<RepertoireScreen />', () => {
     );
     expect(view.getByText('Maré de Neon')).toBeTruthy();
 
-    await view.rerender(
-      <RepertoireHarness bandId={demoIds.primaryBand} visible={false} />,
-    );
-    await view.rerender(
-      <RepertoireHarness bandId={demoIds.primaryBand} visible />,
-    );
+    await view.rerender(<RepertoireHarness bandId={BAND_ID} visible={false} />);
+    await view.rerender(<RepertoireHarness bandId={BAND_ID} visible />);
     expect(await view.findByText('Maré de Neon')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
     expect(view.getByTestId('repertoire-list').props.contentOffset).toEqual({
@@ -399,7 +572,7 @@ describe('<RepertoireScreen />', () => {
     });
     await fireEvent.press(view.getByLabelText('Aplicar filtros'));
 
-    await view.rerender(<RepertoireHarness bandId={demoIds.secondaryBand} />);
+    await view.rerender(<RepertoireHarness bandId={SECOND_BAND_ID} />);
     expect(await view.findByText('Maré Serena')).toBeTruthy();
     expect(
       view.getByLabelText('Alterar filtros do repertório').props
@@ -409,24 +582,21 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Coleção das músicas')).toBeNull();
     await fireEvent.press(view.getByLabelText('Fechar filtros'));
 
-    await view.rerender(<RepertoireHarness bandId={demoIds.primaryBand} />);
+    await view.rerender(<RepertoireHarness bandId={BAND_ID} />);
     expect(await view.findByText('Maré de Neon')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
   }, 15_000);
 
   it('remove o filtro da coleção excluída após confirmar a consulta e preserva os outros critérios', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const listCollections = jest.spyOn(
       repositories.repertoireCollections,
       'listByBandId',
     );
-    const collection = demoRepositoryData.repertoireCollections.find(
-      ({ id }) => id === 'collection-demo-festa',
-    );
-    if (!collection) throw new Error('Coleção Festa não encontrada');
+    const collection = FESTA_COLLECTION;
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -442,7 +612,7 @@ describe('<RepertoireScreen />', () => {
     expect(view.getByText('Maré de Neon')).toBeTruthy();
 
     await repositories.repertoireCollections.delete({
-      bandId: demoIds.primaryBand,
+      bandId: BAND_ID,
       collectionId: collection.id,
       expectedUpdatedAt: collection.updatedAt,
     });
@@ -471,13 +641,13 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('mantém critério e músicas em caso de falha ao atualizar as coleções', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const listCollections = jest
       .spyOn(repositories.repertoireCollections, 'listByBandId')
-      .mockResolvedValue(demoRepositoryData.repertoireCollections);
+      .mockResolvedValue([ACUSTICO_COLLECTION, FESTA_COLLECTION]);
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -508,23 +678,30 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('apresenta estados vazios e permite limpar uma busca sem resultado', async () => {
-    const emptyRepositories = createInMemoryRepositories({
-      ...demoRepositoryData,
-      shows: [],
+    const emptyRepositories = createRepositories({
       songs: [],
+      collections: [],
+      collectionSongs: [],
     });
     const emptyView = await render(
-      <AppProviders repositories={emptyRepositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders
+        currentUserId={OWNER_USER_ID}
+        repositories={emptyRepositories}
+      >
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
     expect(await emptyView.findByText('Comece pelo repertório')).toBeTruthy();
     await emptyView.unmount();
 
+    const searchRepositories = createRepositories();
     const searchView = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders
+        currentUserId={OWNER_USER_ID}
+        repositories={searchRepositories}
+      >
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -540,9 +717,10 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('oferece a inclusão ao editor de uma banda conectada', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -552,14 +730,18 @@ describe('<RepertoireScreen />', () => {
     );
 
     expect(mockRouter.push).toHaveBeenCalledWith(
-      '/bands/band-demo-horizonte/repertoire/new',
+      `/bands/${BAND_ID}/repertoire/new`,
     );
   });
 
   it('não oferece inclusão para uma pessoa Member', async () => {
+    const repositories = createRepositories({
+      role: 'member',
+      userId: MEMBER_USER_ID,
+    });
     const view = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={MEMBER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -568,9 +750,13 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('oferece acesso opcional às coleções também para pessoas Member', async () => {
+    const repositories = createRepositories({
+      role: 'member',
+      userId: MEMBER_USER_ID,
+    });
     const view = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={MEMBER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -578,15 +764,16 @@ describe('<RepertoireScreen />', () => {
     await pressCollectionAction(view, 'Ver coleções');
 
     expect(mockRouter.push).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections`,
+      `/bands/${BAND_ID}/repertoire/collections`,
     );
     expect(view.queryByLabelText('Adicionar música ao repertório')).toBeNull();
   });
 
   it('oferece letra em tela cheia no menu apenas para músicas com letra', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -597,7 +784,7 @@ describe('<RepertoireScreen />', () => {
       'Exibir letra',
     );
     expect(mockRouter.push).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/lyrics`,
+      `/bands/${BAND_ID}/repertoire/${LIGHTS_SONG.id}/lyrics`,
     );
 
     await fireEvent.press(
@@ -612,9 +799,10 @@ describe('<RepertoireScreen />', () => {
     jest.useFakeTimers();
 
     try {
+      const repositories = createRepositories();
       const view = await render(
-        <AppProviders>
-          <RepertoireScreen bandId={demoIds.primaryBand} />
+        <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+          <RepertoireScreen bandId={BAND_ID} />
         </AppProviders>,
       );
       await view.findByText('Luzes da Cidade');
@@ -630,7 +818,7 @@ describe('<RepertoireScreen />', () => {
         nativeEvent: { button: 0, detail: 2 },
       });
       expect(mockRouter.push).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}/lyrics`,
+        `/bands/${BAND_ID}/repertoire/${LIGHTS_SONG.id}/lyrics`,
       );
 
       mockRouter.push.mockClear();
@@ -639,7 +827,7 @@ describe('<RepertoireScreen />', () => {
       });
       await act(async () => jest.advanceTimersByTime(320));
       expect(mockRouter.push).toHaveBeenCalledWith(
-        `/bands/${demoIds.primaryBand}/repertoire/${demoIds.stageSong}`,
+        `/bands/${BAND_ID}/repertoire/${LIGHTS_SONG.id}`,
       );
     } finally {
       jest.useRealTimers();
@@ -651,9 +839,10 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('preserva busca e filtros durante a seleção múltipla', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -686,7 +875,7 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('retorna ao toque habitual e não grava ao cancelar a seleção', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const save = jest.spyOn(repositories.repertoireCollections, 'save');
     const appendSongs = jest.spyOn(
       repositories.repertoireCollections,
@@ -701,8 +890,8 @@ describe('<RepertoireScreen />', () => {
       'delete',
     );
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -744,9 +933,13 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('não oferece seleção múltipla para pessoas Member', async () => {
+    const repositories = createRepositories({
+      role: 'member',
+      userId: MEMBER_USER_ID,
+    });
     const view = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={MEMBER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -758,20 +951,14 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('abre a criação da coleção com as músicas selecionadas', async () => {
+    const repositories = createRepositories();
     const view = await render(
-      <AppProviders>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
-    const lightsSong = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Luzes da Cidade',
-    );
-    const bridgesSong = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Entre Pontes',
-    );
-    if (!lightsSong || !bridgesSong) {
-      throw new Error('Músicas de demonstração não encontradas');
-    }
+    const lightsSong = LIGHTS_SONG;
+    const bridgesSong = BRIDGES_SONG;
 
     await view.findByText('Luzes da Cidade');
     await pressCollectionAction(view, 'Selecionar músicas do repertório');
@@ -791,34 +978,25 @@ describe('<RepertoireScreen />', () => {
     await act(async () => dismiss());
 
     expect(mockRouter.push).toHaveBeenCalledWith(
-      `/bands/${demoIds.primaryBand}/repertoire/collections/new?songId=${lightsSong.id}&songId=${bridgesSong.id}&returnTo=repertoire`,
+      `/bands/${BAND_ID}/repertoire/collections/new?songId=${lightsSong.id}&songId=${bridgesSong.id}&returnTo=repertoire`,
     );
   });
 
   it('acrescenta somente músicas novas ao final da coleção escolhida', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const appendSpy = jest.spyOn(
       repositories.repertoireCollections,
       'appendSongs',
     );
-    const bridgeSong = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Entre Pontes',
-    );
-    const lightsSong = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Luzes da Cidade',
-    );
-    const neonSong = demoRepositoryData.songs.find(
-      ({ title }) => title === 'Maré de Neon',
-    );
-    if (!bridgeSong || !lightsSong || !neonSong) {
-      throw new Error('Músicas de demonstração não encontradas');
-    }
+    const bridgeSong = BRIDGES_SONG;
+    const lightsSong = LIGHTS_SONG;
+    const neonSong = NEON_SONG;
 
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireScreen
-          bandId={demoIds.primaryBand}
-          initialAppendCollectionId="collection-demo-festa"
+          bandId={BAND_ID}
+          initialAppendCollectionId={FESTA_COLLECTION.id}
         />
       </AppProviders>,
     );
@@ -850,36 +1028,34 @@ describe('<RepertoireScreen />', () => {
       ),
     ).toBeTruthy();
     expect(appendSpy).toHaveBeenCalledWith({
-      bandId: demoIds.primaryBand,
-      collectionId: 'collection-demo-festa',
+      bandId: BAND_ID,
+      collectionId: FESTA_COLLECTION.id,
       songIds: [bridgeSong.id, lightsSong.id, neonSong.id],
     });
 
     expect(view.queryByTestId('repertoire-collection-picker')).toBeNull();
     expect(view.queryByText('3 selecionadas')).toBeNull();
     const finalCollectionSongs = (
-      await repositories.repertoireCollections.listSongsByBandId(
-        demoIds.primaryBand,
-      )
+      await repositories.repertoireCollections.listSongsByBandId(BAND_ID)
     )
-      .filter(({ collectionId }) => collectionId === 'collection-demo-festa')
+      .filter(({ collectionId }) => collectionId === FESTA_COLLECTION.id)
       .sort((left, right) => left.position - right.position);
     expect(finalCollectionSongs).toEqual([
       {
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-festa',
+        bandId: BAND_ID,
+        collectionId: FESTA_COLLECTION.id,
         position: 0,
-        songId: demoIds.stageSong,
+        songId: LIGHTS_SONG.id,
       },
       {
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-festa',
+        bandId: BAND_ID,
+        collectionId: FESTA_COLLECTION.id,
         position: 1,
         songId: neonSong.id,
       },
       {
-        bandId: demoIds.primaryBand,
-        collectionId: 'collection-demo-festa',
+        bandId: BAND_ID,
+        collectionId: FESTA_COLLECTION.id,
         position: 2,
         songId: bridgeSong.id,
       },
@@ -887,11 +1063,9 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('mantém a coleção sem alterações quando a inclusão falha', async () => {
-    const repositories = createInMemoryRepositories(demoRepositoryData);
+    const repositories = createRepositories();
     const originalSongs =
-      await repositories.repertoireCollections.listSongsByBandId(
-        demoIds.primaryBand,
-      );
+      await repositories.repertoireCollections.listSongsByBandId(BAND_ID);
     jest
       .spyOn(repositories.repertoireCollections, 'appendSongs')
       .mockRejectedValue(
@@ -901,8 +1075,8 @@ describe('<RepertoireScreen />', () => {
         ),
       );
     const view = await render(
-      <AppProviders repositories={repositories}>
-        <RepertoireScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
       </AppProviders>,
     );
 
@@ -922,9 +1096,7 @@ describe('<RepertoireScreen />', () => {
       await view.findByText('Não foi possível atualizar a coleção agora.'),
     ).toBeTruthy();
     expect(
-      await repositories.repertoireCollections.listSongsByBandId(
-        demoIds.primaryBand,
-      ),
+      await repositories.repertoireCollections.listSongsByBandId(BAND_ID),
     ).toEqual(originalSongs);
     expect(
       view.getByText('1 selecionada', { includeHiddenElements: true }),
@@ -932,15 +1104,17 @@ describe('<RepertoireScreen />', () => {
   });
 
   it('leva Owner de uma banda conectada à criação online', async () => {
-    const bandId = 'band-live';
-    const repositories = createInMemoryRepositories({
-      bands: [{ ...demoRepositoryData.bands[0], id: bandId }],
-      bandMembers: [{ ...demoRepositoryData.bandMembers[0], bandId }],
-      shows: [],
+    const bandId = 'band-repertoire-connected';
+    const repositories = createRepositories({
+      bandId,
+      userId: OWNER_USER_ID,
+      role: 'owner',
       songs: [],
+      collections: [],
+      collectionSongs: [],
     });
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
         <RepertoireScreen bandId={bandId} />
       </AppProviders>,
     );
