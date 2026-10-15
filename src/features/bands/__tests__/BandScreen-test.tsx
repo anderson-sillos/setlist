@@ -265,7 +265,7 @@ describe('<BandScreen />', () => {
   it('mostra o e-mail no lugar do papel repetido na linha do integrante', async () => {
     const { repositories } = createMutableBandRepositories();
     const view = await render(
-      <AppProviders repositories={repositories}>
+      <AppProviders currentUserId="user-real" repositories={repositories}>
         <BandScreen bandId="band-real" />
       </AppProviders>,
     );

@@ -1,27 +1,21 @@
-import { useMemo, type PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
-import { createDemoRepositories, demoIds } from '@/data/demo';
 import type { AppRepositories, EntityId } from '@/domain';
 import { AppProviders } from '@/providers/AppProviders';
 
 interface TestAppProvidersProps extends PropsWithChildren {
-  readonly currentUserId?: EntityId;
-  readonly repositories?: AppRepositories;
+  readonly currentUserId: EntityId;
+  readonly repositories: AppRepositories;
 }
 
-/** Supplies deterministic repositories only to component and integration tests. */
+/** Requires tests to supply their user and repositories explicitly. */
 export function TestAppProviders({
   children,
-  currentUserId = demoIds.currentUser,
+  currentUserId,
   repositories,
 }: TestAppProvidersProps) {
-  const testRepositories = useMemo(
-    () => repositories ?? createDemoRepositories(),
-    [repositories],
-  );
-
   return (
-    <AppProviders currentUserId={currentUserId} repositories={testRepositories}>
+    <AppProviders currentUserId={currentUserId} repositories={repositories}>
       {children}
     </AppProviders>
   );

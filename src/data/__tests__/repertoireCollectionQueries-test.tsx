@@ -14,6 +14,7 @@ import {
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 const bandId = 'band-collection-query-test';
+const currentUserId = 'user-collection-query-test';
 const collectionId = 'collection-query-test';
 const emptyCollectionId = 'collection-query-empty-test';
 const firstSong = createSong({
@@ -85,7 +86,12 @@ describe('consultas de coleções do repertório', () => {
       () => useRepertoireCollections(bandId),
       {
         wrapper: ({ children }) => (
-          <AppProviders repositories={repositories}>{children}</AppProviders>
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
         ),
       },
     );
@@ -129,7 +135,12 @@ describe('consultas de coleções do repertório', () => {
       }),
       {
         wrapper: ({ children }) => (
-          <AppProviders repositories={repositories}>{children}</AppProviders>
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
         ),
       },
     );
