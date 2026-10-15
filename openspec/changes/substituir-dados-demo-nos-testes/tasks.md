@@ -10,7 +10,7 @@
 
 ## 2. Repertório, coleções e consultas
 
-- [ ] 2.1 Acrescentar fábricas de coleções e vínculos somente com os campos e relações necessários aos consumidores existentes; migrar `repertoireCollectionQueries-test.tsx` e verificar quantidade, ordem, duração, arquivamento e atualização do cache com expectativas explícitas.
+- [x] 2.1 Acrescentar fábricas de coleções e vínculos somente com os campos e relações necessários aos consumidores existentes; migrar `repertoireCollectionQueries-test.tsx` e verificar quantidade, ordem, duração, arquivamento e atualização do cache com expectativas explícitas.
 - [ ] 2.2 Migrar `RepertoireScreen-test.tsx` para cenários pequenos de busca, filtros, coleções, papéis, seleção e atualização; verificar a suíte completa da tela, incluindo restauração de estado por banda e erros após conteúdo carregado.
 - [ ] 2.3 Migrar `SongDetailScreen-test.tsx`, `SongLifecycleDialog-test.tsx` e `songEditorForm-test.ts` sem copiar músicas do catálogo; verificar suas suítes e a preparação explícita de letras, estados e valores esperados.
 - [ ] 2.4 Migrar `RepertoireCollectionEditorScreen-test.tsx` e `RepertoireCollectionsScreens-test.tsx`, preparando erros específicos nos métodos necessários; verificar suas suítes para edição, ordem, descarte, exclusão e manutenção das músicas selecionadas.

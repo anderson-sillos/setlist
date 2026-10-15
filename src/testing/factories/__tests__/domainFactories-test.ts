@@ -6,6 +6,8 @@ import {
   createLyricDocument,
   createLyricLine,
   createLyricsForStatus,
+  createRepertoireCollection,
+  createRepertoireCollectionSong,
   createSong,
 } from '@/testing/factories';
 
@@ -54,6 +56,27 @@ describe('factories for domain entities', () => {
       id: 'block-test',
       name: 'Verso',
       lines: [],
+    });
+  });
+
+  it('creates collection memberships with explicit domain relationships', () => {
+    const collection = createRepertoireCollection({
+      bandId: 'band-live',
+      id: 'collection-live',
+      name: 'Acústico',
+    });
+    const membership = createRepertoireCollectionSong({
+      bandId: collection.bandId,
+      collectionId: collection.id,
+      position: 2,
+      songId: 'song-live',
+    });
+
+    expect(membership).toEqual({
+      bandId: 'band-live',
+      collectionId: 'collection-live',
+      position: 2,
+      songId: 'song-live',
     });
   });
 });
