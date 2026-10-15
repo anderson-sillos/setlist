@@ -25,7 +25,7 @@
 
 ## 4. Bandas, navegação e consumidores indiretos
 
-- [ ] 4.1 Migrar `BandsScreen-test.tsx` e `BandScreen-test.tsx` para bandas e participações explícitas; verificar as suítes, preservando os cenários sem bandas, com múltiplas bandas e com papéis diferentes.
+- [x] 4.1 Migrar `BandsScreen-test.tsx` e `BandScreen-test.tsx` para bandas e participações explícitas; verificar as suítes, preservando os cenários sem bandas, com múltiplas bandas e com papéis diferentes.
 - [ ] 4.2 Migrar os consumidores em `src/features/navigation/__tests__/`, incluindo integração de rotas, shell, memória, estado de seção e construção de endereços; verificar as suítes afetadas com IDs locais e preservação do estado entre rotas e bandas.
 - [ ] 4.3 Migrar os testes de `StageHubScreen`, `StageScreen` e `YouTubeIframePrototype`, assim como outros consumidores indiretos de `TestAppProviders`; verificar as suítes correspondentes e que as rotas atuais continuam apresentando a indisponibilidade prevista do modo palco.
 - [ ] 4.4 Documentar em `src/testing/README.md` os exemplos de papéis e isolamento entre bandas; verificar o inventário inicial contra uma nova busca de imports e usos do provedor, confirmando a migração de todos os consumidores identificados.

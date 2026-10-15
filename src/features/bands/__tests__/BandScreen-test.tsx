@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import { demoIds } from '@/data/demo';
+import { createInMemoryRepositories } from '@/data/in-memory';
 import { sendContentReport } from '@/data/supabase/contentReports';
 import { createBand } from '@/data/supabase/bandMutations';
 import type {
@@ -23,7 +23,53 @@ import {
 } from '@/data/supabase/bandMemberMutations';
 import { BandsScreen } from '@/features/bands/BandsScreen';
 import { BandScreen } from '@/features/bands/BandScreen';
+import {
+  createBand as createBandFixture,
+  createBandMember,
+} from '@/testing/factories';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+
+const TEAM_BAND_ID = 'band-team-management';
+const TEAM_OWNER_ID = 'user-team-owner';
+const TEAM_EDITOR_ID = 'user-team-editor';
+const TEAM_MEMBER_ID = 'user-team-member';
+
+function createTeamRepositories() {
+  const band = createBandFixture({
+    id: TEAM_BAND_ID,
+    name: 'Banda Horizonte',
+  });
+  return createInMemoryRepositories({
+    bands: [band],
+    bandMembers: [
+      createBandMember({
+        bandId: TEAM_BAND_ID,
+        displayName: 'Anderson Martins',
+        id: 'membership-team-owner',
+        role: 'owner',
+        userId: TEAM_OWNER_ID,
+      }),
+      createBandMember({
+        bandId: TEAM_BAND_ID,
+        displayName: 'Bruno Lima',
+        id: 'membership-team-editor',
+        role: 'editor',
+        userId: TEAM_EDITOR_ID,
+      }),
+      createBandMember({
+        bandId: TEAM_BAND_ID,
+        displayName: 'Carla Mendes',
+        id: 'membership-team-member',
+        role: 'member',
+        userId: TEAM_MEMBER_ID,
+      }),
+    ],
+    repertoireCollections: [],
+    repertoireCollectionSongs: [],
+    songs: [],
+    shows: [],
+  });
+}
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -257,9 +303,10 @@ describe('<BandScreen />', () => {
   });
 
   it('agrupa integrantes e mostra controles apenas para o proprietário', async () => {
+    const repositories = createTeamRepositories();
     const ownerView = await render(
-      <AppProviders>
-        <BandScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={TEAM_OWNER_ID} repositories={repositories}>
+        <BandScreen bandId={TEAM_BAND_ID} />
       </AppProviders>,
     );
 
@@ -292,8 +339,8 @@ describe('<BandScreen />', () => {
     await ownerView.unmount();
 
     const memberView = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <BandScreen bandId={demoIds.primaryBand} />
+      <AppProviders currentUserId={TEAM_MEMBER_ID} repositories={repositories}>
+        <BandScreen bandId={TEAM_BAND_ID} />
       </AppProviders>,
     );
 
