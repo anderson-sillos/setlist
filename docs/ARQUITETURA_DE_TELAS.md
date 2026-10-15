@@ -17,27 +17,28 @@ Este documento indica onde localizar cada tela do Setlist e define a convenção
 
 ## Mapa de rotas e telas
 
-| Rota                                       | Tela                      | Arquivo                                        |
-| ------------------------------------------ | ------------------------- | ---------------------------------------------- |
-| `/`                                        | Minhas bandas             | `src/features/bands/BandsScreen.tsx`           |
-| `/account`                                 | Perfil e conta            | `src/features/account/AccountScreen.tsx`       |
-| `/auth`                                    | Login social              | `src/features/auth/AuthScreen.tsx`             |
-| `/auth/callback`                           | Retorno OAuth             | `src/features/auth/OAuthCallbackHandler.tsx`   |
-| `/invite/[token]`                          | Convite e autenticação    | `src/features/auth/InviteScreen.tsx`           |
-| `/bands/[bandId]/band`                     | Banda e integrantes       | `src/features/bands/BandScreen.tsx`            |
-| `/bands/[bandId]/repertoire`               | Repertório                | `src/features/repertoire/RepertoireScreen.tsx` |
-| `/bands/[bandId]/repertoire/new`           | Nova música               | `src/features/repertoire/SongEditorScreen.tsx` |
-| `/bands/[bandId]/repertoire/[songId]`      | Detalhes da música        | `src/features/repertoire/SongDetailScreen.tsx` |
-| `/bands/[bandId]/repertoire/[songId]/edit` | Edição da música          | `src/features/repertoire/SongEditorScreen.tsx` |
-| `/bands/[bandId]/shows`                    | Shows                     | `src/features/shows/ShowsScreen.tsx`           |
-| `/bands/[bandId]/shows/[showId]`           | Detalhes do show          | `src/features/shows/ShowDetailScreen.tsx`      |
-| `/bands/[bandId]/stage`                    | Seleção para o modo palco | `src/features/stage/StageHubScreen.tsx`        |
-| `/bands/[bandId]/shows/[showId]/stage`     | Execução do modo palco    | `src/features/stage/StageScreen.tsx`           |
+| Rota                                       | Tela                    | Arquivo                                         |
+| ------------------------------------------ | ----------------------- | ----------------------------------------------- |
+| `/`                                        | Minhas bandas           | `src/features/bands/BandsScreen.tsx`            |
+| `/account`                                 | Perfil e conta          | `src/features/account/AccountScreen.tsx`        |
+| `/auth`                                    | Login social            | `src/features/auth/AuthScreen.tsx`              |
+| `/auth/callback`                           | Retorno OAuth           | `src/features/auth/OAuthCallbackHandler.tsx`    |
+| `/invite/[token]`                          | Convite e autenticação  | `src/features/auth/InviteScreen.tsx`            |
+| `/bands/[bandId]/band`                     | Banda e integrantes     | `src/features/bands/BandScreen.tsx`             |
+| `/bands/[bandId]/repertoire`               | Repertório              | `src/features/repertoire/RepertoireScreen.tsx`  |
+| `/bands/[bandId]/repertoire/new`           | Nova música             | `src/features/repertoire/SongEditorScreen.tsx`  |
+| `/bands/[bandId]/repertoire/[songId]`      | Detalhes da música      | `src/features/repertoire/SongDetailScreen.tsx`  |
+| `/bands/[bandId]/repertoire/[songId]/edit` | Edição da música        | `src/features/repertoire/SongEditorScreen.tsx`  |
+| `/bands/[bandId]/shows`                    | Shows                   | `src/features/shows/ShowsScreen.tsx`            |
+| `/bands/[bandId]/shows/[showId]`           | Detalhes do show        | `src/features/shows/ShowDetailScreen.tsx`       |
+| `/bands/[bandId]/stage`                    | Modo palco indisponível | `src/features/stage/StageUnavailableScreen.tsx` |
+| `/bands/[bandId]/shows/[showId]/stage`     | Modo palco indisponível | `src/features/stage/StageUnavailableScreen.tsx` |
 
-O componente técnico do player do YouTube permanece em
-`src/features/youtube/YouTubeIframePrototype.tsx` para desenvolvimento futuro.
-A rota `/youtube-prototype` foi removida da versão publicável; abrir o endereço
-diretamente não carrega o player.
+`StageHubScreen.tsx`, `StageScreen.tsx` e `YouTubeIframePrototype.tsx` são
+protótipos mantidos para trabalho futuro. As rotas de palco atuais renderizam
+`StageUnavailableScreen`; nenhuma rota do app importa os protótipos. Os testes
+unitários desses componentes não significam que estejam acessíveis no produto.
+A rota `/youtube-prototype` foi removida da versão publicável.
 
 As telas de autenticação ficam em `src/features/auth/`. O fluxo real usa
 `AuthScreen`, `OAuthCallbackHandler` e `InviteScreen`. O handler do callback
@@ -89,6 +90,6 @@ histórico técnico permanece registrado no handoff e no design.
 | Perfil e exclusão de conta                  | `src/features/account/__tests__/` e `src/data/supabase/__tests__/accountMutations-test.ts`                           |
 | Repertório, detalhe e editor da música      | `src/features/repertoire/__tests__/`, `src/data/supabase/__tests__/songRepository-test.ts` e `songMutations-test.ts` |
 | Shows e detalhe do show                     | `src/features/shows/__tests__/ShowsScreen-test.tsx` e `ShowDetailScreen-test.tsx`                                    |
-| Seleção do modo palco                       | `src/features/stage/__tests__/StageHubScreen-test.tsx`                                                               |
+| Aviso de indisponibilidade do modo palco    | `src/features/navigation/__tests__/navigationIntegration-test.tsx`                                                   |
 
 Ao criar uma tela, primeiro escolha o domínio responsável, crie o arquivo da tela nele e depois adicione uma entrada pequena em `src/app`. A entrada de rota não deve conter regras de negócio nem estilos da tela.

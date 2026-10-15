@@ -117,11 +117,16 @@ export function logLogoutFailure(
   error: unknown,
 ) {
   if (activeLogoutAttemptId === attemptId) activeLogoutPhase = phase;
-  writeDiagnostic('logout', 'failed', {
-    attemptId,
-    phase,
-    ...getErrorDetails(error),
-  });
+  writeDiagnostic(
+    'logout',
+    'failed',
+    {
+      attemptId,
+      phase,
+      ...getErrorDetails(error),
+    },
+    'error',
+  );
 }
 
 export function finishLogoutDiagnostics(

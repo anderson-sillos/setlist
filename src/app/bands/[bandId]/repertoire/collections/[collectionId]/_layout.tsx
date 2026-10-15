@@ -9,7 +9,6 @@ export default function RepertoireCollectionDetailLayout() {
 
   return (
     <Stack screenOptions={getStackScreenOptions(Platform.OS, reducedMotion)}>
-      <Stack.Screen name="index" options={{ animationTypeForReplace: 'pop' }} />
       <Stack.Screen name="edit" options={{ animationTypeForReplace: 'pop' }} />
     </Stack>
   );

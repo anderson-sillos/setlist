@@ -10,6 +10,11 @@ import { demoRepositoryData } from '@/data/demo';
 
 describe('formulário de música', () => {
   it('separa e recompõe a duração por horas, minutos e segundos', () => {
+    expect(durationToParts('')).toEqual({
+      hours: '',
+      minutes: '',
+      seconds: '',
+    });
     expect(durationToParts('1:02:03')).toEqual({
       hours: '1',
       minutes: '02',
@@ -29,6 +34,10 @@ describe('formulário de música', () => {
     expect(
       durationFromEditorParts({ hours: '1', minutes: '2', seconds: '3' }),
     ).toBe('1:2:3');
+    expect(durationFromParts({ hours: '', minutes: '', seconds: '' })).toBe('');
+    expect(
+      durationFromEditorParts({ hours: '', minutes: '', seconds: '' }),
+    ).toBe('');
   });
 
   it('exige título e aceita os campos opcionais vazios', () => {
@@ -75,6 +84,35 @@ describe('formulário de música', () => {
     expect(result.errors.bpm).toBeTruthy();
     expect(result.errors.duration).toBeTruthy();
     expect(result.errors.youtubeReference).toBeTruthy();
+  });
+
+  it('valida limites máximos, formatos numéricos e durações não seguras', () => {
+    const baseValues = { ...emptySongEditorValues, title: 'Música nova' };
+    const tooLongTitle = parseSongEditorValues({
+      ...baseValues,
+      title: 'A'.repeat(201),
+    });
+    const invalidBpm = parseSongEditorValues({ ...baseValues, bpm: '123.5' });
+    const highBpm = parseSongEditorValues({ ...baseValues, bpm: '1001' });
+    const invalidHours = parseSongEditorValues({
+      ...baseValues,
+      duration: '1:60:00',
+    });
+    const unsafeDuration = parseSongEditorValues({
+      ...baseValues,
+      duration: '999999999999999999999999999999:00:00',
+    });
+    const longYoutubeReference = parseSongEditorValues({
+      ...baseValues,
+      youtubeReference: `https://youtu.be/abc123${'x'.repeat(2048)}`,
+    });
+
+    expect(tooLongTitle.errors.title).toBeTruthy();
+    expect(invalidBpm.errors.bpm).toBeTruthy();
+    expect(highBpm.errors.bpm).toBeTruthy();
+    expect(invalidHours.errors.duration).toBeTruthy();
+    expect(unsafeDuration.errors.duration).toBeTruthy();
+    expect(longYoutubeReference.errors.youtubeReference).toBeTruthy();
   });
 
   it('preenche o editor a partir da música selecionada', () => {

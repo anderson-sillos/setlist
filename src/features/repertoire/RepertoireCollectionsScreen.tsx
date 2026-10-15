@@ -15,7 +15,6 @@ import {
   getBandSectionHref,
   getRepertoireCollectionCreateHref,
   getRepertoireCollectionEditHref,
-  getRepertoireCollectionHref,
   getRepertoireCollectionsHref,
 } from '@/features/navigation/routes';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
@@ -83,23 +82,22 @@ export function RepertoireCollectionsScreen({
             {collectionsQuery.data.map((summary) => (
               <View key={summary.collection.id} style={styles.rowFrame}>
                 <Link
-                  href={
-                    canEdit
-                      ? getRepertoireCollectionEditHref(
-                          bandId,
-                          summary.collection.id,
-                          'collections',
-                        )
-                      : getRepertoireCollectionHref(
-                          bandId,
-                          summary.collection.id,
-                        )
-                  }
+                  href={getRepertoireCollectionEditHref(
+                    bandId,
+                    summary.collection.id,
+                    'collections',
+                  )}
                   asChild
+                  disabled={!canEdit}
                 >
                   <Pressable
-                    accessibilityLabel={`${canEdit ? 'Editar' : 'Abrir'} coleção ${summary.collection.name}`}
-                    accessibilityRole="link"
+                    accessibilityLabel={
+                      canEdit
+                        ? `Editar coleção ${summary.collection.name}`
+                        : undefined
+                    }
+                    accessibilityRole={canEdit ? 'link' : undefined}
+                    disabled={!canEdit}
                     style={({ pressed }) => [
                       styles.row,
                       pressed && styles.pressed,
@@ -138,11 +136,13 @@ export function RepertoireCollectionsScreen({
                           ) : null}
                         </View>
                       </View>
-                      <AppIcon
-                        color={colors.text.secondary}
-                        name="forward"
-                        size={20}
-                      />
+                      {canEdit ? (
+                        <AppIcon
+                          color={colors.text.secondary}
+                          name="forward"
+                          size={20}
+                        />
+                      ) : null}
                     </Card>
                   </Pressable>
                 </Link>

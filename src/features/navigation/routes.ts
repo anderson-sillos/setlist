@@ -54,13 +54,6 @@ export function getRepertoireCollectionsHref(bandId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/repertoire/collections` as Href;
 }
 
-export function getRepertoireCollectionHref(
-  bandId: EntityId,
-  collectionId: EntityId,
-): Href {
-  return `/bands/${encodeURIComponent(bandId)}/repertoire/collections/${encodeURIComponent(collectionId)}` as Href;
-}
-
 export function getRepertoireCollectionCreateHref(
   bandId: EntityId,
   initialSongIds: readonly EntityId[] = [],
