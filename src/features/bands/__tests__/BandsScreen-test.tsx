@@ -9,7 +9,7 @@ import {
   readLastBandId,
   writeLastBandId,
 } from '@/features/bands/lastBandStorage';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,

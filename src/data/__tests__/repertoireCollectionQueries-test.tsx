@@ -6,7 +6,7 @@ import {
   useRepertoireCollections,
 } from '@/data/queries';
 import { createInMemoryRepositories } from '@/data/in-memory';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 const bandId = 'band-collection-query-test';
 const collectionId = 'collection-query-test';

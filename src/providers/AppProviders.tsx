@@ -10,7 +10,6 @@ import {
   useState,
 } from 'react';
 
-import { createDemoRepositories, demoIds } from '@/data/demo';
 import {
   createSupabaseBandRepository,
   createSupabaseSongRepository,
@@ -107,10 +106,6 @@ export function AppProviders({
   repositories,
 }: AppProvidersProps) {
   const { session } = useAuthSession();
-  const isTestEnvironment = process.env.NODE_ENV === 'test';
-  const demoRepositories = useState(() =>
-    isTestEnvironment ? createDemoRepositories() : null,
-  )[0];
   const remoteRepositories = useMemo(
     () => ({
       bands: createSupabaseBandRepository(),
@@ -122,17 +117,10 @@ export function AppProviders({
   );
   const sessionUserId = session?.user.id;
   const resolvedRepositories = useMemo(
-    () =>
-      repositories ??
-      (sessionUserId || !demoRepositories
-        ? remoteRepositories
-        : demoRepositories),
-    [demoRepositories, repositories, remoteRepositories, sessionUserId],
+    () => repositories ?? remoteRepositories,
+    [repositories, remoteRepositories],
   );
-  const resolvedUserId =
-    sessionUserId ??
-    currentUserId ??
-    (isTestEnvironment ? demoIds.currentUser : '');
+  const resolvedUserId = sessionUserId ?? currentUserId ?? '';
 
   return (
     <AppDataContext.Provider

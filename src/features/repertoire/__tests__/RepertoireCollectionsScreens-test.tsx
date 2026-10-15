@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { demoIds, demoRepositoryData } from '@/data/demo';
 import { createInMemoryRepositories } from '@/data/in-memory';
 import { RepertoireCollectionsScreen } from '@/features/repertoire/RepertoireCollectionsScreen';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 const mockRouter = { push: jest.fn() };
 const mockNavigation = {

@@ -7,7 +7,8 @@ import StageHubRoute from '@/app/bands/[bandId]/stage';
 import ShowsRoute from '@/app/bands/[bandId]/shows';
 import ShowDetailRoute from '@/app/bands/[bandId]/shows/[showId]';
 import StageRoute from '@/app/bands/[bandId]/shows/[showId]/stage';
-import { AppProviders, useAppData } from '@/providers/AppProviders';
+import { useAppData } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,

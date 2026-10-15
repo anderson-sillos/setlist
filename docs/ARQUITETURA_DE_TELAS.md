@@ -65,6 +65,7 @@ histórico técnico permanece registrado no handoff e no design.
 | Perfil, exclusão de conta e limpeza local    | `src/features/account/AccountScreen.tsx`, `AccountDeletionDialog.tsx` e `src/data/supabase/accountMutations.ts` |
 | Consulta remota de bandas e integrantes      | `src/data/supabase/repositories.ts` e `src/providers/AppProviders.tsx`                                          |
 | Consulta remota e edição de músicas          | `src/data/supabase/songRepository.ts`, `songMutations.ts` e `src/providers/AppProviders.tsx`                    |
+| Repositórios e dados de teste                | `src/testing/TestAppProviders.tsx`, `src/data/demo/` e `src/data/in-memory/`                                    |
 | Construção dos endereços das rotas           | `src/features/navigation/routes.ts`                                                                             |
 | Preservação de filtros e visão de cada seção | `src/features/navigation/useSectionViewState.ts`                                                                |
 | Calendário mensal                            | `src/features/calendar/MonthCalendar.tsx`                                                                       |

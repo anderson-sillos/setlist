@@ -6,7 +6,7 @@ import { createInMemoryRepositories } from '@/data/in-memory';
 import { sendContentReport } from '@/data/supabase/contentReports';
 import { RepertoireCollectionError } from '@/domain';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
-import { AppProviders } from '@/providers/AppProviders';
+import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
 
 jest.mock('expo-router', () => ({
