@@ -81,9 +81,9 @@ describe('<ShowSetlistEditorScreen />', () => {
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
     const editorRoot = view.getByTestId('show-block-editor-dialog').parent;
     if (!editorRoot) throw new Error('Container do editor não encontrado');
-    expect(
-      StyleSheet.flatten(editorRoot.props.style).maxWidth,
-    ).toBe(layout.contentMaxWidth);
+    expect(StyleSheet.flatten(editorRoot.props.style).maxWidth).toBe(
+      layout.contentMaxWidth,
+    );
     expect(view.getByLabelText('Nome do bloco 1')).toBeTruthy();
 
     expect(view.getByLabelText('Adicionar à setlist')).toBeTruthy();
