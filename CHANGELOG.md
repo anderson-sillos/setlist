@@ -1,11 +1,11 @@
 # Histórico de versões
 
-## 1.0.0 — candidato em preparação
+## 1.0.0 — candidato `v1.0.0-rc.2`
 
-Primeira versão pública planejada para Web, Android e iOS. O candidato inicial
-será identificado por `v1.0.0-rc.1`; a versão exibida no aplicativo será `1.0.0`
-nas três plataformas. A tag e o commit serão registrados após a integração da
-preparação do release.
+Primeira versão pública para Web, Android e iOS. A versão exibida no aplicativo
+é `1.0.0` nas três plataformas. O candidato atual usa a tag anotada
+`v1.0.0-rc.2`, no commit `93c21c397a50e1d0a0c2a9bf572582989f67fa6a`. Os builds
+Android e iOS de produção com contador `4` estão em validação nas lojas.
 
 ### Funcionalidades
 
@@ -25,6 +25,19 @@ preparação do release.
   afetadas por avisos sem versão corrigida publicada, com ações de acompanhamento
   em `docs/DEPENDENCY_SECURITY.md`.
 
+### Correções do candidato `rc.2`
+
+- Ajustado o comportamento do teclado em formulários e editores para manter os
+  campos acessíveis durante a rolagem e permitir dispensar o teclado.
+- Mantidos acessíveis os botões de ação de diálogos e protegidos rascunhos de
+  denúncia contra descarte acidental.
+- Corrigida uma corrida de navegação durante o logout e ampliados os diagnósticos
+  de sessão.
+- Melhorados os layouts de autenticação e conta no iPad.
+- Corrigida a rolagem do editor de blocos de shows e modernizados os gestos de
+  arrastar dos editores.
+- Corrigido o corte dos rótulos de botões no Android.
+
 ### Distribuição
 
 - Versão comum controlada no `app.json` e conferida no CI.
@@ -38,7 +51,9 @@ preparação do release.
 
 ### Conferências pendentes
 
-- Gerar e validar os novos candidatos Android, iOS e Web com a tela Sobre.
+- Concluir as validações funcionais dos builds Android e iOS distribuídos pelas
+  lojas e registrar as evidências.
+- Validar a candidata Web com o manifesto de release correspondente.
 - Concluir as conferências operacionais, legais e das lojas descritas no grupo 11
   de `openspec/changes/definir-mvp-setlist/tasks.md`.
 
