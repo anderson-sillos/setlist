@@ -93,6 +93,23 @@ As verificações de `RepertoireCollectionRepository-test.ts` eram úteis para t
 
 As suítes pgTAP cobrem essas invariantes. Foi identificada uma lacuna separada no adaptador: seus testes validavam a conversão de revisão desatualizada, mas não a tradução dos demais erros do banco para `RepertoireCollectionError`. `src/data/supabase/__tests__/repertoireCollectionRepository-test.ts` agora verifica os códigos de nome inválido/duplicado, revisão, ausência, música indisponível, permissão, entrada inválida e falha genérica. Essa cobertura verifica o contrato do adaptador e não duplica as garantias de integridade do banco.
 
+## Catálogo removido e comparação da cobertura
+
+Na tarefa 6.1, `src/data/demo/` e seu teste `demoData-test.ts` foram removidos. O teste verificava quantidade, artistas, datas, estados e IDs do catálogo temporário, sem garantir comportamento do produto. A situação de música arquivada já presente em uma setlist — que deve continuar visível e não ser oferecida para novas inclusões — segue coberta em `src/features/shows/__tests__/ShowSetlistEditorScreen-test.tsx`; estados de letra, papéis, consultas e regras de persistência permanecem nas suítes de domínio, telas, adaptadores e banco. O seed promocional `supabase/seeds/banda-demo.sql` e seus geradores não foram alterados.
+
+Na tarefa 6.2, `jest.config.js` passou a excluir somente `src/testing/**` da cobertura de produto, além das exclusões anteriores para `src/app/_layout.tsx` e declarações `.d.ts`. Os quatro limites globais permanecem em 80%. A suíte completa atual passou com 110 suítes e 799 testes; statements 84,08%, branches 80,74%, functions 82,20% e lines 84,99%.
+
+Para comparar os mesmos arquivos, os resultados foram calculados sobre a interseção de 202 arquivos de produto entre o snapshot `28f52a8` e a implementação atual. O catálogo removido e os auxiliares de teste não entram nessa comparação:
+
+| Métrica    | Referência `28f52a8` |                Atual |   Variação |
+| ---------- | -------------------: | -------------------: | ---------: |
+| Statements | 83,70% (4.839/5.781) | 84,08% (4.861/5.781) | +0,38 p.p. |
+| Branches   | 79,80% (4.050/5.075) | 80,74% (4.098/5.075) | +0,94 p.p. |
+| Functions  | 82,20% (1.335/1.624) | 82,20% (1.335/1.624) |    estável |
+| Lines      | 84,59% (4.696/5.551) | 84,99% (4.718/5.551) | +0,40 p.p. |
+
+Jest encerra com `--forceExit` e imprime o aviso de handles abertos; algumas suítes com listas virtualizadas também emitem avisos `act(...)`. Esses avisos não impediram a execução nem alteraram os resultados aprovados.
+
 ## Exemplo de preparação de um teste
 
 Construa a música com os valores que o cenário usa e passe uma banda, o papel e o usuário explicitamente ao cenário. O cenário cria repositórios isolados; o provedor recebe esses repositórios e a mesma identidade do usuário:
