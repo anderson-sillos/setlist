@@ -20,7 +20,7 @@ O inventário foi obtido procurando imports de `src/data/demo/` e usos de `TestA
 
 Há 16 consumidores de `TestAppProviders`; 13 também estão na lista direta acima. Os três consumidores adicionais são `src/features/bands/__tests__/BandsScreen-test.tsx`, `src/features/navigation/__tests__/navigationIntegration-test.tsx` e `src/features/youtube/__tests__/YouTubeIframePrototype-test.tsx`.
 
-Fora dos testes, `src/testing/TestAppProviders.tsx` era o único consumidor do catálogo como fallback. O inventário precisa ser repetido após cada migração, pois novos usos podem ser introduzidos durante o trabalho.
+Na referência inicial, `src/testing/TestAppProviders.tsx` era o único consumidor do catálogo fora das suítes. O inventário precisa ser repetido após cada migração, pois novos usos podem ser introduzidos durante o trabalho.
 
 ## Situação após a migração de telas e navegação
 
@@ -28,7 +28,7 @@ Após concluir as tarefas 4.1–4.3, a busca por imports e símbolos demonstrati
 
 - `src/data/demo/__tests__/demoData-test.ts`, que será removido junto com o catálogo após preservar as expectativas úteis (tarefa 6.1).
 
-Os outros 22 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os três consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. A nova busca por `TestAppProviders` encontra 13 arquivos de teste, incluindo os auxiliares de cenário. O próprio provedor ainda mantém `currentUserId` e `repositories` opcionais com defaults demonstrativos; a remoção desses defaults é a tarefa 5.4.
+Os outros 22 consumidores diretos do inventário inicial foram migrados para dados locais tipados. Os consumidores indiretos também foram tratados: `BandsScreen` usa um cenário local, a integração de rotas usa IDs e repositórios próprios, e o protótipo do YouTube não recebe mais um provedor que não utiliza. O provedor de teste não importa o catálogo demonstrativo e exige `currentUserId` e `repositories` em cada uso; os wrappers de cenário fornecem esses valores explicitamente. O único teste que ainda lê `demoRepositoryData` ou `demoIds` é `src/data/demo/__tests__/demoData-test.ts`, pendente de remoção na tarefa 6.1.
 
 ### Papéis e isolamento entre bandas
 
@@ -72,9 +72,11 @@ expect(crossScenarioBands).toEqual([]);
 
 ## Limites das camadas
 
+- `src/testing/factories/` constrói entidades tipadas; `src/testing/scenarios/` compõe relações pequenas e explícitas; `src/testing/repositories/` mantém estado local para consultas subsequentes nos testes de tela e hook.
+- `src/testing/TestAppProviders.tsx` injeta dependências obrigatórias nos testes. Nenhum desses auxiliares é uma fonte de dados ou repositório de produção.
 - Fábricas de domínio constroem entidades mínimas tipadas com relações explícitas e estruturas internas novas a cada chamada.
 - Cenários juntam somente entidades que têm relação necessária ao teste. Dados omitidos continuam ausentes.
-- Testes de telas podem injetar repositórios em memória e falhas explícitas para verificar a reação da interface.
+- Testes de telas e hooks podem injetar repositórios em memória e falhas explícitas para verificar consultas, transições de interface e reação a erros.
 - Testes de adaptadores verificam mapeamento, argumentos e propagação de erros usando respostas remotas simuladas.
 - Integridade, permissões, concorrência e atomicidade são garantidas pelas suítes locais do Supabase, não pelo repositório em memória.
 
@@ -122,7 +124,7 @@ render(
 );
 ```
 
-Na suíte real de `SongEditorScreen`, `createSong` e `createBandScenario` são usados da mesma forma. O teste declara o título, a letra, o papel e as relações que serão verificadas; nenhuma banda ou música adicional é carregada por padrão. Ao migrar `TestAppProviders` para propriedades obrigatórias, esse exemplo permanece válido sem mudanças.
+Na suíte real de `SongEditorScreen`, `createSong` e `createBandScenario` são usados da mesma forma. O teste declara o título, a letra, o papel e as relações que serão verificadas; nenhuma banda ou música adicional é carregada por padrão. `TestAppProviders` exige as duas propriedades e apenas encaminha os repositórios e a identidade informados para `AppProviders`.
 
 ## Cenários de repertório e coleções
 
