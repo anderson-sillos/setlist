@@ -19,7 +19,7 @@
 ## 3. Shows, setlists, duração e calendário
 
 - [x] 3.1 Criar fábricas tipadas de show, bloco, música da setlist, anotação e separador, com relações explícitas; migrar `setlistDuration-test.ts` e verificar os totais com valores esperados declarados independentemente da função sob teste.
-- [ ] 3.2 Migrar `ShowsScreen-test.tsx`, `ShowDetailScreen-test.tsx` e `MonthCalendar-test.tsx`, controlando datas relativas nos casos que dependem do relógio; verificar filtros, calendário, status, permissões e estados vazios nas suítes afetadas.
+- [x] 3.2 Migrar `ShowsScreen-test.tsx`, `ShowDetailScreen-test.tsx` e `MonthCalendar-test.tsx`, controlando datas relativas nos casos que dependem do relógio; verificar filtros, calendário, status, permissões e estados vazios nas suítes afetadas.
 - [ ] 3.3 Migrar `ShowSetlistEditorScreen-test.tsx` e `ShowBlockEditorDialog-test.tsx`, declarando músicas, coleções, blocos e itens usados por cada cenário; verificar as suítes para inclusão, reordenação, duração, falhas e proteção de alterações.
 - [ ] 3.4 Documentar em `src/testing/README.md` a composição de setlists e o controle de datas; verificar a ausência de dependências do catálogo demonstrativo nos testes de shows, calendário e duração.
 

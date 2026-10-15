@@ -1,9 +1,9 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { demoRepositoryData } from '@/data/demo';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
 import { colors } from '@/theme/tokens';
+import { createShow } from '@/testing/factories';
 
 describe('calendário mensal de shows', () => {
   it('começa no domingo, destaca Carnaval e permite trocar de mês', async () => {
@@ -80,9 +80,20 @@ describe('calendário mensal de shows', () => {
   });
 
   it('marca a quantidade de shows e seleciona a data', async () => {
-    const shows = demoRepositoryData.shows.filter((show) =>
-      show.startsAt.startsWith('2026-09-19'),
-    );
+    const shows = [
+      createShow({
+        bandId: 'band-calendar',
+        id: 'show-calendar-afternoon',
+        name: 'Ensaio',
+        startsAt: '2026-09-19T16:00:00-03:00',
+      }),
+      createShow({
+        bandId: 'band-calendar',
+        id: 'show-calendar-evening',
+        name: 'Apresentação',
+        startsAt: '2026-09-19T21:30:00-03:00',
+      }),
+    ];
     const onSelectDate = jest.fn();
     const view = await render(
       <MonthCalendar

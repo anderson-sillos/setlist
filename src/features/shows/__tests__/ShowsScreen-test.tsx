@@ -1,8 +1,94 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { demoIds } from '@/data/demo';
+import type { BandRole } from '@/domain';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
+import { createShow, createSong } from '@/testing/factories';
+import { createBandScenario } from '@/testing/scenarios';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
+
+const BAND_ID = 'band-shows-screen';
+const OWNER_USER_ID = 'user-shows-owner';
+const MEMBER_USER_ID = 'user-shows-member';
+const SHOWS = [
+  createShow({
+    id: 'show-ensaios-abertos',
+    bandId: BAND_ID,
+    name: 'Ensaio Aberto',
+    startsAt: '2026-09-19T16:00:00-03:00',
+    venue: 'Estúdio Central',
+  }),
+  createShow({
+    id: 'show-bairro',
+    bandId: BAND_ID,
+    name: 'Show do Bairro',
+    startsAt: '2026-09-19T21:30:00-03:00',
+    venue: 'Centro Comunitário',
+    status: 'ready',
+  }),
+  createShow({
+    id: 'show-festival-praca',
+    bandId: BAND_ID,
+    name: 'Festival da Praça',
+    startsAt: '2027-02-20T21:00:00-03:00',
+    venue: 'Praça Central',
+    status: 'ready',
+  }),
+  createShow({
+    id: 'show-independencia',
+    bandId: BAND_ID,
+    name: 'Show de feriado',
+    startsAt: '2026-09-07T19:00:00-03:00',
+    venue: 'Praça da República',
+  }),
+  createShow({
+    id: 'show-inverno',
+    bandId: BAND_ID,
+    name: 'Encontro de Inverno',
+    startsAt: '2026-07-18T19:00:00-03:00',
+    venue: 'Centro Cultural',
+    status: 'cancelled',
+  }),
+];
+const SONGS = [
+  createSong({
+    id: 'song-shows-lights',
+    bandId: BAND_ID,
+    title: 'Luzes da Cidade',
+    estimatedDurationMs: 218_000,
+  }),
+];
+
+function renderShows({
+  role = 'owner',
+  now = new Date('2026-09-09T12:00:00-03:00'),
+  viewportWidth = 390,
+}: {
+  role?: BandRole;
+  now?: Date;
+  viewportWidth?: number;
+} = {}) {
+  const currentUserId = role === 'member' ? MEMBER_USER_ID : OWNER_USER_ID;
+  const scenario = createBandScenario({
+    bandId: BAND_ID,
+    userId: currentUserId,
+    role,
+    songs: SONGS,
+    shows: SHOWS,
+  });
+
+  return render(
+    <AppProviders
+      currentUserId={scenario.currentUserId}
+      repositories={scenario.repositories}
+    >
+      <ShowsScreen
+        bandId={scenario.band.id}
+        now={now}
+        viewportWidth={viewportWidth}
+      />
+    </AppProviders>,
+  );
+}
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
@@ -15,11 +101,7 @@ describe('<ShowsScreen />', () => {
   it.each([{ width: 390 }, { width: 820 }, { width: 1440 }])(
     'mantém a lista compacta e rolável em $width px',
     async ({ width }) => {
-      const view = await render(
-        <AppProviders>
-          <ShowsScreen bandId={demoIds.primaryBand} viewportWidth={width} />
-        </AppProviders>,
-      );
+      const view = await renderShows({ viewportWidth: width });
 
       expect(await view.findByText('Festival da Praça')).toBeTruthy();
       expect(view.getByTestId('shows-list')).toBeTruthy();
@@ -28,30 +110,18 @@ describe('<ShowsScreen />', () => {
   );
 
   it('considera shows de hoje como próximos mesmo após o horário', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowsScreen
-          bandId={demoIds.primaryBand}
-          now={new Date('2026-09-19T23:00:00-03:00')}
-          viewportWidth={390}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShows({
+      now: new Date('2026-09-19T23:00:00-03:00'),
+    });
 
     expect(await view.findByText('Ensaio Aberto')).toBeTruthy();
     expect(view.getByText('Show do Bairro')).toBeTruthy();
   });
 
   it('busca shows e mantém cancelados fora da agenda ativa', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowsScreen
-          bandId={demoIds.primaryBand}
-          now={new Date('2026-09-09T12:00:00-03:00')}
-          viewportWidth={390}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShows({
+      now: new Date('2026-09-09T12:00:00-03:00'),
+    });
 
     await view.findByText('Ensaio Aberto');
     expect(
@@ -85,15 +155,9 @@ describe('<ShowsScreen />', () => {
   });
 
   it('conta filtros ativos e restaura o padrão pelo botão Limpar', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowsScreen
-          bandId={demoIds.primaryBand}
-          now={new Date('2026-09-09T12:00:00-03:00')}
-          viewportWidth={390}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShows({
+      now: new Date('2026-09-09T12:00:00-03:00'),
+    });
 
     await view.findByText('Ensaio Aberto');
     expect(view.getByLabelText('Abrir filtros dos shows')).toBeTruthy();
@@ -135,15 +199,9 @@ describe('<ShowsScreen />', () => {
   });
 
   it('usa o calendário como filtro direto da lista geral de shows', async () => {
-    const view = await render(
-      <AppProviders>
-        <ShowsScreen
-          bandId={demoIds.primaryBand}
-          now={new Date('2026-09-09T12:00:00-03:00')}
-          viewportWidth={390}
-        />
-      </AppProviders>,
-    );
+    const view = await renderShows({
+      now: new Date('2026-09-09T12:00:00-03:00'),
+    });
 
     await view.findByText('Ensaio Aberto');
     expect(view.getByLabelText('Abrir filtros dos shows')).toBeTruthy();
@@ -173,7 +231,7 @@ describe('<ShowsScreen />', () => {
     await fireEvent.press(
       view.getByLabelText(/7 de setembro de 2026, Independência do Brasil/),
     );
-    expect(view.getByText('Independência do Brasil')).toBeTruthy();
+    expect(view.getByText('Show de feriado')).toBeTruthy();
     expect(view.queryByTestId('shows-month-calendar')).toBeNull();
 
     await fireEvent.press(
@@ -232,11 +290,7 @@ describe('<ShowsScreen />', () => {
   });
 
   it('oculta a criação de show para integrante sem permissão de edição', async () => {
-    const view = await render(
-      <AppProviders currentUserId="user-demo-carla">
-        <ShowsScreen bandId={demoIds.primaryBand} viewportWidth={390} />
-      </AppProviders>,
-    );
+    const view = await renderShows({ role: 'member' });
 
     await view.findByText('Festival da Praça');
     expect(view.queryByLabelText('Criar novo show')).toBeNull();
