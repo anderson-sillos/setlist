@@ -12,7 +12,7 @@ import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt
 import {
   useRepertoireCollections,
   useShow,
-  useSongs,
+  useSongSummaries,
   useBandContext,
 } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
@@ -48,7 +48,7 @@ export function ShowSetlistEditorScreen({
   const router = useRouter();
   const queryClient = useQueryClient();
   const showQuery = useShow(bandId, showId);
-  const songsQuery = useSongs(bandId, true);
+  const songsQuery = useSongSummaries(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
   const bandContextQuery = useBandContext(bandId);
   useScreenDataRefresh([showQuery, bandContextQuery, collectionsQuery]);

@@ -246,13 +246,23 @@ describe('<ShowSetlistEditorScreen />', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('monta o editor em tela própria para um show em rascunho', async () => {
+    const repositories = createRepositories();
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
     const view = await render(
-      <TestProviders>
+      <TestProviders repositories={repositories}>
         <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
       </TestProviders>,
     );
 
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
+    expect(listSongSummaries).toHaveBeenCalledWith(BAND_ID, {
+      includeArchived: true,
+    });
+    expect(listSongDocuments).not.toHaveBeenCalled();
     const editorRoot = view.getByTestId('show-block-editor-dialog').parent;
     if (!editorRoot) throw new Error('Container do editor não encontrado');
     expect(StyleSheet.flatten(editorRoot.props.style).maxWidth).toBe(

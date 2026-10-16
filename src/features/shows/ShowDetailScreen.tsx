@@ -15,7 +15,12 @@ import { Card } from '@/components/ui/Card';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useShow, useShows, useSongs, useBandContext } from '@/data/queries';
+import {
+  useShow,
+  useShowSummaries,
+  useSongSummaries,
+  useBandContext,
+} from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { deleteShow, duplicateShow, ShowMutationError } from '@/data/supabase';
 import {
@@ -27,6 +32,7 @@ import {
   type EntityId,
   type ShowLyricIssue,
   type ShowStatus,
+  type SongSummary,
 } from '@/domain';
 import {
   getBlockDurationBreakdown,
@@ -144,8 +150,8 @@ export function ShowDetailScreen({
   const window = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
   const showQuery = useShow(bandId, showId);
-  const showsQuery = useShows(bandId);
-  const songsQuery = useSongs(bandId, true);
+  const showsQuery = useShowSummaries(bandId);
+  const songsQuery = useSongSummaries(bandId, true);
   const bandContextQuery = useBandContext(bandId);
   const [editVisible, setEditVisible] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -197,7 +203,7 @@ export function ShowDetailScreen({
       ).sort((left, right) => left.localeCompare(right, 'pt-BR')),
     [show, showsQuery.data],
   );
-  const songsById = useMemo(
+  const songsById = useMemo<ReadonlyMap<string, SongSummary>>(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
   );

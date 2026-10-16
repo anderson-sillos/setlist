@@ -37,10 +37,10 @@ import {
   useSaveRepertoireCollection,
   useDeleteRepertoireCollection,
   useRepertoireCollections,
-  useSongs,
+  useSongSummaries,
   useBandContext,
 } from '@/data/queries';
-import type { EntityId, RepertoireCollection, Song } from '@/domain';
+import type { EntityId, RepertoireCollection, SongSummary } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import type { EditActions } from '@/features/navigation/types';
@@ -88,7 +88,7 @@ export function RepertoireCollectionEditorScreen({
     requestedReturnTo ?? (returnToRepertoire ? 'repertoire' : 'collections');
   const router = useRouter();
   const collectionsQuery = useRepertoireCollections(bandId);
-  const songsQuery = useSongs(bandId, true);
+  const songsQuery = useSongSummaries(bandId, true);
   const bandContextQuery = useBandContext(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
@@ -189,7 +189,7 @@ interface RepertoireCollectionEditorFormProps {
   readonly initialCollection: RepertoireCollection | null;
   readonly orderedSongIds: readonly EntityId[];
   readonly returnTo: RepertoireCollectionReturnTo;
-  readonly songs: readonly Song[];
+  readonly songs: readonly SongSummary[];
 }
 
 interface CollectionSongDragPreview {
