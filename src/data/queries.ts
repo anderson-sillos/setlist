@@ -177,6 +177,17 @@ export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
   });
 }
 
+export function useSongsByIds(bandId: EntityId, songIds: readonly EntityId[]) {
+  const { repositories } = useAppData();
+  const requestedIds = [...new Set(songIds)].sort();
+
+  return useKeyedQuery({
+    enabled: requestedIds.length > 0,
+    queryKey: queryKeys.songs.documentsByIds(bandId, requestedIds),
+    queryFn: () => repositories.songs.listDocumentsByIds(bandId, requestedIds),
+  });
+}
+
 export function useShows(bandId: EntityId) {
   const { repositories } = useAppData();
 

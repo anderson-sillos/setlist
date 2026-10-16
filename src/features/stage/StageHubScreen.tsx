@@ -1,11 +1,9 @@
-import { useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 import { ErrorFeedback, LoadingFeedback } from '@/components/feedback';
 import { AppText } from '@/components/ui/AppText';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
-import { useShows, useSongs } from '@/data/queries';
-import { getShowDurationMs } from '@/domain/setlistDuration';
+import { useShowSummaries } from '@/data/queries';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getBandSectionHref, getStageHref } from '@/features/navigation/routes';
 import type { BandSectionScreenProps } from '@/features/navigation/screenTypes';
@@ -18,20 +16,11 @@ export function StageHubScreen({
   viewportHeight,
   viewportWidth,
 }: BandSectionScreenProps) {
-  const showsQuery = useShows(bandId);
-  const songsQuery = useSongs(bandId, true);
-  useScreenDataRefresh([showsQuery, songsQuery]);
-  const songsById = useMemo(
-    () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
-    [songsQuery.data],
-  );
-  const shows = useMemo(
-    () =>
-      [...(showsQuery.data ?? [])]
-        .filter((show) => show.status !== 'cancelled')
-        .sort((left, right) => left.startsAt.localeCompare(right.startsAt)),
-    [showsQuery.data],
-  );
+  const showsQuery = useShowSummaries(bandId);
+  useScreenDataRefresh([showsQuery]);
+  const shows = [...(showsQuery.data ?? [])]
+    .filter((show) => show.status !== 'cancelled')
+    .sort((left, right) => left.startsAt.localeCompare(right.startsAt));
 
   return (
     <BandAreaLayout
@@ -43,26 +32,16 @@ export function StageHubScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {showsQuery.isPending || songsQuery.isPending ? (
-        <LoadingFeedback />
-      ) : null}
-      {showsQuery.isError || songsQuery.isError ? (
-        <ErrorFeedback
-          onRetry={() => {
-            void showsQuery.refetch();
-            void songsQuery.refetch();
-          }}
-        />
+      {showsQuery.isPending ? <LoadingFeedback /> : null}
+      {showsQuery.isError ? (
+        <ErrorFeedback onRetry={() => void showsQuery.refetch()} />
       ) : null}
       <FlatList
         contentContainerStyle={styles.listContent}
         data={shows}
         keyExtractor={({ id }) => id}
         ListEmptyComponent={
-          !showsQuery.isPending &&
-          !songsQuery.isPending &&
-          !showsQuery.isError &&
-          !songsQuery.isError ? (
+          !showsQuery.isPending && !showsQuery.isError ? (
             <ListEmptyState
               message="Ainda não há show disponível para abrir no palco."
               title="Palco aguardando o bis"
@@ -81,7 +60,7 @@ export function StageHubScreen({
         renderItem={({ item }) => (
           <ShowListRow
             accessibilityLabel={`Abrir ${item.name} no modo palco`}
-            durationMs={getShowDurationMs(item, songsById)}
+            durationMs={item.estimatedDurationMs}
             href={getStageHref(bandId, item.id)}
             show={item}
           />

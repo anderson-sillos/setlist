@@ -42,6 +42,8 @@ export const queryKeys = {
       ] as const,
     documentById: (bandId: EntityId, songId: EntityId) =>
       ['bands', bandId, 'songs', songId] as const,
+    documentsByIds: (bandId: EntityId, songIds: readonly EntityId[]) =>
+      ['bands', bandId, 'songs', 'by-ids', songIds] as const,
     summariesByBand: (bandId: EntityId, options: SongListOptions = {}) =>
       [
         'bands',

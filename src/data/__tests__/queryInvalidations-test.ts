@@ -53,6 +53,9 @@ describe('invalidações dos resumos da banda', () => {
     const songSummariesKey = queryKeys.songs.summariesByBand(bandId, {
       includeArchived: true,
     });
+    const songDocumentsByIdKey = queryKeys.songs.documentsByIds(bandId, [
+      'song-1',
+    ]);
     const userSongSummariesKey = queryKeys.songs.summariesForUser(userId);
     const showSummariesKey = queryKeys.shows.summariesByBand(bandId);
     const contextKey = queryKeys.bands.context('current-user', bandId);
@@ -60,6 +63,7 @@ describe('invalidações dos resumos da banda', () => {
 
     queryClient.setQueryData(songsKey, []);
     queryClient.setQueryData(songSummariesKey, []);
+    queryClient.setQueryData(songDocumentsByIdKey, []);
     queryClient.setQueryData(userSongSummariesKey, []);
     queryClient.setQueryData(showSummariesKey, []);
     queryClient.setQueryData(contextKey, {});
@@ -73,6 +77,9 @@ describe('invalidações dos resumos da banda', () => {
     });
 
     expect(queryClient.getQueryState(songsKey)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(songDocumentsByIdKey)?.isInvalidated).toBe(
+      true,
+    );
     expect(queryClient.getQueryState(songSummariesKey)?.isInvalidated).toBe(
       true,
     );
