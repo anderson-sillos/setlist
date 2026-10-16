@@ -76,6 +76,21 @@ As metas excluem autenticação e operações posteriores iniciadas pela pessoa.
 Bytes, tempo de rede e tempo de interface serão adicionados após medições com as
 mesmas condições da linha de base.
 
+## Cenários de teste para os contratos de leitura
+
+Os testes usam objetos mínimos declarados pelos cenários e as factories em
+`src/testing/factories/readModels.ts` (`createBandContext`,
+`createUserBandSummary`, `createSongSummary` e `createShowSummary`). Esses
+resumos não são derivados do catálogo de demonstração da aplicação.
+
+`createInMemoryRepositories` recebe bandas, participações, músicas e shows
+especificados pelo próprio teste. Seus métodos de leitura derivam os resumos
+desses dados: listas de músicas omitem letras, documentos completos são
+carregados apenas pelos IDs solicitados e resumos de shows usam o mesmo cálculo
+de duração do domínio. A opção `now` torna previsível o próximo show em
+`listUserSummaries`. Assim, cada teste controla quais registros existem e não
+depende de `demoRepositoryData` ou de um seed do banco.
+
 ## Planos SQL sob RLS
 
 Em 15/10/2026, foram executados `ANALYZE` e `EXPLAIN (ANALYZE, BUFFERS)` no
@@ -84,11 +99,11 @@ Demo e as views `security_invoker`. O conjunto continha 72 músicas, 30 shows,
 103 blocos e 883 itens de setlist. Os resultados abaixo são tempo do banco
 local com buffers já em memória; não representam latência HTTP nem produção.
 
-| Consulta                                                                      | Linhas | Execução | Buffers compartilhados | Plano relevante                                                                                                                |
-| ----------------------------------------------------------------------------- | -----: | -------: | ----------------------: | -------------------------------------------------------------------------------------------------------------------------------- |
-| `user_band_summaries ORDER BY band_name`                                      |      1 | 3,718 ms |                      86 | A subconsulta do próximo show usou `shows_band_starts_at_idx`, filtrando banda e instante e parando no primeiro show elegível. |
-| `show_summaries WHERE band_id = … ORDER BY starts_at`                        |     30 | 454,896 ms |                   9.758 | Usou `show_blocks_show_position_idx`, `show_items_block_position_idx` e `songs_pkey`; percorreu 883 ocorrências sob RLS.        |
-| `band_context WHERE band_id = …`                                              |      1 | 1,746 ms |                      11 | Leitura sequencial das tabelas pequenas; a checagem de música ativa examinou 72 músicas.                                        |
+| Consulta                                              | Linhas |   Execução | Buffers compartilhados | Plano relevante                                                                                                                |
+| ----------------------------------------------------- | -----: | ---------: | ---------------------: | ------------------------------------------------------------------------------------------------------------------------------ |
+| `user_band_summaries ORDER BY band_name`              |      1 |   3,718 ms |                     86 | A subconsulta do próximo show usou `shows_band_starts_at_idx`, filtrando banda e instante e parando no primeiro show elegível. |
+| `show_summaries WHERE band_id = … ORDER BY starts_at` |     30 | 454,896 ms |                  9.758 | Usou `show_blocks_show_position_idx`, `show_items_block_position_idx` e `songs_pkey`; percorreu 883 ocorrências sob RLS.       |
+| `band_context WHERE band_id = …`                      |      1 |   1,746 ms |                     11 | Leitura sequencial das tabelas pequenas; a checagem de música ativa examinou 72 músicas.                                       |
 
 Não foi adicionado índice: os índices de relacionamento e o índice
 `shows_band_starts_at_idx` já aparecem no plano; as leituras sequenciais de
