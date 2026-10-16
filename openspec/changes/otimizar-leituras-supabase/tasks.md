@@ -8,7 +8,7 @@
 ## 2. Resumos autorizados no banco
 
 - [x] 2.1 Criar migração aditiva de contexto da banda e resumo de Minhas bandas com papel atual, existência de músicas ativas e primeiro show futuro não cancelado; verificar com testes SQL bandas múltiplas, usuário sem participação, ausência de próximo show e comparação por instante completo.
-- [ ] 2.2 Criar a leitura de resumos de shows com duração agregada no banco; verificar com testes SQL paridade para vários blocos, músicas repetidas, anotações, separadores, tempos ausentes/zero, músicas arquivadas e alteração de duração sem resalvar a setlist.
+- [x] 2.2 Criar a leitura de resumos de shows com duração agregada no banco; verificar com testes SQL paridade para vários blocos, músicas repetidas, anotações, separadores, tempos ausentes/zero, músicas arquivadas e alteração de duração sem resalvar a setlist.
 - [ ] 2.3 Verificar os novos contratos com grants e execução invoker sob papéis autenticados, incluindo conta suspensa e música moderada; confirmar em testes de banco que respostas e totais não revelam registros protegidos e que os endpoints anteriores continuam operacionais.
 - [ ] 2.4 Examinar os planos das consultas filtradas por banda e do próximo show com volume representativo e RLS; registrar `EXPLAIN (ANALYZE, BUFFERS)` e decisões de índices em `docs/SUPABASE_READ_PERFORMANCE.md`, adicionando índices somente quando houver benefício demonstrado.
 
