@@ -1,12 +1,13 @@
 begin;
 
-select plan(14);
+select plan(16);
 
 do $$
 declare
   owner_id uuid := '00000000-0000-0000-0000-000000001001';
   outsider_id uuid := '00000000-0000-0000-0000-000000001002';
   suspended_id uuid := '00000000-0000-0000-0000-000000001003';
+  unaffiliated_id uuid := '00000000-0000-0000-0000-000000001004';
   band_id uuid := '00000000-0000-0000-0000-000000001011';
   archived_only_band_id uuid := '00000000-0000-0000-0000-000000001012';
   outsider_band_id uuid := '00000000-0000-0000-0000-000000001013';
@@ -15,7 +16,8 @@ begin
   values
     (owner_id, 'authenticated', 'authenticated', 'task-10-1-owner@example.test'),
     (outsider_id, 'authenticated', 'authenticated', 'task-10-1-outsider@example.test'),
-    (suspended_id, 'authenticated', 'authenticated', 'task-10-1-suspended@example.test');
+    (suspended_id, 'authenticated', 'authenticated', 'task-10-1-suspended@example.test'),
+    (unaffiliated_id, 'authenticated', 'authenticated', 'task-10-1-unaffiliated@example.test');
 
   insert into public.profiles (id, display_name)
   values
@@ -107,6 +109,10 @@ select is(
   null::timestamptz,
   'A ausência de próximo show é representada como nula'
 );
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000001004', true);
+select is((select count(*)::integer from public.band_context), 0, 'Pessoa sem nenhuma participação não recebe contexto de banda');
+select is((select count(*)::integer from public.user_band_summaries), 0, 'Pessoa sem nenhuma participação não recebe resumos de bandas');
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000001002', true);
 select is(
