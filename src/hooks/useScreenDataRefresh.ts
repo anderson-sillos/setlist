@@ -54,7 +54,7 @@ export function useScreenDataRefresh(
       const staleQueries = uniqueRefreshQueries(queriesRef.current).filter(
         ({ dataUpdatedAt, isFetching, isStale }) =>
           !isFetching &&
-          (isStale ?? now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS),
+          (Boolean(isStale) || now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS),
       );
 
       void Promise.all(staleQueries.map(({ refetch }) => refetch()));

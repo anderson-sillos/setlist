@@ -76,6 +76,30 @@ As metas excluem autenticação e operações posteriores iniciadas pela pessoa.
 Bytes, tempo de rede e tempo de interface serão adicionados após medições com as
 mesmas condições da linha de base.
 
+### Comparação de chamadas derivada do código
+
+Os números pós-otimização abaixo são contagens esperadas dos contratos de
+consulta, conferidas nos hooks, adaptadores e testes automatizados. Ainda não
+são uma contagem observada em Edge Logs após a mudança.
+
+| Fluxo                          | Linha de base                                                                  | Leituras específicas esperadas após a mudança                                                | Evidência automatizada                                                                                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shows, abertura ou atualização | 6 na abertura e 5 no refresh (observado)                                       | 2: `band_context` e `show_summaries`; sem lista de músicas ou show completo                  | Testes da tela confirmam uma leitura de resumos e nenhuma leitura de músicas ou documentos completos; teste de contexto confirma compartilhamento pela área da banda. |
+| Repertório com Coleções        | 7 na abertura, incluindo duas consultas equivalentes de músicas (observado)    | Até 4: `band_context`, resumos de músicas, coleções e vínculos; metadados de músicas uma vez | Testes de Repertório e das queries confirmam consulta compartilhada de músicas e dependências separadas de coleções.                                                  |
+| Minhas bandas                  | 3 + N, derivado do caminho anterior no código; sem sequência de logs fornecida | 1: `user_band_summaries`, independente de N                                                  | Teste de `BandsScreen` confirma uma chamada a `listUserSummaries` e nenhuma leitura de shows por banda.                                                               |
+| Retorno com cache recente      | Antes da mudança, dependia das queries registradas e de sua validade           | 0 leituras de tela antes de 60 s; queries invalidadas explicitamente continuam revalidáveis  | Testes do hook cobrem cache recente, cache com 60 s, consulta em andamento, atualização concorrente e invalidação recente.                                            |
+
+As contagens excluem autenticação e operações iniciadas após a tela estar
+disponível. A soma ainda precisa ser conferida nos logs posteriores à mudança,
+associando as requisições a uma navegação delimitada e comparando os bytes
+quando `response.headers.content_length` estiver disponível.
+
+As migrações de resumos são aditivas: criam os contratos novos sem remover as
+tabelas e relações usadas pelos clientes anteriores. As suítes pgTAP antigas
+de músicas, shows e integridade passaram no banco isolado limpo, além das
+suítes novas; isso verifica os contratos de banco antigos e novos, mas não
+substitui a conferência de compatibilidade em um cliente já distribuído.
+
 ## Cenários de teste para os contratos de leitura
 
 Os testes usam objetos mínimos declarados pelos cenários e as factories em
@@ -185,7 +209,7 @@ da consulta de produção antes de qualquer mudança de índice ou de política.
 ## Validação integrada
 
 Em 16/10/2026, a validação automatizada do código passou com `npm run validate`:
-formatação, lint e typecheck passaram; Jest passou com 115 suítes e 848 testes.
+formatação, lint e typecheck passaram; Jest passou com 115 suítes e 849 testes.
 A cobertura foi de 84,23% em statements, 81,06% em branches, 82,14% em
 functions e 85,12% em lines. `npm run supabase:lint` passou sem erros de
 schema. `npm run test:e2e:web` passou nos quatro cenários existentes de

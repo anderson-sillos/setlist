@@ -2,7 +2,8 @@
 
 ## 1. Linha de base e contratos de leitura
 
-- [ ] 1.1 Registrar em `docs/SUPABASE_READ_PERFORMANCE.md` a linha de base de abertura, refresh e retorno por foco de Minhas bandas, Shows e Repertório com dados representativos de desenvolvimento; verificar que o documento distingue chamadas, bytes, tempo de rede e tempo até estrutura/conteúdo visível, identificando plataforma e condições da medição.
+- [x] 1.1.1 Registrar as contagens históricas fornecidas para Shows e Repertório, estimar pelo código o caminho anterior de Minhas bandas e distinguir chamadas observadas de bytes, tempo de rede e tempo de interface não medidos.
+- [ ] 1.1.2 Completar a linha de base observada de Minhas bandas e retorno por foco, além de bytes, duração individual de rede e tempo até estrutura/conteúdo visível, com traces históricos comparáveis.
 - [x] 1.2 Definir os tipos `BandContext`, `UserBandSummary`, `SongSummary` e `ShowSummary` e os métodos necessários dos repositórios, mantendo documentos completos distintos; verificar com typecheck e cenários de contrato que resumo não exige letra/blocos fictícios e distingue duração nula de zero.
 
 ## 2. Resumos autorizados no banco
@@ -41,5 +42,7 @@
 
 - [x] 6.1 Executar as verificações pertinentes de formatação, lint, typecheck, suítes de domínio/repositórios/queries/interface e banco; confirmar a passagem dos checks exigidos pelo projeto e registrar comandos e resultados sem repetir execuções sem mudanças ou falhas novas.
 - [ ] 6.2 Validar os fluxos completos em Android, iOS e web com conexão normal e respostas lentas/falhas secundárias, incluindo abrir letra, editar setlist, organizar coleções, refresh e mudança de papel; registrar comportamento e limitações observadas no relatório de desempenho.
-- [ ] 6.3 Comparar chamadas e payloads com a linha de base: Shows com duas consultas de dados, Repertório com até quatro e músicas uma vez, Minhas bandas com uma consulta independente do número de bandas; comprovar também ausência de refetch por foco com cache recente, excluindo dos totais operações de autenticação.
-- [ ] 6.4 Consolidar tempos de estrutura/conteúdo utilizável, volume transferido, planos SQL e compatibilidade de clientes anteriores em `docs/SUPABASE_READ_PERFORMANCE.md`; atualizar `docs/CODEX_HANDOFF.md` com a conclusão real, evidências e quaisquer pendências antes do encerramento da change.
+- [x] 6.3.1 Derivar do código e dos testes as contagens esperadas de leituras por tela e a política de retorno por foco, separando esses resultados de observações em logs.
+- [ ] 6.3.2 Comparar as contagens e o tamanho dos payloads observados após a otimização com a linha de base, usando traces delimitados e excluindo autenticação.
+- [x] 6.4.1 Consolidar planos SQL, compatibilidade aditiva dos contratos anteriores, contagens derivadas do código e resultados automatizados em `docs/SUPABASE_READ_PERFORMANCE.md`; registrar no handoff o progresso e as evidências disponíveis.
+- [ ] 6.4.2 Acrescentar ao relatório os tempos de estrutura/conteúdo e volume transferido medidos, além dos resultados manuais de Android, iOS e web, e atualizar o handoff antes do encerramento da change.

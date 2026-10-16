@@ -45,16 +45,19 @@ describe('useScreenDataRefresh', () => {
     const oldQuery = {
       dataUpdatedAt: now - SCREEN_DATA_FRESHNESS_MS,
       isFetching: false,
+      isStale: false,
       refetch: jest.fn().mockResolvedValue(undefined),
     };
     const currentQuery = {
       dataUpdatedAt: now - SCREEN_DATA_FRESHNESS_MS + 1,
       isFetching: false,
+      isStale: false,
       refetch: jest.fn().mockResolvedValue(undefined),
     };
     const fetchingQuery = {
       dataUpdatedAt: now - SCREEN_DATA_FRESHNESS_MS * 2,
       isFetching: true,
+      isStale: false,
       refetch: jest.fn().mockResolvedValue(undefined),
     };
 
@@ -71,6 +74,36 @@ describe('useScreenDataRefresh', () => {
     expect(oldQuery.refetch).toHaveBeenCalledTimes(1);
     expect(currentQuery.refetch).not.toHaveBeenCalled();
     expect(fetchingQuery.refetch).not.toHaveBeenCalled();
+  });
+
+  it('revalida uma consulta invalidada mesmo que ainda tenha cache recente', async () => {
+    const now = 1_800_000_000_000;
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    const invalidatedQuery = {
+      dataUpdatedAt: now - 1,
+      isFetching: false,
+      isStale: true,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const currentQuery = {
+      dataUpdatedAt: now - 1,
+      isFetching: false,
+      isStale: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+
+    await renderHook(
+      () => useScreenDataRefresh([invalidatedQuery, currentQuery]),
+      { wrapper: QueryProvider },
+    );
+
+    await act(async () => {
+      mockFocusCallback?.();
+      await Promise.resolve();
+    });
+
+    expect(invalidatedQuery.refetch).toHaveBeenCalledTimes(1);
+    expect(currentQuery.refetch).not.toHaveBeenCalled();
   });
 
   it('evita pedidos duplicados e limita o gesto aos dados recebidos pela tela', async () => {
