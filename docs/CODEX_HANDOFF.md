@@ -1920,3 +1920,17 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      Console. Nunca reutilizar o mapa de outro build. Se a minificação for
      mantida desativada, não haverá mapa para enviar e o aviso é informativo.
      O procedimento foi registrado em `docs/RELEASE_PROCESS.md`.
+141. A change `identificar-cliente-supabase` foi validada e arquivada em
+     `openspec/changes/archive/2026-10-15-identificar-cliente-supabase/`; o
+     requisito foi sincronizado em `openspec/specs/identificacao-cliente/`.
+     O cliente acrescenta metadados de versão/plataforma em `X-Client-Info` e
+     define `User-Agent` próprio somente nos apps nativos, preservando o do
+     navegador. Evidências de logs de desenvolvimento confirmaram iOS 18.3.1,
+     Android 16 e web. Algumas linhas web vieram sem `X-Client-Info`, mas sem
+     timestamp/ID de requisição não foi possível associá-las a uma sessão; se
+     reproduzidas em uma sessão delimitada, investigar.
+     A change `otimizar-leituras-supabase` foi preparada como proposta OpenSpec
+     em `openspec/changes/otimizar-leituras-supabase/`; suas tarefas de
+     implementação permanecem pendentes. A PR consolidada inclui a
+     implementação de identificação e essa proposta, sem declarar a
+     otimização de leituras como concluída.
