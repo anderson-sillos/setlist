@@ -453,12 +453,13 @@ export function ShowsScreen({
           visible={unsavedChanges.confirmationVisible}
         />
       ) : null}
-      {showsQuery.isError || bandContextQuery.isError ? (
+      {showsQuery.isError ? (
+        <ErrorFeedback onRetry={() => void showsQuery.refetch()} />
+      ) : null}
+      {!showsQuery.isError && bandContextQuery.isError ? (
         <ErrorFeedback
-          onRetry={() => {
-            void showsQuery.refetch();
-            void bandContextQuery.refetch();
-          }}
+          onRetry={() => void bandContextQuery.refetch()}
+          title="Não foi possível confirmar o acesso"
         />
       ) : null}
 

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import type { BandRole } from '@/domain';
+import type { BandRole, ShowSummary } from '@/domain';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
 import { createShow, createShowSummary, createSong } from '@/testing/factories';
 import { createBandScenario } from '@/testing/scenarios';
@@ -410,6 +410,60 @@ describe('<ShowsScreen />', () => {
     expect(await view.findByLabelText('Criar novo show')).toBeTruthy();
   });
 
+  it('mantém estrutura, navegação e loading acessíveis enquanto os shows demoram', async () => {
+    const scenario = createBandScenario({
+      bandId: BAND_ID,
+      userId: OWNER_USER_ID,
+      role: 'owner',
+      songs: SONGS,
+      shows: SHOWS,
+    });
+    let resolveShows: ((shows: readonly ShowSummary[]) => void) | undefined;
+    jest
+      .spyOn(scenario.repositories.shows, 'listSummariesByBandId')
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveShows = resolve;
+          }),
+      );
+    const view = await render(
+      <AppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowsScreen
+          bandId={BAND_ID}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+        />
+      </AppProviders>,
+    );
+
+    expect(view.getByTestId('app-header')).toBeTruthy();
+    expect(view.getByLabelText('Abrir menu geral')).toBeTruthy();
+    expect(view.getByTestId('bottom-navigation')).toBeTruthy();
+    expect(view.getByLabelText('Ir para Repertório')).toBeTruthy();
+    expect(view.getByTestId('feedback-loading')).toBeTruthy();
+    expect(view.queryByText('Nenhum show por aqui')).toBeNull();
+    expect(view.queryByText('A agenda ainda está em silêncio.')).toBeNull();
+
+    await act(async () => {
+      resolveShows?.([
+        createShowSummary({
+          bandId: BAND_ID,
+          estimatedDurationMs: 120_000,
+          id: 'show-delayed',
+          name: 'Show carregado',
+          startsAt: '2026-09-19T16:00:00-03:00',
+          status: 'draft',
+          venue: 'Estúdio',
+        }),
+      ]);
+    });
+
+    expect(await view.findByText('Show carregado')).toBeTruthy();
+  });
+
   it('preserva os cards quando falha apenas a consulta de contexto', async () => {
     const scenario = createBandScenario({
       bandId: BAND_ID,
@@ -435,7 +489,9 @@ describe('<ShowsScreen />', () => {
 
     expect(await view.findByText('Ensaio Aberto')).toBeTruthy();
     await waitFor(() =>
-      expect(view.getByTestId('feedback-error')).toBeTruthy(),
+      expect(
+        view.getByText('Não foi possível confirmar o acesso'),
+      ).toBeTruthy(),
     );
     expect(view.queryByLabelText('Criar novo show')).toBeNull();
   });

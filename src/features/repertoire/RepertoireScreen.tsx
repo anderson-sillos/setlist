@@ -913,13 +913,16 @@ function RepertoireScreenContent({
           onDismiss={collectionMembership.dismissSaved}
         />
       ) : null}
-      {songsQuery.isPending ? <LoadingFeedback /> : null}
-      {songsQuery.isError || bandContextQuery.isError ? (
+      {songsQuery.isPending || collectionFilterPending ? (
+        <LoadingFeedback />
+      ) : null}
+      {songsQuery.isError ? (
+        <ErrorFeedback onRetry={() => void songsQuery.refetch()} />
+      ) : null}
+      {!songsQuery.isError && bandContextQuery.isError ? (
         <ErrorFeedback
-          onRetry={() => {
-            void songsQuery.refetch();
-            void bandContextQuery.refetch();
-          }}
+          onRetry={() => void bandContextQuery.refetch()}
+          title="Não foi possível confirmar o acesso"
         />
       ) : null}
       <ContentFade

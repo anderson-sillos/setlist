@@ -35,7 +35,7 @@
 - [x] 5.5 Adaptar detalhe, edição e visualização de letra às consultas completas sob demanda; verificar os acessos pelo card/menu/atalho existente e que abrir e salvar uma música após consultar um resumo preserva a letra original.
 - [x] 5.6 Adaptar seletores e editores de coleção/setlist aos metadados compartilhados; verificar contagens, ordem, duração, elegibilidade de arquivadas e atualização imediata do total do rascunho sem chamadas de gravação por mudança local.
 - [x] 5.7 Adaptar os consumidores afetados da prévia de palco; verificar a lista com resumos e o carregamento das letras somente para IDs referenciados pelo show, preservando o comportamento atual da prévia.
-- [ ] 5.8 Ajustar a composição de carregamento, `ContentFade` e feedback por região usando os componentes existentes; verificar com consultas deliberadamente atrasadas a navegação disponível, ausência de vazio transitório, preservação de rolagem/foco/seleção no refresh e respeito à redução de movimento.
+- [x] 5.8 Ajustar a composição de carregamento, `ContentFade` e feedback por região usando os componentes existentes; verificar com consultas deliberadamente atrasadas a navegação disponível, ausência de vazio transitório, preservação de rolagem/foco/seleção no refresh e respeito à redução de movimento.
 
 ## 6. Validação integrada e evidências
 
