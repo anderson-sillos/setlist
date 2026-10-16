@@ -32,7 +32,7 @@ function getAffectedQueries(
       return [
         { queryKey: ['bands', change.bandId, 'songs'] },
         { queryKey: queryKeys.songs.summariesPrefixByBand(change.bandId) },
-        { queryKey: queryKeys.songs.forUserPrefix() },
+        { queryKey: queryKeys.songs.summariesForUserPrefix() },
         ...(change.durationChanged
           ? [{ queryKey: queryKeys.shows.summariesByBand(change.bandId) }]
           : []),
@@ -44,7 +44,7 @@ function getAffectedQueries(
       return [
         { queryKey: ['bands', change.bandId, 'songs'] },
         { queryKey: queryKeys.songs.summariesPrefixByBand(change.bandId) },
-        { queryKey: queryKeys.songs.forUserPrefix() },
+        { queryKey: queryKeys.songs.summariesForUserPrefix() },
         { queryKey: queryKeys.bands.contextByBand(change.bandId) },
         { queryKey: queryKeys.repertoireCollections.byBand(change.bandId) },
       ];

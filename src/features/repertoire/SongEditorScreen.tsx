@@ -40,7 +40,7 @@ import {
   useCurrentBandTermAcceptance,
   useSong,
   useBandContext,
-  useUserRepertoireSongs,
+  useUserRepertoireSongSummaries,
 } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import type { EntityId, LyricDocument } from '@/domain';
@@ -81,7 +81,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const bandContextQuery = useBandContext(bandId);
-  const userRepertoireSongsQuery = useUserRepertoireSongs();
+  const userRepertoireSongSummariesQuery = useUserRepertoireSongSummaries();
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
   const [isAcceptingTerm, setIsAcceptingTerm] = useState(false);
   const [termAcceptanceError, setTermAcceptanceError] = useState<string | null>(
@@ -116,7 +116,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   );
   useScreenDataRefresh([
     bandContextQuery,
-    userRepertoireSongsQuery,
+    userRepertoireSongSummariesQuery,
     songQuery,
     termAcceptanceQuery,
   ]);
@@ -126,7 +126,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     (canEdit && termAcceptanceQuery.isPending);
   const originalArtistOptions = Array.from(
     new Set(
-      userRepertoireSongsQuery.data
+      userRepertoireSongSummariesQuery.data
         ?.map(({ originalArtist }) => originalArtist?.trim() ?? '')
         .filter(Boolean) ?? [],
     ),

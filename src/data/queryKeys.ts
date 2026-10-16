@@ -51,7 +51,8 @@ export const queryKeys = {
       ] as const,
     summariesPrefixByBand: (bandId: EntityId) =>
       ['bands', bandId, 'song-summaries'] as const,
-    forUser: (userId: EntityId) => ['songs', 'user', userId] as const,
-    forUserPrefix: () => ['songs', 'user'] as const,
+    summariesForUser: (userId: EntityId) =>
+      ['song-summaries', 'user', userId] as const,
+    summariesForUserPrefix: () => ['song-summaries', 'user'] as const,
   },
 };

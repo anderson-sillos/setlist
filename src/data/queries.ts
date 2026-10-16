@@ -16,7 +16,6 @@ import type {
   SaveRepertoireCollectionInput,
   SetSongRepertoireCollectionsInput,
   ShowSummary,
-  Song,
   SongSummary,
 } from '@/domain';
 import { queryKeys } from '@/data/queryKeys';
@@ -80,15 +79,18 @@ export function useUserBandSummaries() {
   });
 }
 
-export function useUserRepertoireSongs() {
+export function useUserRepertoireSongSummaries() {
   const { currentUserId, repositories } = useAppData();
 
-  return useKeyedQuery({
-    queryKey: queryKeys.songs.forUser(currentUserId),
-    queryFn: async (): Promise<readonly Song[]> => {
-      const userBands = await repositories.bands.listForUser(currentUserId);
+  return useKeyedQuery<readonly SongSummary[]>({
+    queryKey: queryKeys.songs.summariesForUser(currentUserId),
+    queryFn: async () => {
+      const userBands =
+        await repositories.bands.listUserSummaries(currentUserId);
       const songsByBand = await Promise.all(
-        userBands.map(({ band }) => repositories.songs.listByBandId(band.id)),
+        userBands.map(({ bandId }) =>
+          repositories.songs.listSummariesByBandId(bandId),
+        ),
       );
       const seenSongIds = new Set<EntityId>();
 
