@@ -209,6 +209,7 @@ function createMutableBandRepositories() {
     shows: {
       findById: async () => null,
       listByBandId: async () => [],
+      listSummariesByBandId: async () => [],
     },
     songs: {
       findById: async () => null,
@@ -267,6 +268,7 @@ function createNewBandRepositories() {
     shows: {
       findById: async () => null,
       listByBandId: async () => [],
+      listSummariesByBandId: async () => [],
     },
     songs: {
       findById: async () => null,

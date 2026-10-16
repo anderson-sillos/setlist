@@ -15,6 +15,7 @@ import type {
   SetSongRepertoireCollectionsInput,
   Show,
   ShowRepository,
+  ShowSummary,
   Song,
   SongListOptions,
   SongRepository,
@@ -22,6 +23,7 @@ import type {
   UserBandSummary,
   UserBand,
 } from '@/domain';
+import { getShowDurationMs } from '@/domain';
 
 export interface InMemoryRepositoryData {
   readonly bands: readonly Band[];
@@ -220,9 +222,28 @@ export class InMemorySongRepository implements SongRepository {
 
 export class InMemoryShowRepository implements ShowRepository {
   private readonly shows: readonly Show[];
+  private readonly songsById: ReadonlyMap<EntityId, Song>;
 
-  constructor(shows: readonly Show[]) {
+  constructor(shows: readonly Show[], songs: readonly Song[] = []) {
     this.shows = [...shows];
+    this.songsById = new Map(songs.map((song) => [song.id, song]));
+  }
+
+  async listSummariesByBandId(
+    bandId: EntityId,
+  ): Promise<readonly ShowSummary[]> {
+    return this.shows
+      .filter((show) => show.bandId === bandId)
+      .map((show) => ({
+        bandId: show.bandId,
+        estimatedDurationMs: getShowDurationMs(show, this.songsById),
+        id: show.id,
+        name: show.name,
+        startsAt: show.startsAt,
+        status: show.status,
+        venue: show.venue,
+      }))
+      .sort((left, right) => left.startsAt.localeCompare(right.startsAt));
   }
 
   async listByBandId(bandId: EntityId): Promise<readonly Show[]> {
@@ -495,6 +516,6 @@ export function createInMemoryRepositories(
       options.now,
     ),
     songs: new InMemorySongRepository(data.songs),
-    shows: new InMemoryShowRepository(data.shows),
+    shows: new InMemoryShowRepository(data.shows, data.songs),
   };
 }

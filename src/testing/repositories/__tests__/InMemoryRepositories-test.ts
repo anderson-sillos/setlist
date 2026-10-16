@@ -276,5 +276,21 @@ describe('repositórios em memória', () => {
         repositories.shows.findById('band-1', 'show-2'),
       ).resolves.toBeNull();
     });
+
+    it('retorna resumo de show sem os blocos completos', async () => {
+      await expect(
+        repositories.shows.listSummariesByBandId('band-1'),
+      ).resolves.toEqual([
+        {
+          bandId: 'band-1',
+          estimatedDurationMs: null,
+          id: 'show-1',
+          name: 'Festival de verão',
+          startsAt: '2026-12-12T21:00:00.000Z',
+          status: 'draft',
+          venue: 'Praça Central',
+        },
+      ]);
+    });
   });
 });

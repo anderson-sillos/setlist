@@ -54,7 +54,7 @@ export interface SongRepository extends SongReadRepository {
   findById(bandId: EntityId, songId: EntityId): Promise<Song | null>;
 }
 
-export interface ShowRepository {
+export interface ShowRepository extends ShowReadRepository {
   listByBandId(bandId: EntityId): Promise<readonly Show[]>;
   findById(bandId: EntityId, showId: EntityId): Promise<Show | null>;
 }

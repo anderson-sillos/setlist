@@ -58,6 +58,19 @@ function validShow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function validShowSummary(overrides: Record<string, unknown> = {}) {
+  return {
+    band_id: 'band-1',
+    estimated_duration_ms: 210_000,
+    id: 'show-1',
+    name: 'Festival',
+    starts_at: '2026-10-01T20:00:00.000Z',
+    status: 'draft',
+    venue: 'Praça',
+    ...overrides,
+  };
+}
+
 function configureQuery(response: { data: unknown; error: unknown }) {
   const query = {
     eq: jest.fn().mockReturnThis(),
@@ -72,6 +85,66 @@ function configureQuery(response: { data: unknown; error: unknown }) {
 
 describe('SupabaseShowRepository', () => {
   beforeEach(() => jest.clearAllMocks());
+
+  it('consulta resumo enxuto do show sem carregar blocos e ordena por data', async () => {
+    const { from, query } = configureQuery({
+      data: [validShowSummary()],
+      error: null,
+    });
+
+    await expect(
+      new SupabaseShowRepository().listSummariesByBandId('band-1'),
+    ).resolves.toEqual([
+      {
+        bandId: 'band-1',
+        estimatedDurationMs: 210_000,
+        id: 'show-1',
+        name: 'Festival',
+        startsAt: '2026-10-01T20:00:00.000Z',
+        status: 'draft',
+        venue: 'Praça',
+      },
+    ]);
+    expect(from).toHaveBeenCalledWith('show_summaries');
+    expect(query.select).toHaveBeenCalledWith(
+      'id, band_id, name, starts_at, venue, status, estimated_duration_ms',
+    );
+    expect(query.eq).toHaveBeenCalledWith('band_id', 'band-1');
+    expect(query.order).toHaveBeenCalledWith('starts_at', { ascending: true });
+  });
+
+  it.each([null, 0])(
+    'preserva duração ausente ou zero (%s)',
+    async (estimatedDurationMs) => {
+      configureQuery({
+        data: [
+          validShowSummary({ estimated_duration_ms: estimatedDurationMs }),
+        ],
+        error: null,
+      });
+
+      await expect(
+        new SupabaseShowRepository().listSummariesByBandId('band-1'),
+      ).resolves.toMatchObject([{ estimatedDurationMs }]);
+    },
+  );
+
+  it('rejeita duração de resumo inválida ou fora da faixa inteira segura', async () => {
+    for (const estimatedDurationMs of [1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      configureQuery({
+        data: [
+          validShowSummary({ estimated_duration_ms: estimatedDurationMs }),
+        ],
+        error: null,
+      });
+
+      await expect(
+        new SupabaseShowRepository().listSummariesByBandId('band-1'),
+      ).rejects.toThrow(
+        'Resposta inválida do Supabase: estimated_duration_ms.',
+      );
+    }
+  });
 
   it('mapeia e ordena shows, blocos e todos os tipos de item', async () => {
     const { from, query } = configureQuery({
