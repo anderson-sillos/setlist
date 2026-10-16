@@ -18,7 +18,7 @@ import { useUserBandSummaries } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
-import type { BandRole, Show } from '@/domain';
+import type { BandRole } from '@/domain';
 import {
   BandCreationDialog,
   type BandCreationDialogStatus,
@@ -38,24 +38,11 @@ const roleLabels: Record<BandRole, string> = {
 };
 
 interface BandsScreenProps {
-  readonly now?: Date;
   readonly viewportHeight?: number;
   readonly viewportWidth?: number;
 }
 
-function getNextShow(shows: readonly Show[], now: Date): Show | null {
-  return (
-    [...shows]
-      .filter(
-        (show) => show.status !== 'cancelled' && new Date(show.startsAt) >= now,
-      )
-      .sort((left, right) => left.startsAt.localeCompare(right.startsAt))[0] ??
-    null
-  );
-}
-
 export function BandsScreen({
-  now = new Date(),
   viewportHeight,
   viewportWidth,
 }: BandsScreenProps) {
@@ -151,7 +138,7 @@ export function BandsScreen({
       return;
     }
 
-    if (!bandsQuery.data.some(({ band }) => band.id === lastBandId)) {
+    if (!bandsQuery.data.some(({ bandId }) => bandId === lastBandId)) {
       void clearLastBand();
     }
   }, [bandsQuery.data, clearLastBand, isHydrated, lastBandId]);
@@ -159,13 +146,13 @@ export function BandsScreen({
   const bands = useMemo(
     () =>
       [...(bandsQuery.data ?? [])]
-        .filter(({ band }) =>
-          normalizeForSearch(band.name).includes(normalizedSearch),
+        .filter(({ bandName }) =>
+          normalizeForSearch(bandName).includes(normalizedSearch),
         )
         .sort((left, right) => {
-          if (lastBandId && left.band.id === lastBandId) return -1;
-          if (lastBandId && right.band.id === lastBandId) return 1;
-          return left.band.name.localeCompare(right.band.name, 'pt-BR');
+          if (lastBandId && left.bandId === lastBandId) return -1;
+          if (lastBandId && right.bandId === lastBandId) return 1;
+          return left.bandName.localeCompare(right.bandName, 'pt-BR');
         }),
     [bandsQuery.data, lastBandId, normalizedSearch],
   );
@@ -237,7 +224,7 @@ export function BandsScreen({
         contentContainerStyle={styles.listContent}
         data={bands}
         keyboardShouldPersistTaps="handled"
-        keyExtractor={({ band }) => band.id}
+        keyExtractor={({ bandId }) => bandId}
         refreshControl={getListRefreshControl({ onRefresh, refreshing })}
         ListEmptyComponent={
           !bandsQuery.isPending && !bandsQuery.isError ? (
@@ -259,18 +246,17 @@ export function BandsScreen({
             )
           ) : null
         }
-        renderItem={({ item: { band, membership, shows } }) => {
-          const nextShow = getNextShow(shows, now);
-          const nextShowLabel = nextShow
-            ? `Próximo show · ${formatCompactShowListDate(nextShow.startsAt)}`
+        renderItem={({ item: band }) => {
+          const nextShowLabel = band.nextShowStartsAt
+            ? `Próximo show · ${formatCompactShowListDate(band.nextShowStartsAt)}`
             : 'Nenhum próximo show';
-          const isLastAccessed = band.id === lastBandId;
+          const isLastAccessed = band.bandId === lastBandId;
           return (
             <View style={styles.rowFrame}>
               <Pressable
-                accessibilityLabel={`Abrir ${band.name}`}
+                accessibilityLabel={`Abrir ${band.bandName}`}
                 accessibilityRole="link"
-                onPress={() => void openBand(band.id)}
+                onPress={() => void openBand(band.bandId)}
                 style={({ pressed }) => [
                   styles.bandRow,
                   isLastAccessed && styles.lastAccessedRow,
@@ -281,7 +267,7 @@ export function BandsScreen({
                   <View style={styles.bandRowContent}>
                     <View style={styles.bandAvatar}>
                       <AppText tone="onAccent" variant="heading">
-                        {band.name.slice(0, 1).toLocaleUpperCase('pt-BR')}
+                        {band.bandName.slice(0, 1).toLocaleUpperCase('pt-BR')}
                       </AppText>
                     </View>
                     <View style={styles.bandCopy}>
@@ -292,7 +278,7 @@ export function BandsScreen({
                           style={styles.bandName}
                           variant="heading"
                         >
-                          {band.name}
+                          {band.bandName}
                         </AppText>
                         {isLastAccessed ? (
                           <View style={styles.lastAccessedBadge}>
@@ -303,7 +289,7 @@ export function BandsScreen({
                         ) : null}
                       </View>
                       <AppText tone="muted" variant="caption">
-                        {roleLabels[membership.role]}
+                        {roleLabels[band.role]}
                       </AppText>
                       <AppText variant="caption">{nextShowLabel}</AppText>
                     </View>

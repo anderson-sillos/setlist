@@ -74,16 +74,7 @@ export function useUserBandSummaries() {
 
   return useKeyedQuery({
     queryKey: queryKeys.bands.userSummaries(currentUserId),
-    queryFn: async () => {
-      const userBands = await repositories.bands.listForUser(currentUserId);
-
-      return Promise.all(
-        userBands.map(async (userBand) => ({
-          ...userBand,
-          shows: await repositories.shows.listByBandId(userBand.band.id),
-        })),
-      );
-    },
+    queryFn: () => repositories.bands.listUserSummaries(currentUserId),
   });
 }
 

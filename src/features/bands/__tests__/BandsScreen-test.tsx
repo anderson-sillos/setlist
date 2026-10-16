@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
 import { createInMemoryRepositories } from '@/testing/repositories';
@@ -15,6 +15,7 @@ import {
   createBand as createBandFixture,
   createBandMember,
   createShow,
+  createUserBandSummary,
 } from '@/testing/factories';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
@@ -64,7 +65,10 @@ const DEFAULT_REPOSITORY_DATA = {
 function createTestRepositories(
   data: Partial<typeof DEFAULT_REPOSITORY_DATA> = {},
 ): AppRepositories {
-  return createInMemoryRepositories({ ...DEFAULT_REPOSITORY_DATA, ...data });
+  return createInMemoryRepositories(
+    { ...DEFAULT_REPOSITORY_DATA, ...data },
+    { now: () => '2026-09-09T12:00:00-03:00' },
+  );
 }
 
 function BandsTestProviders({
@@ -113,13 +117,15 @@ describe('<BandsScreen />', () => {
 
   it('carrega Minhas bandas do repositório conectado', async () => {
     await writeLastBandId(HORIZONTE_BAND_ID);
+    const repositories = createTestRepositories();
+    const listUserSummaries = jest.spyOn(
+      repositories.bands,
+      'listUserSummaries',
+    );
+    const listShowsByBand = jest.spyOn(repositories.shows, 'listByBandId');
     const view = await render(
-      <BandsTestProviders>
-        <BandsScreen
-          now={new Date('2026-09-09T12:00:00-03:00')}
-          viewportHeight={900}
-          viewportWidth={1440}
-        />
+      <BandsTestProviders repositories={repositories}>
+        <BandsScreen viewportHeight={900} viewportWidth={1440} />
       </BandsTestProviders>,
     );
 
@@ -130,6 +136,8 @@ describe('<BandsScreen />', () => {
     expect(view.getByText('Última acessada')).toBeTruthy();
     expect(view.getByText('Proprietário')).toBeTruthy();
     expect(view.getByText('Integrante')).toBeTruthy();
+    expect(listUserSummaries).toHaveBeenCalledTimes(1);
+    expect(listShowsByBand).not.toHaveBeenCalled();
     expect(
       view.getByLabelText('Ir para Minhas bandas').props.accessibilityState,
     ).toEqual({ selected: true });
@@ -167,6 +175,52 @@ describe('<BandsScreen />', () => {
     await waitFor(() =>
       expect(view.queryByTestId('create-band-dialog')).toBeNull(),
     );
+  });
+
+  it('mantém o estado de carregamento até receber o resumo do próximo show', async () => {
+    const repositories = createTestRepositories({
+      bands: [createBandFixture({ id: HORIZONTE_BAND_ID })],
+      bandMembers: [
+        createBandMember({
+          bandId: HORIZONTE_BAND_ID,
+          userId: CURRENT_USER_ID,
+        }),
+      ],
+      shows: [],
+    });
+    let resolveSummaries:
+      | ((summaries: ReturnType<typeof createUserBandSummary>[]) => void)
+      | undefined;
+    const listUserSummaries = jest
+      .spyOn(repositories.bands, 'listUserSummaries')
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSummaries = resolve;
+          }),
+      );
+    const view = await render(
+      <BandsTestProviders repositories={repositories}>
+        <BandsScreen />
+      </BandsTestProviders>,
+    );
+
+    await waitFor(() => expect(listUserSummaries).toHaveBeenCalledTimes(1));
+    expect(view.queryByText('Nenhum próximo show')).toBeNull();
+
+    await act(async () => {
+      resolveSummaries?.([
+        createUserBandSummary({
+          bandId: HORIZONTE_BAND_ID,
+          bandName: 'Banda Horizonte',
+          nextShowStartsAt: null,
+          role: 'member',
+        }),
+      ]);
+    });
+
+    expect(await view.findByText('Banda Horizonte')).toBeTruthy();
+    expect(view.getByText('Nenhum próximo show')).toBeTruthy();
   });
 
   it('bloqueia a criação quando o termo não foi aceito', async () => {

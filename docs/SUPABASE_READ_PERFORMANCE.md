@@ -106,6 +106,13 @@ decidir se a pessoa pode editar. A invalidação de participação atualiza esse
 contexto ativo, então mudança de papel atualiza os controles da tela. A lista
 geral de bandas permanece um contrato distinto para Minhas bandas.
 
+Minhas bandas consulta `user_band_summaries` uma vez e usa seu próximo show já
+calculado no servidor; a tela não carrega todos os shows de cada banda. `null`
+significa que a consulta terminou e não há próximo show elegível. Antes da
+resposta, a tela permanece em carregamento e não mostra essa ausência como
+resultado confirmado. O teste da tela verifica uma única leitura de resumo e
+nenhuma leitura da lista de shows por banda.
+
 ### Composição e frescor do refresh
 
 As consultas expõem suas chaves de dados para `useScreenDataRefresh`. Quando
