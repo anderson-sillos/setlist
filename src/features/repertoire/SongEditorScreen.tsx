@@ -38,11 +38,11 @@ import {
 } from '@/data/supabase/songLifecycleMutations';
 import {
   useCurrentBandTermAcceptance,
-  repertoireCollectionQueryKeys,
   useSong,
   useUserBands,
   useUserRepertoireSongs,
 } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import type { EntityId, LyricDocument } from '@/domain';
 import { BandTermAcceptanceDialog } from '@/features/bands/BandTermAcceptanceDialog';
 import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
@@ -189,18 +189,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleDialogVisible(true);
   };
 
-  const invalidateSongQueries = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: ['bands', bandId, 'songs'],
-      }),
-      queryClient.invalidateQueries({
-        queryKey: repertoireCollectionQueryKeys.byBand(bandId),
-      }),
-      queryClient.invalidateQueries({ queryKey: ['songs', 'user'] }),
-    ]);
-  };
-
   const handleLifecycleError = (error: unknown) => {
     setLifecycleError(
       error instanceof SongLifecycleMutationError
@@ -218,7 +206,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleSubmitting(true);
     try {
       await archiveSong({ bandId, songId: song.id });
-      await invalidateSongQueries();
+      await invalidateBandReadData(queryClient, {
+        type: 'song-lifecycle',
+        bandId,
+      });
       setLifecycleNoticeTitle('Música arquivada');
       setLifecycleNotice(
         'Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
@@ -240,7 +231,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleSubmitting(true);
     try {
       await restoreSong({ bandId, songId: song.id });
-      await invalidateSongQueries();
+      await invalidateBandReadData(queryClient, {
+        type: 'song-lifecycle',
+        bandId,
+      });
       setLifecycleNoticeTitle('Música restaurada');
       setLifecycleNotice('Disponível novamente para novas setlists.');
       setLifecycleDialogVisible(false);
@@ -260,7 +254,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleSubmitting(true);
     try {
       const result = await removeSong({ bandId, songId: song.id });
-      await invalidateSongQueries();
+      await invalidateBandReadData(queryClient, {
+        type: 'song-lifecycle',
+        bandId,
+      });
       if (result === 'deleted') {
         router.replace(getBandSectionHref(bandId, 'repertoire'));
         return;
@@ -315,7 +312,13 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       if (songId) {
         await updateSong({ bandId, lyrics, song: parsed.song, songId });
-        await invalidateSongQueries();
+        await invalidateBandReadData(queryClient, {
+          type: 'song-metadata',
+          bandId,
+          durationChanged:
+            song?.estimatedDurationMs !== parsed.song.estimatedDurationMs,
+          availabilityChanged: false,
+        });
         unsavedChanges.allowNextRemoval();
         leaveEditor();
       } else {
@@ -324,7 +327,12 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           lyrics,
           song: parsed.song,
         });
-        await invalidateSongQueries();
+        await invalidateBandReadData(queryClient, {
+          type: 'song-metadata',
+          bandId,
+          durationChanged: false,
+          availabilityChanged: true,
+        });
         unsavedChanges.allowNextRemoval();
         router.replace(getSongHref(bandId, createdSongId));
       }

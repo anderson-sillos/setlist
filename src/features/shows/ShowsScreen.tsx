@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { useShows, useSongs, useUserBands } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { createShow, ShowMutationError } from '@/data/supabase/showMutations';
 import type { ShowStatus } from '@/domain';
 import { getShowDurationMs } from '@/domain/setlistDuration';
@@ -238,9 +239,9 @@ export function ShowsScreen({
         startsAt: form.date + 'T' + form.time + ':00',
         venue: form.venue,
       });
-      await queryClient.invalidateQueries({
-        queryKey: ['bands', bandId, 'shows'],
-        refetchType: 'all',
+      await invalidateBandReadData(queryClient, {
+        type: 'show-schedule',
+        bandId,
       });
       setCreationVisible(false);
       setCreationDirty(false);

@@ -15,6 +15,7 @@ import {
   useSongs,
   useUserBands,
 } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import {
   createShowBlock,
   deleteShowBlock,
@@ -209,13 +210,10 @@ export function ShowSetlistEditorScreen({
           replaceShowBlockItems({ blockId: id, items }),
         ),
       );
-      await Promise.all([
-        showQuery.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'shows'],
-          refetchType: 'all',
-        }),
-      ]);
+      await invalidateBandReadData(queryClient, {
+        type: 'show-setlist',
+        bandId,
+      });
       unsavedChanges.allowNextRemoval();
       router.back();
     } catch (saveError) {

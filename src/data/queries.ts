@@ -18,6 +18,7 @@ import type {
   Song,
 } from '@/domain';
 import { queryKeys } from '@/data/queryKeys';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { RepertoireCollectionError } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
@@ -317,9 +318,7 @@ async function invalidateRepertoireCollectionData(
   queryClient: QueryClient,
   bandId: EntityId,
 ) {
-  await queryClient.invalidateQueries({
-    queryKey: repertoireCollectionQueryKeys.byBand(bandId),
-  });
+  await invalidateBandReadData(queryClient, { type: 'collection', bandId });
 }
 
 export function useSaveRepertoireCollection(bandId: EntityId) {

@@ -26,6 +26,7 @@ import {
   useBandMembers,
   useUserBands,
 } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import {
   BandAdministrationError,
   deleteBand,
@@ -296,13 +297,10 @@ export function BandScreen({
 
     try {
       await updateBandName({ bandId, name });
-      await Promise.all([
-        bandQuery.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', 'user'],
-          refetchType: 'all',
-        }),
-      ]);
+      await invalidateBandReadData(queryClient, {
+        type: 'band-name',
+        bandId,
+      });
       resetBandAdministration();
     } catch (error) {
       setBandAdministrationError(
@@ -322,9 +320,9 @@ export function BandScreen({
     try {
       await deleteBand(bandId);
       queryClient.removeQueries({ queryKey: ['bands', bandId] });
-      await queryClient.invalidateQueries({
-        queryKey: ['bands', 'user'],
-        refetchType: 'all',
+      await invalidateBandReadData(queryClient, {
+        type: 'band-deleted',
+        bandId,
       });
       await clearLastBand();
       router.replace('/');
@@ -361,7 +359,10 @@ export function BandScreen({
         });
       }
 
-      await Promise.all([membersQuery.refetch(), userBandsQuery.refetch()]);
+      await invalidateBandReadData(queryClient, {
+        type: 'membership',
+        bandId,
+      });
       setManagedMember(null);
     } catch (error) {
       setMemberManagementError(
@@ -381,9 +382,9 @@ export function BandScreen({
     try {
       await leaveBand({ bandId });
       queryClient.removeQueries({ queryKey: ['bands', bandId] });
-      await queryClient.invalidateQueries({
-        queryKey: ['bands', 'user'],
-        refetchType: 'all',
+      await invalidateBandReadData(queryClient, {
+        type: 'band-deleted',
+        bandId,
       });
       await clearLastBand();
       router.replace('/');

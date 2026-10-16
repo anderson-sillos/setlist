@@ -16,6 +16,7 @@ import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { deleteShow, duplicateShow, ShowMutationError } from '@/data/supabase';
 import {
   updateShow,
@@ -245,13 +246,10 @@ export function ShowDetailScreen({
         startsAt: form.date + 'T' + form.time + ':00',
         venue: form.venue,
       });
-      await Promise.all([
-        showQuery.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'shows'],
-          refetchType: 'all',
-        }),
-      ]);
+      await invalidateBandReadData(queryClient, {
+        type: 'show-schedule',
+        bandId,
+      });
       setEditVisible(false);
     } catch (error) {
       setEditError(
@@ -277,9 +275,9 @@ export function ShowDetailScreen({
         startsAt: form.date + 'T' + form.time + ':00',
         venue: form.venue,
       });
-      await queryClient.invalidateQueries({
-        queryKey: ['bands', bandId, 'shows'],
-        refetchType: 'all',
+      await invalidateBandReadData(queryClient, {
+        type: 'show-schedule',
+        bandId,
       });
       setDuplicateVisible(false);
       router.push(getShowHref(bandId, duplicatedShowId));
@@ -330,9 +328,9 @@ export function ShowDetailScreen({
       queryClient.removeQueries({
         queryKey: ['bands', bandId, 'shows', show.id],
       });
-      await queryClient.invalidateQueries({
-        queryKey: ['bands', bandId, 'shows'],
-        refetchType: 'all',
+      await invalidateBandReadData(queryClient, {
+        type: 'show-schedule',
+        bandId,
       });
       setDeleteSheetVisible(false);
       router.replace(getBandSectionHref(bandId, 'shows'));
@@ -358,13 +356,10 @@ export function ShowDetailScreen({
         showId: show.id,
         status,
       });
-      await Promise.all([
-        showQuery.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'shows'],
-          refetchType: 'all',
-        }),
-      ]);
+      await invalidateBandReadData(queryClient, {
+        type: 'show-schedule',
+        bandId,
+      });
       setStatusAction(null);
       setStatusSheetVisible(false);
     } catch (error) {

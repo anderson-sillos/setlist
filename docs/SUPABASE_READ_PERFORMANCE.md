@@ -116,6 +116,16 @@ outra que acabou de atualizar. Testes cobrem o limite do intervalo, refresh
 concorrente, deduplicação de chaves cobertas, dependências sobrepostas e
 timestamp agregado.
 
+As invalidações são centralizadas em `src/data/queryInvalidations.ts` e seguem a
+matriz do design: mudanças de duração alcançam os resumos de shows; alterações
+de agenda alcançam o próximo show; mudanças de papel alcançam contexto,
+integrantes e a lista do usuário. Alterações apenas nos vínculos invalidam
+coleções/vínculos e preservam o cache de músicas. A invalidação usa
+`refetchType: 'active'`; dados sem observadores são marcados para atualização
+na próxima consulta. Testes verificam também que consultas não relacionadas
+permanecem válidas e que o cache antigo do objeto de banda é atualizado após a
+criação.
+
 ## Planos SQL sob RLS
 
 Em 15/10/2026, foram executados `ANALYZE` e `EXPLAIN (ANALYZE, BUFFERS)` no

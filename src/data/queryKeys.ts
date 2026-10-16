@@ -4,6 +4,7 @@ export const queryKeys = {
   bands: {
     all: ['bands'] as const,
     byId: (bandId: EntityId) => ['bands', bandId] as const,
+    contextByBand: (bandId: EntityId) => ['bands', bandId, 'context'] as const,
     context: (userId: EntityId, bandId: EntityId) =>
       ['bands', bandId, 'context', userId] as const,
     invitations: (bandId: EntityId) =>
@@ -12,6 +13,7 @@ export const queryKeys = {
     termAcceptance: (bandId: EntityId, userId: EntityId, termVersion: string) =>
       ['bands', bandId, 'term-acceptance', userId, termVersion] as const,
     user: (userId: EntityId) => ['bands', 'user', userId] as const,
+    userPrefix: () => ['bands', 'user'] as const,
     userSummaries: (userId: EntityId) =>
       ['bands', 'user', userId, 'summaries'] as const,
   },
@@ -47,6 +49,9 @@ export const queryKeys = {
         'song-summaries',
         { includeArchived: Boolean(options.includeArchived) },
       ] as const,
+    summariesPrefixByBand: (bandId: EntityId) =>
+      ['bands', bandId, 'song-summaries'] as const,
     forUser: (userId: EntityId) => ['songs', 'user', userId] as const,
+    forUserPrefix: () => ['songs', 'user'] as const,
   },
 };

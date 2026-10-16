@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/ScreenDataRefresh';
 import { createBand, BandCreationError } from '@/data/supabase/bandMutations';
 import { useUserBandSummaries } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import type { BandRole, Show } from '@/domain';
@@ -126,16 +127,10 @@ export function BandsScreen({
         name,
         termVersion: CURRENT_BAND_TERM.version,
       });
-      void Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ['bands', 'user'],
-          refetchType: 'all',
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', createdBandId],
-          refetchType: 'all',
-        }),
-      ]).catch(() => undefined);
+      void invalidateBandReadData(queryClient, {
+        type: 'band-created',
+        bandId: createdBandId,
+      }).catch(() => undefined);
       setCreationDialogVisible(false);
       setCreationDirty(false);
       setCreationStatus('idle');
