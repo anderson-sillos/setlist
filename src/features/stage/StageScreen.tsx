@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { useShow, useSongs } from '@/data/queries';
 import type { EntityId, Show, ShowSongSetlistItem, Song } from '@/domain';
 import { getShowHref } from '@/features/navigation/routes';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import {
   formatElapsedTime,
   useManualTimer,
@@ -63,6 +64,7 @@ export function StageScreen({
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongs(bandId, true);
+  useScreenDataRefresh([showQuery, songsQuery]);
   const timer = useManualTimer();
   const show = showQuery.data;
   const stageItems = show ? buildStageItems(show, songsQuery.data ?? []) : [];

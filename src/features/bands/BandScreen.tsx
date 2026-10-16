@@ -121,6 +121,7 @@ export function BandScreen({
   const [invitationError, setInvitationError] = useState<string | null>(null);
   const [invitationSubmitting, setInvitationSubmitting] = useState(false);
   const invitationsQuery = useBandInvitations(bandId, canManage);
+  useScreenDataRefresh([invitationsQuery], canManage);
   const { initialScrollOffset, rememberScrollOffset } = useSectionViewState(
     bandId,
     'band',

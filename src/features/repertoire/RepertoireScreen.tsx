@@ -420,6 +420,7 @@ function RepertoireScreenContent({
   const appendSongs = useAppendRepertoireCollectionSongs(bandId);
   const appendLock = useRef(false);
   const { onRefresh, refreshing } = useScreenDataRefresh([
+    songsQuery,
     collectionsQuery,
     userBandsQuery,
   ]);

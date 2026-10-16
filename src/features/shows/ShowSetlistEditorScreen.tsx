@@ -51,7 +51,7 @@ export function ShowSetlistEditorScreen({
   const songsQuery = useSongs(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
   const userBandsQuery = useUserBands();
-  useScreenDataRefresh([userBandsQuery, collectionsQuery]);
+  useScreenDataRefresh([showQuery, userBandsQuery, collectionsQuery]);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

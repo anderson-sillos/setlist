@@ -170,7 +170,7 @@ export function ShowDetailScreen({
     !statusSheetVisible &&
     !deleteSheetVisible;
   const { onRefresh, refreshing } = useScreenDataRefresh(
-    [showQuery, songsQuery, userBandsQuery],
+    [showQuery, showsQuery, songsQuery, userBandsQuery],
     refreshEnabled,
   );
   const show = showQuery.data;

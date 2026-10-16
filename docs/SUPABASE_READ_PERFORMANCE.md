@@ -116,6 +116,20 @@ outra que acabou de atualizar. Testes cobrem o limite do intervalo, refresh
 concorrente, deduplicação de chaves cobertas, dependências sobrepostas e
 timestamp agregado.
 
+### Sessão, reconexão e retorno ao primeiro plano
+
+O `QueryClient` é criado por sessão e remontado quando o ID do usuário muda; os
+dados em cache de uma sessão não são reutilizados pela seguinte. Ao recuperar a
+conexão ou voltar ao primeiro plano, a aplicação cancela leituras protegidas em
+andamento e limpa o cache das chaves de bandas e músicas. A tela focada registra
+suas próprias consultas e somente elas são buscadas novamente. Consultas de
+rotas inativas perdem os dados antigos, mas aguardam a próxima abertura para
+fazer uma nova requisição. Isso permite remover letras, shows ou dados de banda
+que deixaram de estar disponíveis após moderação ou perda de acesso sem fazer
+uma atualização de rede para cada tela montada. Testes cobrem reconexão,
+retorno ao primeiro plano, conteúdo atualizado/vazio, cache protegido de rota
+inativa e isolamento entre usuários.
+
 As invalidações são centralizadas em `src/data/queryInvalidations.ts` e seguem a
 matriz do design: mudanças de duração alcançam os resumos de shows; alterações
 de agenda alcançam o próximo show; mudanças de papel alcançam contexto,

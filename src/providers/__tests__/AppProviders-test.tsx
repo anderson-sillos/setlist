@@ -4,13 +4,19 @@ import {
   renderHook,
   waitFor,
 } from '@testing-library/react-native';
-import { useQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { AuthSessionContext } from '@/features/auth/AuthSessionProvider';
 import { SupabaseBandRepository } from '@/data/supabase/repositories';
 import { SupabaseSongRepository } from '@/data/supabase/songRepository';
+import { registerActiveScreenQueries } from '@/data/screenQueryRegistry';
 import { AppProviders, useAppData } from '@/providers/AppProviders';
 
 let mockNetworkListener:
@@ -47,12 +53,41 @@ function SongCacheProbe({
   readonly queryFn: () => Promise<string[]>;
   readonly queryKey: readonly string[];
 }) {
-  const { data } = useQuery({
+  const query = useQuery({
     queryFn,
     queryKey,
   });
+  const queryClient = useQueryClient();
 
-  return <AppText>{data?.join(',') ?? 'sem dados'}</AppText>;
+  useEffect(
+    () => registerActiveScreenQueries(queryClient, () => [query]),
+    [query, queryClient],
+  );
+
+  return <AppText>{query.data?.join(',') ?? 'sem dados'}</AppText>;
+}
+
+function InactiveCacheProbe({
+  queryFn,
+  queryKey,
+}: {
+  readonly queryFn: () => Promise<string[]>;
+  readonly queryKey: readonly string[];
+}) {
+  const { data } = useQuery({ queryFn, queryKey });
+  return <AppText>{data?.join(',') ?? 'cache inativo vazio'}</AppText>;
+}
+
+function QueryClientProbe({
+  onClient,
+}: {
+  readonly onClient: (client: QueryClient) => void;
+}) {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    onClient(queryClient);
+  }, [onClient, queryClient]);
+  return null;
 }
 
 describe('<AppProviders />', () => {
@@ -189,5 +224,82 @@ describe('<AppProviders />', () => {
 
     await waitFor(() => expect(view.queryByText('SETLIST_ANTIGA')).toBeNull());
     expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('limpa o conteúdo protegido das rotas inativas sem recarregá-las', async () => {
+    const activeQueryFn = jest
+      .fn<Promise<string[]>, []>()
+      .mockResolvedValueOnce(['LETRA_ATIVA_ANTIGA'])
+      .mockResolvedValueOnce(['LETRA_ATIVA_NOVA']);
+    const inactiveQueryFn = jest
+      .fn<Promise<string[]>, []>()
+      .mockResolvedValue(['SETLIST_INATIVA_ANTIGA']);
+    const view = await render(
+      <AppProviders>
+        <SongCacheProbe
+          queryFn={activeQueryFn}
+          queryKey={['bands', 'active-cache-test', 'songs']}
+        />
+        <InactiveCacheProbe
+          queryFn={inactiveQueryFn}
+          queryKey={['bands', 'inactive-cache-test', 'shows']}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('LETRA_ATIVA_ANTIGA')).toBeTruthy();
+    expect(await view.findByText('SETLIST_INATIVA_ANTIGA')).toBeTruthy();
+
+    await act(async () => {
+      mockNetworkListener?.({ isConnected: false, isInternetReachable: false });
+      mockNetworkListener?.({ isConnected: true, isInternetReachable: true });
+    });
+
+    expect(await view.findByText('LETRA_ATIVA_NOVA')).toBeTruthy();
+    expect(view.queryByText('SETLIST_INATIVA_ANTIGA')).toBeNull();
+    expect(inactiveQueryFn).toHaveBeenCalledTimes(1);
+    expect(activeQueryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('isola o cache de dados entre sessões de usuários diferentes', async () => {
+    const clients: QueryClient[] = [];
+    const onClient = (client: QueryClient) => clients.push(client);
+    const view = await render(
+      <AuthSessionContext.Provider
+        value={{
+          session: { user: { id: 'user-first' } } as never,
+          setSession: jest.fn(),
+          status: 'authenticated',
+        }}
+      >
+        <AppProviders>
+          <QueryClientProbe onClient={onClient} />
+        </AppProviders>
+      </AuthSessionContext.Provider>,
+    );
+
+    await waitFor(() => expect(clients).toHaveLength(1));
+    const firstClient = clients[0];
+    firstClient.setQueryData(['bands', 'private'], 'DADO_DO_PRIMEIRO_USUARIO');
+
+    view.rerender(
+      <AuthSessionContext.Provider
+        value={{
+          session: { user: { id: 'user-second' } } as never,
+          setSession: jest.fn(),
+          status: 'authenticated',
+        }}
+      >
+        <AppProviders>
+          <QueryClientProbe onClient={onClient} />
+        </AppProviders>
+      </AuthSessionContext.Provider>,
+    );
+
+    await waitFor(() => expect(clients).toHaveLength(2));
+    expect(clients[1]).not.toBe(firstClient);
+    expect(clients[1].getQueryData(['bands', 'private'])).toBeUndefined();
+    firstClient.clear();
+    clients[1].clear();
   });
 });

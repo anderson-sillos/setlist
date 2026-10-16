@@ -3,6 +3,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import { useBand } from '@/data/queries';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import type { EntityId } from '@/domain';
 import {
   AppNavigationShell,
@@ -60,6 +61,7 @@ export function BandAreaLayout({
   viewportWidth,
 }: BandAreaLayoutProps) {
   const bandQuery = useBand(bandId);
+  useScreenDataRefresh([bandQuery]);
   const bandName = bandQuery.data?.name ?? 'Carregando banda…';
 
   return (

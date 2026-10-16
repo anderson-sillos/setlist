@@ -272,6 +272,10 @@ export function useRepertoireCollections(bandId: EntityId) {
       songsQuery.dataUpdatedAt,
     ),
     error: collectionsQuery.error ?? membershipsQuery.error ?? songsQuery.error,
+    isStale:
+      collectionsQuery.isStale ||
+      membershipsQuery.isStale ||
+      songsQuery.isStale,
     isError:
       collectionsQuery.isError ||
       membershipsQuery.isError ||

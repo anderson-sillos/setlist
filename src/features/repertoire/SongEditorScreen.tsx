@@ -81,7 +81,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const userBandsQuery = useUserBands();
-  useScreenDataRefresh([userBandsQuery]);
   const userRepertoireSongsQuery = useUserRepertoireSongs();
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
   const [isAcceptingTerm, setIsAcceptingTerm] = useState(false);
@@ -117,6 +116,12 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     CURRENT_BAND_TERM.version,
     canEdit,
   );
+  useScreenDataRefresh([
+    userBandsQuery,
+    userRepertoireSongsQuery,
+    songQuery,
+    termAcceptanceQuery,
+  ]);
   const isLoading =
     userBandsQuery.isPending ||
     (Boolean(songId) && songQuery.isPending) ||

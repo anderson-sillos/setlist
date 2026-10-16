@@ -1,24 +1,41 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
+import type { PropsWithChildren } from 'react';
 
 import {
   SCREEN_DATA_FRESHNESS_MS,
   useScreenDataRefresh,
 } from '@/hooks/useScreenDataRefresh';
 
-let mockFocusCallback: (() => void) | undefined;
+let mockFocusCallback: (() => void | (() => void)) | undefined;
+let mockFocusCleanup: (() => void) | undefined;
 
 jest.mock('expo-router', () => ({
-  useFocusEffect: (callback: () => void) => {
-    mockFocusCallback = callback;
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    mockFocusCallback = () => {
+      mockFocusCleanup?.();
+      mockFocusCleanup = callback() ?? undefined;
+    };
   },
 }));
+
+const queryClient = new QueryClient();
+
+function QueryProvider({ children }: PropsWithChildren) {
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 describe('useScreenDataRefresh', () => {
   beforeEach(() => {
     mockFocusCallback = undefined;
+    mockFocusCleanup = undefined;
   });
 
   afterEach(() => {
+    mockFocusCleanup?.();
+    mockFocusCleanup = undefined;
     jest.restoreAllMocks();
   });
 
@@ -41,8 +58,9 @@ describe('useScreenDataRefresh', () => {
       refetch: jest.fn().mockResolvedValue(undefined),
     };
 
-    await renderHook(() =>
-      useScreenDataRefresh([oldQuery, currentQuery, fetchingQuery]),
+    await renderHook(
+      () => useScreenDataRefresh([oldQuery, currentQuery, fetchingQuery]),
+      { wrapper: QueryProvider },
     );
 
     await act(async () => {
@@ -68,11 +86,13 @@ describe('useScreenDataRefresh', () => {
       isFetching: true,
       refetch: jest.fn().mockResolvedValue(undefined),
     };
-    const { result } = await renderHook(() =>
-      useScreenDataRefresh([
-        { dataUpdatedAt: Date.now(), isFetching: false, refetch },
-        alreadyFetching,
-      ]),
+    const { result } = await renderHook(
+      () =>
+        useScreenDataRefresh([
+          { dataUpdatedAt: Date.now(), isFetching: false, refetch },
+          alreadyFetching,
+        ]),
+      { wrapper: QueryProvider },
     );
 
     const firstRefresh = result.current.onRefresh();
@@ -105,8 +125,9 @@ describe('useScreenDataRefresh', () => {
       ],
       refetch: jest.fn().mockResolvedValue(undefined),
     };
-    const { result } = await renderHook(() =>
-      useScreenDataRefresh([songQuery, collectionQuery]),
+    const { result } = await renderHook(
+      () => useScreenDataRefresh([songQuery, collectionQuery]),
+      { wrapper: QueryProvider },
     );
 
     await act(async () => {
@@ -130,8 +151,9 @@ describe('useScreenDataRefresh', () => {
       refreshKeys: [['shared'], ['second']],
       refetch: jest.fn().mockResolvedValue(undefined),
     };
-    const { result } = await renderHook(() =>
-      useScreenDataRefresh([firstQuery, secondQuery]),
+    const { result } = await renderHook(
+      () => useScreenDataRefresh([firstQuery, secondQuery]),
+      { wrapper: QueryProvider },
     );
 
     await act(async () => {
@@ -161,7 +183,9 @@ describe('useScreenDataRefresh', () => {
       refetch: jest.fn().mockResolvedValue(undefined),
     };
 
-    await renderHook(() => useScreenDataRefresh([query, aggregateQuery]));
+    await renderHook(() => useScreenDataRefresh([query, aggregateQuery]), {
+      wrapper: QueryProvider,
+    });
 
     await act(async () => {
       mockFocusCallback?.();

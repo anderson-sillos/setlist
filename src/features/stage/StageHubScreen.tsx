@@ -10,6 +10,7 @@ import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getBandSectionHref, getStageHref } from '@/features/navigation/routes';
 import type { BandSectionScreenProps } from '@/features/navigation/screenTypes';
 import { ShowListRow } from '@/features/shows/ShowListRow';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { spacing } from '@/theme/tokens';
 
 export function StageHubScreen({
@@ -19,6 +20,7 @@ export function StageHubScreen({
 }: BandSectionScreenProps) {
   const showsQuery = useShows(bandId);
   const songsQuery = useSongs(bandId, true);
+  useScreenDataRefresh([showsQuery, songsQuery]);
   const songsById = useMemo(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
