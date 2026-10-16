@@ -25,7 +25,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useRepertoireCollections,
   useSong,
-  useUserBands,
+  useBandContext,
 } from '@/data/queries';
 import type { EntityId, RepertoireCollection } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
@@ -110,20 +110,18 @@ export function SongDetailScreen({
   const layoutMode = getLayoutMode(viewportWidth ?? dimensions.width);
   const collectionsQuery = useRepertoireCollections(bandId);
   const songQuery = useSong(bandId, songId);
-  const userBandsQuery = useUserBands();
+  const bandContextQuery = useBandContext(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
     songQuery,
-    userBandsQuery,
+    bandContextQuery,
   ]);
   const song = songQuery.data;
   const songCollections =
     collectionsQuery.data?.flatMap((summary) =>
       summary.songs.some(({ id }) => id === songId) ? [summary.collection] : [],
     ) ?? [];
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const collectionMembership = useSongCollectionMembership({
     bandId,
@@ -182,14 +180,14 @@ export function SongDetailScreen({
           onDismiss={collectionMembership.dismissSaved}
         />
       ) : null}
-      {songQuery.isPending || userBandsQuery.isPending ? (
+      {songQuery.isPending || bandContextQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
-      {songQuery.isError || userBandsQuery.isError ? (
+      {songQuery.isError || bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void songQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}

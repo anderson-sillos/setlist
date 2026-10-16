@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useShow, useShows, useSongs, useUserBands } from '@/data/queries';
+import { useShow, useShows, useSongs, useBandContext } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { deleteShow, duplicateShow, ShowMutationError } from '@/data/supabase';
 import {
@@ -146,7 +146,7 @@ export function ShowDetailScreen({
   const showQuery = useShow(bandId, showId);
   const showsQuery = useShows(bandId);
   const songsQuery = useSongs(bandId, true);
-  const userBandsQuery = useUserBands();
+  const bandContextQuery = useBandContext(bandId);
   const [editVisible, setEditVisible] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [editSubmitting, setEditSubmitting] = useState(false);
@@ -170,7 +170,7 @@ export function ShowDetailScreen({
     !statusSheetVisible &&
     !deleteSheetVisible;
   const { onRefresh, refreshing } = useScreenDataRefresh(
-    [showQuery, showsQuery, songsQuery, userBandsQuery],
+    [showQuery, showsQuery, songsQuery, bandContextQuery],
     refreshEnabled,
   );
   const show = showQuery.data;
@@ -201,9 +201,7 @@ export function ShowDetailScreen({
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
   );
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const duration = show ? getShowDurationBreakdown(show, songsById) : null;
   const songCount =
@@ -398,7 +396,7 @@ export function ShowDetailScreen({
     >
       {showQuery.isPending ||
       songsQuery.isPending ||
-      userBandsQuery.isPending ? (
+      bandContextQuery.isPending ? (
         <LoadingFeedback variation={1} />
       ) : null}
       <ShowCreationDialog
@@ -597,12 +595,12 @@ export function ShowDetailScreen({
         />
       </OptionSheet>
 
-      {showQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
+      {showQuery.isError || songsQuery.isError || bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showQuery.refetch();
             void songsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}

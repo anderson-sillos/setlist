@@ -21,10 +21,9 @@ import {
 import { StatusPill } from '@/components/ui/StatusPill';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
-  useBand,
+  useBandContext,
   useBandInvitations,
   useBandMembers,
-  useUserBands,
 } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import {
@@ -56,6 +55,7 @@ import {
 import { useSectionViewState } from '@/features/navigation/useSectionViewState';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
+import { useAppData } from '@/providers/AppProviders';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import {
   BandAdministrationDialog,
@@ -82,19 +82,15 @@ export function BandScreen({
 }: BandSectionScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const bandQuery = useBand(bandId);
+  const { currentUserId } = useAppData();
+  const bandContextQuery = useBandContext(bandId);
   const membersQuery = useBandMembers(bandId);
-  const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
-    bandQuery,
+    bandContextQuery,
     membersQuery,
-    userBandsQuery,
   ]);
   const { clearLastBand } = useLastBandSelection();
-  const currentMembership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
-  const canManage = currentMembership?.role === 'owner';
+  const canManage = bandContextQuery.data?.role === 'owner';
   const [managedMember, setManagedMember] = useState<BandMember | null>(null);
   const [reportedMember, setReportedMember] = useState<BandMember | null>(null);
   const [memberManagementError, setMemberManagementError] = useState<
@@ -420,15 +416,14 @@ export function BandScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {membersQuery.isPending || userBandsQuery.isPending ? (
+      {membersQuery.isPending || bandContextQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
-      {bandQuery.isError || membersQuery.isError || userBandsQuery.isError ? (
+      {bandContextQuery.isError || membersQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
-            void bandQuery.refetch();
+            void bandContextQuery.refetch();
             void membersQuery.refetch();
-            void userBandsQuery.refetch();
           }}
         />
       ) : null}
@@ -448,7 +443,7 @@ export function BandScreen({
         visible={reportedMember !== null}
       />
       <BandLeaveDialog
-        bandName={bandQuery.data?.name ?? 'esta banda'}
+        bandName={bandContextQuery.data?.bandName ?? 'esta banda'}
         errorMessage={leaveError}
         isSubmitting={leaveSubmitting}
         onClose={closeLeaveDialog}
@@ -456,7 +451,14 @@ export function BandScreen({
         visible={leaveDialogVisible}
       />
       <BandAdministrationDialog
-        band={bandQuery.data ?? null}
+        band={
+          bandContextQuery.data
+            ? {
+                id: bandContextQuery.data.bandId,
+                name: bandContextQuery.data.bandName,
+              }
+            : null
+        }
         discardPrompt={
           Platform.OS === 'ios'
             ? {
@@ -468,7 +470,7 @@ export function BandScreen({
         }
         errorMessage={bandAdministrationError}
         isSubmitting={bandAdministrationSubmitting}
-        key={`${bandQuery.data?.id ?? 'none'}-${bandAdministrationMode ?? 'closed'}`}
+        key={`${bandContextQuery.data?.bandId ?? 'none'}-${bandAdministrationMode ?? 'closed'}`}
         mode={bandAdministrationMode}
         onClose={closeBandAdministration}
         onDelete={() => void handleBandDelete()}
@@ -518,7 +520,7 @@ export function BandScreen({
         renderItem={({ item }) => (
           <MemberRow
             canManage={canManage}
-            current={item.userId === currentMembership?.userId}
+            current={item.userId === currentUserId}
             member={item}
             onLeave={openLeaveFlow}
             onManage={() => openMemberManagement(item)}

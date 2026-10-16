@@ -99,6 +99,13 @@ vínculos não invalidam os dados das músicas. Chaves de `SongSummary` e de
 documentos completos são distintas para impedir que um resultado sem letra seja
 usado em edição ou visualização de letra.
 
+O `BandAreaLayout` e as telas filhas usam `useBandContext` com a mesma chave por
+usuário e banda. O nome e o papel atual são compartilhados em uma leitura de
+`band_context`, sem carregar a lista completa de participações apenas para
+decidir se a pessoa pode editar. A invalidação de participação atualiza esse
+contexto ativo, então mudança de papel atualiza os controles da tela. A lista
+geral de bandas permanece um contrato distinto para Minhas bandas.
+
 ### Composição e frescor do refresh
 
 As consultas expõem suas chaves de dados para `useScreenDataRefresh`. Quando

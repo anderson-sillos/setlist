@@ -120,6 +120,15 @@ export function useBand(bandId: EntityId) {
   });
 }
 
+export function useBandContext(bandId: EntityId) {
+  const { currentUserId, repositories } = useAppData();
+
+  return useKeyedQuery({
+    queryKey: queryKeys.bands.context(currentUserId, bandId),
+    queryFn: () => repositories.bands.getContext(currentUserId, bandId),
+  });
+}
+
 export function useBandMembers(bandId: EntityId | undefined) {
   const { repositories } = useAppData();
 

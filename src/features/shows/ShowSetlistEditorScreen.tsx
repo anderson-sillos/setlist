@@ -13,7 +13,7 @@ import {
   useRepertoireCollections,
   useShow,
   useSongs,
-  useUserBands,
+  useBandContext,
 } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import {
@@ -50,8 +50,8 @@ export function ShowSetlistEditorScreen({
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongs(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
-  const userBandsQuery = useUserBands();
-  useScreenDataRefresh([showQuery, userBandsQuery, collectionsQuery]);
+  const bandContextQuery = useBandContext(bandId);
+  useScreenDataRefresh([showQuery, bandContextQuery, collectionsQuery]);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -59,9 +59,7 @@ export function ShowSetlistEditorScreen({
   const [dirty, setDirty] = useState(false);
   const unsavedChanges = useUnsavedChangesGuard({ dirty, saving: submitting });
   const show = showQuery.data;
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const validateCollectionPreview = async ({
     collectionId,
@@ -77,18 +75,18 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const [freshShow, freshCollections, freshUserBands] = await Promise.all([
+    const [freshShow, freshCollections, freshBandContext] = await Promise.all([
       showQuery.refetch(),
       collectionsQuery.refetch(),
-      userBandsQuery.refetch(),
+      bandContextQuery.refetch(),
     ]);
     if (
       freshShow.isError ||
       freshCollections.isError ||
-      freshUserBands.isError ||
+      freshBandContext.isError ||
       !freshShow.data ||
       !freshCollections.data ||
-      !freshUserBands.data
+      !freshBandContext.data
     ) {
       return {
         message:
@@ -97,9 +95,7 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const freshMembership = freshUserBands.data.find(
-      ({ band }) => band.id === bandId,
-    )?.membership;
+    const freshMembership = freshBandContext.data;
     if (
       (freshMembership?.role !== 'owner' &&
         freshMembership?.role !== 'editor') ||
@@ -232,7 +228,7 @@ export function ShowSetlistEditorScreen({
     showQuery.isPending ||
     songsQuery.isPending ||
     collectionsQuery.isPending ||
-    userBandsQuery.isPending;
+    bandContextQuery.isPending;
   const unavailable =
     !loading &&
     !showQuery.isError &&
@@ -263,12 +259,12 @@ export function ShowSetlistEditorScreen({
       {showQuery.isError ||
       songsQuery.isError ||
       collectionsQuery.isError ||
-      userBandsQuery.isError ? (
+      bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showQuery.refetch();
             void collectionsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}

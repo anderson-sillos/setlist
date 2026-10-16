@@ -28,7 +28,7 @@ import {
   SearchField,
 } from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
-import { useShows, useSongs, useUserBands } from '@/data/queries';
+import { useShows, useSongs, useBandContext } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { createShow, ShowMutationError } from '@/data/supabase/showMutations';
 import type { ShowStatus } from '@/domain';
@@ -106,11 +106,11 @@ export function ShowsScreen({
   const queryClient = useQueryClient();
   const showsQuery = useShows(bandId);
   const songsQuery = useSongs(bandId, true);
-  const userBandsQuery = useUserBands();
+  const bandContextQuery = useBandContext(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     showsQuery,
     songsQuery,
-    userBandsQuery,
+    bandContextQuery,
   ]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [creationVisible, setCreationVisible] = useState(false);
@@ -138,9 +138,7 @@ export function ShowsScreen({
     updateVisibility: updateControlsVisibility,
     visible: controlsVisible,
   } = useScrollDirectionVisibility(initialScrollOffset);
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
   const songsById = useMemo(
@@ -420,7 +418,7 @@ export function ShowsScreen({
     >
       {showsQuery.isPending ||
       songsQuery.isPending ||
-      userBandsQuery.isPending ? (
+      bandContextQuery.isPending ? (
         <LoadingFeedback variation={1} />
       ) : null}
       <OptionSheet
@@ -469,12 +467,12 @@ export function ShowsScreen({
           visible={unsavedChanges.confirmationVisible}
         />
       ) : null}
-      {showsQuery.isError || songsQuery.isError || userBandsQuery.isError ? (
+      {showsQuery.isError || songsQuery.isError || bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showsQuery.refetch();
             void songsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}
@@ -483,7 +481,7 @@ export function ShowsScreen({
         loading={
           showsQuery.isPending ||
           songsQuery.isPending ||
-          userBandsQuery.isPending
+          bandContextQuery.isPending
         }
         style={styles.listArea}
       >
@@ -499,8 +497,8 @@ export function ShowsScreen({
             !showsQuery.isPending &&
             !songsQuery.isPending &&
             !showsQuery.isError &&
-            !userBandsQuery.isError &&
-            !userBandsQuery.isPending &&
+            !bandContextQuery.isError &&
+            !bandContextQuery.isPending &&
             !songsQuery.isError ? (
               <ListEmptyState
                 actionIcon={

@@ -43,7 +43,7 @@ import {
   useAppendRepertoireCollectionSongs,
   useRepertoireCollections,
   useSongs,
-  useUserBands,
+  useBandContext,
 } from '@/data/queries';
 import type { EntityId, Song } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
@@ -416,13 +416,13 @@ function RepertoireScreenContent({
   const router = useRouter();
   const songsQuery = useSongs(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
-  const userBandsQuery = useUserBands();
+  const bandContextQuery = useBandContext(bandId);
   const appendSongs = useAppendRepertoireCollectionSongs(bandId);
   const appendLock = useRef(false);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     songsQuery,
     collectionsQuery,
-    userBandsQuery,
+    bandContextQuery,
   ]);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'repertoire', {
@@ -562,9 +562,7 @@ function RepertoireScreenContent({
     state.search.length > 0 ||
     state.filter !== 'all' ||
     collectionFilter !== 'all';
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
   const activeSelectionMode = canCreate && selectionMode;
@@ -912,11 +910,11 @@ function RepertoireScreenContent({
         />
       ) : null}
       {songsQuery.isPending ? <LoadingFeedback /> : null}
-      {songsQuery.isError || userBandsQuery.isError ? (
+      {songsQuery.isError || bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void songsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}
@@ -932,8 +930,8 @@ function RepertoireScreenContent({
           ListEmptyComponent={
             !songsQuery.isPending &&
             !songsQuery.isError &&
-            !userBandsQuery.isPending &&
-            !userBandsQuery.isError ? (
+            !bandContextQuery.isPending &&
+            !bandContextQuery.isError ? (
               <ListEmptyState
                 actionIcon={
                   !hasQuery && isFirstSongEmptyState && canCreate

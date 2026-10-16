@@ -28,7 +28,7 @@
 
 ## 5. Telas e carregamento progressivo
 
-- [ ] 5.1 Compartilhar o contexto da banda entre `BandAreaLayout` e as telas que precisam apenas de nome/papel, removendo as consultas genéricas redundantes desses caminhos; verificar uma consulta de contexto com consumidores simultâneos e atualização dos controles após mudança de papel.
+- [x] 5.1 Compartilhar o contexto da banda entre `BandAreaLayout` e as telas que precisam apenas de nome/papel, removendo as consultas genéricas redundantes desses caminhos; verificar uma consulta de contexto com consumidores simultâneos e atualização dos controles após mudança de papel.
 - [ ] 5.2 Migrar Minhas bandas para o resumo com próximo show do servidor; verificar com respostas controladas que a estrutura aparece antes da resposta, os cards não esperam consultas de shows por banda e loading não é apresentado como ausência confirmada de próximo show.
 - [ ] 5.3 Migrar Shows e seus cards para `ShowSummary`, eliminando a lista de músicas para calcular durações; verificar busca, filtros, calendário, ordenação, orientação inicial e exibição dos cards enquanto o contexto secundário ainda está pendente ou falha.
 - [ ] 5.4 Migrar o Repertório para `SongSummary` e estados independentes de músicas/contexto/coleções; verificar seleção, filtros, ordenação, falha secundária localizada e espera correta quando um filtro de coleção depende de vínculos ainda pendentes.
