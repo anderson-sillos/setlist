@@ -113,6 +113,13 @@ resposta, a tela permanece em carregamento e não mostra essa ausência como
 resultado confirmado. O teste da tela verifica uma única leitura de resumo e
 nenhuma leitura da lista de shows por banda.
 
+Shows consulta `show_summaries` e usa a duração agregada no banco para os cards
+e a ordenação por duração. Pesquisa, filtros de data/status, calendário e
+ordenação usam apenas os campos do resumo; a tela não carrega músicas nem o
+documento completo dos shows para construir a lista. A consulta de contexto é
+secundária: enquanto está pendente ou falha, os cards continuam visíveis e as
+ações que dependem do papel ficam indisponíveis.
+
 ### Composição e frescor do refresh
 
 As consultas expõem suas chaves de dados para `useScreenDataRefresh`. Quando

@@ -37,7 +37,7 @@ export interface ShowCreationForm {
 }
 
 interface ShowCreationDialogProps {
-  readonly calendarShows?: readonly Show[];
+  readonly calendarShows?: readonly Pick<Show, 'startsAt' | 'status'>[];
   readonly venueOptions?: readonly string[];
   readonly errorMessage: string | null;
   readonly description?: string;

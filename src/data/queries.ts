@@ -15,6 +15,7 @@ import type {
   RepertoireCollectionSong,
   SaveRepertoireCollectionInput,
   SetSongRepertoireCollectionsInput,
+  ShowSummary,
   Song,
 } from '@/domain';
 import { queryKeys } from '@/data/queryKeys';
@@ -169,6 +170,15 @@ export function useShows(bandId: EntityId) {
   return useKeyedQuery({
     queryKey: queryKeys.shows.byBand(bandId),
     queryFn: () => repositories.shows.listByBandId(bandId),
+  });
+}
+
+export function useShowSummaries(bandId: EntityId) {
+  const { repositories } = useAppData();
+
+  return useKeyedQuery<readonly ShowSummary[]>({
+    queryKey: queryKeys.shows.summariesByBand(bandId),
+    queryFn: () => repositories.shows.listSummariesByBandId(bandId),
   });
 }
 

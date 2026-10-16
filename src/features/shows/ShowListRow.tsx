@@ -20,7 +20,7 @@ interface ShowListRowProps {
   readonly accessibilityLabel: string;
   readonly durationMs: number | null;
   readonly href: Href;
-  readonly show: Show;
+  readonly show: Pick<Show, 'id' | 'name' | 'startsAt' | 'status' | 'venue'>;
 }
 
 export function ShowListRow({

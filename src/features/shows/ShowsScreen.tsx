@@ -28,11 +28,10 @@ import {
   SearchField,
 } from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
-import { useShows, useSongs, useBandContext } from '@/data/queries';
+import { useBandContext, useShowSummaries } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { createShow, ShowMutationError } from '@/data/supabase/showMutations';
 import type { ShowStatus } from '@/domain';
-import { getShowDurationMs } from '@/domain/setlistDuration';
 import { getBrazilianNationalHolidays } from '@/features/calendar/brazilianHolidays';
 import { MonthCalendar } from '@/features/calendar/MonthCalendar';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
@@ -104,12 +103,10 @@ export function ShowsScreen({
   );
   const router = useRouter();
   const queryClient = useQueryClient();
-  const showsQuery = useShows(bandId);
-  const songsQuery = useSongs(bandId, true);
+  const showsQuery = useShowSummaries(bandId);
   const bandContextQuery = useBandContext(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     showsQuery,
-    songsQuery,
     bandContextQuery,
   ]);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -141,13 +138,7 @@ export function ShowsScreen({
   const membership = bandContextQuery.data;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
-  const songsById = useMemo(
-    () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
-    [songsQuery.data],
-  );
-  const hasActiveSongs = (songsQuery.data ?? []).some(
-    (song) => song.archivedAt === null,
-  );
+  const hasActiveSongs = bandContextQuery.data?.hasActiveSongs ?? false;
   const hasRegisteredShows = (showsQuery.data?.length ?? 0) > 0;
   const normalizedSearch = normalizeForSearch(state.search);
   const todayKey = getDateKey(now);
@@ -179,15 +170,14 @@ export function ShowsScreen({
       }
       if (state.sort === 'duration') {
         return (
-          (getShowDurationMs(right, songsById) ?? -1) -
-          (getShowDurationMs(left, songsById) ?? -1)
+          (right.estimatedDurationMs ?? -1) - (left.estimatedDurationMs ?? -1)
         );
       }
       return state.sort === 'date-desc'
         ? right.startsAt.localeCompare(left.startsAt)
         : left.startsAt.localeCompare(right.startsAt);
     });
-  }, [normalizedSearch, showsQuery.data, songsById, state, todayKey]);
+  }, [normalizedSearch, showsQuery.data, state, todayKey]);
   const venueOptions = useMemo(
     () =>
       Array.from(
@@ -416,11 +406,7 @@ export function ShowsScreen({
       viewportHeight={viewportHeight}
       viewportWidth={viewportWidth}
     >
-      {showsQuery.isPending ||
-      songsQuery.isPending ||
-      bandContextQuery.isPending ? (
-        <LoadingFeedback variation={1} />
-      ) : null}
+      {showsQuery.isPending ? <LoadingFeedback variation={1} /> : null}
       <OptionSheet
         closeAccessibilityLabel="Fechar calendário"
         label="Escolher data"
@@ -467,24 +453,16 @@ export function ShowsScreen({
           visible={unsavedChanges.confirmationVisible}
         />
       ) : null}
-      {showsQuery.isError || songsQuery.isError || bandContextQuery.isError ? (
+      {showsQuery.isError || bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showsQuery.refetch();
-            void songsQuery.refetch();
             void bandContextQuery.refetch();
           }}
         />
       ) : null}
 
-      <ContentFade
-        loading={
-          showsQuery.isPending ||
-          songsQuery.isPending ||
-          bandContextQuery.isPending
-        }
-        style={styles.listArea}
-      >
+      <ContentFade loading={showsQuery.isPending} style={styles.listArea}>
         <FlatList
           contentContainerStyle={[
             styles.listContent,
@@ -495,11 +473,9 @@ export function ShowsScreen({
           keyExtractor={({ id }) => id}
           ListEmptyComponent={
             !showsQuery.isPending &&
-            !songsQuery.isPending &&
             !showsQuery.isError &&
             !bandContextQuery.isError &&
-            !bandContextQuery.isPending &&
-            !songsQuery.isError ? (
+            !bandContextQuery.isPending ? (
               <ListEmptyState
                 actionIcon={
                   hasQuery
@@ -578,7 +554,7 @@ export function ShowsScreen({
           renderItem={({ item }) => (
             <ShowListRow
               accessibilityLabel={`Abrir show ${item.name}`}
-              durationMs={getShowDurationMs(item, songsById)}
+              durationMs={item.estimatedDurationMs}
               href={getShowHref(bandId, item.id)}
               show={item}
             />
