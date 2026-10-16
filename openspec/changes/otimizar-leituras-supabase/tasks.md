@@ -3,7 +3,7 @@
 ## 1. Linha de base e contratos de leitura
 
 - [ ] 1.1 Registrar em `docs/SUPABASE_READ_PERFORMANCE.md` a linha de base de abertura, refresh e retorno por foco de Minhas bandas, Shows e Repertório com dados representativos de desenvolvimento; verificar que o documento distingue chamadas, bytes, tempo de rede e tempo até estrutura/conteúdo visível, identificando plataforma e condições da medição.
-- [ ] 1.2 Definir os tipos `BandContext`, `UserBandSummary`, `SongSummary` e `ShowSummary` e os métodos necessários dos repositórios, mantendo documentos completos distintos; verificar com typecheck e cenários de contrato que resumo não exige letra/blocos fictícios e distingue duração nula de zero.
+- [x] 1.2 Definir os tipos `BandContext`, `UserBandSummary`, `SongSummary` e `ShowSummary` e os métodos necessários dos repositórios, mantendo documentos completos distintos; verificar com typecheck e cenários de contrato que resumo não exige letra/blocos fictícios e distingue duração nula de zero.
 
 ## 2. Resumos autorizados no banco
 

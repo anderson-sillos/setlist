@@ -1,4 +1,5 @@
 export * from '@/domain/entities';
+export * from '@/domain/readModels';
 export * from '@/domain/repositories';
 export * from '@/domain/repertoireCollections';
 export * from '@/domain/setlist';

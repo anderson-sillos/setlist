@@ -1,5 +1,6 @@
 import { deriveLyricStatus } from '@/domain';
 import {
+  createBandContext,
   createBand,
   createBandMember,
   createLyricBlock,
@@ -8,12 +9,15 @@ import {
   createLyricsForStatus,
   createRepertoireCollection,
   createRepertoireCollectionSong,
+  createShowSummary,
   createShow,
   createShowPlanningSetlistItem,
   createShowSeparatorSetlistItem,
   createShowSetlistBlock,
   createShowSongSetlistItem,
   createSong,
+  createSongSummary,
+  createUserBandSummary,
 } from '@/testing/factories';
 
 describe('factories for domain entities', () => {
@@ -110,5 +114,28 @@ describe('factories for domain entities', () => {
     expect(show.blocks[0]?.items).not.toBe(block.items);
     expect(show.blocks[0]?.items[0]).not.toBe(block.items[0]);
     expect(show.blocks[0]?.items).toEqual(block.items);
+  });
+
+  it('creates list read models without full song lyrics or show setlists', () => {
+    const song = createSongSummary();
+    const show = createShowSummary();
+
+    expect(createBandContext()).toMatchObject({
+      hasActiveSongs: true,
+      role: 'member',
+    });
+    expect(song).not.toHaveProperty('lyrics');
+    expect(show).not.toHaveProperty('blocks');
+    expect(createUserBandSummary()).toMatchObject({
+      nextShowStartsAt: null,
+      role: 'member',
+    });
+  });
+
+  it('keeps unknown and zero show durations distinct in read models', () => {
+    expect(createShowSummary().estimatedDurationMs).toBeNull();
+    expect(
+      createShowSummary({ estimatedDurationMs: 0 }).estimatedDurationMs,
+    ).toBe(0);
   });
 });
