@@ -1933,4 +1933,5 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      em `openspec/changes/otimizar-leituras-supabase/`; suas tarefas de
      implementação permanecem pendentes. A PR consolidada inclui a
      implementação de identificação e essa proposta, sem declarar a
-     otimização de leituras como concluída.
+     otimização de leituras como concluída. As duas changes foram reunidas na
+     PR #41 (`feat/supabase-client-and-read-optimization`) contra `main`.
