@@ -181,3 +181,25 @@ Não foi adicionado índice: os índices de relacionamento e o índice
 percorre cada ocorrência e executa as políticas RLS correspondentes, portanto
 seu tempo de 455 ms deve ser reavaliado com volume maior e após instrumentação
 da consulta de produção antes de qualquer mudança de índice ou de política.
+
+## Validação integrada
+
+Em 16/10/2026, a validação automatizada do código passou com `npm run validate`:
+formatação, lint e typecheck passaram; Jest passou com 115 suítes e 848 testes.
+A cobertura foi de 84,23% em statements, 81,06% em branches, 82,14% em
+functions e 85,12% em lines. `npm run supabase:lint` passou sem erros de
+schema. `npm run test:e2e:web` passou nos quatro cenários existentes de
+autenticação, acessibilidade e responsividade; esses cenários não cobrem os
+fluxos autenticados de Repertório e Shows.
+
+A suíte pgTAP completa passou em um Supabase local isolado, com seed desativado:
+26 arquivos e 432 testes. No banco local de desenvolvimento com a Banda Demo,
+três suítes antigas (`4.3-songs.sql`, `4.4-shows-and-setlists.sql` e
+`4.6-integrity-triggers.sql`) falharam porque pressupõem tabelas sem dados
+persistidos; o banco original não foi resetado nem alterado para contornar isso.
+O clone temporário foi parado e removido depois da validação.
+
+Esses resultados confirmam testes automatizados e contratos SQL, mas não
+substituem a validação manual em aparelhos nem a comparação dos logs de
+produção/desenvolvimento após a otimização. Os fluxos multiplataforma e as
+contagens/tamanhos de payload pós-mudança continuam pendentes.

@@ -1935,3 +1935,19 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      implementação de identificação e essa proposta, sem declarar a
      otimização de leituras como concluída. As duas changes foram reunidas na
      PR #41 (`feat/supabase-client-and-read-optimization`) contra `main`.
+142. A tarefa 5.8 de `otimizar-leituras-supabase` foi concluída: as telas Shows
+     e Repertório mantêm feedback de carregamento até as dependências
+     necessárias, mostram falhas por região e preservam conteúdo/foco durante
+     refresh; `ContentFade` respeita redução de movimento. A validação integrada
+     de 16/10 passou (`npm run validate`: 115 suítes/848 testes; lint SQL sem
+     erros; quatro E2E web existentes). A suíte pgTAP completa passou em um
+     Supabase temporário limpo (26 arquivos/432 testes). No banco de
+     desenvolvimento com a Banda Demo, três testes antigos falham por
+     pressuporem tabelas vazias; os dados foram preservados. O ambiente
+     temporário foi removido. O commit `a641957` foi enviado à PR #41, cuja
+     branch remota foi conferida no mesmo SHA; a PR continua aberta.
+     Permanecem pendentes as tarefas 6.2–6.4: validação manual em aparelhos e
+     fluxos autenticados web; logs posteriores à otimização para comparar
+     chamadas/payloads e retorno por foco; consolidação final do relatório com
+     essas evidências. Nesta sessão não havia simulador iOS acessível nem
+     dispositivo Android conectado.

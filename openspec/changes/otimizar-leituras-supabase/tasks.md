@@ -39,7 +39,7 @@
 
 ## 6. Validação integrada e evidências
 
-- [ ] 6.1 Executar as verificações pertinentes de formatação, lint, typecheck, suítes de domínio/repositórios/queries/interface e banco; confirmar a passagem dos checks exigidos pelo projeto e registrar comandos e resultados sem repetir execuções sem mudanças ou falhas novas.
+- [x] 6.1 Executar as verificações pertinentes de formatação, lint, typecheck, suítes de domínio/repositórios/queries/interface e banco; confirmar a passagem dos checks exigidos pelo projeto e registrar comandos e resultados sem repetir execuções sem mudanças ou falhas novas.
 - [ ] 6.2 Validar os fluxos completos em Android, iOS e web com conexão normal e respostas lentas/falhas secundárias, incluindo abrir letra, editar setlist, organizar coleções, refresh e mudança de papel; registrar comportamento e limitações observadas no relatório de desempenho.
 - [ ] 6.3 Comparar chamadas e payloads com a linha de base: Shows com duas consultas de dados, Repertório com até quatro e músicas uma vez, Minhas bandas com uma consulta independente do número de bandas; comprovar também ausência de refetch por foco com cache recente, excluindo dos totais operações de autenticação.
 - [ ] 6.4 Consolidar tempos de estrutura/conteúdo utilizável, volume transferido, planos SQL e compatibilidade de clientes anteriores em `docs/SUPABASE_READ_PERFORMANCE.md`; atualizar `docs/CODEX_HANDOFF.md` com a conclusão real, evidências e quaisquer pendências antes do encerramento da change.
