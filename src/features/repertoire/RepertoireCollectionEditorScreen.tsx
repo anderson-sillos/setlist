@@ -92,7 +92,6 @@ export function RepertoireCollectionEditorScreen({
   const userBandsQuery = useUserBands();
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
-    songsQuery,
     userBandsQuery,
   ]);
   const membership = userBandsQuery.data?.find(
@@ -147,7 +146,6 @@ export function RepertoireCollectionEditorScreen({
         <ErrorFeedback
           onRetry={() => {
             void collectionsQuery.refetch();
-            void songsQuery.refetch();
             void userBandsQuery.refetch();
           }}
         />

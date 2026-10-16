@@ -15,6 +15,7 @@ import type {
   SetSongRepertoireCollectionsInput,
   Song,
 } from '@/domain';
+import { queryKeys } from '@/data/queryKeys';
 import { RepertoireCollectionError } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
@@ -28,7 +29,11 @@ export function useCurrentBandTermAcceptance(
 
   return useQuery({
     enabled,
-    queryKey: ['bands', bandId, 'term-acceptance', currentUserId, termVersion],
+    queryKey: queryKeys.bands.termAcceptance(
+      bandId,
+      currentUserId,
+      termVersion,
+    ),
     queryFn: () =>
       getCurrentBandTermAcceptance({
         bandId,
@@ -42,7 +47,7 @@ export function useUserBands() {
   const { currentUserId, repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['bands', 'user', currentUserId],
+    queryKey: queryKeys.bands.user(currentUserId),
     queryFn: () => repositories.bands.listForUser(currentUserId),
   });
 }
@@ -51,7 +56,7 @@ export function useUserBandSummaries() {
   const { currentUserId, repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['bands', 'user', currentUserId, 'summaries'],
+    queryKey: queryKeys.bands.userSummaries(currentUserId),
     queryFn: async () => {
       const userBands = await repositories.bands.listForUser(currentUserId);
 
@@ -69,7 +74,7 @@ export function useUserRepertoireSongs() {
   const { currentUserId, repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['songs', 'user', currentUserId],
+    queryKey: queryKeys.songs.forUser(currentUserId),
     queryFn: async (): Promise<readonly Song[]> => {
       const userBands = await repositories.bands.listForUser(currentUserId);
       const songsByBand = await Promise.all(
@@ -93,7 +98,7 @@ export function useBand(bandId: EntityId) {
   const { repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['bands', bandId],
+    queryKey: queryKeys.bands.byId(bandId),
     queryFn: () => repositories.bands.findById(bandId),
   });
 }
@@ -103,7 +108,7 @@ export function useBandMembers(bandId: EntityId | undefined) {
 
   return useQuery({
     enabled: Boolean(bandId),
-    queryKey: ['bands', bandId, 'members'],
+    queryKey: queryKeys.bands.members(bandId ?? ''),
     queryFn: () => {
       if (!bandId) {
         throw new Error('A banda é necessária para carregar os integrantes.');
@@ -117,7 +122,7 @@ export function useBandMembers(bandId: EntityId | undefined) {
 export function useBandInvitations(bandId: EntityId, enabled = true) {
   return useQuery({
     enabled,
-    queryKey: ['bands', bandId, 'invitations'],
+    queryKey: queryKeys.bands.invitations(bandId),
     queryFn: () => listInvitations(bandId),
   });
 }
@@ -126,7 +131,7 @@ export function useSongs(bandId: EntityId, includeArchived = false) {
   const { repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['bands', bandId, 'songs', { includeArchived }],
+    queryKey: queryKeys.songs.documentsByBand(bandId, { includeArchived }),
     queryFn: () => repositories.songs.listByBandId(bandId, { includeArchived }),
   });
 }
@@ -136,7 +141,7 @@ export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
 
   return useQuery({
     enabled,
-    queryKey: ['bands', bandId, 'songs', songId],
+    queryKey: queryKeys.songs.documentById(bandId, songId),
     queryFn: () => repositories.songs.findById(bandId, songId),
   });
 }
@@ -145,7 +150,7 @@ export function useShows(bandId: EntityId) {
   const { repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['bands', bandId, 'shows'],
+    queryKey: queryKeys.shows.byBand(bandId),
     queryFn: () => repositories.shows.listByBandId(bandId),
   });
 }
@@ -160,10 +165,7 @@ export interface RepertoireCollectionSummary {
   readonly songsWithoutDurationCount: number;
 }
 
-export const repertoireCollectionQueryKeys = {
-  byBand: (bandId: EntityId) =>
-    ['bands', bandId, 'repertoire-collections'] as const,
-};
+export const repertoireCollectionQueryKeys = queryKeys.repertoireCollections;
 
 function deriveRepertoireCollectionSummaries(
   collections: readonly RepertoireCollection[],
@@ -203,23 +205,78 @@ function deriveRepertoireCollectionSummaries(
 
 export function useRepertoireCollections(bandId: EntityId) {
   const { repositories } = useAppData();
-
-  return useQuery({
-    queryKey: repertoireCollectionQueryKeys.byBand(bandId),
-    queryFn: async () => {
-      const [collections, memberships, songs] = await Promise.all([
-        repositories.repertoireCollections.listByBandId(bandId),
-        repositories.repertoireCollections.listSongsByBandId(bandId),
-        repositories.songs.listByBandId(bandId, { includeArchived: true }),
-      ]);
-
-      return deriveRepertoireCollectionSummaries(
-        collections,
-        memberships,
-        songs,
-      );
-    },
+  const collectionsQuery = useQuery({
+    queryKey: repertoireCollectionQueryKeys.recordsByBand(bandId),
+    queryFn: () => repositories.repertoireCollections.listByBandId(bandId),
   });
+  const membershipsQuery = useQuery({
+    queryKey: repertoireCollectionQueryKeys.membershipsByBand(bandId),
+    queryFn: () => repositories.repertoireCollections.listSongsByBandId(bandId),
+  });
+  const songsQuery = useSongs(bandId, true);
+  const data =
+    collectionsQuery.data && membershipsQuery.data && songsQuery.data
+      ? deriveRepertoireCollectionSummaries(
+          collectionsQuery.data,
+          membershipsQuery.data,
+          songsQuery.data,
+        )
+      : undefined;
+  const refetch = async () => {
+    const [collectionsResult, membershipsResult, songsResult] =
+      await Promise.all([
+        collectionsQuery.refetch(),
+        membershipsQuery.refetch(),
+        songsQuery.refetch(),
+      ]);
+    const refreshedData =
+      collectionsResult.data && membershipsResult.data && songsResult.data
+        ? deriveRepertoireCollectionSummaries(
+            collectionsResult.data,
+            membershipsResult.data,
+            songsResult.data,
+          )
+        : undefined;
+    const error =
+      collectionsResult.error ?? membershipsResult.error ?? songsResult.error;
+
+    return {
+      data: refreshedData,
+      error,
+      isError: Boolean(error),
+    };
+  };
+
+  return {
+    data,
+    dataUpdatedAt: Math.max(
+      collectionsQuery.dataUpdatedAt,
+      membershipsQuery.dataUpdatedAt,
+      songsQuery.dataUpdatedAt,
+    ),
+    error: collectionsQuery.error ?? membershipsQuery.error ?? songsQuery.error,
+    isError:
+      collectionsQuery.isError ||
+      membershipsQuery.isError ||
+      songsQuery.isError,
+    isFetching:
+      collectionsQuery.isFetching ||
+      membershipsQuery.isFetching ||
+      songsQuery.isFetching,
+    isLoading:
+      collectionsQuery.isLoading ||
+      membershipsQuery.isLoading ||
+      songsQuery.isLoading,
+    isPending:
+      collectionsQuery.isPending ||
+      membershipsQuery.isPending ||
+      songsQuery.isPending,
+    isSuccess:
+      collectionsQuery.isSuccess &&
+      membershipsQuery.isSuccess &&
+      songsQuery.isSuccess,
+    refetch,
+  };
 }
 
 export function useRepertoireCollection(
@@ -239,14 +296,9 @@ async function invalidateRepertoireCollectionData(
   queryClient: QueryClient,
   bandId: EntityId,
 ) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: repertoireCollectionQueryKeys.byBand(bandId),
-    }),
-    queryClient.invalidateQueries({
-      queryKey: ['bands', bandId, 'songs'],
-    }),
-  ]);
+  await queryClient.invalidateQueries({
+    queryKey: repertoireCollectionQueryKeys.byBand(bandId),
+  });
 }
 
 export function useSaveRepertoireCollection(bandId: EntityId) {
@@ -314,7 +366,7 @@ export function useShow(bandId: EntityId, showId: EntityId) {
   const { repositories } = useAppData();
 
   return useQuery({
-    queryKey: ['bands', bandId, 'shows', showId],
+    queryKey: queryKeys.shows.byId(bandId, showId),
     queryFn: () => repositories.shows.findById(bandId, showId),
   });
 }

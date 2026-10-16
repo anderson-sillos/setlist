@@ -91,6 +91,14 @@ de duração do domínio. A opção `now` torna previsível o próximo show em
 `listUserSummaries`. Assim, cada teste controla quais registros existem e não
 depende de `demoRepositoryData` ou de um seed do banco.
 
+As chaves de consultas são centralizadas em `src/data/queryKeys.ts`. Repertório
+e Coleções observam as mesmas consultas básicas de músicas, coleções e vínculos;
+os resumos de Coleções são derivados desses resultados em memória. A abertura e
+o refresh compartilham uma única atualização da lista de músicas, e mudanças em
+vínculos não invalidam os dados das músicas. Chaves de `SongSummary` e de
+documentos completos são distintas para impedir que um resultado sem letra seja
+usado em edição ou visualização de letra.
+
 ## Planos SQL sob RLS
 
 Em 15/10/2026, foram executados `ANALYZE` e `EXPLAIN (ANALYZE, BUFFERS)` no

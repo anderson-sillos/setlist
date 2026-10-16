@@ -3,7 +3,9 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   useAppendRepertoireCollectionSongs,
   useRepertoireCollections,
+  useSongs,
 } from '@/data/queries';
+import { queryKeys } from '@/data/queryKeys';
 import { createInMemoryRepositories } from '@/testing/repositories';
 import {
   createBand,
@@ -128,6 +130,7 @@ describe('consultas de coleções do repertório', () => {
 
   it('atualiza resumo após inclusão e não duplica a música já vinculada', async () => {
     const repositories = createRepositories();
+    const listSongs = jest.spyOn(repositories.songs, 'listByBandId');
     const { result } = await renderHook(
       () => ({
         append: useAppendRepertoireCollectionSongs(bandId),
@@ -167,5 +170,44 @@ describe('consultas de coleções do repertório', () => {
         ?.find(({ collection }) => collection.id === collectionId)
         ?.songs.map(({ id }) => id),
     ).toEqual([firstSong.id, archivedSong.id]);
+    expect(listSongs).toHaveBeenCalledTimes(1);
+  });
+
+  it('compartilha consulta de músicas entre Repertório e Coleções na abertura e no refresh', async () => {
+    const repositories = createRepositories();
+    const listSongs = jest.spyOn(repositories.songs, 'listByBandId');
+    const { result } = await renderHook(
+      () => ({
+        collections: useRepertoireCollections(bandId),
+        songs: useSongs(bandId, true),
+      }),
+      {
+        wrapper: ({ children }) => (
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
+        ),
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.collections.data).toHaveLength(2);
+      expect(result.current.songs.data).toHaveLength(2);
+    });
+    expect(listSongs).toHaveBeenCalledTimes(1);
+    expect(listSongs).toHaveBeenCalledWith(bandId, { includeArchived: true });
+
+    await act(async () => {
+      await result.current.collections.refetch();
+    });
+    expect(listSongs).toHaveBeenCalledTimes(2);
+    expect(
+      queryKeys.songs.documentsByBand(bandId, { includeArchived: true }),
+    ).not.toEqual(
+      queryKeys.songs.summariesByBand(bandId, { includeArchived: true }),
+    );
   });
 });

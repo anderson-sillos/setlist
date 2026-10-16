@@ -50,7 +50,7 @@ export function ShowSetlistEditorScreen({
   const songsQuery = useSongs(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
   const userBandsQuery = useUserBands();
-  useScreenDataRefresh([userBandsQuery, songsQuery, collectionsQuery]);
+  useScreenDataRefresh([userBandsQuery, collectionsQuery]);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -76,20 +76,16 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const [freshShow, freshSongs, freshCollections, freshUserBands] =
-      await Promise.all([
-        showQuery.refetch(),
-        songsQuery.refetch(),
-        collectionsQuery.refetch(),
-        userBandsQuery.refetch(),
-      ]);
+    const [freshShow, freshCollections, freshUserBands] = await Promise.all([
+      showQuery.refetch(),
+      collectionsQuery.refetch(),
+      userBandsQuery.refetch(),
+    ]);
     if (
       freshShow.isError ||
-      freshSongs.isError ||
       freshCollections.isError ||
       freshUserBands.isError ||
       !freshShow.data ||
-      !freshSongs.data ||
       !freshCollections.data ||
       !freshUserBands.data
     ) {
@@ -126,9 +122,8 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const visibleSongIds = new Set(freshSongs.data.map(({ id }) => id));
     const freshEligibleSongs = freshCollection.songs
-      .filter((song) => song.archivedAt === null && visibleSongIds.has(song.id))
+      .filter((song) => song.archivedAt === null)
       .map(({ estimatedDurationMs, id, originalArtist, title }) => ({
         estimatedDurationMs,
         id,
@@ -274,7 +269,6 @@ export function ShowSetlistEditorScreen({
         <ErrorFeedback
           onRetry={() => {
             void showQuery.refetch();
-            void songsQuery.refetch();
             void collectionsQuery.refetch();
             void userBandsQuery.refetch();
           }}

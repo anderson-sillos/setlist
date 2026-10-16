@@ -421,7 +421,6 @@ function RepertoireScreenContent({
   const appendLock = useRef(false);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
-    songsQuery,
     userBandsQuery,
   ]);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
@@ -521,7 +520,7 @@ function RepertoireScreenContent({
     state.collection !== 'all' &&
     state.collection !== 'none' &&
     state.collection !== 'removed' &&
-    !collectionsQuery.data.some(
+    !collectionsQuery.data?.some(
       ({ collection }) => collection.id === state.collection,
     );
   useEffect(() => {
@@ -534,7 +533,7 @@ function RepertoireScreenContent({
       !initialCollectionId ||
       !collectionsQuery.isSuccess ||
       appliedRouteCollectionId.current === initialCollectionId ||
-      !collectionsQuery.data.some(
+      !collectionsQuery.data?.some(
         ({ collection }) => collection.id === initialCollectionId,
       )
     ) {
