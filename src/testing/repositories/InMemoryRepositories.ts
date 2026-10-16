@@ -18,6 +18,7 @@ import type {
   Song,
   SongListOptions,
   SongRepository,
+  SongSummary,
   UserBandSummary,
   UserBand,
 } from '@/domain';
@@ -146,6 +147,56 @@ export class InMemorySongRepository implements SongRepository {
 
   constructor(songs: readonly Song[]) {
     this.songs = [...songs];
+  }
+
+  async listSummariesByBandId(
+    bandId: EntityId,
+    options: SongListOptions = {},
+  ): Promise<readonly SongSummary[]> {
+    return this.songs
+      .filter(
+        (song) =>
+          song.bandId === bandId &&
+          (options.includeArchived === true || song.archivedAt === null),
+      )
+      .map(
+        ({
+          archivedAt,
+          bandId: songBandId,
+          bpm,
+          createdAt,
+          estimatedDurationMs,
+          id,
+          lyricStatus,
+          musicalKey,
+          originalArtist,
+          title,
+          updatedAt,
+        }) => ({
+          archivedAt,
+          bandId: songBandId,
+          bpm,
+          createdAt,
+          estimatedDurationMs,
+          id,
+          lyricStatus,
+          musicalKey,
+          originalArtist,
+          title,
+          updatedAt,
+        }),
+      );
+  }
+
+  async listDocumentsByIds(
+    bandId: EntityId,
+    songIds: readonly EntityId[],
+  ): Promise<readonly Song[]> {
+    const requestedIds = new Set(songIds);
+
+    return this.songs.filter(
+      (song) => song.bandId === bandId && requestedIds.has(song.id),
+    );
   }
 
   async listByBandId(

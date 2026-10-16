@@ -15,7 +15,7 @@
 ## 3. Adaptadores e dados completos sob demanda
 
 - [x] 3.1 Implementar adaptadores e parsers do contexto e de Minhas bandas; verificar com testes de repositório uma chamada por contrato, papel vigente, resultado vazio e próximo show nulo sem consultas de perfil ou shows por banda.
-- [ ] 3.2 Implementar a projeção explícita de `SongSummary` e a consulta em lote de documentos completos por IDs da mesma banda; verificar ausência de letras nas respostas de lista, preservação dos documentos completos e exclusão de IDs não solicitados ou não autorizados.
+- [x] 3.2 Implementar a projeção explícita de `SongSummary` e a consulta em lote de documentos completos por IDs da mesma banda; verificar ausência de letras nas respostas de lista, preservação dos documentos completos e exclusão de IDs não solicitados ou não autorizados.
 - [ ] 3.3 Implementar o adaptador de `ShowSummary` preservando o detalhe completo de um show; verificar com testes respostas sem relações completas, duração nula/zero e falha recuperável para valores inválidos ou fora da faixa numérica segura.
 - [ ] 3.4 Adaptar factories e repositórios de teste em `src/testing` aos contratos novos usando cenários mínimos declarados; verificar as suítes consumidoras pertinentes e documentar o uso dos resumos sem reintroduzir catálogo demonstrativo como dependência de testes.
 

@@ -212,7 +212,9 @@ function createMutableBandRepositories() {
     },
     songs: {
       findById: async () => null,
+      listDocumentsByIds: async () => [],
       listByBandId: async () => [],
+      listSummariesByBandId: async () => [],
     },
   };
 
@@ -268,7 +270,9 @@ function createNewBandRepositories() {
     },
     songs: {
       findById: async () => null,
+      listDocumentsByIds: async () => [],
       listByBandId: async () => [],
+      listSummariesByBandId: async () => [],
     },
   };
 

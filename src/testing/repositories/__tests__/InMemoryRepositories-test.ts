@@ -221,6 +221,41 @@ describe('repositórios em memória', () => {
         repositories.songs.findById('band-2', 'song-1'),
       ).resolves.toBeNull();
     });
+
+    it('expõe resumos sem letras e carrega documentos solicitados em lote', async () => {
+      const [summary] =
+        await repositories.songs.listSummariesByBandId('band-1');
+
+      expect(summary).toEqual({
+        archivedAt: null,
+        bandId: 'band-1',
+        bpm: 120,
+        createdAt,
+        estimatedDurationMs: 210_000,
+        id: 'song-1',
+        lyricStatus: 'missing',
+        musicalKey: 'G',
+        originalArtist: null,
+        title: 'Caminho aberto',
+        updatedAt,
+      });
+      expect(summary).not.toHaveProperty('lyrics');
+      await expect(
+        repositories.songs.listSummariesByBandId('band-1', {
+          includeArchived: true,
+        }),
+      ).resolves.toHaveLength(2);
+      await expect(
+        repositories.songs.listDocumentsByIds('band-1', [
+          'song-1',
+          'song-1',
+          'song-3',
+        ]),
+      ).resolves.toEqual([songs[0]]);
+      await expect(
+        repositories.songs.listDocumentsByIds('band-1', []),
+      ).resolves.toEqual([]);
+    });
   });
 
   describe('shows', () => {

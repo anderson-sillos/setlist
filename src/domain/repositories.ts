@@ -46,7 +46,7 @@ export interface SongListOptions {
   readonly includeArchived?: boolean;
 }
 
-export interface SongRepository {
+export interface SongRepository extends SongReadRepository {
   listByBandId(
     bandId: EntityId,
     options?: SongListOptions,
