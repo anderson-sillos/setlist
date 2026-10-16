@@ -3,6 +3,7 @@ import type {
   AppendRepertoireCollectionSongsInput,
   AppRepositories,
   Band,
+  BandContext,
   BandMember,
   BandRepository,
   DeleteRepertoireCollectionInput,
@@ -17,6 +18,7 @@ import type {
   Song,
   SongListOptions,
   SongRepository,
+  UserBandSummary,
   UserBand,
 } from '@/domain';
 
@@ -37,10 +39,83 @@ export interface InMemoryRepositoryOptions {
 export class InMemoryBandRepository implements BandRepository {
   private readonly bands: readonly Band[];
   private readonly bandMembers: readonly BandMember[];
+  private readonly shows: readonly Show[];
+  private readonly songs: readonly Song[];
 
-  constructor(bands: readonly Band[], bandMembers: readonly BandMember[]) {
+  constructor(
+    bands: readonly Band[],
+    bandMembers: readonly BandMember[],
+    shows: readonly Show[] = [],
+    songs: readonly Song[] = [],
+    private readonly now: () => string = () => new Date().toISOString(),
+  ) {
     this.bands = [...bands];
     this.bandMembers = [...bandMembers];
+    this.shows = [...shows];
+    this.songs = [...songs];
+  }
+
+  async getContext(
+    userId: EntityId,
+    bandId: EntityId,
+  ): Promise<BandContext | null> {
+    const membership = this.bandMembers.find(
+      (candidate) => candidate.userId === userId && candidate.bandId === bandId,
+    );
+    const band = this.bands.find((candidate) => candidate.id === bandId);
+
+    if (!membership || !band) {
+      return null;
+    }
+
+    return {
+      bandId,
+      bandName: band.name,
+      hasActiveSongs: this.songs.some(
+        (song) => song.bandId === bandId && song.archivedAt === null,
+      ),
+      role: membership.role,
+    };
+  }
+
+  async listUserSummaries(
+    userId: EntityId,
+  ): Promise<readonly UserBandSummary[]> {
+    const now = Date.parse(this.now());
+    const summaries = this.bands.flatMap((band) => {
+      const membership = this.bandMembers.find(
+        (candidate) =>
+          candidate.userId === userId && candidate.bandId === band.id,
+      );
+
+      if (!membership) {
+        return [];
+      }
+
+      const nextShowStartsAt = this.shows
+        .filter(
+          (show) =>
+            show.bandId === band.id &&
+            show.status !== 'cancelled' &&
+            Date.parse(show.startsAt) >= now,
+        )
+        .sort((left, right) =>
+          left.startsAt.localeCompare(right.startsAt),
+        )[0]?.startsAt;
+
+      return [
+        {
+          bandId: band.id,
+          bandName: band.name,
+          nextShowStartsAt: nextShowStartsAt ?? null,
+          role: membership.role,
+        },
+      ];
+    });
+
+    return summaries.sort((left, right) =>
+      left.bandName.localeCompare(right.bandName, 'pt-BR'),
+    );
   }
 
   async listForUser(userId: EntityId): Promise<readonly UserBand[]> {
@@ -355,7 +430,13 @@ export function createInMemoryRepositories(
   options: InMemoryRepositoryOptions = {},
 ): AppRepositories {
   return {
-    bands: new InMemoryBandRepository(data.bands, data.bandMembers),
+    bands: new InMemoryBandRepository(
+      data.bands,
+      data.bandMembers,
+      data.shows,
+      data.songs,
+      options.now,
+    ),
     repertoireCollections: new InMemoryRepertoireCollectionRepository(
       data.repertoireCollections ?? [],
       data.repertoireCollectionSongs ?? [],

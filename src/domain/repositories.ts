@@ -36,7 +36,7 @@ export interface ShowReadRepository {
   listSummariesByBandId(bandId: EntityId): Promise<readonly ShowSummary[]>;
 }
 
-export interface BandRepository {
+export interface BandRepository extends BandReadRepository {
   listForUser(userId: EntityId): Promise<readonly UserBand[]>;
   findById(bandId: EntityId): Promise<Band | null>;
   listMembers(bandId: EntityId): Promise<readonly BandMember[]>;

@@ -153,6 +153,46 @@ describe('repositórios em memória', () => {
         bandMembers[1],
       ]);
     });
+
+    it('fornece contexto mínimo somente para integrantes e sinaliza músicas ativas', async () => {
+      await expect(
+        repositories.bands.getContext('user-1', 'band-1'),
+      ).resolves.toEqual({
+        bandId: 'band-1',
+        bandName: 'Banda Horizonte',
+        hasActiveSongs: true,
+        role: 'owner',
+      });
+      await expect(
+        repositories.bands.getContext('user-without-band', 'band-1'),
+      ).resolves.toBeNull();
+    });
+
+    it('resume bandas e o próximo show futuro não cancelado sem listar shows para cada banda', async () => {
+      const summaryRepositories = createInMemoryRepositories(data, {
+        now: () => '2026-11-01T00:00:00.000Z',
+      });
+
+      await expect(
+        summaryRepositories.bands.listUserSummaries('user-1'),
+      ).resolves.toEqual([
+        {
+          bandId: 'band-2',
+          bandName: 'Banda Aurora',
+          nextShowStartsAt: '2026-11-15T19:00:00.000Z',
+          role: 'editor',
+        },
+        {
+          bandId: 'band-1',
+          bandName: 'Banda Horizonte',
+          nextShowStartsAt: '2026-12-12T21:00:00.000Z',
+          role: 'owner',
+        },
+      ]);
+      await expect(
+        summaryRepositories.bands.listUserSummaries('user-without-band'),
+      ).resolves.toEqual([]);
+    });
   });
 
   describe('músicas', () => {

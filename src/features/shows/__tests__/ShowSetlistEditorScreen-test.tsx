@@ -647,6 +647,22 @@ describe('<ShowSetlistEditorScreen />', () => {
     const repositories: AppRepositories = {
       ...inMemoryRepositories,
       bands: {
+        getContext: async (userId, bandId) => {
+          const userBands =
+            await inMemoryRepositories.bands.listForUser(userId);
+          const userBand = userBands.find(({ band }) => band.id === bandId);
+          if (!userBand) return null;
+
+          return {
+            bandId: userBand.band.id,
+            bandName: userBand.band.name,
+            hasActiveSongs: true,
+            role:
+              accessRevoked && bandId === BAND_ID
+                ? 'member'
+                : userBand.membership.role,
+          };
+        },
         findById: (bandId) => inMemoryRepositories.bands.findById(bandId),
         listMembers: (bandId) => inMemoryRepositories.bands.listMembers(bandId),
         listForUser: async (userId: EntityId) => {
@@ -662,6 +678,8 @@ describe('<ShowSetlistEditorScreen />', () => {
               : userBand,
           );
         },
+        listUserSummaries: (userId) =>
+          inMemoryRepositories.bands.listUserSummaries(userId),
       },
     };
     const view = await render(

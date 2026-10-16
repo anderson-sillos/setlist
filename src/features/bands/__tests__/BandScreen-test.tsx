@@ -181,8 +181,28 @@ function createMutableBandRepositories() {
 
   const repositories: AppRepositories = {
     bands: {
+      getContext: async (_userId, bandId) =>
+        band?.id === bandId
+          ? {
+              bandId: band.id,
+              bandName: band.name,
+              hasActiveSongs: false,
+              role: owner.role,
+            }
+          : null,
       findById: async () => band,
       listForUser: async () => (band ? [{ band, membership: owner }] : []),
+      listUserSummaries: async (userId) =>
+        band
+          ? [
+              {
+                bandId: band.id,
+                bandName: band.name,
+                nextShowStartsAt: null,
+                role: userId === owner.userId ? owner.role : member.role,
+              },
+            ]
+          : [],
       listMembers: async () => (band ? [owner, member] : []),
     },
     repertoireCollections: unusedCollectionRepository,
@@ -215,9 +235,29 @@ function createNewBandRepositories() {
 
   const repositories: AppRepositories = {
     bands: {
+      getContext: async (userId, bandId) =>
+        band?.id === bandId && owner?.userId === userId
+          ? {
+              bandId: band.id,
+              bandName: band.name,
+              hasActiveSongs: false,
+              role: owner.role,
+            }
+          : null,
       findById: async (bandId) => (band?.id === bandId ? band : null),
       listForUser: async (userId) =>
         band && owner?.userId === userId ? [{ band, membership: owner }] : [],
+      listUserSummaries: async (userId) =>
+        band && owner?.userId === userId
+          ? [
+              {
+                bandId: band.id,
+                bandName: band.name,
+                nextShowStartsAt: null,
+                role: owner.role,
+              },
+            ]
+          : [],
       listMembers: async (bandId) =>
         band?.id === bandId && owner ? [owner] : [],
     },
