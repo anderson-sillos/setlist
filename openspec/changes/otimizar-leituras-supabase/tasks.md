@@ -22,7 +22,7 @@
 ## 4. Cache compartilhado, atualização e invalidação
 
 - [x] 4.1 Centralizar chaves/opções de consultas e derivar resumos de Coleções das consultas básicas compartilhadas; verificar por testes de abertura e refresh que Repertório e Coleções iniciam uma única busca equivalente de metadados de músicas e não confundem cache de resumo com documento completo.
-- [ ] 4.2 Ajustar a composição do refresh para atualizar contexto e dependências únicas, mantendo o frescor de 60 segundos e compartilhando pedidos em andamento; verificar retornos antes/depois do intervalo, refresh concorrente e ausência de novas chamadas equivalentes durante um carregamento.
+- [x] 4.2 Ajustar a composição do refresh para atualizar contexto e dependências únicas, mantendo o frescor de 60 segundos e compartilhando pedidos em andamento; verificar retornos antes/depois do intervalo, refresh concorrente e ausência de novas chamadas equivalentes durante um carregamento.
 - [ ] 4.3 Centralizar invalidações de músicas, setlists, agenda, coleções e participações conforme a matriz do design; verificar em testes que mudanças atualizam duração/próximo show/papel, alterações só de vínculos não recarregam músicas e áreas inativas não fazem refetch forçado.
 - [ ] 4.4 Adaptar os eventos de sessão, reconexão e retorno ao primeiro plano para as novas chaves; verificar remoção de conteúdo moderado, perda de acesso e isolamento entre usuários sem iniciar recargas de telas inativas, registrando as regras de cache e suas exceções de segurança na documentação.
 

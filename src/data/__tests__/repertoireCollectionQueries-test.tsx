@@ -1,7 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { useQueryClient } from '@tanstack/react-query';
 
 import {
   useAppendRepertoireCollectionSongs,
+  repertoireCollectionQueryKeys,
   useRepertoireCollections,
   useSongs,
 } from '@/data/queries';
@@ -208,6 +210,61 @@ describe('consultas de coleções do repertório', () => {
       queryKeys.songs.documentsByBand(bandId, { includeArchived: true }),
     ).not.toEqual(
       queryKeys.songs.summariesByBand(bandId, { includeArchived: true }),
+    );
+  });
+
+  it('usa a dependência mais antiga como referência do frescor do resumo', async () => {
+    const repositories = createRepositories();
+    const { result } = await renderHook(
+      () => ({
+        collections: useRepertoireCollections(bandId),
+        queryClient: useQueryClient(),
+      }),
+      {
+        wrapper: ({ children }) => (
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
+        ),
+      },
+    );
+
+    await waitFor(() =>
+      expect(result.current.collections.data).toHaveLength(2),
+    );
+
+    const oldTimestamp = Date.now() - 120_000;
+    const freshTimestamp = Date.now();
+    const queryClient = result.current.queryClient;
+    const songKey = queryKeys.songs.documentsByBand(bandId, {
+      includeArchived: true,
+    });
+    const songs = queryClient.getQueryData(songKey);
+
+    await act(async () => {
+      queryClient.setQueryData(
+        repertoireCollectionQueryKeys.recordsByBand(bandId),
+        queryClient.getQueryData(
+          repertoireCollectionQueryKeys.recordsByBand(bandId),
+        ),
+        { updatedAt: freshTimestamp },
+      );
+      queryClient.setQueryData(
+        repertoireCollectionQueryKeys.membershipsByBand(bandId),
+        queryClient.getQueryData(
+          repertoireCollectionQueryKeys.membershipsByBand(bandId),
+        ),
+        { updatedAt: freshTimestamp },
+      );
+      queryClient.setQueryData(songKey, songs, { updatedAt: oldTimestamp });
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(result.current.collections.dataUpdatedAt).toBe(oldTimestamp),
     );
   });
 });

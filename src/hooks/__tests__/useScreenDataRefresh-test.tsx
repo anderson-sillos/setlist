@@ -87,4 +87,88 @@ describe('useScreenDataRefresh', () => {
       await firstRefresh;
     });
   });
+
+  it('usa a consulta composta quando ela já atualiza todas as dependências', async () => {
+    const songQuery = {
+      dataUpdatedAt: Date.now(),
+      isFetching: false,
+      refreshKeys: [['bands', 'band-1', 'songs']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const collectionQuery = {
+      dataUpdatedAt: Date.now(),
+      isFetching: false,
+      refreshKeys: [
+        ['bands', 'band-1', 'repertoire-collections', 'items'],
+        ['bands', 'band-1', 'repertoire-collections', 'song-links'],
+        ['bands', 'band-1', 'songs'],
+      ],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const { result } = await renderHook(() =>
+      useScreenDataRefresh([songQuery, collectionQuery]),
+    );
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    expect(songQuery.refetch).not.toHaveBeenCalled();
+    expect(collectionQuery.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('mantém consultas parcialmente sobrepostas para atualizar as dependências exclusivas', async () => {
+    const firstQuery = {
+      dataUpdatedAt: Date.now(),
+      isFetching: false,
+      refreshKeys: [['first'], ['shared']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const secondQuery = {
+      dataUpdatedAt: Date.now(),
+      isFetching: false,
+      refreshKeys: [['shared'], ['second']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const { result } = await renderHook(() =>
+      useScreenDataRefresh([firstQuery, secondQuery]),
+    );
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    expect(firstQuery.refetch).toHaveBeenCalledTimes(1);
+    expect(secondQuery.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('aplica a mesma deduplicação ao retornar à tela após o período de frescor', async () => {
+    const now = 1_800_000_000_000;
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    const query = {
+      dataUpdatedAt: now - SCREEN_DATA_FRESHNESS_MS,
+      isFetching: false,
+      refreshKeys: [['bands', 'band-1', 'songs']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const aggregateQuery = {
+      dataUpdatedAt: now - SCREEN_DATA_FRESHNESS_MS,
+      isFetching: false,
+      refreshKeys: [
+        ['bands', 'band-1', 'songs'],
+        ['bands', 'band-1', 'repertoire-collections', 'items'],
+      ],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+
+    await renderHook(() => useScreenDataRefresh([query, aggregateQuery]));
+
+    await act(async () => {
+      mockFocusCallback?.();
+      await Promise.resolve();
+    });
+
+    expect(query.refetch).not.toHaveBeenCalled();
+    expect(aggregateQuery.refetch).toHaveBeenCalledTimes(1);
+  });
 });

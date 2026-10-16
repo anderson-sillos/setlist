@@ -3,7 +3,9 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type QueryKey,
   type QueryClient,
+  type UseQueryOptions,
 } from '@tanstack/react-query';
 
 import type {
@@ -20,6 +22,20 @@ import { RepertoireCollectionError } from '@/domain';
 import { listInvitations } from '@/data/supabase/invitationMutations';
 import { useAppData } from '@/providers/AppProviders';
 
+function useKeyedQuery<
+  TQueryFnData,
+  TError = Error,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+>(options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>) {
+  const query = useQuery(options);
+
+  return {
+    ...query,
+    refreshKeys: [options.queryKey],
+  };
+}
+
 export function useCurrentBandTermAcceptance(
   bandId: EntityId,
   termVersion: string,
@@ -27,7 +43,7 @@ export function useCurrentBandTermAcceptance(
 ) {
   const { currentUserId } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     enabled,
     queryKey: queryKeys.bands.termAcceptance(
       bandId,
@@ -46,7 +62,7 @@ export function useCurrentBandTermAcceptance(
 export function useUserBands() {
   const { currentUserId, repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.bands.user(currentUserId),
     queryFn: () => repositories.bands.listForUser(currentUserId),
   });
@@ -55,7 +71,7 @@ export function useUserBands() {
 export function useUserBandSummaries() {
   const { currentUserId, repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.bands.userSummaries(currentUserId),
     queryFn: async () => {
       const userBands = await repositories.bands.listForUser(currentUserId);
@@ -73,7 +89,7 @@ export function useUserBandSummaries() {
 export function useUserRepertoireSongs() {
   const { currentUserId, repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.songs.forUser(currentUserId),
     queryFn: async (): Promise<readonly Song[]> => {
       const userBands = await repositories.bands.listForUser(currentUserId);
@@ -97,7 +113,7 @@ export function useUserRepertoireSongs() {
 export function useBand(bandId: EntityId) {
   const { repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.bands.byId(bandId),
     queryFn: () => repositories.bands.findById(bandId),
   });
@@ -106,7 +122,7 @@ export function useBand(bandId: EntityId) {
 export function useBandMembers(bandId: EntityId | undefined) {
   const { repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     enabled: Boolean(bandId),
     queryKey: queryKeys.bands.members(bandId ?? ''),
     queryFn: () => {
@@ -120,7 +136,7 @@ export function useBandMembers(bandId: EntityId | undefined) {
 }
 
 export function useBandInvitations(bandId: EntityId, enabled = true) {
-  return useQuery({
+  return useKeyedQuery({
     enabled,
     queryKey: queryKeys.bands.invitations(bandId),
     queryFn: () => listInvitations(bandId),
@@ -130,7 +146,7 @@ export function useBandInvitations(bandId: EntityId, enabled = true) {
 export function useSongs(bandId: EntityId, includeArchived = false) {
   const { repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.songs.documentsByBand(bandId, { includeArchived }),
     queryFn: () => repositories.songs.listByBandId(bandId, { includeArchived }),
   });
@@ -139,7 +155,7 @@ export function useSongs(bandId: EntityId, includeArchived = false) {
 export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
   const { repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     enabled,
     queryKey: queryKeys.songs.documentById(bandId, songId),
     queryFn: () => repositories.songs.findById(bandId, songId),
@@ -149,7 +165,7 @@ export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
 export function useShows(bandId: EntityId) {
   const { repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.shows.byBand(bandId),
     queryFn: () => repositories.shows.listByBandId(bandId),
   });
@@ -205,11 +221,11 @@ function deriveRepertoireCollectionSummaries(
 
 export function useRepertoireCollections(bandId: EntityId) {
   const { repositories } = useAppData();
-  const collectionsQuery = useQuery({
+  const collectionsQuery = useKeyedQuery({
     queryKey: repertoireCollectionQueryKeys.recordsByBand(bandId),
     queryFn: () => repositories.repertoireCollections.listByBandId(bandId),
   });
-  const membershipsQuery = useQuery({
+  const membershipsQuery = useKeyedQuery({
     queryKey: repertoireCollectionQueryKeys.membershipsByBand(bandId),
     queryFn: () => repositories.repertoireCollections.listSongsByBandId(bandId),
   });
@@ -249,7 +265,7 @@ export function useRepertoireCollections(bandId: EntityId) {
 
   return {
     data,
-    dataUpdatedAt: Math.max(
+    dataUpdatedAt: Math.min(
       collectionsQuery.dataUpdatedAt,
       membershipsQuery.dataUpdatedAt,
       songsQuery.dataUpdatedAt,
@@ -275,6 +291,11 @@ export function useRepertoireCollections(bandId: EntityId) {
       collectionsQuery.isSuccess &&
       membershipsQuery.isSuccess &&
       songsQuery.isSuccess,
+    refreshKeys: [
+      repertoireCollectionQueryKeys.recordsByBand(bandId),
+      repertoireCollectionQueryKeys.membershipsByBand(bandId),
+      queryKeys.songs.documentsByBand(bandId, { includeArchived: true }),
+    ],
     refetch,
   };
 }
@@ -365,7 +386,7 @@ export function useDeleteRepertoireCollection(bandId: EntityId) {
 export function useShow(bandId: EntityId, showId: EntityId) {
   const { repositories } = useAppData();
 
-  return useQuery({
+  return useKeyedQuery({
     queryKey: queryKeys.shows.byId(bandId, showId),
     queryFn: () => repositories.shows.findById(bandId, showId),
   });

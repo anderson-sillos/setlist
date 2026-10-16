@@ -99,6 +99,23 @@ vínculos não invalidam os dados das músicas. Chaves de `SongSummary` e de
 documentos completos são distintas para impedir que um resultado sem letra seja
 usado em edição ou visualização de letra.
 
+### Composição e frescor do refresh
+
+As consultas expõem suas chaves de dados para `useScreenDataRefresh`. Quando
+uma consulta composta cobre todas as chaves de outra consulta registrada na
+tela, o refresh manual ou por foco atualiza apenas a composta. Dependências
+parcialmente sobrepostas continuam sendo atualizadas para não omitir chaves
+exclusivas. Consultas que já estão carregando são ignoradas, chamadas repetidas
+de pull-to-refresh são serializadas e o React Query compartilha a requisição em
+andamento entre observadores com a mesma chave.
+
+O retorno por foco atualiza somente dados com pelo menos 60 segundos desde a
+última atualização. Um resumo derivado de várias consultas usa o timestamp da
+dependência mais antiga; assim, uma dependência vencida não fica escondida por
+outra que acabou de atualizar. Testes cobrem o limite do intervalo, refresh
+concorrente, deduplicação de chaves cobertas, dependências sobrepostas e
+timestamp agregado.
+
 ## Planos SQL sob RLS
 
 Em 15/10/2026, foram executados `ANALYZE` e `EXPLAIN (ANALYZE, BUFFERS)` no
