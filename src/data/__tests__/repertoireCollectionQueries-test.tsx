@@ -5,7 +5,7 @@ import {
   useAppendRepertoireCollectionSongs,
   repertoireCollectionQueryKeys,
   useRepertoireCollections,
-  useSongs,
+  useSongSummaries,
 } from '@/data/queries';
 import { queryKeys } from '@/data/queryKeys';
 import { createInMemoryRepositories } from '@/testing/repositories';
@@ -85,7 +85,11 @@ describe('consultas de coleções do repertório', () => {
       repositories.repertoireCollections,
       'listSongsByBandId',
     );
-    const listSongs = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
     const { result } = await renderHook(
       () => useRepertoireCollections(bandId),
       {
@@ -118,8 +122,11 @@ describe('consultas de coleções do repertório', () => {
     expect(summary?.songs[0].title).toBe(firstSong.title);
     expect(listCollections).toHaveBeenCalledTimes(1);
     expect(listMemberships).toHaveBeenCalledTimes(1);
-    expect(listSongs).toHaveBeenCalledTimes(1);
-    expect(listSongs).toHaveBeenCalledWith(bandId, { includeArchived: true });
+    expect(listSongSummaries).toHaveBeenCalledTimes(1);
+    expect(listSongSummaries).toHaveBeenCalledWith(bandId, {
+      includeArchived: true,
+    });
+    expect(listSongDocuments).not.toHaveBeenCalled();
     expect(
       result.current.data?.find(
         ({ collection }) => collection.id === emptyCollectionId,
@@ -132,7 +139,10 @@ describe('consultas de coleções do repertório', () => {
 
   it('atualiza resumo após inclusão e não duplica a música já vinculada', async () => {
     const repositories = createRepositories();
-    const listSongs = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
     const { result } = await renderHook(
       () => ({
         append: useAppendRepertoireCollectionSongs(bandId),
@@ -172,16 +182,19 @@ describe('consultas de coleções do repertório', () => {
         ?.find(({ collection }) => collection.id === collectionId)
         ?.songs.map(({ id }) => id),
     ).toEqual([firstSong.id, archivedSong.id]);
-    expect(listSongs).toHaveBeenCalledTimes(1);
+    expect(listSongSummaries).toHaveBeenCalledTimes(1);
   });
 
-  it('compartilha consulta de músicas entre Repertório e Coleções na abertura e no refresh', async () => {
+  it('compartilha metadados de músicas entre Repertório e Coleções na abertura e no refresh', async () => {
     const repositories = createRepositories();
-    const listSongs = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
     const { result } = await renderHook(
       () => ({
         collections: useRepertoireCollections(bandId),
-        songs: useSongs(bandId, true),
+        songs: useSongSummaries(bandId, true),
       }),
       {
         wrapper: ({ children }) => (
@@ -199,13 +212,15 @@ describe('consultas de coleções do repertório', () => {
       expect(result.current.collections.data).toHaveLength(2);
       expect(result.current.songs.data).toHaveLength(2);
     });
-    expect(listSongs).toHaveBeenCalledTimes(1);
-    expect(listSongs).toHaveBeenCalledWith(bandId, { includeArchived: true });
+    expect(listSongSummaries).toHaveBeenCalledTimes(1);
+    expect(listSongSummaries).toHaveBeenCalledWith(bandId, {
+      includeArchived: true,
+    });
 
     await act(async () => {
       await result.current.collections.refetch();
     });
-    expect(listSongs).toHaveBeenCalledTimes(2);
+    expect(listSongSummaries).toHaveBeenCalledTimes(2);
     expect(
       queryKeys.songs.documentsByBand(bandId, { includeArchived: true }),
     ).not.toEqual(
@@ -239,7 +254,7 @@ describe('consultas de coleções do repertório', () => {
     const oldTimestamp = Date.now() - 120_000;
     const freshTimestamp = Date.now();
     const queryClient = result.current.queryClient;
-    const songKey = queryKeys.songs.documentsByBand(bandId, {
+    const songKey = queryKeys.songs.summariesByBand(bandId, {
       includeArchived: true,
     });
     const songs = queryClient.getQueryData(songKey);

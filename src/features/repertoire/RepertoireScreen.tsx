@@ -42,10 +42,10 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useAppendRepertoireCollectionSongs,
   useRepertoireCollections,
-  useSongs,
+  useSongSummaries,
   useBandContext,
 } from '@/data/queries';
-import type { EntityId, Song } from '@/domain';
+import type { EntityId, SongSummary } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
@@ -94,12 +94,12 @@ import { useSongCollectionMembership } from './useSongCollectionMembership';
 
 interface SongRowProps {
   readonly bandId: EntityId;
-  readonly onOpenActions: (song: Song) => void;
+  readonly onOpenActions: (song: SongSummary) => void;
   readonly onSelectSong?: (songId: EntityId) => void;
   readonly onToggleSelection: (songId: EntityId) => void;
   readonly selected: boolean;
   readonly selectionMode: boolean;
-  readonly song: Song;
+  readonly song: SongSummary;
 }
 
 interface RepertoireSelectionState {
@@ -414,7 +414,7 @@ function RepertoireScreenContent({
     viewportWidth ?? window.width,
   );
   const router = useRouter();
-  const songsQuery = useSongs(bandId, true);
+  const songsQuery = useSongSummaries(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
   const bandContextQuery = useBandContext(bandId);
   const appendSongs = useAppendRepertoireCollectionSongs(bandId);
@@ -558,6 +558,10 @@ function RepertoireScreenContent({
       collectionSongIds,
     );
   }, [collectionSongIds, songsQuery.data, state]);
+  const collectionFilterPending =
+    collectionFilter !== 'all' &&
+    !collectionsQuery.isSuccess &&
+    !collectionsQuery.isError;
   const hasQuery =
     state.search.length > 0 ||
     state.filter !== 'all' ||
@@ -918,7 +922,10 @@ function RepertoireScreenContent({
           }}
         />
       ) : null}
-      <ContentFade loading={songsQuery.isPending} style={styles.listArea}>
+      <ContentFade
+        loading={songsQuery.isPending || collectionFilterPending}
+        style={styles.listArea}
+      >
         <FlatList
           contentContainerStyle={[
             styles.listContent,
@@ -930,6 +937,7 @@ function RepertoireScreenContent({
           ListEmptyComponent={
             !songsQuery.isPending &&
             !songsQuery.isError &&
+            !collectionFilterPending &&
             !bandContextQuery.isPending &&
             !bandContextQuery.isError ? (
               <ListEmptyState

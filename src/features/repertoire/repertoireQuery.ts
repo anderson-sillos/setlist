@@ -1,4 +1,4 @@
-import type { EntityId, Song } from '@/domain';
+import type { EntityId, SongSummary } from '@/domain';
 import type { ChoiceOption } from '@/components/ui/ListControls';
 import { normalizeForSearch } from '@/utils/text';
 
@@ -20,12 +20,12 @@ export const repertoireSorts: readonly ChoiceOption<RepertoireSort>[] = [
 ];
 
 export function filterAndSortRepertoireSongs(
-  songs: readonly Song[],
+  songs: readonly SongSummary[],
   search: string,
   filter: RepertoireFilter,
   sort: RepertoireSort,
   collectionSongIds?: ReadonlySet<EntityId> | null,
-): readonly Song[] {
+): readonly SongSummary[] {
   const normalizedSearch = normalizeForSearch(search);
   const result = songs.filter((song) => {
     const matchesSearch = normalizeForSearch(

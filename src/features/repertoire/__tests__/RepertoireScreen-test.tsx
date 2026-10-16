@@ -13,6 +13,10 @@ import type {
 import { RepertoireCollectionError } from '@/domain';
 import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
 import {
+  NavigationMemoryProvider,
+  useNavigationMemory,
+} from '@/features/navigation/NavigationMemory';
+import {
   createBand,
   createBandMember,
   createRepertoireCollection,
@@ -451,6 +455,71 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Coleção das músicas')).toBeNull();
     expect(view.queryByLabelText('Todas as coleções')).toBeNull();
     expect(view.queryByLabelText('Sem coleção')).toBeNull();
+  });
+
+  it('mantém as músicas disponíveis quando a consulta secundária de coleções falha', async () => {
+    const repositories = createRepositories();
+    jest
+      .spyOn(repositories.repertoireCollections, 'listByBandId')
+      .mockRejectedValue(new Error('Falha ao carregar coleções'));
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Luzes da Cidade')).toBeTruthy();
+    expect(view.getByTestId('repertoire-list')).toBeTruthy();
+    expect(view.queryByTestId('feedback-error')).toBeNull();
+  });
+
+  it('aguarda os vínculos antes de aplicar um filtro de coleção restaurado', async () => {
+    const repositories = createRepositories();
+    let resolveMemberships: (
+      memberships: readonly RepertoireCollectionSong[],
+    ) => void = () => undefined;
+    const pendingMemberships = new Promise<readonly RepertoireCollectionSong[]>(
+      (resolve) => {
+        resolveMemberships = resolve;
+      },
+    );
+    jest
+      .spyOn(repositories.repertoireCollections, 'listSongsByBandId')
+      .mockReturnValue(pendingMemberships);
+
+    function RestoreCollectionFilter() {
+      const navigationMemory = useNavigationMemory();
+      navigationMemory.rememberViewState(BAND_ID, 'repertoire', {
+        collection: FESTA_COLLECTION.id,
+        filter: 'all',
+        search: '',
+        sort: 'title',
+      });
+      return null;
+    }
+
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <NavigationMemoryProvider>
+          <RestoreCollectionFilter />
+          <RepertoireScreen bandId={BAND_ID} />
+        </NavigationMemoryProvider>
+      </AppProviders>,
+    );
+
+    await waitFor(() => {
+      expect(
+        repositories.repertoireCollections.listSongsByBandId,
+      ).toHaveBeenCalled();
+      expect(view.queryByTestId('feedback-loading')).toBeNull();
+    });
+    expect(view.queryByText('Nenhuma música encontrada')).toBeNull();
+
+    await act(async () => resolveMemberships(FESTA_MEMBERSHIPS));
+
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.getByText('Luzes da Cidade')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
   });
 
   it('abre com a coleção indicada pela rota e preserva o filtro ao retornar', async () => {

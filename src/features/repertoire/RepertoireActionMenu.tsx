@@ -16,7 +16,7 @@ import {
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
-import type { Song } from '@/domain';
+import type { SongSummary } from '@/domain';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { blurWebFocus } from '@/utils/focus';
 
@@ -36,7 +36,9 @@ interface MenuContent {
 
 /** One menu per screen; iOS actions wait for the native menu to dismiss. */
 export function useRepertoireActionMenu() {
-  const [target, setTarget] = useState<'collections' | Song | null>(null);
+  const [target, setTarget] = useState<'collections' | SongSummary | null>(
+    null,
+  );
   const [visible, setVisible] = useState(false);
   const pendingAction = useRef<(() => void) | null>(null);
   const dismissing = useRef(false);
@@ -53,7 +55,7 @@ export function useRepertoireActionMenu() {
 
   return {
     target,
-    open: (nextTarget: 'collections' | Song) => {
+    open: (nextTarget: 'collections' | SongSummary) => {
       if (dismissing.current) return;
       pendingAction.current = null;
       setTarget(nextTarget);

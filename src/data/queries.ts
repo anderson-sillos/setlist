@@ -17,6 +17,7 @@ import type {
   SetSongRepertoireCollectionsInput,
   ShowSummary,
   Song,
+  SongSummary,
 } from '@/domain';
 import { queryKeys } from '@/data/queryKeys';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
@@ -154,6 +155,16 @@ export function useSongs(bandId: EntityId, includeArchived = false) {
   });
 }
 
+export function useSongSummaries(bandId: EntityId, includeArchived = false) {
+  const { repositories } = useAppData();
+
+  return useKeyedQuery<readonly SongSummary[]>({
+    queryKey: queryKeys.songs.summariesByBand(bandId, { includeArchived }),
+    queryFn: () =>
+      repositories.songs.listSummariesByBandId(bandId, { includeArchived }),
+  });
+}
+
 export function useSong(bandId: EntityId, songId: EntityId, enabled = true) {
   const { repositories } = useAppData();
 
@@ -184,7 +195,7 @@ export function useShowSummaries(bandId: EntityId) {
 
 export interface RepertoireCollectionSummary {
   readonly collection: RepertoireCollection;
-  readonly songs: readonly Song[];
+  readonly songs: readonly SongSummary[];
   readonly songCount: number;
   readonly activeSongCount: number;
   readonly archivedSongCount: number;
@@ -197,7 +208,7 @@ export const repertoireCollectionQueryKeys = queryKeys.repertoireCollections;
 function deriveRepertoireCollectionSummaries(
   collections: readonly RepertoireCollection[],
   memberships: readonly RepertoireCollectionSong[],
-  songs: readonly Song[],
+  songs: readonly SongSummary[],
 ): readonly RepertoireCollectionSummary[] {
   const songsById = new Map(songs.map((song) => [song.id, song]));
 
@@ -240,7 +251,7 @@ export function useRepertoireCollections(bandId: EntityId) {
     queryKey: repertoireCollectionQueryKeys.membershipsByBand(bandId),
     queryFn: () => repositories.repertoireCollections.listSongsByBandId(bandId),
   });
-  const songsQuery = useSongs(bandId, true);
+  const songsQuery = useSongSummaries(bandId, true);
   const data =
     collectionsQuery.data && membershipsQuery.data && songsQuery.data
       ? deriveRepertoireCollectionSummaries(
@@ -309,7 +320,7 @@ export function useRepertoireCollections(bandId: EntityId) {
     refreshKeys: [
       repertoireCollectionQueryKeys.recordsByBand(bandId),
       repertoireCollectionQueryKeys.membershipsByBand(bandId),
-      queryKeys.songs.documentsByBand(bandId, { includeArchived: true }),
+      queryKeys.songs.summariesByBand(bandId, { includeArchived: true }),
     ],
     refetch,
   };
