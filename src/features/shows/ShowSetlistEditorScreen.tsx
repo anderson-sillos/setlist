@@ -12,9 +12,10 @@ import { UnsavedChangesPrompt } from '@/components/feedback/UnsavedChangesPrompt
 import {
   useRepertoireCollections,
   useShow,
-  useSongs,
-  useUserBands,
+  useSongSummaries,
+  useBandContext,
 } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import {
   createShowBlock,
   deleteShowBlock,
@@ -47,10 +48,10 @@ export function ShowSetlistEditorScreen({
   const router = useRouter();
   const queryClient = useQueryClient();
   const showQuery = useShow(bandId, showId);
-  const songsQuery = useSongs(bandId, true);
+  const songsQuery = useSongSummaries(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
-  const userBandsQuery = useUserBands();
-  useScreenDataRefresh([userBandsQuery, songsQuery, collectionsQuery]);
+  const bandContextQuery = useBandContext(bandId);
+  useScreenDataRefresh([showQuery, bandContextQuery, collectionsQuery]);
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -58,9 +59,7 @@ export function ShowSetlistEditorScreen({
   const [dirty, setDirty] = useState(false);
   const unsavedChanges = useUnsavedChangesGuard({ dirty, saving: submitting });
   const show = showQuery.data;
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const validateCollectionPreview = async ({
     collectionId,
@@ -76,22 +75,18 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const [freshShow, freshSongs, freshCollections, freshUserBands] =
-      await Promise.all([
-        showQuery.refetch(),
-        songsQuery.refetch(),
-        collectionsQuery.refetch(),
-        userBandsQuery.refetch(),
-      ]);
+    const [freshShow, freshCollections, freshBandContext] = await Promise.all([
+      showQuery.refetch(),
+      collectionsQuery.refetch(),
+      bandContextQuery.refetch(),
+    ]);
     if (
       freshShow.isError ||
-      freshSongs.isError ||
       freshCollections.isError ||
-      freshUserBands.isError ||
+      freshBandContext.isError ||
       !freshShow.data ||
-      !freshSongs.data ||
       !freshCollections.data ||
-      !freshUserBands.data
+      !freshBandContext.data
     ) {
       return {
         message:
@@ -100,9 +95,7 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const freshMembership = freshUserBands.data.find(
-      ({ band }) => band.id === bandId,
-    )?.membership;
+    const freshMembership = freshBandContext.data;
     if (
       (freshMembership?.role !== 'owner' &&
         freshMembership?.role !== 'editor') ||
@@ -126,9 +119,8 @@ export function ShowSetlistEditorScreen({
       };
     }
 
-    const visibleSongIds = new Set(freshSongs.data.map(({ id }) => id));
     const freshEligibleSongs = freshCollection.songs
-      .filter((song) => song.archivedAt === null && visibleSongIds.has(song.id))
+      .filter((song) => song.archivedAt === null)
       .map(({ estimatedDurationMs, id, originalArtist, title }) => ({
         estimatedDurationMs,
         id,
@@ -214,13 +206,10 @@ export function ShowSetlistEditorScreen({
           replaceShowBlockItems({ blockId: id, items }),
         ),
       );
-      await Promise.all([
-        showQuery.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: ['bands', bandId, 'shows'],
-          refetchType: 'all',
-        }),
-      ]);
+      await invalidateBandReadData(queryClient, {
+        type: 'show-setlist',
+        bandId,
+      });
       unsavedChanges.allowNextRemoval();
       router.back();
     } catch (saveError) {
@@ -239,7 +228,7 @@ export function ShowSetlistEditorScreen({
     showQuery.isPending ||
     songsQuery.isPending ||
     collectionsQuery.isPending ||
-    userBandsQuery.isPending;
+    bandContextQuery.isPending;
   const unavailable =
     !loading &&
     !showQuery.isError &&
@@ -270,13 +259,12 @@ export function ShowSetlistEditorScreen({
       {showQuery.isError ||
       songsQuery.isError ||
       collectionsQuery.isError ||
-      userBandsQuery.isError ? (
+      bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void showQuery.refetch();
-            void songsQuery.refetch();
             void collectionsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}

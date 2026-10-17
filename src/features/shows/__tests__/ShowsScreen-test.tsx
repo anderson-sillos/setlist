@@ -1,8 +1,8 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import type { BandRole } from '@/domain';
+import type { BandRole, ShowSummary } from '@/domain';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
-import { createShow, createSong } from '@/testing/factories';
+import { createShow, createShowSummary, createSong } from '@/testing/factories';
 import { createBandScenario } from '@/testing/scenarios';
 import { TestAppProviders as AppProviders } from '@/testing/TestAppProviders';
 
@@ -295,5 +295,204 @@ describe('<ShowsScreen />', () => {
     await view.findByText('Festival da Praça');
     expect(view.queryByLabelText('Criar novo show')).toBeNull();
     view.unmount();
+  });
+
+  it('usa duração do resumo do servidor sem buscar músicas nem documentos de shows', async () => {
+    const scenario = createBandScenario({
+      bandId: BAND_ID,
+      userId: OWNER_USER_ID,
+      role: 'owner',
+      songs: SONGS,
+      shows: SHOWS,
+    });
+    const listSummaries = jest
+      .spyOn(scenario.repositories.shows, 'listSummariesByBandId')
+      .mockResolvedValue([
+        createShowSummary({
+          bandId: BAND_ID,
+          estimatedDurationMs: 60_000,
+          id: 'short-show',
+          name: 'Show Curto',
+          startsAt: '2026-09-19T16:00:00-03:00',
+          status: 'draft',
+          venue: 'Estúdio',
+        }),
+        createShowSummary({
+          bandId: BAND_ID,
+          estimatedDurationMs: 180_000,
+          id: 'long-show',
+          name: 'Show Longo',
+          startsAt: '2026-09-19T18:00:00-03:00',
+          status: 'ready',
+          venue: 'Teatro',
+        }),
+      ]);
+    const listFullShows = jest.spyOn(
+      scenario.repositories.shows,
+      'listByBandId',
+    );
+    const listSongs = jest.spyOn(scenario.repositories.songs, 'listByBandId');
+    const view = await render(
+      <AppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowsScreen
+          bandId={BAND_ID}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Show Curto')).toBeTruthy();
+    expect(view.getByLabelText('Duração 3min')).toBeTruthy();
+    expect(listSummaries).toHaveBeenCalledTimes(1);
+    expect(listSummaries).toHaveBeenCalledWith(BAND_ID);
+    expect(listFullShows).not.toHaveBeenCalled();
+    expect(listSongs).not.toHaveBeenCalled();
+
+    await fireEvent.press(view.getByLabelText('Alterar ordenação dos shows'));
+    await fireEvent.press(view.getByLabelText('Maior duração'));
+    const orderedRows = view
+      .getAllByLabelText(/^Abrir show /)
+      .map((row) => row.props.accessibilityLabel);
+    expect(orderedRows[0]).toContain('Show Longo');
+    expect(orderedRows[1]).toContain('Show Curto');
+  });
+
+  it('exibe os cards enquanto o contexto de permissões ainda está carregando', async () => {
+    const scenario = createBandScenario({
+      bandId: BAND_ID,
+      userId: OWNER_USER_ID,
+      role: 'owner',
+      songs: SONGS,
+      shows: SHOWS,
+    });
+    let resolveContext:
+      | ((
+          context: Awaited<
+            ReturnType<typeof scenario.repositories.bands.getContext>
+          >,
+        ) => void)
+      | undefined;
+    const getContext = jest
+      .spyOn(scenario.repositories.bands, 'getContext')
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveContext = resolve;
+          }),
+      );
+    const view = await render(
+      <AppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowsScreen
+          bandId={BAND_ID}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Ensaio Aberto')).toBeTruthy();
+    expect(getContext).toHaveBeenCalledTimes(1);
+    expect(view.queryByLabelText('Criar novo show')).toBeNull();
+
+    await act(async () => {
+      resolveContext?.({
+        bandId: BAND_ID,
+        bandName: 'Banda de teste',
+        hasActiveSongs: true,
+        role: 'owner',
+      });
+    });
+    expect(await view.findByLabelText('Criar novo show')).toBeTruthy();
+  });
+
+  it('mantém estrutura, navegação e loading acessíveis enquanto os shows demoram', async () => {
+    const scenario = createBandScenario({
+      bandId: BAND_ID,
+      userId: OWNER_USER_ID,
+      role: 'owner',
+      songs: SONGS,
+      shows: SHOWS,
+    });
+    let resolveShows: ((shows: readonly ShowSummary[]) => void) | undefined;
+    jest
+      .spyOn(scenario.repositories.shows, 'listSummariesByBandId')
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveShows = resolve;
+          }),
+      );
+    const view = await render(
+      <AppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowsScreen
+          bandId={BAND_ID}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+        />
+      </AppProviders>,
+    );
+
+    expect(view.getByTestId('app-header')).toBeTruthy();
+    expect(view.getByLabelText('Abrir menu geral')).toBeTruthy();
+    expect(view.getByTestId('bottom-navigation')).toBeTruthy();
+    expect(view.getByLabelText('Ir para Repertório')).toBeTruthy();
+    expect(view.getByTestId('feedback-loading')).toBeTruthy();
+    expect(view.queryByText('Nenhum show por aqui')).toBeNull();
+    expect(view.queryByText('A agenda ainda está em silêncio.')).toBeNull();
+
+    await act(async () => {
+      resolveShows?.([
+        createShowSummary({
+          bandId: BAND_ID,
+          estimatedDurationMs: 120_000,
+          id: 'show-delayed',
+          name: 'Show carregado',
+          startsAt: '2026-09-19T16:00:00-03:00',
+          status: 'draft',
+          venue: 'Estúdio',
+        }),
+      ]);
+    });
+
+    expect(await view.findByText('Show carregado')).toBeTruthy();
+  });
+
+  it('preserva os cards quando falha apenas a consulta de contexto', async () => {
+    const scenario = createBandScenario({
+      bandId: BAND_ID,
+      userId: OWNER_USER_ID,
+      role: 'owner',
+      songs: SONGS,
+      shows: SHOWS,
+    });
+    jest
+      .spyOn(scenario.repositories.bands, 'getContext')
+      .mockRejectedValue(new Error('context unavailable'));
+    const view = await render(
+      <AppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowsScreen
+          bandId={BAND_ID}
+          now={new Date('2026-09-09T12:00:00-03:00')}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Ensaio Aberto')).toBeTruthy();
+    await waitFor(() =>
+      expect(
+        view.getByText('Não foi possível confirmar o acesso'),
+      ).toBeTruthy(),
+    );
+    expect(view.queryByLabelText('Criar novo show')).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { Link, type Href } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
@@ -32,56 +32,80 @@ export function BottomNavigation({
         const active = activeSection === item.section;
         const stage = item.section === 'stage';
         const content = (
-          <Pressable
-            key={item.section}
-            accessibilityLabel={
-              stage ? 'Palco, em breve' : `Ir para ${item.label}`
-            }
-            accessibilityRole={stage ? 'button' : 'tab'}
-            accessibilityState={stage ? undefined : { selected: active }}
-            onPress={
-              stage
-                ? () => {
-                    blurWebFocus();
-                    onStagePress();
-                  }
-                : undefined
-            }
-            onPressIn={
-              active || stage
-                ? undefined
-                : () => setSectionTransition(activeSection, item.section)
-            }
-            style={StyleSheet.flatten([
-              styles.item,
-              active && styles.itemActive,
-            ])}
-          >
-            <View
-              style={styles.content}
-              testID="bottom-navigation-item-content"
+          <View style={styles.content} testID="bottom-navigation-item-content">
+            <AppIcon
+              color={active ? colors.action.primary : colors.text.secondary}
+              name={item.icon}
+              size={22}
+              strokeWidth={active ? 2.5 : 2}
+            />
+            <AppText
+              numberOfLines={1}
+              style={styles.label}
+              tone={active ? 'accent' : 'muted'}
+              variant="caption"
             >
-              <AppIcon
-                color={active ? colors.action.primary : colors.text.secondary}
-                name={item.icon}
-                size={22}
-                strokeWidth={active ? 2.5 : 2}
-              />
-              <AppText
-                numberOfLines={1}
-                style={styles.label}
-                tone={active ? 'accent' : 'muted'}
-                variant="caption"
-              >
-                {item.label}
-              </AppText>
-            </View>
-          </Pressable>
+              {item.label}
+            </AppText>
+          </View>
         );
+        const itemStyle = StyleSheet.flatten([
+          styles.item,
+          active && styles.itemActive,
+        ]);
 
-        return stage ? (
-          content
-        ) : (
+        if (stage) {
+          return (
+            <Pressable
+              key={item.section}
+              accessibilityLabel="Palco, em breve"
+              accessibilityRole="button"
+              onPress={() => {
+                blurWebFocus();
+                onStagePress();
+              }}
+              style={itemStyle}
+            >
+              {content}
+            </Pressable>
+          );
+        }
+
+        if (Platform.OS === 'web') {
+          const webItem = (
+            <View
+              key={item.section}
+              accessibilityLabel={`Ir para ${item.label}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              focusable
+              style={itemStyle}
+            >
+              {content}
+            </View>
+          );
+
+          if (active) {
+            return webItem;
+          }
+
+          return (
+            <Link
+              href={getSectionHref(item.section)}
+              key={item.section}
+              onPress={() => {
+                blurWebFocus();
+                setSectionTransition(activeSection, item.section);
+              }}
+              replace
+              asChild
+            >
+              {webItem}
+            </Link>
+          );
+        }
+
+        return (
           <Link
             href={getSectionHref(item.section)}
             key={item.section}
@@ -90,7 +114,19 @@ export function BottomNavigation({
             asChild
             disabled={active}
           >
-            {content}
+            <Pressable
+              accessibilityLabel={`Ir para ${item.label}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              onPressIn={
+                active
+                  ? undefined
+                  : () => setSectionTransition(activeSection, item.section)
+              }
+              style={itemStyle}
+            >
+              {content}
+            </Pressable>
           </Link>
         );
       })}

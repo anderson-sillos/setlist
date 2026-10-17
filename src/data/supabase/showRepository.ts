@@ -5,6 +5,7 @@ import type {
   ShowSetlistBlock,
   ShowSetlistItem,
   ShowStatus,
+  ShowSummary,
 } from '@/domain';
 import { getSupabaseClient } from '@/data/supabase/client';
 
@@ -164,7 +165,50 @@ function parseShow(value: unknown): Show {
 const showSelect =
   'id, band_id, name, starts_at, venue, notes, status, created_at, updated_at, show_blocks(id, name, position, show_items(id, position, item_type, song_id, description, estimated_duration_ms, notes))';
 
+const showSummarySelect =
+  'id, band_id, name, starts_at, venue, status, estimated_duration_ms';
+
+function parseShowSummary(value: unknown): ShowSummary {
+  if (!isRecord(value)) {
+    throw new Error('Resposta inválida do Supabase: resumo do show.');
+  }
+
+  const status = value.status;
+  if (
+    typeof status !== 'string' ||
+    !showStatuses.includes(status as ShowStatus)
+  ) {
+    throw new Error('Resposta inválida do Supabase: status.');
+  }
+
+  return {
+    bandId: readString(value, 'band_id'),
+    estimatedDurationMs: readNullableNumber(value, 'estimated_duration_ms'),
+    id: readString(value, 'id'),
+    name: readString(value, 'name'),
+    startsAt: readString(value, 'starts_at'),
+    status: status as ShowStatus,
+    venue: readString(value, 'venue'),
+  };
+}
+
 export class SupabaseShowRepository implements ShowRepository {
+  async listSummariesByBandId(
+    bandId: EntityId,
+  ): Promise<readonly ShowSummary[]> {
+    const { data, error } = await getSupabaseClient()
+      .from('show_summaries')
+      .select(showSummarySelect)
+      .eq('band_id', bandId)
+      .order('starts_at', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map(parseShowSummary);
+  }
+
   async listByBandId(bandId: EntityId): Promise<readonly Show[]> {
     const { data, error } = await getSupabaseClient()
       .from('shows')

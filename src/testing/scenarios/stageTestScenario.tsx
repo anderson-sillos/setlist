@@ -41,6 +41,11 @@ export function createStageTestScenario() {
     id: 'song-instrumental-stage-test',
     title: 'Instrumental de Abertura',
   });
+  const unusedSong = createSong({
+    bandId: stageTestIds.band,
+    id: 'song-unused-stage-test',
+    title: 'Faixa fora da setlist',
+  });
   const draftShow = createShow({
     bandId: stageTestIds.band,
     blocks: [
@@ -103,7 +108,7 @@ export function createStageTestScenario() {
     bandId: stageTestIds.band,
     role: 'owner',
     shows: [draftShow, readyShow, cancelledShow],
-    songs: [staticSong, instrumentalSong],
+    songs: [staticSong, instrumentalSong, unusedSong],
     userId: stageTestIds.user,
   });
 }

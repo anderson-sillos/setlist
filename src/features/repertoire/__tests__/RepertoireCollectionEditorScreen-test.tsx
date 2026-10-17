@@ -210,13 +210,16 @@ describe('<RepertoireCollectionEditorScreen />', () => {
 
   it('protege a rota editada e continua ou descarta sem bloquear a navegação', async () => {
     const originalPlatform = Platform.OS;
+    const repositories = createRepositories();
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
     try {
       const view = await render(
-        <AppProviders
-          currentUserId={OWNER_USER_ID}
-          repositories={createRepositories()}
-        >
+        <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
           <RepertoireCollectionEditorScreen
             bandId={BAND_ID}
             collectionId="collection-festa"
@@ -227,6 +230,10 @@ describe('<RepertoireCollectionEditorScreen />', () => {
         await view.findByLabelText('Nome da coleção'),
         'Festa alterada',
       );
+      expect(listSongSummaries).toHaveBeenCalledWith(BAND_ID, {
+        includeArchived: true,
+      });
+      expect(listSongDocuments).not.toHaveBeenCalled();
       const event = {
         preventDefault: jest.fn(),
         data: { action: { type: 'GO_BACK' } },

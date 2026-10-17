@@ -29,6 +29,10 @@ import {
 } from '@/components/ui/ScreenDataRefresh';
 import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
 import {
+  getListControlsExpandedHeight,
+  listControlDimensions,
+} from '@/components/ui/list-controls/dimensions';
+import {
   ChoiceChips,
   FilterMenu,
   OptionMenu,
@@ -42,10 +46,10 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import {
   useAppendRepertoireCollectionSongs,
   useRepertoireCollections,
-  useSongs,
-  useUserBands,
+  useSongSummaries,
+  useBandContext,
 } from '@/data/queries';
-import type { EntityId, Song } from '@/domain';
+import type { EntityId, SongSummary } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
@@ -94,12 +98,12 @@ import { useSongCollectionMembership } from './useSongCollectionMembership';
 
 interface SongRowProps {
   readonly bandId: EntityId;
-  readonly onOpenActions: (song: Song) => void;
+  readonly onOpenActions: (song: SongSummary) => void;
   readonly onSelectSong?: (songId: EntityId) => void;
   readonly onToggleSelection: (songId: EntityId) => void;
   readonly selected: boolean;
   readonly selectionMode: boolean;
-  readonly song: Song;
+  readonly song: SongSummary;
 }
 
 interface RepertoireSelectionState {
@@ -414,15 +418,15 @@ function RepertoireScreenContent({
     viewportWidth ?? window.width,
   );
   const router = useRouter();
-  const songsQuery = useSongs(bandId, true);
+  const songsQuery = useSongSummaries(bandId, true);
   const collectionsQuery = useRepertoireCollections(bandId);
-  const userBandsQuery = useUserBands();
+  const bandContextQuery = useBandContext(bandId);
   const appendSongs = useAppendRepertoireCollectionSongs(bandId);
   const appendLock = useRef(false);
   const { onRefresh, refreshing } = useScreenDataRefresh([
-    collectionsQuery,
     songsQuery,
-    userBandsQuery,
+    collectionsQuery,
+    bandContextQuery,
   ]);
   const { initialScrollOffset, rememberScrollOffset, state, update } =
     useSectionViewState(bandId, 'repertoire', {
@@ -433,7 +437,7 @@ function RepertoireScreenContent({
     });
   const appliedRouteCollectionId = useRef<EntityId | null>(null);
   const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
-    spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
+    getListControlsExpandedHeight,
   );
   const [selectionState, setSelectionState] =
     useState<RepertoireSelectionState>(() => ({
@@ -521,7 +525,7 @@ function RepertoireScreenContent({
     state.collection !== 'all' &&
     state.collection !== 'none' &&
     state.collection !== 'removed' &&
-    !collectionsQuery.data.some(
+    !collectionsQuery.data?.some(
       ({ collection }) => collection.id === state.collection,
     );
   useEffect(() => {
@@ -534,7 +538,7 @@ function RepertoireScreenContent({
       !initialCollectionId ||
       !collectionsQuery.isSuccess ||
       appliedRouteCollectionId.current === initialCollectionId ||
-      !collectionsQuery.data.some(
+      !collectionsQuery.data?.some(
         ({ collection }) => collection.id === initialCollectionId,
       )
     ) {
@@ -558,13 +562,15 @@ function RepertoireScreenContent({
       collectionSongIds,
     );
   }, [collectionSongIds, songsQuery.data, state]);
+  const collectionFilterPending =
+    collectionFilter !== 'all' &&
+    !collectionsQuery.isSuccess &&
+    !collectionsQuery.isError;
   const hasQuery =
     state.search.length > 0 ||
     state.filter !== 'all' ||
     collectionFilter !== 'all';
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canCreate =
     membership?.role === 'owner' || membership?.role === 'editor';
   const activeSelectionMode = canCreate && selectionMode;
@@ -911,16 +917,22 @@ function RepertoireScreenContent({
           onDismiss={collectionMembership.dismissSaved}
         />
       ) : null}
-      {songsQuery.isPending ? <LoadingFeedback /> : null}
-      {songsQuery.isError || userBandsQuery.isError ? (
+      {songsQuery.isPending || collectionFilterPending ? (
+        <LoadingFeedback />
+      ) : null}
+      {songsQuery.isError ? (
+        <ErrorFeedback onRetry={() => void songsQuery.refetch()} />
+      ) : null}
+      {!songsQuery.isError && bandContextQuery.isError ? (
         <ErrorFeedback
-          onRetry={() => {
-            void songsQuery.refetch();
-            void userBandsQuery.refetch();
-          }}
+          onRetry={() => void bandContextQuery.refetch()}
+          title="Não foi possível confirmar o acesso"
         />
       ) : null}
-      <ContentFade loading={songsQuery.isPending} style={styles.listArea}>
+      <ContentFade
+        loading={songsQuery.isPending || collectionFilterPending}
+        style={styles.listArea}
+      >
         <FlatList
           contentContainerStyle={[
             styles.listContent,
@@ -932,8 +944,9 @@ function RepertoireScreenContent({
           ListEmptyComponent={
             !songsQuery.isPending &&
             !songsQuery.isError &&
-            !userBandsQuery.isPending &&
-            !userBandsQuery.isError ? (
+            !collectionFilterPending &&
+            !bandContextQuery.isPending &&
+            !bandContextQuery.isError ? (
               <ListEmptyState
                 actionIcon={
                   !hasQuery && isFirstSongEmptyState && canCreate
@@ -1289,7 +1302,7 @@ const styles = StyleSheet.create({
   },
   selectionAddButton: {
     alignSelf: 'flex-start',
-    minHeight: 40,
+    minHeight: listControlDimensions.buttonMinHeight,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },

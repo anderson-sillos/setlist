@@ -5,7 +5,7 @@ import {
   updateShow,
   updateShowStatus,
 } from '@/data/supabase/showUpdateMutations';
-import type { BandRole } from '@/domain';
+import type { AppRepositories, BandRole } from '@/domain';
 import { ShowDetailScreen } from '@/features/shows/ShowDetailScreen';
 import {
   createLyricsForStatus,
@@ -152,11 +152,13 @@ const MEMBER_SHOW = createShow({
 function renderShowDetail({
   showId,
   role = 'owner',
+  repositories: providedRepositories,
   viewportWidth,
   shows = [FESTIVAL_SHOW, CLUB_SHOW, MEMBER_SHOW],
 }: {
   showId: string;
   role?: BandRole;
+  repositories?: AppRepositories;
   viewportWidth?: number;
   shows?: readonly ReturnType<typeof createShow>[];
 }) {
@@ -168,11 +170,12 @@ function renderShowDetail({
     songs: SONGS,
     shows,
   });
+  const repositories = providedRepositories ?? scenario.repositories;
 
   return render(
     <AppProviders
       currentUserId={scenario.currentUserId}
-      repositories={scenario.repositories}
+      repositories={repositories}
     >
       <ShowDetailScreen
         bandId={scenario.band.id}
@@ -204,6 +207,40 @@ jest.mock('expo-router', () => ({
 }));
 
 describe('<ShowDetailScreen />', () => {
+  it('usa resumos de músicas e shows para completar os dados do detalhe', async () => {
+    const repositories = createBandScenario({
+      bandId: BAND_ID,
+      userId: OWNER_USER_ID,
+      role: 'owner',
+      songs: SONGS,
+      shows: [FESTIVAL_SHOW, CLUB_SHOW, MEMBER_SHOW],
+    }).repositories;
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
+    const listFullShowLists = jest.spyOn(repositories.shows, 'listByBandId');
+    const listShowSummaries = jest.spyOn(
+      repositories.shows,
+      'listSummariesByBandId',
+    );
+
+    const view = await renderShowDetail({
+      showId: FESTIVAL_SHOW_ID,
+      repositories,
+    });
+
+    expect(await view.findByText('Festival da Praça')).toBeTruthy();
+    expect(view.getByText('19min')).toBeTruthy();
+    expect(listSongSummaries).toHaveBeenCalledWith(BAND_ID, {
+      includeArchived: true,
+    });
+    expect(listShowSummaries).toHaveBeenCalledWith(BAND_ID);
+    expect(listSongDocuments).not.toHaveBeenCalled();
+    expect(listFullShowLists).not.toHaveBeenCalled();
+  });
+
   it('mostra dados, blocos, ordem e observações do show', async () => {
     const view = await renderShowDetail({
       showId: FESTIVAL_SHOW_ID,

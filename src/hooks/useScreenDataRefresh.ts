@@ -1,24 +1,73 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import {
+  registerActiveScreenQueries,
+  refetchScreenQueries,
+  uniqueRefreshQueries,
+  type RefreshableScreenQuery,
+} from '@/data/screenQueryRegistry';
 
 export const SCREEN_DATA_FRESHNESS_MS = 60_000;
 
-export interface RefreshableQuery {
-  readonly dataUpdatedAt: number;
-  readonly isFetching: boolean;
-  readonly refetch: () => Promise<unknown>;
-}
+export type RefreshableQuery = RefreshableScreenQuery;
 
 export function useScreenDataRefresh(
   queries: readonly RefreshableQuery[],
   enabled = true,
 ) {
+  const queryClient = useQueryClient();
   const queriesRef = useRef(queries);
   const refreshInProgressRef = useRef(false);
+  const pendingRefreshesRef = useRef(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const isFetching = queries.some((query) => query.isFetching);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     queriesRef.current = queries;
   }, [queries]);
+
+  useEffect(() => {
+    // A refresh can share requests that were already running.
+    if (!isFetching && pendingRefreshesRef.current === 0) {
+      setRefreshing(false);
+    }
+  }, [isFetching]);
+
+  const refreshQueries = useCallback(
+    async (
+      selectedQueries: readonly RefreshableQuery[],
+      showIndicator: boolean,
+    ) => {
+      pendingRefreshesRef.current += 1;
+      if (showIndicator) {
+        setRefreshing(true);
+      }
+
+      try {
+        await refetchScreenQueries(
+          queryClient,
+          selectedQueries.filter(({ isFetching }) => !isFetching),
+        );
+      } finally {
+        pendingRefreshesRef.current -= 1;
+        if (
+          pendingRefreshesRef.current === 0 &&
+          !queriesRef.current.some((query) => query.isFetching)
+        ) {
+          setRefreshing(false);
+        }
+      }
+    },
+    [queryClient],
+  );
 
   const onRefresh = useCallback(async () => {
     if (!enabled || refreshInProgressRef.current) {
@@ -27,14 +76,11 @@ export function useScreenDataRefresh(
 
     refreshInProgressRef.current = true;
     try {
-      const availableQueries = queriesRef.current.filter(
-        ({ isFetching }) => !isFetching,
-      );
-      await Promise.all(availableQueries.map(({ refetch }) => refetch()));
+      await refreshQueries(uniqueRefreshQueries(queriesRef.current), true);
     } finally {
       refreshInProgressRef.current = false;
     }
-  }, [enabled]);
+  }, [enabled, refreshQueries]);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,18 +88,29 @@ export function useScreenDataRefresh(
         return;
       }
 
+      const unregister = registerActiveScreenQueries(
+        queryClient,
+        () => queriesRef.current,
+      );
       const now = Date.now();
-      const staleQueries = queriesRef.current.filter(
-        ({ dataUpdatedAt, isFetching }) =>
-          !isFetching && now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS,
+      const staleQueries = uniqueRefreshQueries(queriesRef.current).filter(
+        ({ dataUpdatedAt, isStale }) =>
+          Boolean(isStale) || now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS,
       );
 
-      void Promise.all(staleQueries.map(({ refetch }) => refetch()));
-    }, [enabled]),
+      if (staleQueries.length > 0) {
+        // Initial loads have their own feedback; only revalidation uses the circle.
+        void refreshQueries(
+          staleQueries,
+          staleQueries.some(({ dataUpdatedAt }) => dataUpdatedAt > 0),
+        );
+      }
+      return unregister;
+    }, [enabled, queryClient, refreshQueries]),
   );
 
   return {
     onRefresh,
-    refreshing: queries.some(({ isFetching }) => isFetching),
+    refreshing,
   };
 }

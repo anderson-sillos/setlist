@@ -4,7 +4,9 @@ import type {
   BandMember,
   BandRepository,
   BandRole,
+  BandContext,
   EntityId,
+  UserBandSummary,
   UserBand,
 } from '@/domain';
 
@@ -150,6 +152,67 @@ function toBandMember(
 }
 
 export class SupabaseBandRepository implements BandRepository {
+  async getContext(
+    _userId: EntityId,
+    bandId: EntityId,
+  ): Promise<BandContext | null> {
+    const { data, error } = await getSupabaseClient()
+      .from('band_context')
+      .select('band_id, band_name, role, has_active_songs')
+      .eq('band_id', bandId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data === null) {
+      return null;
+    }
+
+    if (!isRecord(data)) {
+      throw new Error('Resposta inválida do Supabase: contexto da banda.');
+    }
+
+    const hasActiveSongs = data.has_active_songs;
+    if (typeof hasActiveSongs !== 'boolean') {
+      throw new Error('Resposta inválida do Supabase: has_active_songs.');
+    }
+
+    return {
+      bandId: readString(data, 'band_id'),
+      bandName: readString(data, 'band_name'),
+      hasActiveSongs,
+      role: readRole(data),
+    };
+  }
+
+  async listUserSummaries(
+    _userId: EntityId,
+  ): Promise<readonly UserBandSummary[]> {
+    const { data, error } = await getSupabaseClient()
+      .from('user_band_summaries')
+      .select('band_id, band_name, role, next_show_starts_at')
+      .order('band_name', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((value) => {
+      if (!isRecord(value)) {
+        throw new Error('Resposta inválida do Supabase: resumo da banda.');
+      }
+
+      return {
+        bandId: readString(value, 'band_id'),
+        bandName: readString(value, 'band_name'),
+        nextShowStartsAt: readNullableString(value, 'next_show_starts_at'),
+        role: readRole(value),
+      };
+    });
+  }
+
   async listForUser(userId: EntityId): Promise<readonly UserBand[]> {
     const { data: membershipData, error: membershipError } =
       await getSupabaseClient()

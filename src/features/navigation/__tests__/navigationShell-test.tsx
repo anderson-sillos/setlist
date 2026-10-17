@@ -16,7 +16,9 @@ import {
 import { AppNavigationShell } from '@/features/navigation/AppNavigationShell';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
 import { ShowsScreen } from '@/features/shows/ShowsScreen';
+import { TestAppProviders } from '@/testing/TestAppProviders';
 import {
+  createNavigationScenario,
   NavigationTestProviders as AppProviders,
   navigationTestIds,
 } from '@/testing/scenarios/navigationTestScenario';
@@ -357,6 +359,45 @@ describe('shell de navegação', () => {
       uri: 'https://img.example.test/lucas.png',
     });
     expect(view.queryByText('Conta de demonstração')).toBeNull();
+  });
+
+  it('usa o contexto compartilhado para exibir o papel sem buscar integrantes', async () => {
+    const scenario = createNavigationScenario();
+    const listMembers = jest.spyOn(scenario.repositories.bands, 'listMembers');
+    mockGetUserProfile.mockResolvedValue({
+      avatarUrl: null,
+      displayName: 'Anderson Martins',
+      email: 'anderson@example.com',
+      userId: navigationTestIds.user,
+    });
+    const authSession: AuthSessionContextValue = {
+      session: {
+        user: {
+          id: navigationTestIds.user,
+          email: 'anderson@example.com',
+        },
+      } as never,
+      setSession: jest.fn(),
+      status: 'authenticated',
+    };
+
+    const view = await render(
+      <AuthSessionContext.Provider value={authSession}>
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowsScreen
+            bandId={navigationTestIds.band}
+            viewportHeight={900}
+            viewportWidth={1440}
+          />
+        </TestAppProviders>
+      </AuthSessionContext.Provider>,
+    );
+
+    expect(await view.findByText('Proprietário')).toBeTruthy();
+    expect(listMembers).not.toHaveBeenCalled();
   });
 
   it('mantém o aviso de conexão compacto abaixo do cabeçalho', async () => {

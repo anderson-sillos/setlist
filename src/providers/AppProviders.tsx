@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useContext,
+  useRef,
   useState,
 } from 'react';
 
@@ -16,6 +17,7 @@ import {
 } from '@/data/supabase';
 import { createSupabaseShowRepository } from '@/data/supabase/showRepository';
 import { createSupabaseRepertoireCollectionRepository } from '@/data/supabase/repertoireCollectionRepository';
+import { refreshActiveScreenQueries } from '@/data/screenQueryRegistry';
 import type { AppRepositories, EntityId } from '@/domain';
 import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -53,6 +55,7 @@ function SessionQueryProvider({
         },
       }),
   );
+  const reconcilingContentRef = useRef(false);
 
   useEffect(() => {
     if (sessionUserId) {
@@ -63,14 +66,32 @@ function SessionQueryProvider({
   }, [queryClient, sessionUserId]);
 
   useEffect(() => {
-    const clearContent = () => {
-      // Descarta letras e setlists antigos antes de buscar a versão autorizada.
-      void queryClient.resetQueries({
-        predicate: ({ queryKey }) =>
-          queryKey.includes('songs') ||
-          queryKey.includes('shows') ||
-          queryKey.includes('repertoire-collections') ||
-          queryKey.includes('summaries'),
+    const reconcileContent = () => {
+      if (reconcilingContentRef.current) {
+        return;
+      }
+
+      reconcilingContentRef.current = true;
+      void (async () => {
+        try {
+          const isProtectedQuery = ({
+            queryKey,
+          }: {
+            queryKey: readonly unknown[];
+          }) => queryKey[0] === 'bands' || queryKey[0] === 'songs';
+
+          // Apaga dados protegidos de todas as rotas sem buscar as rotas inativas.
+          await queryClient.cancelQueries({ predicate: isProtectedQuery });
+          queryClient
+            .getQueryCache()
+            .findAll({ predicate: isProtectedQuery })
+            .forEach((query) => query.reset());
+          await refreshActiveScreenQueries(queryClient);
+        } finally {
+          reconcilingContentRef.current = false;
+        }
+      })().catch(() => {
+        reconcilingContentRef.current = false;
       });
     };
     let wasOffline = false;
@@ -78,14 +99,14 @@ function SessionQueryProvider({
       const isOnline =
         state.isConnected === true && state.isInternetReachable !== false;
       if (wasOffline && isOnline) {
-        clearContent();
+        reconcileContent();
       }
       wasOffline = !isOnline;
     });
     let lastAppState = AppState.currentState;
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (lastAppState !== 'active' && nextState === 'active') {
-        clearContent();
+        reconcileContent();
       }
       lastAppState = nextState;
     });

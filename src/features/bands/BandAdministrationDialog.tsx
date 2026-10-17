@@ -26,7 +26,7 @@ import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 export type BandAdministrationMode = 'delete' | 'rename';
 
 interface BandAdministrationDialogProps {
-  readonly band: Band | null;
+  readonly band: Pick<Band, 'id' | 'name'> | null;
   readonly discardPrompt?: UnsavedChangesPromptProps;
   readonly errorMessage: string | null;
   readonly isSubmitting: boolean;

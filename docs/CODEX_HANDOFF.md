@@ -1920,3 +1920,333 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      Console. Nunca reutilizar o mapa de outro build. Se a minificação for
      mantida desativada, não haverá mapa para enviar e o aviso é informativo.
      O procedimento foi registrado em `docs/RELEASE_PROCESS.md`.
+141. A change `identificar-cliente-supabase` foi validada e arquivada em
+     `openspec/changes/archive/2026-10-15-identificar-cliente-supabase/`; o
+     requisito foi sincronizado em `openspec/specs/identificacao-cliente/`.
+     O cliente acrescenta metadados de versão/plataforma em `X-Client-Info` e
+     define `User-Agent` próprio somente nos apps nativos, preservando o do
+     navegador. Evidências de logs de desenvolvimento confirmaram iOS 18.3.1,
+     Android 16 e web. Algumas linhas web vieram sem `X-Client-Info`, mas sem
+     timestamp/ID de requisição não foi possível associá-las a uma sessão; se
+     reproduzidas em uma sessão delimitada, investigar.
+     A change `otimizar-leituras-supabase` foi preparada como proposta OpenSpec
+     em `openspec/changes/otimizar-leituras-supabase/`; suas tarefas de
+     implementação permanecem pendentes. A PR consolidada inclui a
+     implementação de identificação e essa proposta, sem declarar a
+     otimização de leituras como concluída. As duas changes foram reunidas na
+     PR #41 (`feat/supabase-client-and-read-optimization`) contra `main`.
+142. A tarefa 5.8 de `otimizar-leituras-supabase` foi concluída: as telas Shows
+     e Repertório mantêm feedback de carregamento até as dependências
+     necessárias, mostram falhas por região e preservam conteúdo/foco durante
+     refresh; `ContentFade` respeita redução de movimento. A validação integrada
+     de 16/10 passou (`npm run validate`: 115 suítes/849 testes; lint SQL sem
+     erros; quatro E2E web existentes). A suíte pgTAP completa passou em um
+     Supabase temporário limpo (26 arquivos/432 testes). No banco de
+     desenvolvimento com a Banda Demo, três testes antigos falham por
+     pressuporem tabelas vazias; os dados foram preservados. O ambiente
+     temporário foi removido. O commit `a641957` foi enviado à PR #41, cuja
+     branch remota foi conferida no mesmo SHA; a PR continua aberta.
+     Permanecem pendentes: 1.1.2 (traces históricos ausentes), 6.2 (validação
+     manual em aparelhos e fluxos autenticados web), 6.3.2 (logs após a
+     otimização para comparar chamadas e payloads) e 6.4.2 (tempos e resultados
+     manuais no relatório). Nesta sessão não havia simulador iOS aberto nem
+     dispositivo Android conectado.
+143. Na continuação de `otimizar-leituras-supabase`, a comparação derivada do
+     código foi registrada no relatório: Shows 2 leituras de tela; Repertório
+     até 4 com uma busca de músicas; Minhas bandas 1 resumo; retorno com cache
+     recente sem nova consulta antes de 60 s, preservando revalidação de dados
+     invalidados. Os hooks e testes confirmaram as contagens, mas ainda faltam
+     Edge Logs pós-otimização e tamanhos de resposta para comprovação observada.
+     A revisão identificou que o estado não obsoleto do React Query, com tempo
+     de obsolescência infinito, impedia o fallback de idade do cache.
+     `useScreenDataRefresh`
+     agora revalida quando o dado foi invalidado ou atingiu 60 s. Os seis testes
+     do hook passaram; a validação integral posterior também passou com 115
+     suítes/849 testes, formatação, lint e typecheck. As tarefas 1.1.1, 6.3.1
+     e 6.4.1 estão concluídas; 1.1.2, 6.2, 6.3.2 e 6.4.2 dependem das medições
+     e validações manuais descritas acima.
+144. Em 16 de outubro de 2026, o responsável confirmou que, após a correção dos
+     links Web, navegar entre telas não voltou a exibir “Conferindo seu acesso…”.
+     Uma captura de Network encaminhada depois contém GET de documento para
+     `/bands/.../shows` vindo de `/bands/.../band`, novo bundle do Expo Router e
+     reconexões HMR, evidência de recarga completa no trecho. O arquivo não tem
+     timestamps nem indica se o Network foi limpo após carregar o bundle atual;
+     confirmar se os eventos ocorreram depois da alteração e identificar o
+     link/handler responsável. A hipótese anterior de correção completa foi
+     precipitada. A validação 6.2 e as medições das tarefas 1.1.2, 6.3.2 e 6.4.2
+     permanecem abertas; a change segue 25/29.
+145. Uma captura posterior delimitou a interação Web: o responsável atualizou
+     Bandas e, em seguida, clicou em Shows. O GET de documento com
+     `Accept: text/html` era `/bands/{id}/band`; o bundle e reconexões HMR também
+     referenciavam essa rota, portanto correspondem ao refresh deliberado. Após
+     as consultas do detalhe da banda, apareceu `GET /rest/v1/show_summaries`,
+     sem novo documento `/bands/{id}/shows` nem bundle/HMR para a navegação.
+     Nesta sequência, o clique em Shows permaneceu SPA e o refresh inicial
+     explica a recarga antes atribuída ao clique (item 144). A observação também
+     é consistente com o aviso “Conferindo seu acesso…” não reaparecer. A captura
+     não tem timestamps individuais; a atribuição de `show_summaries` usa a
+     ordem da interação e o endpoint. Validação parcial registrada em
+     `docs/SUPABASE_READ_PERFORMANCE.md`; tarefa 6.2 permanece aberta para os
+     outros fluxos e cenários, assim como 1.1.2, 6.3.2 e 6.4.2. A change segue
+     25/29.
+146. Em 16 de outubro de 2026, houve inspeção visual parcial no iPad Pro de
+     13 polegadas (M4), iOS 18.3, com app de desenvolvimento via Metro 8081,
+     sessão autenticada e Banda Demo. Shows mostrou durações; o detalhe de um
+     show exibiu 50 minutos, 11 músicas, blocos e anotações; a tela de edição
+     mostrou Cancelar/Salvar e foi fechada sem gravar. Em Repertório, uma
+     música abriu com letra estruturada; o organizador de coleções mostrou
+     lista longa com o rodapé visível e foi cancelado sem salvar. Foi apenas
+     verificação visual: sem tempos cronometrados, refresh conclusivo, mudança
+     de papel, falhas/lentidão ou fluxos completos Android/Web. A tentativa de
+     consulta SQL a Edge Logs abriu o SQL Editor na fonte `Database` e falhou
+     com `relation "logs" does not exist`. A tela Unified Logs mostrou quatro
+     GETs (songs, vínculos, contexto e coleções) em 13:50:21, dois GETs
+     (show_summaries e shows) em 13:51:15, dois GETs de band_context em
+     13:51:49 e um conjunto com CORS OPTIONS em 13:54:26. Como a lista não
+     expôs request IDs, user-agent, X-Client-Info ou content_length, as linhas
+     não podem ser atribuídas sem ambiguidade ao iPad, nem comparar bytes.
+     Evidência parcial registrada em `docs/SUPABASE_READ_PERFORMANCE.md`.
+     Permanecem abertas 1.1.2, 6.2, 6.3.2 e 6.4.2; não houve commit.
+147. O responsável ampliou a janela da query de Edge Logs: 147 eventos entre
+     15:33:03.834 e 16:54:26.525 UTC, 134 GETs e 13 OPTIONS, todos 200. O
+     intervalo agrega várias ações e não serve como contagem por tela. No iOS,
+     quatro pares de `band_context` com IDs diferentes ocorreram a 2–9 ms um
+     do outro (15:50:11, 16:48:44, 16:50:21 e 16:51:49 UTC). A causa no código
+     era o refresh da mesma chave pelo layout e pela tela filha; um refetch
+     concorrente podia reiniciar a requisição. `refetchScreenQueries` agora
+     evita recomeçar uma chave enquanto ela já está em voo e libera a chave ao
+     terminar. O teste focado de `useScreenDataRefresh` passou: 7/7. O tamanho
+     foi registrado em somente 9 eventos (1.997 bytes conhecidos), sem total
+     comparável. A evidência de logs é anterior à correção; falta uma nova
+     sequência curta no iOS após a correção. As tarefas 1.1.2, 6.2, 6.3.2 e
+     6.4.2 continuam abertas; change permanece 25/29. Sem commit.
+148. Nova captura curta após a deduplicação contém 15 eventos entre 19:32:38.536
+     e 19:39:12.348 UTC, Web e iOS, status 200. No iOS, Shows teve um
+     `band_context` e um `show_summaries` a 8 ms de distância, sem chamada
+     duplicada de contexto; isso é validação parcial pós-correção. Houve outro
+     `show_summaries` 117,597 s depois, sem `band_context`; sem horários das
+     ações não é possível explicar esse refetch isolado. Repertório apresentou
+     uma chamada por recurso (coleções, músicas e vínculos), e não houve
+     duplicação imediata nesse trecho. `content_length` estava ausente para os
+     GETs iOS, então payload continua sem comparação. Relatório atualizado em
+     `docs/SUPABASE_READ_PERFORMANCE.md`; 1.1.2, 6.2, 6.3.2 e 6.4.2 permanecem
+     abertas. Sem commit.
+149. Em 16/10, medi navegações no iPad Pro 13 (M4), iOS 18.3, com a Banda Demo
+     e cruzei os horários com 17 GETs de Edge Logs entre 19:46:44.895 e
+     19:50:43.786 UTC; todos retornaram 200. Shows fez `band_context` e
+     `show_summaries`; Minhas bandas fez apenas `user_band_summaries`; três
+     leituras de Repertório fizeram uma chamada por contexto, coleções, músicas
+     e vínculos. Uma interação inicial de Repertório teve dois GETs de `songs`
+     com IDs distintos separados por 8 ms; a origem não foi provada e não se
+     repetiu nos dois carregamentos seguintes. A lista apareceu em até 4 s em
+     Shows/Minhas bandas; em Repertório, entre 1–2 s na segunda abertura, com
+     indicador de carregamento sumido até 4 s. A primeira abertura mostrou a
+     lista em até 4 s e o indicador ainda ativo; numa captura aos 22 s já havia
+     sumido. `content_length` veio vazio em todos os eventos, e `origin_time`
+     bruto não é tempo percebido. Evidência detalhada em
+     `docs/SUPABASE_READ_PERFORMANCE.md`. Repertório e Minhas bandas foram
+     abertas por rota `setlist://` via `simctl` porque o stack manteve o detalhe
+     da música; esses tempos não representam navegação inteiramente por toque.
+     Permanecem abertas 1.1.2, 6.2, 6.3.2 e 6.4.2: faltam traces históricos
+     comparáveis, esclarecer a chamada duplicada, medir payloads e validar
+     fluxos completos em Android/Web. Sem commit.
+150. Em 16/10/2026, executei validação manual parcial na Web de desenvolvimento
+     via Metro 8081, autenticada na Banda Demo, usando Chrome/DevTools. Refresh
+     isolado de Minhas bandas: um GET `user_band_summaries`, HTTP 200, 538 ms e
+     cerca de 1,2 kB transferidos; sem leituras de `bands` ou shows individuais.
+     Shows, Repertório, detalhe/letra de música, coleções e editor de setlist
+     foram percorridos; os editores foram cancelados sem gravar. A navegação
+     entre seções não mostrou “Conferindo seu acesso…”, mas o indicador apareceu
+     ao abrir detalhe de show e ao retornar da letra em tela cheia, com espera
+     visual aproximada de 8 s. Em Slow 4G, o detalhe permaneceu visível durante
+     refresh (contexto, resumo, show e músicas: 784/881/813/835 ms; ~14 kB).
+     Bloqueando somente `band_context`, as demais leituras e conteúdo persistido
+     permaneceram; houve quatro tentativas bloqueadas e um aviso genérico. A
+     regra foi removida e DevTools terminou sem throttle/bloqueio. Resultados e
+     limites foram registrados em `docs/SUPABASE_READ_PERFORMANCE.md`; capturas
+     temporárias estão em `/private/tmp/setlist-web-test-*`. Tarefas 1.1.2, 6.2,
+     6.3.2 e 6.4.2 seguem abertas para linha de base comparável, payloads e
+     validação integrada Android/iOS/Web. Sem commit.
+151. Recebi e analisei um recorte Android de 18 GETs em 16/10/2026, todos 200,
+     com `Setlist/1.0.0`, Android 16, `platform=android` e `env=development`.
+     Minhas bandas teve um GET `user_band_summaries`; Shows teve três
+     `show_summaries` e três `band_context` em momentos separados, mais uma
+     chamada `shows` isolada compatível com detalhe. Repertório teve três
+     grupos de coleções/vínculos/músicas; houve um quarto GET `songs` 6,682 s
+     após o primeiro grupo. URLs completas confirmaram a leitura de metadados
+     (`select=id,band_id,title,...`) seguida 6,682 s depois de documento
+     completo (`select=*`, filtrado por banda e ID). É a busca sob demanda do
+     detalhe da música, não repetição do resumo. Ambas retornaram 200, com
+     `origin_time` 133 e 57; tamanhos continuam ausentes.
+     Nenhum par imediato duplicado ou erro apareceu. `content_length` veio
+     vazio em todos os eventos; `origin_time` variou de 57 a 857 ms e não é
+     latência percebida. Evidência e limitações registradas em
+     `docs/SUPABASE_READ_PERFORMANCE.md`. Permanecem 1.1.2, 6.2, 6.3.2 e 6.4.2;
+     falta mapear ações e capturar bytes para comparação. Sem commit.
+152. Para avançar a medição sem `content_length`, implementei instrumentação
+     local em `createSupabaseRequestFetch`: em desenvolvimento, GETs dos sete
+     endpoints da change registram caminho, nomes das chaves de query sem
+     valores, status, tempo até headers, tamanho do corpo entregue ao Fetch e
+     duração da leitura clonada quando necessária. Não registra URL, IDs,
+     tokens ou corpo; não roda em produção. `requestIdentification-test.ts`
+     passou 7/7; typecheck, ESLint e Prettier também passaram. O tamanho do
+     corpo pode refletir bytes descomprimidos, não o wire transfer. É necessário
+     reiniciar o runtime JS do dev client para coletar os eventos
+     `[Setlist:supabase-read]` no Android. Há Edge Logs Android (item 151), mas
+     esta instrumentação local não foi coletada no aparelho porque `adb` não
+     está disponível. Registro em `docs/SUPABASE_READ_PERFORMANCE.md`.
+     Permanecem pendentes comparação histórica e fluxos manuais completos; sem
+     commit.
+153. Em 16/10/2026, validei manualmente no iPad Pro 13 polegadas com iOS 18.3,
+     conectado ao Metro 8081: Minhas bandas, Shows e refresh, Repertório, detalhe
+     de música, letras em tela cheia e detalhe de show abriram com respostas 200.
+     Os eventos locais registraram tempos até headers e corpos entregues ao
+     Fetch; o detalhe usou leitura completa sob demanda, e a letra em tela cheia
+     não disparou GET. O refresh de Shows leu `band_context` e
+     `show_summaries`, sem `/songs`. Registrei as medições e seus limites em
+     `docs/SUPABASE_READ_PERFORMANCE.md`. Na Web, carreguei diretamente a rota
+     autenticada de Repertório; houve quatro GETs (contexto, coleções, resumo de
+     músicas e vínculos), todos 200, entre 933 e 1.110 ms até headers. O painel
+     Network estava acumulado desde navegações anteriores, portanto não usei o
+     total transferido. Essa amostra não cobre navegação SPA por toque nem mede
+     renderização. Faltam baseline pré-otimização, throttling/falha no iOS e
+     mudança de papel. 1.1.2, 6.2, 6.3.2 e 6.4.2 seguem abertas. Sem commit.
+154. Consolidei a comparação parcial de contagens no relatório. As traces antigas
+     indicam Shows 6 GETs na abertura e 5 no refresh; após a otimização, iPad
+     registrou 2 em cada fluxo. Repertório passou de 7 GETs antigos para 3 no
+     iPad com contexto em cache ou 4 na rota Web direta com contexto frio.
+     Minhas bandas teve 1 GET no iPad, contra baseline derivado de `3 + N` sem
+     trace histórico. Registrei corpos lidos pelo Fetch como referência, não
+     como bytes de rede; sem tamanhos históricos equivalentes, 6.3.2 continua
+     aberta. Também corrigi a nota obsoleta: os Edge Logs Android já foram
+     recebidos no item 151, mas não a instrumentação local do Android. Sem
+     commit.
+155. Após a falha temporária do `CoreSimulatorService`, `xcrun simctl` voltou a
+     responder. O iPad Pro 13-inch (M4) está booted e autenticado no app, na tela
+     de detalhe de show da Banda Demo. Não alterei dados nem permissões durante
+     esta retomada. Para fechar as validações restantes ainda são necessários
+     baseline pré-otimização equivalente e cenários controlados de lentidão,
+     falha e mudança de papel. Sem commit.
+156. Em 16/10/2026, o Samsung SM-S731B (Android 16/API 36) ficou disponível e
+     validei manualmente Shows, detalhe de show, editor de setlist e Coleções
+     usando o dev client no Metro 8081. O React Native DevTools capturou os
+     eventos locais: Shows fez `band_context` (116 B/678 ms) e
+     `show_summaries` (7.881 B/532 ms); detalhe fez `shows` completo
+     (4.505 B/163 ms) e `songs` resumo (26.751 B/148 ms); editor de setlist
+     carregou coleções, resumo de músicas e vínculos (2.736 B/452 ms,
+     26.751 B/442 ms, 31.528 B/450 ms). Todas as respostas observadas foram
+     HTTP 200. Cancelei os editores sem salvar. A tentativa de pull-to-refresh
+     não produziu leituras observáveis e não foi contada como refresh. O
+     console do DevTools foi necessário porque `logcat` não mostrou a
+     instrumentação. Evidências e limites estão em
+     `docs/SUPABASE_READ_PERFORMANCE.md`. Não houve alteração persistente na
+     Banda Demo; o papel de Editor da conta de revisão já estava restaurado.
+     1.1.2, 6.2, 6.3.2 e 6.4.2 permanecem abertas: faltam baseline histórico
+     comparável, cenário lento/falha no Android/iOS, payloads de rede e tempos
+     de renderização medidos. Sem commit.
+157. Na continuação da validação, o responsável informou que o Android não
+     estaria mais disponível; não tentei reconectá-lo. No iPad Pro 13-inch
+     (M4), iOS 18.3, com a Banda Demo, abri Shows via esquema do app depois do
+     período de frescor. O coletor capturou apenas `band_context` e
+     `show_summaries`, HTTP 200, 3.295/3.296 ms até headers e 116/7.881 B lidos
+     pelo Fetch. Os cards já exibiam dados na captura, ainda com indicador de
+     carregamento; não medi o instante exato de renderização. Repetir a
+     navegação Banda/Shows dentro de 60 s não emitiu novos eventos, compatível
+     com o cache, mas a rota foi aberta com `setlist://`, não com toque nos tabs.
+     Na Web autenticada, a rota Shows exibiu cards; o Chrome Network registrou
+     9 requests no total (cerca de 2,0 MB transferidos/14,2 MB de recursos,
+     incluindo Metro), com GETs `band_context` e `show_summaries` em HTTP 200.
+     Esse total não isola tráfego Supabase. A atualização Web isolada desta
+     tentativa não foi confirmada; a rodada anterior com refresh e rede lenta/
+     bloqueio continua sendo a evidência Web válida. Não alterei dados nem
+     papéis. Relatório: `docs/SUPABASE_READ_PERFORMANCE.md`. Android está
+     indisponível nesta retomada, e os cenários iOS lentos/falhos, baseline
+     comparável, payloads de rede e tempos de renderização seguem pendentes;
+     tarefas 1.1.2, 6.2, 6.3.2 e 6.4.2 permanecem abertas. Sem commit.
+158. Durante a checagem Web de papel, abri diretamente `/bands/{bandId}/band`
+     na aba autenticada. A captura após aproximadamente 5 s ainda mostrava
+     “Conferindo seu acesso…”; após mais 8 s, Banda carregou com o membro de
+     revisão ainda como Editor. Isso é carregamento de documento por URL, não
+     navegação SPA entre abas. O Network preservava histórico; 23 requests,
+     4,0 MB e 28,5 MB não podem ser atribuídos só à rota. A tentativa de abrir o
+     menu de administração do membro não exibiu o menu e não alterou o papel.
+     Evidência em `docs/SUPABASE_READ_PERFORMANCE.md`; sem commit.
+159. Em 17/10/2026, o responsável aceitou as evidências existentes como
+     suficientes e autorizou encerrar `otimizar-leituras-supabase`. Os critérios
+     de evidência de 1.1.2, 6.2, 6.3.2 e 6.4.2 foram ajustados com esse aceite:
+     29/29 tarefas encerradas, sendo 25 já verificadas e 4 encerradas com as
+     limitações de medição/cobertura explicitadas. Nenhum teste ausente foi
+     declarado executado. Os 12 requisitos dos deltas foram sincronizados em
+     `application-ui`, `band-data-summaries` e `shared-data-refresh`, preservando
+     os requisitos e cenários anteriores. Change e registro de verificação
+     arquivados em
+     `openspec/changes/archive/2026-10-17-otimizar-leituras-supabase/`.
+     Por solicitação do responsável, removi o coletor temporário
+     `[Setlist:supabase-read]`, a leitura adicional de respostas e os dois testes
+     exclusivos da medição. Os headers permanentes de identificação e seus
+     testes permanecem. O processo auxiliar foi encerrado e seu script removido.
+     A validação final passou: `npm run validate`, 115 suítes/851 testes,
+     formatação, lint e typecheck; cobertura de branches 80,98%. Os 7 specs e a
+     change passaram na validação estrita OpenSpec. Não houve nova rodada manual
+     ou repetição de banco; as migrações seguem com a evidência pgTAP anterior.
+     A entrega continua na branch `feat/supabase-client-and-read-optimization`
+     da PR #41. O estado dos checks remotos deve ser conferido no SHA final da
+     PR antes de integrar, seguindo o fluxo de merge por PR do projeto.
+160. Em 17/10/2026, antes de integrar a PR #41, o responsável solicitou revisar
+     o círculo de refresh observado ao alternar Shows/Repertório no iOS.
+     Após esclarecer a preferência, o comportamento escolhido foi mostrar o
+     círculo durante a consulta quando o cache estiver antigo ou invalidado,
+     além da atualização manual. `useScreenDataRefresh` agora controla o
+     indicador pelo ciclo de atualização solicitado, em vez de qualquer
+     `isFetching`; o carregamento inicial mantém seu feedback próprio. Pedidos
+     em andamento continuam compartilhados, e o indicador espera a conclusão
+     das consultas envolvidas mesmo quando a pessoa solicita atualização
+     durante uma busca automática. A spec `shared-data-refresh` registra essa
+     distinção e a ausência do círculo na troca com cache recente.
+     No iPad Pro 13-inch (M4), iOS 18.3, Banda Demo, via Metro 8081, a rodada
+     entre 03:41:51 e 03:42:15 UTC confirmou: Shows com cache antigo fez
+     `band_context` e `show_summaries`; Repertório fez coleções, vínculos e
+     resumos de músicas; as três trocas seguintes com cache recente não fizeram
+     consultas; puxar Shows gerou somente os dois endpoints dessa tela. Todas
+     as sete respostas observadas foram HTTP 200. O vídeo mostrou círculo nas
+     revalidações e no gesto, sem círculo nas trocas seguintes com cache recente.
+     Evidência local: `/private/tmp/setlist-ios-refresh-policy-after.mov` e
+     `/private/tmp/setlist-refresh-policy-network.jsonl`. Formatação, ESLint,
+     typecheck, `git diff --check` e validação estrita do spec OpenSpec passaram.
+     Não foi repetida a suíte Jest,
+     pgTAP ou a validação manual Android/Web nesta correção. Não foi adicionada
+     instrumentação ao app; a captura utilizou o Network do DevTools. A PR #41
+     permanece aberta aguardando a revisão deste ajuste antes de integrar.
+161. Em 17/10/2026, corrigi o pequeno salto dos cards ao abrir Shows e
+     Repertório. A reserva inicial era 121 pontos, enquanto a busca media 66,
+     a barra de filtros 48 e a borda 1, totalizando 115. As dimensões dos
+     controles e o cálculo da reserva agora são compartilhados em
+     `src/components/ui/list-controls/dimensions.ts`. O overlay inicia com a
+     altura da barra disponível, e a sincronização da altura medida usa
+     `useLayoutEffect`. Shows também considera a linha adicional do filtro
+     de data. As medições reais continuam acomodando fontes maiores e quebras
+     de linha; não foram fixadas alturas que cortem o conteúdo.
+     A conferência no iPad Pro 13-inch (M4), iOS 18.3, via Metro 8081 registrou
+     reserva de 115 pontos em ambas as telas, busca 66, barra 48 e offset zero.
+     O vídeo da volta ao Repertório com cache recente mostrou a posição dos
+     cards estável, sem o ajuste de 6 pontos. Evidências locais:
+     `/private/tmp/setlist-stable-list-after.mov` e
+     `/private/tmp/setlist-stable-list-observed.jsonl`. A observação pelo
+     DevTools foi externa, sem instrumentação adicionada ao app.
+     Formatação, ESLint, typecheck, diff e validação estrita do spec
+     `application-ui` passaram. Não foi repetida a suíte Jest nem validação
+     manual de Android/Web ou de fontes ampliadas nesta etapa. Os três checks
+     do commit `5577b31` passaram no CI. A PR #41 segue aberta até a integração
+     autorizada e preparação do candidato `v1.0.0-rc.3`.
+162. Em 17/10/2026, o responsável autorizou integrar a PR #41, aplicar em
+     produção as migrações `20261015100000` e `20261015110000`, atualizar o
+     changelog, criar a pré-release, gerar AAB/IPA de produção e publicar a Web
+     candidata no GitHub Pages. A PR está limpa, com três checks aprovados e
+     sem decisão de revisão registrada. As tags `rc.1` e `rc.2` já existem; a
+     próxima tag é `v1.0.0-rc.3`. O EAS reportou contadores remotos Android/iOS
+     `4`; os novos perfis de produção incrementarão automaticamente. A versão
+     de produto permanece `1.0.0`. O procedimento exige checkout limpo da tag,
+     manifesto de release e build concluído nas duas plataformas antes do
+     deploy Web de pré-release. Esta entrada registra a solicitação e o plano;
+     os estados finais de migração, builds, release e Pages devem ser conferidos
+     nos próprios serviços e registrados nas notas da pré-release.

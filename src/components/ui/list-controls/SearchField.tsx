@@ -3,7 +3,8 @@ import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { SearchFieldProps } from '@/components/ui/list-controls/types';
-import { colors, layout, radii, spacing } from '@/theme/tokens';
+import { colors, radii, spacing } from '@/theme/tokens';
+import { listControlDimensions } from '@/components/ui/list-controls/dimensions';
 
 export function SearchField({
   accessibilityLabel,
@@ -58,10 +59,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.raised,
     borderColor: colors.border.control,
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: listControlDimensions.borderWidth,
     flexDirection: 'row',
     gap: spacing.sm,
-    minHeight: layout.minimumTouchTarget,
+    minHeight: listControlDimensions.inputMinHeight,
     paddingHorizontal: spacing.md,
   },
   fieldFocused: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     flex: 1,
     fontSize: 16,
-    minHeight: layout.minimumTouchTarget,
+    minHeight: listControlDimensions.inputMinHeight,
   },
   webSearchIcon: {
     flexShrink: 0,

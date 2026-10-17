@@ -12,7 +12,7 @@ interface MonthCalendarProps {
   readonly initialDate?: Date;
   readonly onSelectDate: (dateKey: string) => void;
   readonly selectedDateKey?: string;
-  readonly shows: readonly Show[];
+  readonly shows: readonly Pick<Show, 'startsAt' | 'status'>[];
 }
 
 const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const;
@@ -73,7 +73,7 @@ export function MonthCalendar({
   const holidaysByDate = new Map(
     holidays.map((holiday) => [holiday.dateKey, holiday]),
   );
-  const showsByDate = new Map<string, Show[]>();
+  const showsByDate = new Map<string, Pick<Show, 'startsAt' | 'status'>[]>();
 
   shows.forEach((show) => {
     const dateKey = getDateKey(show.startsAt);

@@ -7,6 +7,7 @@ import type {
   Song,
   SongListOptions,
   SongRepository,
+  SongSummary,
 } from '@/domain';
 import { getSupabaseClient } from '@/data/supabase/client';
 
@@ -16,6 +17,9 @@ const lyricStatuses: readonly LyricStatus[] = [
   'incomplete',
   'synchronized',
 ];
+
+const songSummaryColumns =
+  'id, band_id, title, original_artist, musical_key, bpm, estimated_duration_ms, lyric_status, archived_at, created_at, updated_at';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -168,7 +172,82 @@ function parseSong(value: unknown): Song {
   };
 }
 
+function parseSongSummary(value: unknown): SongSummary {
+  if (!isRecord(value)) {
+    throw new Error('Resposta inválida do Supabase: resumo da música.');
+  }
+
+  const lyricStatus = value.lyric_status;
+  if (
+    typeof lyricStatus !== 'string' ||
+    !lyricStatuses.includes(lyricStatus as LyricStatus)
+  ) {
+    throw new Error('Resposta inválida do Supabase: lyric_status.');
+  }
+
+  return {
+    archivedAt: readNullableDateTime(value, 'archived_at'),
+    bandId: readString(value, 'band_id'),
+    bpm: readNullableNumber(value, 'bpm'),
+    createdAt: readString(value, 'created_at'),
+    estimatedDurationMs: readNullableNumber(value, 'estimated_duration_ms'),
+    id: readString(value, 'id'),
+    lyricStatus: lyricStatus as LyricStatus,
+    musicalKey: readNullableString(value, 'musical_key'),
+    originalArtist: readNullableString(value, 'original_artist'),
+    title: readString(value, 'title'),
+    updatedAt: readString(value, 'updated_at'),
+  };
+}
+
 export class SupabaseSongRepository implements SongRepository {
+  async listSummariesByBandId(
+    bandId: EntityId,
+    options: SongListOptions = {},
+  ): Promise<readonly SongSummary[]> {
+    let query = getSupabaseClient()
+      .from('songs')
+      .select(songSummaryColumns)
+      .eq('band_id', bandId);
+
+    if (!options.includeArchived) {
+      query = query.is('archived_at', null);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map(parseSongSummary);
+  }
+
+  async listDocumentsByIds(
+    bandId: EntityId,
+    songIds: readonly EntityId[],
+  ): Promise<readonly Song[]> {
+    const requestedIds = [...new Set(songIds)];
+    if (requestedIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await getSupabaseClient()
+      .from('songs')
+      .select('*')
+      .eq('band_id', bandId)
+      .in('id', requestedIds);
+
+    if (error) {
+      throw error;
+    }
+
+    const requestedIdSet = new Set(requestedIds);
+    return (data ?? [])
+      .map(parseSong)
+      .filter((song) => song.bandId === bandId && requestedIdSet.has(song.id));
+  }
+
   async listByBandId(
     bandId: EntityId,
     options: SongListOptions = {},

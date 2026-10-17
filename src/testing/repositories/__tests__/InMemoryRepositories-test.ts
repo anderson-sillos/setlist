@@ -153,6 +153,46 @@ describe('repositórios em memória', () => {
         bandMembers[1],
       ]);
     });
+
+    it('fornece contexto mínimo somente para integrantes e sinaliza músicas ativas', async () => {
+      await expect(
+        repositories.bands.getContext('user-1', 'band-1'),
+      ).resolves.toEqual({
+        bandId: 'band-1',
+        bandName: 'Banda Horizonte',
+        hasActiveSongs: true,
+        role: 'owner',
+      });
+      await expect(
+        repositories.bands.getContext('user-without-band', 'band-1'),
+      ).resolves.toBeNull();
+    });
+
+    it('resume bandas e o próximo show futuro não cancelado sem listar shows para cada banda', async () => {
+      const summaryRepositories = createInMemoryRepositories(data, {
+        now: () => '2026-11-01T00:00:00.000Z',
+      });
+
+      await expect(
+        summaryRepositories.bands.listUserSummaries('user-1'),
+      ).resolves.toEqual([
+        {
+          bandId: 'band-2',
+          bandName: 'Banda Aurora',
+          nextShowStartsAt: '2026-11-15T19:00:00.000Z',
+          role: 'editor',
+        },
+        {
+          bandId: 'band-1',
+          bandName: 'Banda Horizonte',
+          nextShowStartsAt: '2026-12-12T21:00:00.000Z',
+          role: 'owner',
+        },
+      ]);
+      await expect(
+        summaryRepositories.bands.listUserSummaries('user-without-band'),
+      ).resolves.toEqual([]);
+    });
   });
 
   describe('músicas', () => {
@@ -181,6 +221,41 @@ describe('repositórios em memória', () => {
         repositories.songs.findById('band-2', 'song-1'),
       ).resolves.toBeNull();
     });
+
+    it('expõe resumos sem letras e carrega documentos solicitados em lote', async () => {
+      const [summary] =
+        await repositories.songs.listSummariesByBandId('band-1');
+
+      expect(summary).toEqual({
+        archivedAt: null,
+        bandId: 'band-1',
+        bpm: 120,
+        createdAt,
+        estimatedDurationMs: 210_000,
+        id: 'song-1',
+        lyricStatus: 'missing',
+        musicalKey: 'G',
+        originalArtist: null,
+        title: 'Caminho aberto',
+        updatedAt,
+      });
+      expect(summary).not.toHaveProperty('lyrics');
+      await expect(
+        repositories.songs.listSummariesByBandId('band-1', {
+          includeArchived: true,
+        }),
+      ).resolves.toHaveLength(2);
+      await expect(
+        repositories.songs.listDocumentsByIds('band-1', [
+          'song-1',
+          'song-1',
+          'song-3',
+        ]),
+      ).resolves.toEqual([songs[0]]);
+      await expect(
+        repositories.songs.listDocumentsByIds('band-1', []),
+      ).resolves.toEqual([]);
+    });
   });
 
   describe('shows', () => {
@@ -200,6 +275,22 @@ describe('repositórios em memória', () => {
       await expect(
         repositories.shows.findById('band-1', 'show-2'),
       ).resolves.toBeNull();
+    });
+
+    it('retorna resumo de show sem os blocos completos', async () => {
+      await expect(
+        repositories.shows.listSummariesByBandId('band-1'),
+      ).resolves.toEqual([
+        {
+          bandId: 'band-1',
+          estimatedDurationMs: null,
+          id: 'show-1',
+          name: 'Festival de verão',
+          startsAt: '2026-12-12T21:00:00.000Z',
+          status: 'draft',
+          venue: 'Praça Central',
+        },
+      ]);
     });
   });
 });

@@ -13,6 +13,7 @@ type QueryMock = {
   eq: jest.Mock<Promise<QueryResult>, []> | jest.Mock<QueryMock, []>;
   in: jest.Mock<Promise<QueryResult>, []>;
   maybeSingle: jest.Mock<Promise<QueryResult>, []>;
+  order: jest.Mock<Promise<QueryResult>, [string, { ascending: boolean }]>;
   select: jest.Mock<QueryMock, []>;
 };
 
@@ -22,6 +23,9 @@ function createQuery(result: QueryResult): QueryMock {
   query.in = jest.fn<Promise<QueryResult>, []>(() => Promise.resolve(result));
   query.maybeSingle = jest.fn<Promise<QueryResult>, []>(() =>
     Promise.resolve(result),
+  );
+  query.order = jest.fn<Promise<QueryResult>, [string, { ascending: boolean }]>(
+    () => Promise.resolve(result),
   );
   query.select = jest.fn<QueryMock, []>(() => query);
 
@@ -35,6 +39,9 @@ function createSingleQuery(result: QueryResult): QueryMock {
   query.maybeSingle = jest.fn<Promise<QueryResult>, []>(() =>
     Promise.resolve(result),
   );
+  query.order = jest.fn<Promise<QueryResult>, [string, { ascending: boolean }]>(
+    () => Promise.resolve(result),
+  );
   query.select = jest.fn<QueryMock, []>(() => query);
 
   return query;
@@ -46,6 +53,89 @@ describe('repositório de bandas do Supabase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetSupabaseClient.mockReturnValue({ from } as never);
+  });
+
+  it('carrega o contexto autorizado da banda em uma única consulta', async () => {
+    const query = createSingleQuery({
+      data: {
+        band_id: 'band-1',
+        band_name: 'Banda Remota',
+        has_active_songs: false,
+        role: 'editor',
+      },
+      error: null,
+    });
+    from.mockReturnValueOnce(query);
+
+    await expect(
+      new SupabaseBandRepository().getContext('user-1', 'band-1'),
+    ).resolves.toEqual({
+      bandId: 'band-1',
+      bandName: 'Banda Remota',
+      hasActiveSongs: false,
+      role: 'editor',
+    });
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledWith('band_context');
+    expect(query.select).toHaveBeenCalledWith(
+      'band_id, band_name, role, has_active_songs',
+    );
+    expect(query.eq).toHaveBeenCalledWith('band_id', 'band-1');
+  });
+
+  it('retorna contexto vazio quando a pessoa não tem acesso à banda', async () => {
+    from.mockReturnValueOnce(createSingleQuery({ data: null, error: null }));
+
+    await expect(
+      new SupabaseBandRepository().getContext('user-1', 'band-private'),
+    ).resolves.toBeNull();
+    expect(from).toHaveBeenCalledTimes(1);
+  });
+
+  it('lista resumos de Minhas bandas em uma consulta, sem buscar perfis nem shows', async () => {
+    const query = createQuery({
+      data: [
+        {
+          band_id: 'band-1',
+          band_name: 'Banda A',
+          next_show_starts_at: '2026-12-10T21:00:00.000Z',
+          role: 'owner',
+        },
+        {
+          band_id: 'band-2',
+          band_name: 'Banda B',
+          next_show_starts_at: null,
+          role: 'member',
+        },
+      ],
+      error: null,
+    });
+    from.mockReturnValueOnce(query);
+
+    await expect(
+      new SupabaseBandRepository().listUserSummaries('user-1'),
+    ).resolves.toEqual([
+      {
+        bandId: 'band-1',
+        bandName: 'Banda A',
+        nextShowStartsAt: '2026-12-10T21:00:00.000Z',
+        role: 'owner',
+      },
+      {
+        bandId: 'band-2',
+        bandName: 'Banda B',
+        nextShowStartsAt: null,
+        role: 'member',
+      },
+    ]);
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledWith('user_band_summaries');
+    expect(query.select).toHaveBeenCalledWith(
+      'band_id, band_name, role, next_show_starts_at',
+    );
+    expect(query.order).toHaveBeenCalledWith('band_name', {
+      ascending: true,
+    });
   });
 
   it('carrega as bandas e a participação da pessoa autenticada', async () => {

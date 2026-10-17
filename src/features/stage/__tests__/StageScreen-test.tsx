@@ -1,13 +1,16 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 
 import { StageScreen, buildStageItems } from '@/features/stage/StageScreen';
+import { TestAppProviders } from '@/testing/TestAppProviders';
 import {
+  createStageTestScenario,
   stageTestIds,
   StageTestProviders,
 } from '@/testing/scenarios/stageTestScenario';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: object }) => children,
+  useFocusEffect: jest.fn(),
   useRouter: () => ({ replace: jest.fn() }),
 }));
 
@@ -75,6 +78,38 @@ describe('<StageScreen />', () => {
     expect(view.getByTestId('elapsed-time').props.children).toBe('00:00');
 
     await view.unmount();
+  });
+
+  it('carrega documentos completos somente das músicas referenciadas no show', async () => {
+    const scenario = createStageTestScenario();
+    const listAllSongs = jest.spyOn(
+      scenario.repositories.songs,
+      'listByBandId',
+    );
+    const listSongDocuments = jest.spyOn(
+      scenario.repositories.songs,
+      'listDocumentsByIds',
+    );
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <StageScreen
+          bandId={stageTestIds.band}
+          showId={stageTestIds.readyShow}
+          viewportWidth={390}
+        />
+      </TestAppProviders>,
+    );
+
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(listAllSongs).not.toHaveBeenCalled();
+    expect(listSongDocuments).toHaveBeenCalledWith(stageTestIds.band, [
+      'song-instrumental-stage-test',
+      stageTestIds.staticSong,
+    ]);
+    expect(view.queryByText('Faixa fora da setlist')).toBeNull();
   });
 
   it('bloqueia o modo palco para show cancelado', async () => {

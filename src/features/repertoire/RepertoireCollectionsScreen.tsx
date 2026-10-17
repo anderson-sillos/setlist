@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { ListEmptyState } from '@/components/ui/ListEmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { WebRefreshButton } from '@/components/ui/ScreenDataRefresh';
-import { useRepertoireCollections, useUserBands } from '@/data/queries';
+import { useRepertoireCollections, useBandContext } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import {
@@ -30,14 +30,12 @@ export function RepertoireCollectionsScreen({
 }: RepertoireCollectionsScreenProps) {
   const router = useRouter();
   const collectionsQuery = useRepertoireCollections(bandId);
-  const userBandsQuery = useUserBands();
+  const bandContextQuery = useBandContext(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
-    userBandsQuery,
+    bandContextQuery,
   ]);
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const createCollection = () =>
     router.push(getRepertoireCollectionCreateHref(bandId));
@@ -61,22 +59,22 @@ export function RepertoireCollectionsScreen({
       screenKind="detail"
       title="Coleções"
     >
-      {collectionsQuery.isPending || userBandsQuery.isPending ? (
+      {collectionsQuery.isPending || bandContextQuery.isPending ? (
         <LoadingFeedback />
       ) : null}
-      {collectionsQuery.isError || userBandsQuery.isError ? (
+      {collectionsQuery.isError || bandContextQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
             void collectionsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
       ) : null}
       <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
       {!collectionsQuery.isPending &&
       !collectionsQuery.isError &&
-      !userBandsQuery.isPending &&
-      !userBandsQuery.isError ? (
+      !bandContextQuery.isPending &&
+      !bandContextQuery.isError ? (
         collectionsQuery.data?.length ? (
           <View style={styles.list} testID="repertoire-collections-list">
             {collectionsQuery.data.map((summary) => (

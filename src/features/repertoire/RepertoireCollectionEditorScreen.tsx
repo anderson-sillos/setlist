@@ -37,10 +37,10 @@ import {
   useSaveRepertoireCollection,
   useDeleteRepertoireCollection,
   useRepertoireCollections,
-  useSongs,
-  useUserBands,
+  useSongSummaries,
+  useBandContext,
 } from '@/data/queries';
-import type { EntityId, RepertoireCollection, Song } from '@/domain';
+import type { EntityId, RepertoireCollection, SongSummary } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import type { EditActions } from '@/features/navigation/types';
@@ -88,16 +88,14 @@ export function RepertoireCollectionEditorScreen({
     requestedReturnTo ?? (returnToRepertoire ? 'repertoire' : 'collections');
   const router = useRouter();
   const collectionsQuery = useRepertoireCollections(bandId);
-  const songsQuery = useSongs(bandId, true);
-  const userBandsQuery = useUserBands();
+  const songsQuery = useSongSummaries(bandId, true);
+  const bandContextQuery = useBandContext(bandId);
   const { onRefresh, refreshing } = useScreenDataRefresh([
     collectionsQuery,
     songsQuery,
-    userBandsQuery,
+    bandContextQuery,
   ]);
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const summary = collectionsQuery.data?.find(
     ({ collection }) => collection.id === collectionId,
@@ -105,9 +103,9 @@ export function RepertoireCollectionEditorScreen({
   const isLoading =
     collectionsQuery.isPending ||
     songsQuery.isPending ||
-    userBandsQuery.isPending;
+    bandContextQuery.isPending;
   const isError =
-    collectionsQuery.isError || songsQuery.isError || userBandsQuery.isError;
+    collectionsQuery.isError || songsQuery.isError || bandContextQuery.isError;
   const returnHref =
     returnTo === 'repertoire'
       ? getBandSectionHref(bandId, 'repertoire')
@@ -147,8 +145,7 @@ export function RepertoireCollectionEditorScreen({
         <ErrorFeedback
           onRetry={() => {
             void collectionsQuery.refetch();
-            void songsQuery.refetch();
-            void userBandsQuery.refetch();
+            void bandContextQuery.refetch();
           }}
         />
         <WebRefreshButton onRefresh={onRefresh} refreshing={refreshing} />
@@ -192,7 +189,7 @@ interface RepertoireCollectionEditorFormProps {
   readonly initialCollection: RepertoireCollection | null;
   readonly orderedSongIds: readonly EntityId[];
   readonly returnTo: RepertoireCollectionReturnTo;
-  readonly songs: readonly Song[];
+  readonly songs: readonly SongSummary[];
 }
 
 interface CollectionSongDragPreview {

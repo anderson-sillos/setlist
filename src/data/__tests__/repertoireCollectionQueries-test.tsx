@@ -1,9 +1,13 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { useQueryClient } from '@tanstack/react-query';
 
 import {
   useAppendRepertoireCollectionSongs,
+  repertoireCollectionQueryKeys,
   useRepertoireCollections,
+  useSongSummaries,
 } from '@/data/queries';
+import { queryKeys } from '@/data/queryKeys';
 import { createInMemoryRepositories } from '@/testing/repositories';
 import {
   createBand,
@@ -81,7 +85,11 @@ describe('consultas de coleções do repertório', () => {
       repositories.repertoireCollections,
       'listSongsByBandId',
     );
-    const listSongs = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
     const { result } = await renderHook(
       () => useRepertoireCollections(bandId),
       {
@@ -114,8 +122,11 @@ describe('consultas de coleções do repertório', () => {
     expect(summary?.songs[0].title).toBe(firstSong.title);
     expect(listCollections).toHaveBeenCalledTimes(1);
     expect(listMemberships).toHaveBeenCalledTimes(1);
-    expect(listSongs).toHaveBeenCalledTimes(1);
-    expect(listSongs).toHaveBeenCalledWith(bandId, { includeArchived: true });
+    expect(listSongSummaries).toHaveBeenCalledTimes(1);
+    expect(listSongSummaries).toHaveBeenCalledWith(bandId, {
+      includeArchived: true,
+    });
+    expect(listSongDocuments).not.toHaveBeenCalled();
     expect(
       result.current.data?.find(
         ({ collection }) => collection.id === emptyCollectionId,
@@ -128,6 +139,10 @@ describe('consultas de coleções do repertório', () => {
 
   it('atualiza resumo após inclusão e não duplica a música já vinculada', async () => {
     const repositories = createRepositories();
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
     const { result } = await renderHook(
       () => ({
         append: useAppendRepertoireCollectionSongs(bandId),
@@ -167,5 +182,104 @@ describe('consultas de coleções do repertório', () => {
         ?.find(({ collection }) => collection.id === collectionId)
         ?.songs.map(({ id }) => id),
     ).toEqual([firstSong.id, archivedSong.id]);
+    expect(listSongSummaries).toHaveBeenCalledTimes(1);
+  });
+
+  it('compartilha metadados de músicas entre Repertório e Coleções na abertura e no refresh', async () => {
+    const repositories = createRepositories();
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
+    const { result } = await renderHook(
+      () => ({
+        collections: useRepertoireCollections(bandId),
+        songs: useSongSummaries(bandId, true),
+      }),
+      {
+        wrapper: ({ children }) => (
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
+        ),
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.collections.data).toHaveLength(2);
+      expect(result.current.songs.data).toHaveLength(2);
+    });
+    expect(listSongSummaries).toHaveBeenCalledTimes(1);
+    expect(listSongSummaries).toHaveBeenCalledWith(bandId, {
+      includeArchived: true,
+    });
+
+    await act(async () => {
+      await result.current.collections.refetch();
+    });
+    expect(listSongSummaries).toHaveBeenCalledTimes(2);
+    expect(
+      queryKeys.songs.documentsByBand(bandId, { includeArchived: true }),
+    ).not.toEqual(
+      queryKeys.songs.summariesByBand(bandId, { includeArchived: true }),
+    );
+  });
+
+  it('usa a dependência mais antiga como referência do frescor do resumo', async () => {
+    const repositories = createRepositories();
+    const { result } = await renderHook(
+      () => ({
+        collections: useRepertoireCollections(bandId),
+        queryClient: useQueryClient(),
+      }),
+      {
+        wrapper: ({ children }) => (
+          <AppProviders
+            currentUserId={currentUserId}
+            repositories={repositories}
+          >
+            {children}
+          </AppProviders>
+        ),
+      },
+    );
+
+    await waitFor(() =>
+      expect(result.current.collections.data).toHaveLength(2),
+    );
+
+    const oldTimestamp = Date.now() - 120_000;
+    const freshTimestamp = Date.now();
+    const queryClient = result.current.queryClient;
+    const songKey = queryKeys.songs.summariesByBand(bandId, {
+      includeArchived: true,
+    });
+    const songs = queryClient.getQueryData(songKey);
+
+    await act(async () => {
+      queryClient.setQueryData(
+        repertoireCollectionQueryKeys.recordsByBand(bandId),
+        queryClient.getQueryData(
+          repertoireCollectionQueryKeys.recordsByBand(bandId),
+        ),
+        { updatedAt: freshTimestamp },
+      );
+      queryClient.setQueryData(
+        repertoireCollectionQueryKeys.membershipsByBand(bandId),
+        queryClient.getQueryData(
+          repertoireCollectionQueryKeys.membershipsByBand(bandId),
+        ),
+        { updatedAt: freshTimestamp },
+      );
+      queryClient.setQueryData(songKey, songs, { updatedAt: oldTimestamp });
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(result.current.collections.dataUpdatedAt).toBe(oldTimestamp),
+    );
   });
 });

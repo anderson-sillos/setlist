@@ -3,6 +3,7 @@ import type {
   AppendRepertoireCollectionSongsInput,
   AppRepositories,
   Band,
+  BandContext,
   BandMember,
   BandRepository,
   DeleteRepertoireCollectionInput,
@@ -14,11 +15,15 @@ import type {
   SetSongRepertoireCollectionsInput,
   Show,
   ShowRepository,
+  ShowSummary,
   Song,
   SongListOptions,
   SongRepository,
+  SongSummary,
+  UserBandSummary,
   UserBand,
 } from '@/domain';
+import { getShowDurationMs } from '@/domain';
 
 export interface InMemoryRepositoryData {
   readonly bands: readonly Band[];
@@ -37,10 +42,83 @@ export interface InMemoryRepositoryOptions {
 export class InMemoryBandRepository implements BandRepository {
   private readonly bands: readonly Band[];
   private readonly bandMembers: readonly BandMember[];
+  private readonly shows: readonly Show[];
+  private readonly songs: readonly Song[];
 
-  constructor(bands: readonly Band[], bandMembers: readonly BandMember[]) {
+  constructor(
+    bands: readonly Band[],
+    bandMembers: readonly BandMember[],
+    shows: readonly Show[] = [],
+    songs: readonly Song[] = [],
+    private readonly now: () => string = () => new Date().toISOString(),
+  ) {
     this.bands = [...bands];
     this.bandMembers = [...bandMembers];
+    this.shows = [...shows];
+    this.songs = [...songs];
+  }
+
+  async getContext(
+    userId: EntityId,
+    bandId: EntityId,
+  ): Promise<BandContext | null> {
+    const membership = this.bandMembers.find(
+      (candidate) => candidate.userId === userId && candidate.bandId === bandId,
+    );
+    const band = this.bands.find((candidate) => candidate.id === bandId);
+
+    if (!membership || !band) {
+      return null;
+    }
+
+    return {
+      bandId,
+      bandName: band.name,
+      hasActiveSongs: this.songs.some(
+        (song) => song.bandId === bandId && song.archivedAt === null,
+      ),
+      role: membership.role,
+    };
+  }
+
+  async listUserSummaries(
+    userId: EntityId,
+  ): Promise<readonly UserBandSummary[]> {
+    const now = Date.parse(this.now());
+    const summaries = this.bands.flatMap((band) => {
+      const membership = this.bandMembers.find(
+        (candidate) =>
+          candidate.userId === userId && candidate.bandId === band.id,
+      );
+
+      if (!membership) {
+        return [];
+      }
+
+      const nextShowStartsAt = this.shows
+        .filter(
+          (show) =>
+            show.bandId === band.id &&
+            show.status !== 'cancelled' &&
+            Date.parse(show.startsAt) >= now,
+        )
+        .sort((left, right) =>
+          left.startsAt.localeCompare(right.startsAt),
+        )[0]?.startsAt;
+
+      return [
+        {
+          bandId: band.id,
+          bandName: band.name,
+          nextShowStartsAt: nextShowStartsAt ?? null,
+          role: membership.role,
+        },
+      ];
+    });
+
+    return summaries.sort((left, right) =>
+      left.bandName.localeCompare(right.bandName, 'pt-BR'),
+    );
   }
 
   async listForUser(userId: EntityId): Promise<readonly UserBand[]> {
@@ -73,6 +151,56 @@ export class InMemorySongRepository implements SongRepository {
     this.songs = [...songs];
   }
 
+  async listSummariesByBandId(
+    bandId: EntityId,
+    options: SongListOptions = {},
+  ): Promise<readonly SongSummary[]> {
+    return this.songs
+      .filter(
+        (song) =>
+          song.bandId === bandId &&
+          (options.includeArchived === true || song.archivedAt === null),
+      )
+      .map(
+        ({
+          archivedAt,
+          bandId: songBandId,
+          bpm,
+          createdAt,
+          estimatedDurationMs,
+          id,
+          lyricStatus,
+          musicalKey,
+          originalArtist,
+          title,
+          updatedAt,
+        }) => ({
+          archivedAt,
+          bandId: songBandId,
+          bpm,
+          createdAt,
+          estimatedDurationMs,
+          id,
+          lyricStatus,
+          musicalKey,
+          originalArtist,
+          title,
+          updatedAt,
+        }),
+      );
+  }
+
+  async listDocumentsByIds(
+    bandId: EntityId,
+    songIds: readonly EntityId[],
+  ): Promise<readonly Song[]> {
+    const requestedIds = new Set(songIds);
+
+    return this.songs.filter(
+      (song) => song.bandId === bandId && requestedIds.has(song.id),
+    );
+  }
+
   async listByBandId(
     bandId: EntityId,
     options: SongListOptions = {},
@@ -94,9 +222,28 @@ export class InMemorySongRepository implements SongRepository {
 
 export class InMemoryShowRepository implements ShowRepository {
   private readonly shows: readonly Show[];
+  private readonly songsById: ReadonlyMap<EntityId, Song>;
 
-  constructor(shows: readonly Show[]) {
+  constructor(shows: readonly Show[], songs: readonly Song[] = []) {
     this.shows = [...shows];
+    this.songsById = new Map(songs.map((song) => [song.id, song]));
+  }
+
+  async listSummariesByBandId(
+    bandId: EntityId,
+  ): Promise<readonly ShowSummary[]> {
+    return this.shows
+      .filter((show) => show.bandId === bandId)
+      .map((show) => ({
+        bandId: show.bandId,
+        estimatedDurationMs: getShowDurationMs(show, this.songsById),
+        id: show.id,
+        name: show.name,
+        startsAt: show.startsAt,
+        status: show.status,
+        venue: show.venue,
+      }))
+      .sort((left, right) => left.startsAt.localeCompare(right.startsAt));
   }
 
   async listByBandId(bandId: EntityId): Promise<readonly Show[]> {
@@ -355,7 +502,13 @@ export function createInMemoryRepositories(
   options: InMemoryRepositoryOptions = {},
 ): AppRepositories {
   return {
-    bands: new InMemoryBandRepository(data.bands, data.bandMembers),
+    bands: new InMemoryBandRepository(
+      data.bands,
+      data.bandMembers,
+      data.shows,
+      data.songs,
+      options.now,
+    ),
     repertoireCollections: new InMemoryRepertoireCollectionRepository(
       data.repertoireCollections ?? [],
       data.repertoireCollectionSongs ?? [],
@@ -363,6 +516,6 @@ export function createInMemoryRepositories(
       options.now,
     ),
     songs: new InMemorySongRepository(data.songs),
-    shows: new InMemoryShowRepository(data.shows),
+    shows: new InMemoryShowRepository(data.shows, data.songs),
   };
 }

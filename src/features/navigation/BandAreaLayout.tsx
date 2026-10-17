@@ -2,7 +2,8 @@ import type { Href } from 'expo-router';
 import type { PropsWithChildren, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { useBand } from '@/data/queries';
+import { useBandContext } from '@/data/queries';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import type { EntityId } from '@/domain';
 import {
   AppNavigationShell,
@@ -59,8 +60,9 @@ export function BandAreaLayout({
   viewportHeight,
   viewportWidth,
 }: BandAreaLayoutProps) {
-  const bandQuery = useBand(bandId);
-  const bandName = bandQuery.data?.name ?? 'Carregando banda…';
+  const bandContextQuery = useBandContext(bandId);
+  useScreenDataRefresh([bandContextQuery]);
+  const bandName = bandContextQuery.data?.bandName ?? 'Carregando banda…';
 
   return (
     <AppNavigationShell

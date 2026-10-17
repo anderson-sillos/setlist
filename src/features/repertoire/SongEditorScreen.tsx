@@ -38,11 +38,11 @@ import {
 } from '@/data/supabase/songLifecycleMutations';
 import {
   useCurrentBandTermAcceptance,
-  repertoireCollectionQueryKeys,
   useSong,
-  useUserBands,
-  useUserRepertoireSongs,
+  useBandContext,
+  useUserRepertoireSongSummaries,
 } from '@/data/queries';
+import { invalidateBandReadData } from '@/data/queryInvalidations';
 import type { EntityId, LyricDocument } from '@/domain';
 import { BandTermAcceptanceDialog } from '@/features/bands/BandTermAcceptanceDialog';
 import { CURRENT_BAND_TERM } from '@/features/bands/legalTerm';
@@ -80,9 +80,8 @@ const emptyLyricDocument: LyricDocument = { blocks: [] };
 export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const userBandsQuery = useUserBands();
-  useScreenDataRefresh([userBandsQuery]);
-  const userRepertoireSongsQuery = useUserRepertoireSongs();
+  const bandContextQuery = useBandContext(bandId);
+  const userRepertoireSongSummariesQuery = useUserRepertoireSongSummaries();
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
   const [isAcceptingTerm, setIsAcceptingTerm] = useState(false);
   const [termAcceptanceError, setTermAcceptanceError] = useState<string | null>(
@@ -108,22 +107,26 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   >(null);
   const [lifecycleSubmitting, setLifecycleSubmitting] = useState(false);
   const song = songQuery.data;
-  const membership = userBandsQuery.data?.find(
-    ({ band }) => band.id === bandId,
-  )?.membership;
+  const membership = bandContextQuery.data;
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const termAcceptanceQuery = useCurrentBandTermAcceptance(
     bandId,
     CURRENT_BAND_TERM.version,
     canEdit,
   );
+  useScreenDataRefresh([
+    bandContextQuery,
+    userRepertoireSongSummariesQuery,
+    songQuery,
+    termAcceptanceQuery,
+  ]);
   const isLoading =
-    userBandsQuery.isPending ||
+    bandContextQuery.isPending ||
     (Boolean(songId) && songQuery.isPending) ||
     (canEdit && termAcceptanceQuery.isPending);
   const originalArtistOptions = Array.from(
     new Set(
-      userRepertoireSongsQuery.data
+      userRepertoireSongSummariesQuery.data
         ?.map(({ originalArtist }) => originalArtist?.trim() ?? '')
         .filter(Boolean) ?? [],
     ),
@@ -189,18 +192,6 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleDialogVisible(true);
   };
 
-  const invalidateSongQueries = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: ['bands', bandId, 'songs'],
-      }),
-      queryClient.invalidateQueries({
-        queryKey: repertoireCollectionQueryKeys.byBand(bandId),
-      }),
-      queryClient.invalidateQueries({ queryKey: ['songs', 'user'] }),
-    ]);
-  };
-
   const handleLifecycleError = (error: unknown) => {
     setLifecycleError(
       error instanceof SongLifecycleMutationError
@@ -218,7 +209,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleSubmitting(true);
     try {
       await archiveSong({ bandId, songId: song.id });
-      await invalidateSongQueries();
+      await invalidateBandReadData(queryClient, {
+        type: 'song-lifecycle',
+        bandId,
+      });
       setLifecycleNoticeTitle('Música arquivada');
       setLifecycleNotice(
         'Ela não aparecerá em novas setlists, mas os shows existentes continuam intactos.',
@@ -240,7 +234,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleSubmitting(true);
     try {
       await restoreSong({ bandId, songId: song.id });
-      await invalidateSongQueries();
+      await invalidateBandReadData(queryClient, {
+        type: 'song-lifecycle',
+        bandId,
+      });
       setLifecycleNoticeTitle('Música restaurada');
       setLifecycleNotice('Disponível novamente para novas setlists.');
       setLifecycleDialogVisible(false);
@@ -260,7 +257,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     setLifecycleSubmitting(true);
     try {
       const result = await removeSong({ bandId, songId: song.id });
-      await invalidateSongQueries();
+      await invalidateBandReadData(queryClient, {
+        type: 'song-lifecycle',
+        bandId,
+      });
       if (result === 'deleted') {
         router.replace(getBandSectionHref(bandId, 'repertoire'));
         return;
@@ -315,7 +315,13 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     try {
       if (songId) {
         await updateSong({ bandId, lyrics, song: parsed.song, songId });
-        await invalidateSongQueries();
+        await invalidateBandReadData(queryClient, {
+          type: 'song-metadata',
+          bandId,
+          durationChanged:
+            song?.estimatedDurationMs !== parsed.song.estimatedDurationMs,
+          availabilityChanged: false,
+        });
         unsavedChanges.allowNextRemoval();
         leaveEditor();
       } else {
@@ -324,7 +330,12 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           lyrics,
           song: parsed.song,
         });
-        await invalidateSongQueries();
+        await invalidateBandReadData(queryClient, {
+          type: 'song-metadata',
+          bandId,
+          durationChanged: false,
+          availabilityChanged: true,
+        });
         unsavedChanges.allowNextRemoval();
         router.replace(getSongHref(bandId, createdSongId));
       }
@@ -364,8 +375,8 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       title={title}
     >
       {isLoading ? <LoadingFeedback /> : null}
-      {userBandsQuery.isError ? (
-        <ErrorFeedback onRetry={() => void userBandsQuery.refetch()} />
+      {bandContextQuery.isError ? (
+        <ErrorFeedback onRetry={() => void bandContextQuery.refetch()} />
       ) : null}
       {songQuery.isError && songId ? (
         <ErrorFeedback onRetry={() => void songQuery.refetch()} />
@@ -373,7 +384,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {termAcceptanceQuery.isError ? (
         <ErrorFeedback onRetry={() => void termAcceptanceQuery.refetch()} />
       ) : null}
-      {!isLoading && !userBandsQuery.isError && !canEdit ? (
+      {!isLoading && !bandContextQuery.isError && !canEdit ? (
         <UnavailableFeedback title="Seu papel permite consultar o repertório, não editá-lo" />
       ) : null}
       {!isLoading && songId && !songQuery.isError && !song ? (
@@ -408,7 +419,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         visible={lifecycleDialogVisible}
       />
       {!isLoading &&
-      !userBandsQuery.isError &&
+      !bandContextQuery.isError &&
       !songQuery.isError &&
       !termAcceptanceQuery.isError &&
       termAcceptanceQuery.data === true &&
@@ -516,7 +527,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         </KeyboardAvoidingView>
       ) : null}
       {!isLoading &&
-      !userBandsQuery.isError &&
+      !bandContextQuery.isError &&
       !songQuery.isError &&
       !termAcceptanceQuery.isError &&
       canEdit &&

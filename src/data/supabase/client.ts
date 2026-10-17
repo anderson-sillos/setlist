@@ -5,6 +5,7 @@ import {
   type PublicEnvironment,
 } from '@/config/environment';
 import { getSupabaseAuthStorage } from '@/data/supabase/authStorage';
+import { createSupabaseRequestFetch } from '@/data/supabase/requestIdentification';
 
 /**
  * Cria o cliente somente com as referências públicas do ambiente selecionado.
@@ -28,6 +29,9 @@ export function createConfiguredSupabaseClient(
         flowType: 'pkce',
         persistSession: true,
         ...(storage ? { storage } : {}),
+      },
+      global: {
+        fetch: createSupabaseRequestFetch(),
       },
     },
   );

@@ -9,8 +9,34 @@ import type {
   Song,
   UserBand,
 } from '@/domain/entities';
+import type {
+  BandContext,
+  ShowSummary,
+  SongSummary,
+  UserBandSummary,
+} from '@/domain/readModels';
 
-export interface BandRepository {
+export interface BandReadRepository {
+  getContext(userId: EntityId, bandId: EntityId): Promise<BandContext | null>;
+  listUserSummaries(userId: EntityId): Promise<readonly UserBandSummary[]>;
+}
+
+export interface SongReadRepository {
+  listSummariesByBandId(
+    bandId: EntityId,
+    options?: SongListOptions,
+  ): Promise<readonly SongSummary[]>;
+  listDocumentsByIds(
+    bandId: EntityId,
+    songIds: readonly EntityId[],
+  ): Promise<readonly Song[]>;
+}
+
+export interface ShowReadRepository {
+  listSummariesByBandId(bandId: EntityId): Promise<readonly ShowSummary[]>;
+}
+
+export interface BandRepository extends BandReadRepository {
   listForUser(userId: EntityId): Promise<readonly UserBand[]>;
   findById(bandId: EntityId): Promise<Band | null>;
   listMembers(bandId: EntityId): Promise<readonly BandMember[]>;
@@ -20,7 +46,7 @@ export interface SongListOptions {
   readonly includeArchived?: boolean;
 }
 
-export interface SongRepository {
+export interface SongRepository extends SongReadRepository {
   listByBandId(
     bandId: EntityId,
     options?: SongListOptions,
@@ -28,7 +54,7 @@ export interface SongRepository {
   findById(bandId: EntityId, songId: EntityId): Promise<Song | null>;
 }
 
-export interface ShowRepository {
+export interface ShowRepository extends ShowReadRepository {
   listByBandId(bandId: EntityId): Promise<readonly Show[]>;
   findById(bandId: EntityId, showId: EntityId): Promise<Show | null>;
 }

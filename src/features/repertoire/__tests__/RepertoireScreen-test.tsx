@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { PropsWithChildren, ReactElement } from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { createInMemoryRepositories } from '@/testing/repositories';
 import type {
@@ -13,6 +13,10 @@ import type {
 import { RepertoireCollectionError } from '@/domain';
 import { RepertoireScreen } from '@/features/repertoire/RepertoireScreen';
 import {
+  NavigationMemoryProvider,
+  useNavigationMemory,
+} from '@/features/navigation/NavigationMemory';
+import {
   createBand,
   createBandMember,
   createRepertoireCollection,
@@ -22,6 +26,7 @@ import {
 } from '@/testing/factories';
 import { createBandScenario } from '@/testing/scenarios';
 import { TestAppProviders } from '@/testing/TestAppProviders';
+import { colors } from '@/theme/tokens';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
@@ -453,6 +458,71 @@ describe('<RepertoireScreen />', () => {
     expect(view.queryByLabelText('Sem coleção')).toBeNull();
   });
 
+  it('mantém as músicas disponíveis quando a consulta secundária de coleções falha', async () => {
+    const repositories = createRepositories();
+    jest
+      .spyOn(repositories.repertoireCollections, 'listByBandId')
+      .mockRejectedValue(new Error('Falha ao carregar coleções'));
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('Luzes da Cidade')).toBeTruthy();
+    expect(view.getByTestId('repertoire-list')).toBeTruthy();
+    expect(view.queryByTestId('feedback-error')).toBeNull();
+  });
+
+  it('aguarda os vínculos antes de aplicar um filtro de coleção restaurado', async () => {
+    const repositories = createRepositories();
+    let resolveMemberships: (
+      memberships: readonly RepertoireCollectionSong[],
+    ) => void = () => undefined;
+    const pendingMemberships = new Promise<readonly RepertoireCollectionSong[]>(
+      (resolve) => {
+        resolveMemberships = resolve;
+      },
+    );
+    jest
+      .spyOn(repositories.repertoireCollections, 'listSongsByBandId')
+      .mockReturnValue(pendingMemberships);
+
+    function RestoreCollectionFilter() {
+      const navigationMemory = useNavigationMemory();
+      navigationMemory.rememberViewState(BAND_ID, 'repertoire', {
+        collection: FESTA_COLLECTION.id,
+        filter: 'all',
+        search: '',
+        sort: 'title',
+      });
+      return null;
+    }
+
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <NavigationMemoryProvider>
+          <RestoreCollectionFilter />
+          <RepertoireScreen bandId={BAND_ID} />
+        </NavigationMemoryProvider>
+      </AppProviders>,
+    );
+
+    await waitFor(() => {
+      expect(
+        repositories.repertoireCollections.listSongsByBandId,
+      ).toHaveBeenCalled();
+      expect(view.getByTestId('feedback-loading')).toBeTruthy();
+    });
+    expect(view.queryByText('Nenhuma música encontrada')).toBeNull();
+
+    await act(async () => resolveMemberships(FESTA_MEMBERSHIPS));
+
+    expect(await view.findByText('Maré de Neon')).toBeTruthy();
+    expect(view.getByText('Luzes da Cidade')).toBeTruthy();
+    expect(view.queryByText('Entre Pontes')).toBeNull();
+  });
+
   it('abre com a coleção indicada pela rota e preserva o filtro ao retornar', async () => {
     const repositories = createRepositories();
     function RepertoireHarness({
@@ -586,6 +656,68 @@ describe('<RepertoireScreen />', () => {
     expect(await view.findByText('Maré de Neon')).toBeTruthy();
     expect(view.queryByText('Entre Pontes')).toBeNull();
   }, 15_000);
+
+  it('preserva seleção e foco da busca durante um refresh de músicas lento', async () => {
+    const repositories = createRepositories();
+    const currentSummaries =
+      await repositories.songs.listSummariesByBandId(BAND_ID);
+    let resolveSummaries:
+      ((songs: typeof currentSummaries) => void) | undefined;
+    const pendingSummaries = new Promise<typeof currentSummaries>((resolve) => {
+      resolveSummaries = resolve;
+    });
+    jest
+      .spyOn(repositories.songs, 'listSummariesByBandId')
+      .mockResolvedValueOnce(currentSummaries)
+      .mockReturnValue(pendingSummaries);
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <RepertoireScreen bandId={BAND_ID} />
+      </AppProviders>,
+    );
+
+    await view.findByText('Luzes da Cidade');
+    await pressCollectionAction(view, 'Selecionar músicas do repertório');
+    const search = view.getByLabelText('Buscar música por título ou artista');
+    await fireEvent.changeText(search, 'luzes');
+    await fireEvent.press(view.getByLabelText('Selecionar Luzes da Cidade'));
+    await fireEvent(search, 'focus');
+
+    expect(view.getByText('1 selecionada')).toBeTruthy();
+    expect(StyleSheet.flatten(search.parent?.props.style)).toMatchObject({
+      borderColor: colors.border.focus,
+      borderWidth: 2,
+    });
+
+    const refresh = view.getByTestId('repertoire-list').props.refreshControl
+      .props.onRefresh as () => Promise<void>;
+    let refreshPromise: Promise<void> | undefined;
+    await act(async () => {
+      refreshPromise = refresh();
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(repositories.songs.listSummariesByBandId).toHaveBeenCalledTimes(2),
+    );
+
+    expect(view.getByText('1 selecionada')).toBeTruthy();
+    expect(view.getByText('Luzes da Cidade')).toBeTruthy();
+    expect(
+      view.getByLabelText('Buscar música por título ou artista').props.value,
+    ).toBe('luzes');
+    expect(StyleSheet.flatten(search.parent?.props.style)).toMatchObject({
+      borderColor: colors.border.focus,
+      borderWidth: 2,
+    });
+
+    await act(async () => {
+      resolveSummaries?.(currentSummaries);
+      await refreshPromise;
+    });
+
+    expect(view.getByText('1 selecionada')).toBeTruthy();
+    expect(view.getByTestId('repertoire-list')).toBeTruthy();
+  });
 
   it('remove o filtro da coleção excluída após confirmar a consulta e preserva os outros critérios', async () => {
     const repositories = createRepositories();

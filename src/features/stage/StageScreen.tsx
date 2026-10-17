@@ -1,4 +1,5 @@
 import { Link } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import {
@@ -10,9 +11,10 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
-import { useShow, useSongs } from '@/data/queries';
+import { useShow, useSongsByIds } from '@/data/queries';
 import type { EntityId, Show, ShowSongSetlistItem, Song } from '@/domain';
 import { getShowHref } from '@/features/navigation/routes';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import {
   formatElapsedTime,
   useManualTimer,
@@ -62,9 +64,25 @@ export function StageScreen({
   const window = useWindowDimensions();
   const layoutMode = getLayoutMode(viewportWidth ?? window.width);
   const showQuery = useShow(bandId, showId);
-  const songsQuery = useSongs(bandId, true);
-  const timer = useManualTimer();
   const show = showQuery.data;
+  const referencedSongIds = useMemo(
+    () =>
+      show && show.status !== 'cancelled'
+        ? [
+            ...new Set(
+              show.blocks.flatMap((block) =>
+                block.items.flatMap((item) =>
+                  item.type === 'song' ? [item.songId] : [],
+                ),
+              ),
+            ),
+          ].sort()
+        : [],
+    [show],
+  );
+  const songsQuery = useSongsByIds(bandId, referencedSongIds);
+  useScreenDataRefresh([showQuery, songsQuery]);
+  const timer = useManualTimer();
   const stageItems = show ? buildStageItems(show, songsQuery.data ?? []) : [];
   const staticItemIndex = stageItems.findIndex(
     ({ song }) => song?.lyricStatus === 'static',
@@ -102,11 +120,13 @@ export function StageScreen({
         </Link>
       </View>
 
-      {showQuery.isPending || songsQuery.isPending ? (
+      {showQuery.isPending ||
+      (referencedSongIds.length > 0 && songsQuery.isPending) ? (
         <LoadingFeedback variation={1} />
       ) : null}
 
-      {showQuery.isError || songsQuery.isError ? (
+      {showQuery.isError ||
+      (referencedSongIds.length > 0 && songsQuery.isError) ? (
         <ErrorFeedback
           onRetry={() => {
             void showQuery.refetch();

@@ -133,6 +133,15 @@ describe('<SongEditorScreen />', () => {
 
   it('cria música para Owner e navega aos detalhes após salvar', async () => {
     const { bandId, repositories } = createRepositories('owner');
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
+    const listUserBandSummaries = jest.spyOn(
+      repositories.bands,
+      'listUserSummaries',
+    );
     mockCreateSong.mockResolvedValue('song-created');
     mockRandomUUID
       .mockReturnValueOnce('new-block')
@@ -165,6 +174,10 @@ describe('<SongEditorScreen />', () => {
       '# Verso\nA rua acende devagar\n---\n# Refrão\nLevanta a voz',
     );
     await fireEvent.press(view.getByText('Salvar música'));
+
+    expect(listUserBandSummaries).toHaveBeenCalled();
+    expect(listSongSummaries).toHaveBeenCalledWith(bandId);
+    expect(listSongDocuments).not.toHaveBeenCalled();
 
     await waitFor(() =>
       expect(mockCreateSong).toHaveBeenCalledWith({
@@ -214,6 +227,8 @@ describe('<SongEditorScreen />', () => {
 
   it('edita metadados existentes para Editor sem sobrescrever a letra', async () => {
     const { bandId, repositories, song, songId } = createRepositories('editor');
+    const findSongById = jest.spyOn(repositories.songs, 'findById');
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
     mockUpdateSong.mockResolvedValue(undefined);
     const view = await render(
       <AppProviders repositories={repositories}>
@@ -234,6 +249,8 @@ describe('<SongEditorScreen />', () => {
         song: expect.objectContaining({ title: 'Título atualizado' }),
       }),
     );
+    expect(findSongById).toHaveBeenCalledWith(bandId, songId);
+    expect(listSongDocuments).not.toHaveBeenCalled();
     expect(mockRouter.back).toHaveBeenCalled();
   });
 

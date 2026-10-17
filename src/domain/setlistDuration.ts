@@ -1,5 +1,7 @@
 import type { Show, ShowSetlistBlock, Song } from '@/domain/entities';
 
+type SongDuration = Pick<Song, 'estimatedDurationMs'>;
+
 export interface SetlistDurationBreakdown {
   readonly hasDuration: boolean;
   readonly musicMs: number;
@@ -9,14 +11,14 @@ export interface SetlistDurationBreakdown {
 
 export function getShowDurationMs(
   show: Show,
-  songsById: ReadonlyMap<string, Song>,
+  songsById: ReadonlyMap<string, SongDuration>,
 ): number | null {
   return getShowDurationBreakdown(show, songsById).totalMs;
 }
 
 export function getBlockDurationBreakdown(
   block: ShowSetlistBlock,
-  songsById: ReadonlyMap<string, Song>,
+  songsById: ReadonlyMap<string, SongDuration>,
 ): SetlistDurationBreakdown {
   let hasDuration = false;
   let musicMs = 0;
@@ -51,7 +53,7 @@ export function getBlockDurationBreakdown(
 
 export function getShowDurationBreakdown(
   show: Show,
-  songsById: ReadonlyMap<string, Song>,
+  songsById: ReadonlyMap<string, SongDuration>,
 ): SetlistDurationBreakdown {
   let hasDuration = false;
   let musicMs = 0;

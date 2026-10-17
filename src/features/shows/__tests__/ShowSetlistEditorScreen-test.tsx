@@ -246,13 +246,23 @@ describe('<ShowSetlistEditorScreen />', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('monta o editor em tela própria para um show em rascunho', async () => {
+    const repositories = createRepositories();
+    const listSongDocuments = jest.spyOn(repositories.songs, 'listByBandId');
+    const listSongSummaries = jest.spyOn(
+      repositories.songs,
+      'listSummariesByBandId',
+    );
     const view = await render(
-      <TestProviders>
+      <TestProviders repositories={repositories}>
         <ShowSetlistEditorScreen bandId={BAND_ID} showId={CLUB_SHOW_ID} />
       </TestProviders>,
     );
 
     expect(await view.findByTestId('show-block-editor-dialog')).toBeTruthy();
+    expect(listSongSummaries).toHaveBeenCalledWith(BAND_ID, {
+      includeArchived: true,
+    });
+    expect(listSongDocuments).not.toHaveBeenCalled();
     const editorRoot = view.getByTestId('show-block-editor-dialog').parent;
     if (!editorRoot) throw new Error('Container do editor não encontrado');
     expect(StyleSheet.flatten(editorRoot.props.style).maxWidth).toBe(
@@ -647,6 +657,22 @@ describe('<ShowSetlistEditorScreen />', () => {
     const repositories: AppRepositories = {
       ...inMemoryRepositories,
       bands: {
+        getContext: async (userId, bandId) => {
+          const userBands =
+            await inMemoryRepositories.bands.listForUser(userId);
+          const userBand = userBands.find(({ band }) => band.id === bandId);
+          if (!userBand) return null;
+
+          return {
+            bandId: userBand.band.id,
+            bandName: userBand.band.name,
+            hasActiveSongs: true,
+            role:
+              accessRevoked && bandId === BAND_ID
+                ? 'member'
+                : userBand.membership.role,
+          };
+        },
         findById: (bandId) => inMemoryRepositories.bands.findById(bandId),
         listMembers: (bandId) => inMemoryRepositories.bands.listMembers(bandId),
         listForUser: async (userId: EntityId) => {
@@ -662,6 +688,8 @@ describe('<ShowSetlistEditorScreen />', () => {
               : userBand,
           );
         },
+        listUserSummaries: (userId) =>
+          inMemoryRepositories.bands.listUserSummaries(userId),
       },
     };
     const view = await render(

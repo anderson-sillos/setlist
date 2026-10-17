@@ -29,7 +29,7 @@ import { SpinButton } from '@/components/ui/SpinButton';
 import { SearchField } from '@/components/ui/list-controls/SearchField';
 import type { RepertoireCollectionSummary } from '@/data/queries';
 import { moveSetlistItem } from '@/domain';
-import type { EntityId, ShowSetlistItem, Song } from '@/domain';
+import type { EntityId, ShowSetlistItem, SongSummary } from '@/domain';
 import { getBlockDurationBreakdown } from '@/domain/setlistDuration';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { formatShowDuration, formatSongDuration } from '@/utils/duration';
@@ -49,7 +49,7 @@ export interface ShowBlockDraft {
 export interface CollectionPreviewValidationRequest {
   readonly collectionId: EntityId;
   readonly expectedSongs: readonly Pick<
-    Song,
+    SongSummary,
     'estimatedDurationMs' | 'id' | 'originalArtist' | 'title'
   >[];
   readonly expectedUpdatedAt: RepertoireCollectionSummary['collection']['updatedAt'];
@@ -80,7 +80,7 @@ interface ShowBlockEditorDialogProps {
     request: CollectionPreviewValidationRequest,
   ) => Promise<CollectionPreviewValidationResult>;
   readonly onSubmit: (blocks: readonly ShowBlockDraft[]) => void;
-  readonly songs: readonly Song[];
+  readonly songs: readonly SongSummary[];
 }
 
 interface BlockLayout {
@@ -1635,7 +1635,7 @@ function BlockRow({
   readonly onSelect: () => void;
   readonly onStartBlockDrag: (blockId: EntityId) => void;
   readonly onStartItemDrag: (blockId: EntityId, itemId: EntityId) => void;
-  readonly songById: ReadonlyMap<string, Song>;
+  readonly songById: ReadonlyMap<string, SongSummary>;
   readonly songSequenceNumbers: ReadonlyMap<EntityId, number>;
 }) {
   const [deleteFocused, setDeleteFocused] = useState(false);
@@ -1798,7 +1798,7 @@ function SetlistItemRow({
   ) => void;
   readonly onRemove: () => void;
   readonly onStartDrag: (blockId: EntityId, itemId: EntityId) => void;
-  readonly song?: Song;
+  readonly song?: SongSummary;
   readonly songSequenceNumber?: number;
 }) {
   const inputRef = useRef<TextInput | null>(null);
