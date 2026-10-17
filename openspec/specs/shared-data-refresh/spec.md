@@ -13,6 +13,10 @@ O sistema SHALL oferecer atualização manual nas telas online que exibem integr
 - **WHEN** a pessoa puxa uma lista online para atualizar
 - **THEN** o sistema busca novamente os dados daquela lista e informa visualmente que a atualização está em andamento
 
+#### Scenario: Solicitar atualização durante uma consulta automática
+- **WHEN** a pessoa solicita atualização enquanto uma consulta necessária da tela já está em andamento
+- **THEN** o indicador manual acompanha a conclusão das consultas necessárias sem reiniciar uma chamada equivalente
+
 #### Scenario: Atualizar conteúdo na web
 - **WHEN** a pessoa aciona o controle visível de atualização
 - **THEN** o sistema busca novamente os dados exibidos pela tela atual
@@ -42,15 +46,17 @@ O sistema SHALL buscar novamente somente as consultas necessárias para os dados
 - **THEN** a dependência é buscada uma única vez e alimenta ambas as regiões
 
 ### Requirement: Atualização ao retornar a uma tela
-O sistema SHALL revalidar os dados da tela quando ela voltar a ficar ativa somente se o seu cache tiver ultrapassado o intervalo mínimo de frescor configurado. Essa revalidação SHALL ser limitada às consultas da tela ativa, compartilhar dependências e respeitar estado de conexão e carregamentos já em andamento, mantendo o conteúdo autorizado disponível durante a busca.
+O sistema SHALL revalidar os dados da tela quando ela voltar a ficar ativa somente se o seu cache tiver ultrapassado o intervalo mínimo de frescor configurado ou estiver invalidado. Essa revalidação SHALL ser limitada às consultas da tela ativa, compartilhar dependências e respeitar estado de conexão e carregamentos já em andamento, mantendo o conteúdo autorizado disponível durante a busca.
 
 #### Scenario: Cache recente ao retornar
-- **WHEN** a pessoa retorna a uma tela antes de expirar o intervalo mínimo de frescor
+- **WHEN** a pessoa retorna a uma tela antes de expirar o intervalo mínimo de frescor e sem invalidação pendente
 - **THEN** o sistema mantém o cache sem iniciar uma nova consulta
+- **AND** a troca de tela não aciona o círculo de atualização
 
 #### Scenario: Cache antigo ao retornar
 - **WHEN** a pessoa retorna a uma tela depois de expirar o intervalo mínimo de frescor
 - **THEN** o sistema atualiza somente as consultas usadas por aquela tela e mantém o conteúdo atual visível durante a busca
+- **AND** o círculo indica a revalidação em andamento sem substituir o conteúdo pelo carregamento inicial
 
 #### Scenario: Retornar durante uma atualização em andamento
 - **WHEN** a tela volta a receber foco com uma consulta necessária já em andamento

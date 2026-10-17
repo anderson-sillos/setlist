@@ -2192,3 +2192,28 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      A entrega continua na branch `feat/supabase-client-and-read-optimization`
      da PR #41. O estado dos checks remotos deve ser conferido no SHA final da
      PR antes de integrar, seguindo o fluxo de merge por PR do projeto.
+160. Em 17/10/2026, antes de integrar a PR #41, o responsável solicitou revisar
+     o círculo de refresh observado ao alternar Shows/Repertório no iOS.
+     Após esclarecer a preferência, o comportamento escolhido foi mostrar o
+     círculo durante a consulta quando o cache estiver antigo ou invalidado,
+     além da atualização manual. `useScreenDataRefresh` agora controla o
+     indicador pelo ciclo de atualização solicitado, em vez de qualquer
+     `isFetching`; o carregamento inicial mantém seu feedback próprio. Pedidos
+     em andamento continuam compartilhados, e o indicador espera a conclusão
+     das consultas envolvidas mesmo quando a pessoa solicita atualização
+     durante uma busca automática. A spec `shared-data-refresh` registra essa
+     distinção e a ausência do círculo na troca com cache recente.
+     No iPad Pro 13-inch (M4), iOS 18.3, Banda Demo, via Metro 8081, a rodada
+     entre 03:41:51 e 03:42:15 UTC confirmou: Shows com cache antigo fez
+     `band_context` e `show_summaries`; Repertório fez coleções, vínculos e
+     resumos de músicas; as três trocas seguintes com cache recente não fizeram
+     consultas; puxar Shows gerou somente os dois endpoints dessa tela. Todas
+     as sete respostas observadas foram HTTP 200. O vídeo mostrou círculo nas
+     revalidações e no gesto, sem círculo nas trocas seguintes com cache recente.
+     Evidência local: `/private/tmp/setlist-ios-refresh-policy-after.mov` e
+     `/private/tmp/setlist-refresh-policy-network.jsonl`. Formatação, ESLint,
+     typecheck, `git diff --check` e validação estrita do spec OpenSpec passaram.
+     Não foi repetida a suíte Jest,
+     pgTAP ou a validação manual Android/Web nesta correção. Não foi adicionada
+     instrumentação ao app; a captura utilizou o Network do DevTools. A PR #41
+     permanece aberta aguardando a revisão deste ajuste antes de integrar.
