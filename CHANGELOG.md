@@ -1,11 +1,13 @@
 # Histórico de versões
 
-## 1.0.0 — candidato `v1.0.0-rc.2`
+## 1.0.0 — candidato `v1.0.0-rc.3` (em preparação)
 
 Primeira versão pública para Web, Android e iOS. A versão exibida no aplicativo
-é `1.0.0` nas três plataformas. O candidato atual usa a tag anotada
-`v1.0.0-rc.2`, no commit `93c21c397a50e1d0a0c2a9bf572582989f67fa6a`. Os builds
-Android e iOS de produção com contador `4` estão em validação nas lojas.
+é `1.0.0` nas três plataformas. O candidato anterior `v1.0.0-rc.2`, no commit
+`93c21c397a50e1d0a0c2a9bf572582989f67fa6a`, já foi enviado aos canais de teste
+das lojas com contadores `4`. O candidato `v1.0.0-rc.3` será gerado a partir do
+merge da PR #41, com novos builds de produção e export Web vinculados ao mesmo
+commit.
 
 ### Funcionalidades
 
@@ -25,7 +27,7 @@ Android e iOS de produção com contador `4` estão em validação nas lojas.
   afetadas por avisos sem versão corrigida publicada, com ações de acompanhamento
   em `docs/DEPENDENCY_SECURITY.md`.
 
-### Correções do candidato `rc.2`
+### Correções acumuladas até o candidato `rc.2`
 
 - Ajustado o comportamento do teclado em formulários e editores para manter os
   campos acessíveis durante a rolagem e permitir dispensar o teclado.
@@ -37,6 +39,18 @@ Android e iOS de produção com contador `4` estão em validação nas lojas.
 - Corrigida a rolagem do editor de blocos de shows e modernizados os gestos de
   arrastar dos editores.
 - Corrigido o corte dos rótulos de botões no Android.
+
+### Melhorias do candidato `rc.3`
+
+- Identificação das chamadas Supabase por versão do Setlist, plataforma, sistema
+  operacional e ambiente nos cabeçalhos de cliente.
+- Leituras agregadas para Minhas bandas, contexto da banda e duração dos shows,
+  evitando carregar a lista inteira de músicas ao abrir Shows.
+- Carregamento sob demanda dos detalhes, reutilização do cache recente e
+  deduplicação de revalidações de tela.
+- Indicador de atualização somente durante revalidações necessárias e reserva
+  estável de espaço para os controles de Shows e Repertório desde a abertura.
+- Migrações correspondentes: `20261015100000` e `20261015110000`.
 
 ### Distribuição
 
@@ -51,9 +65,10 @@ Android e iOS de produção com contador `4` estão em validação nas lojas.
 
 ### Conferências pendentes
 
-- Concluir as validações funcionais dos builds Android e iOS distribuídos pelas
-  lojas e registrar as evidências.
-- Validar a candidata Web com o manifesto de release correspondente.
+- Aplicar em produção as duas migrações antes de distribuir os novos builds.
+- Concluir as validações funcionais dos builds Android e iOS do `rc.3` e
+  registrar as evidências no manifesto de release.
+- Publicar e validar a candidata Web com o manifesto correspondente.
 - Concluir as conferências operacionais, legais e das lojas descritas no grupo 11
   de `openspec/changes/definir-mvp-setlist/tasks.md`.
 

@@ -2236,5 +2236,17 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      Formatação, ESLint, typecheck, diff e validação estrita do spec
      `application-ui` passaram. Não foi repetida a suíte Jest nem validação
      manual de Android/Web ou de fontes ampliadas nesta etapa. Os três checks
-     do commit anterior `3e6e1ae` estavam aprovados; os checks do novo commit
-     precisam ser conferidos no remoto antes de integrar a PR #41.
+     do commit `5577b31` passaram no CI. A PR #41 segue aberta até a integração
+     autorizada e preparação do candidato `v1.0.0-rc.3`.
+162. Em 17/10/2026, o responsável autorizou integrar a PR #41, aplicar em
+     produção as migrações `20261015100000` e `20261015110000`, atualizar o
+     changelog, criar a pré-release, gerar AAB/IPA de produção e publicar a Web
+     candidata no GitHub Pages. A PR está limpa, com três checks aprovados e
+     sem decisão de revisão registrada. As tags `rc.1` e `rc.2` já existem; a
+     próxima tag é `v1.0.0-rc.3`. O EAS reportou contadores remotos Android/iOS
+     `4`; os novos perfis de produção incrementarão automaticamente. A versão
+     de produto permanece `1.0.0`. O procedimento exige checkout limpo da tag,
+     manifesto de release e build concluído nas duas plataformas antes do
+     deploy Web de pré-release. Esta entrada registra a solicitação e o plano;
+     os estados finais de migração, builds, release e Pages devem ser conferidos
+     nos próprios serviços e registrados nas notas da pré-release.
