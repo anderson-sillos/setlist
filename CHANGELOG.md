@@ -6,8 +6,8 @@ Primeira versão pública para Web, Android e iOS. A versão exibida no aplicati
 é `1.0.0` nas três plataformas. O candidato anterior `v1.0.0-rc.2`, no commit
 `93c21c397a50e1d0a0c2a9bf572582989f67fa6a`, já foi enviado aos canais de teste
 das lojas com contadores `4`. O candidato `v1.0.0-rc.3` será gerado a partir do
-merge da PR #41, com novos builds de produção e export Web vinculados ao mesmo
-commit.
+commit em `main` que contém a PR #41 integrada e este registro de release. Os
+novos builds de produção e o export Web serão vinculados ao mesmo commit.
 
 ### Funcionalidades
 
@@ -51,6 +51,8 @@ commit.
 - Indicador de atualização somente durante revalidações necessárias e reserva
   estável de espaço para os controles de Shows e Repertório desde a abertura.
 - Migrações correspondentes: `20261015100000` e `20261015110000`.
+- As duas migrações foram aplicadas em `setlist-prod` em 17/10/2026; o dry-run
+  posterior confirmou que o banco está atualizado.
 
 ### Distribuição
 
@@ -65,7 +67,6 @@ commit.
 
 ### Conferências pendentes
 
-- Aplicar em produção as duas migrações antes de distribuir os novos builds.
 - Concluir as validações funcionais dos builds Android e iOS do `rc.3` e
   registrar as evidências no manifesto de release.
 - Publicar e validar a candidata Web com o manifesto correspondente.
