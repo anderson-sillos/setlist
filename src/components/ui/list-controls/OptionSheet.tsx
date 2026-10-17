@@ -20,6 +20,7 @@ import Animated, {
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
+import { listControlDimensions } from '@/components/ui/list-controls/dimensions';
 import { colors, motion, radii, spacing } from '@/theme/tokens';
 import { blurWebFocus } from '@/utils/focus';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
     justifyContent: 'center',
-    minHeight: 40,
+    minHeight: listControlDimensions.buttonMinHeight,
     paddingHorizontal: spacing.sm,
   },
   menuButtonLabel: {

@@ -130,6 +130,10 @@ O sistema SHALL identificar operações importantes com texto claro, hierarquia 
 ### Requirement: Controles de listas durante a rolagem
 O sistema SHALL recolher os controles de filtro e ordenação de Shows e Repertório ao avançar pela lista e exibi-los novamente ao retornar intencionalmente, preservando a busca, a área de rolagem e a posição do conteúdo.
 
+#### Scenario: Abrir uma lista com conteúdo em cache
+- **WHEN** a pessoa abre Shows ou Repertório com dados já disponíveis
+- **THEN** a busca e os filtros ocupam seu espaço desde a abertura, sem um salto dos cards causado pela correção tardia da altura dos controles
+
 #### Scenario: Percorrer a lista lentamente
 - **WHEN** a pessoa rola a lista para baixo com movimentos lentos e pequenas variações
 - **THEN** os controles recolhem suavemente sem alternar continuamente nem deslocar a lista, e a busca permanece disponível

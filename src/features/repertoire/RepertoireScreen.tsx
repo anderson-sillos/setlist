@@ -29,6 +29,10 @@ import {
 } from '@/components/ui/ScreenDataRefresh';
 import { ListControlsOverlay } from '@/components/ui/ListControlsOverlay';
 import {
+  getListControlsExpandedHeight,
+  listControlDimensions,
+} from '@/components/ui/list-controls/dimensions';
+import {
   ChoiceChips,
   FilterMenu,
   OptionMenu,
@@ -433,7 +437,7 @@ function RepertoireScreenContent({
     });
   const appliedRouteCollectionId = useRef<EntityId | null>(null);
   const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
-    spacing.sm * 3 + layout.minimumTouchTarget * 2 + 1,
+    getListControlsExpandedHeight,
   );
   const [selectionState, setSelectionState] =
     useState<RepertoireSelectionState>(() => ({
@@ -1298,7 +1302,7 @@ const styles = StyleSheet.create({
   },
   selectionAddButton: {
     alignSelf: 'flex-start',
-    minHeight: 40,
+    minHeight: listControlDimensions.buttonMinHeight,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },

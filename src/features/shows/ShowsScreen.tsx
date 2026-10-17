@@ -28,6 +28,10 @@ import {
   SearchField,
 } from '@/components/ui/ListControls';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
+import {
+  getListControlsExpandedHeight,
+  listControlDimensions,
+} from '@/components/ui/list-controls/dimensions';
 import { useBandContext, useShowSummaries } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import { createShow, ShowMutationError } from '@/data/supabase/showMutations';
@@ -207,11 +211,8 @@ export function ShowsScreen({
       ) ?? null
     );
   }, [state.date]);
-  const [controlsOverlayHeight, setControlsOverlayHeight] = useState(
-    spacing.sm * (selectedDateLabel ? 4 : 3) +
-      layout.minimumTouchTarget * 2 +
-      (selectedDateLabel ? 40 : 0) +
-      1,
+  const [controlsOverlayHeight, setControlsOverlayHeight] = useState(() =>
+    getListControlsExpandedHeight(selectedDateLabel ? 1 : 0),
   );
   const handleCreateShow = async (form: ShowCreationForm) => {
     if (creationSubmissionLock.current) return;
@@ -566,6 +567,7 @@ export function ShowsScreen({
           testID="shows-list"
         />
         <ListControlsOverlay
+          additionalControlRows={selectedDateLabel ? 1 : 0}
           controlsVisible={controlsVisible}
           horizontalPadding={horizontalPadding}
           onExpandedHeightChange={setControlsOverlayHeight}
@@ -620,7 +622,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
     justifyContent: 'center',
-    minHeight: 40,
+    minHeight: listControlDimensions.buttonMinHeight,
     paddingHorizontal: spacing.sm,
   },
   dateChip: {
@@ -630,7 +632,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
     justifyContent: 'center',
-    minHeight: 40,
+    minHeight: listControlDimensions.buttonMinHeight,
     paddingHorizontal: spacing.md,
   },
   filterGroup: {

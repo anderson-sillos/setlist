@@ -2217,3 +2217,24 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      pgTAP ou a validação manual Android/Web nesta correção. Não foi adicionada
      instrumentação ao app; a captura utilizou o Network do DevTools. A PR #41
      permanece aberta aguardando a revisão deste ajuste antes de integrar.
+161. Em 17/10/2026, corrigi o pequeno salto dos cards ao abrir Shows e
+     Repertório. A reserva inicial era 121 pontos, enquanto a busca media 66,
+     a barra de filtros 48 e a borda 1, totalizando 115. As dimensões dos
+     controles e o cálculo da reserva agora são compartilhados em
+     `src/components/ui/list-controls/dimensions.ts`. O overlay inicia com a
+     altura da barra disponível, e a sincronização da altura medida usa
+     `useLayoutEffect`. Shows também considera a linha adicional do filtro
+     de data. As medições reais continuam acomodando fontes maiores e quebras
+     de linha; não foram fixadas alturas que cortem o conteúdo.
+     A conferência no iPad Pro 13-inch (M4), iOS 18.3, via Metro 8081 registrou
+     reserva de 115 pontos em ambas as telas, busca 66, barra 48 e offset zero.
+     O vídeo da volta ao Repertório com cache recente mostrou a posição dos
+     cards estável, sem o ajuste de 6 pontos. Evidências locais:
+     `/private/tmp/setlist-stable-list-after.mov` e
+     `/private/tmp/setlist-stable-list-observed.jsonl`. A observação pelo
+     DevTools foi externa, sem instrumentação adicionada ao app.
+     Formatação, ESLint, typecheck, diff e validação estrita do spec
+     `application-ui` passaram. Não foi repetida a suíte Jest nem validação
+     manual de Android/Web ou de fontes ampliadas nesta etapa. Os três checks
+     do commit anterior `3e6e1ae` estavam aprovados; os checks do novo commit
+     precisam ser conferidos no remoto antes de integrar a PR #41.

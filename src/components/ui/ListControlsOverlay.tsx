@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -8,11 +8,17 @@ import Animated, {
 
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { colors, layout, motion, spacing } from '@/theme/tokens';
+import {
+  getListControlsToolbarHeight,
+  listControlDimensions,
+  listControlsSearchHeight,
+} from '@/components/ui/list-controls/dimensions';
 
 interface ListControlsOverlayProps {
   readonly children: ReactNode;
   readonly controlsVisible: boolean;
   readonly horizontalPadding: number;
+  readonly additionalControlRows?: number;
   readonly onExpandedHeightChange: (height: number) => void;
   readonly search: ReactNode;
 }
@@ -21,11 +27,14 @@ export function ListControlsOverlay({
   children,
   controlsVisible,
   horizontalPadding,
+  additionalControlRows = 0,
   onExpandedHeightChange,
   search,
 }: ListControlsOverlayProps) {
-  const [searchHeight, setSearchHeight] = useState(0);
-  const [controlsHeight, setControlsHeight] = useState(0);
+  const [searchHeight, setSearchHeight] = useState(listControlsSearchHeight);
+  const [controlsHeight, setControlsHeight] = useState(() =>
+    getListControlsToolbarHeight(additionalControlRows),
+  );
   const reducedMotion = useReducedMotionPreference();
   const progress = useSharedValue(controlsVisible ? 1 : 0);
   const collapseStyle = useAnimatedStyle(() => ({
@@ -47,10 +56,12 @@ export function ListControlsOverlay({
     );
   }, [controlsVisible, progress, reducedMotion]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (searchHeight > 0 && controlsHeight > 0) {
       // Reserve the expanded height once; hiding controls must not move the list.
-      onExpandedHeightChange(searchHeight + controlsHeight + 1);
+      onExpandedHeightChange(
+        searchHeight + controlsHeight + listControlDimensions.borderWidth,
+      );
     }
   }, [controlsHeight, onExpandedHeightChange, searchHeight]);
 
@@ -99,7 +110,7 @@ const styles = StyleSheet.create({
   overlay: {
     backgroundColor: colors.background.canvas,
     borderBottomColor: colors.border.subtle,
-    borderBottomWidth: 1,
+    borderBottomWidth: listControlDimensions.borderWidth,
     left: 0,
     position: 'absolute',
     right: 0,
@@ -112,15 +123,15 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   search: {
-    paddingVertical: spacing.sm,
+    paddingVertical: listControlDimensions.searchPadding,
   },
   collapse: {
     overflow: 'hidden',
   },
   controls: {
-    gap: spacing.sm,
+    gap: listControlDimensions.toolbarGap,
     left: 0,
-    paddingBottom: spacing.sm,
+    paddingBottom: listControlDimensions.toolbarPaddingBottom,
     position: 'absolute',
     right: 0,
     top: 0,
