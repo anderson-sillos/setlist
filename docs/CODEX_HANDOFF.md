@@ -2254,3 +2254,18 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      candidata; a publicação está autorizada pelo responsável. Os builds ainda
      precisam de validação funcional antes de registrar plataformas como
      aprovadas.
+
+163. Em 17/10/2026, a pré-release `v1.0.0-rc.3` foi publicada em
+     https://github.com/anderson-sillos/setlist/releases/tag/v1.0.0-rc.3, no
+     commit `aab57d85b00c4e7852a40f7d9497d015d67c54d7`. Os builds EAS de produção
+     `1.0.0 (5)` terminaram: Android `a4a91229-4100-4dc3-abe6-245c540555bb` e
+     iOS `123b2ba4-0cc0-40b6-a899-1f57f574e250`. O envio Android foi concluído
+     para a trilha Alpha (submissão EAS
+     `42c550cf-79c4-42a9-80c1-9a07089d6f22`); o upload iOS foi aceito pelo App
+     Store Connect e está em processamento (submissão EAS
+     `e100d345-f7e4-47f0-a47c-27a73ac6196c`). O workflow do Pages
+     `39051191669` concluiu com sucesso e `https://setlistbr.app.br/release.json`
+     confirma candidata, tag, versão e commit. O manifesto anexado à Release tem
+     SHA-256 `faa43e5a2e01caf1c082f5b2f544a4d6d173b4a7bcecdc60b5530eeb11f99484`.
+     As validações funcionais dos artefatos Web/Android/iOS continuam pendentes;
+     não registrar os builds como validados antes de completar os testes.
