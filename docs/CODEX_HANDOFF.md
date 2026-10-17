@@ -2236,17 +2236,21 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      Formatação, ESLint, typecheck, diff e validação estrita do spec
      `application-ui` passaram. Não foi repetida a suíte Jest nem validação
      manual de Android/Web ou de fontes ampliadas nesta etapa. Os três checks
-     do commit `5577b31` passaram no CI. A PR #41 segue aberta até a integração
-     autorizada e preparação do candidato `v1.0.0-rc.3`.
-162. Em 17/10/2026, o responsável autorizou integrar a PR #41, aplicar em
-     produção as migrações `20261015100000` e `20261015110000`, atualizar o
-     changelog, criar a pré-release, gerar AAB/IPA de produção e publicar a Web
-     candidata no GitHub Pages. A PR está limpa, com três checks aprovados e
-     sem decisão de revisão registrada. As tags `rc.1` e `rc.2` já existem; a
-     próxima tag é `v1.0.0-rc.3`. O EAS reportou contadores remotos Android/iOS
-     `4`; os novos perfis de produção incrementarão automaticamente. A versão
-     de produto permanece `1.0.0`. O procedimento exige checkout limpo da tag,
-     manifesto de release e build concluído nas duas plataformas antes do
-     deploy Web de pré-release. Esta entrada registra a solicitação e o plano;
-     os estados finais de migração, builds, release e Pages devem ser conferidos
-     nos próprios serviços e registrados nas notas da pré-release.
+     do head final `a2b8dbc` passaram no CI; a PR #41 foi integrada por squash
+     em `682d137`.
+162. Em 17/10/2026, a PR #41 foi integrada por squash em `682d137` após os três
+     checks passarem. Em `setlist-prod` (`tqijocmmiwistinrjpwl`), o dry-run
+     apontou somente `20261015100000_add_band_read_summaries.sql` e
+     `20261015110000_add_show_read_summaries.sql`; ambas foram aplicadas sem
+     seeds ou roles, e o dry-run posterior confirmou o banco atualizado. As
+     tags `v1.0.0-rc.1` e `rc.2` já existem; a próxima é `v1.0.0-rc.3`. O EAS
+     reportou contadores remotos Android/iOS `4`; o produto permanece na versão
+     `1.0.0` e os builds de produção incrementarão esses contadores. O changelog
+     agora registra a integração e as migrações aplicadas. Próximos passos:
+     integrar este registro documental por PR, criar a tag imutável no SHA
+     resultante da `main`, gerar AAB/IPA de produção no checkout limpo da tag,
+     anexar o manifesto à pré-release publicada e disparar manualmente o Pages
+     para essa candidata. O deploy de pré-release substitui o site público pela
+     candidata; a publicação está autorizada pelo responsável. Os builds ainda
+     precisam de validação funcional antes de registrar plataformas como
+     aprovadas.
