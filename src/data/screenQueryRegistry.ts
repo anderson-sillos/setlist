@@ -11,6 +11,7 @@ export interface RefreshableScreenQuery {
 type ScreenQuerySource = () => readonly RefreshableScreenQuery[];
 
 const activeScreenQuerySources = new Map<QueryClient, Set<ScreenQuerySource>>();
+const inFlightRefreshKeys = new WeakMap<QueryClient, Map<string, number>>();
 
 function serializeQueryKey(queryKey: QueryKey): string {
   return JSON.stringify(queryKey);
@@ -56,6 +57,44 @@ export function uniqueRefreshQueries(
     .map(({ query }) => query);
 }
 
+/** Refetches selected screen queries without restarting an equivalent request. */
+export async function refetchScreenQueries(
+  queryClient: QueryClient,
+  queries: readonly RefreshableScreenQuery[],
+): Promise<void> {
+  const inFlightKeys = inFlightRefreshKeys.get(queryClient) ?? new Map();
+  inFlightRefreshKeys.set(queryClient, inFlightKeys);
+
+  const queriesToRefresh = uniqueRefreshQueries(queries).filter((query) => {
+    const keys = (query.refreshKeys ?? []).map(serializeQueryKey);
+    return keys.length === 0 || !keys.every((key) => inFlightKeys.has(key));
+  });
+  const keysByQuery = queriesToRefresh.map((query) =>
+    (query.refreshKeys ?? []).map(serializeQueryKey),
+  );
+
+  keysByQuery.forEach((keys) => {
+    keys.forEach((key) => {
+      inFlightKeys.set(key, (inFlightKeys.get(key) ?? 0) + 1);
+    });
+  });
+
+  try {
+    await Promise.all(queriesToRefresh.map(({ refetch }) => refetch()));
+  } finally {
+    keysByQuery.forEach((keys) => {
+      keys.forEach((key) => {
+        const activeRefreshCount = inFlightKeys.get(key) ?? 0;
+        if (activeRefreshCount <= 1) {
+          inFlightKeys.delete(key);
+        } else {
+          inFlightKeys.set(key, activeRefreshCount - 1);
+        }
+      });
+    });
+  }
+}
+
 export function registerActiveScreenQueries(
   queryClient: QueryClient,
   getQueries: ScreenQuerySource,
@@ -88,5 +127,5 @@ export async function refreshActiveScreenQueries(
     [...sources].flatMap((getQueries) => getQueries()),
   );
 
-  await Promise.all(queries.map(({ refetch }) => refetch()));
+  await refetchScreenQueries(queryClient, queries);
 }

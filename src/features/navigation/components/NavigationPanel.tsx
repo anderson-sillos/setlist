@@ -14,7 +14,7 @@ import { AppLogo } from '@/components/ui/AppLogo';
 import { AppText } from '@/components/ui/AppText';
 import { AppVersionLabel } from '@/components/ui/AppVersionLabel';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { useBandMembers } from '@/data/queries';
+import { useBandContext } from '@/data/queries';
 import type { BandRole, EntityId } from '@/domain';
 import { useCurrentProfile } from '@/features/account/useCurrentProfile';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -123,31 +123,12 @@ function SidebarNavigationLink({
     largeTargets && styles.drawerItem,
     { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
   ];
-  const itemStyle = href
-    ? StyleSheet.flatten([...baseStyle, active && styles.sectionItemActive])
-    : ({ pressed }: { pressed: boolean }) => [
-        ...baseStyle,
-        pressed && styles.pressed,
-        active && styles.sectionItemActive,
-      ];
-  const item = (
-    <Pressable
-      accessibilityLabel={onPress ? `${label}, em breve` : `Ir para ${label}`}
-      accessibilityRole={onPress ? 'button' : 'tab'}
-      accessibilityState={onPress ? undefined : { selected: active }}
-      onPress={
-        onPress
-          ? () => {
-              blurWebFocus();
-              onPress();
-            }
-          : Platform.OS === 'android'
-            ? onNavigate
-            : undefined
-      }
-      onPressIn={onPress || Platform.OS === 'android' ? undefined : onNavigate}
-      style={itemStyle}
-    >
+  const staticItemStyle = StyleSheet.flatten([
+    ...baseStyle,
+    active && styles.sectionItemActive,
+  ]);
+  const itemContent = (
+    <>
       {active ? (
         <View
           style={[
@@ -165,6 +146,68 @@ function SidebarNavigationLink({
         label={label}
         largeTargets={largeTargets}
       />
+    </>
+  );
+
+  if (href && Platform.OS === 'web') {
+    const webLinkContent = (
+      <View
+        accessibilityLabel={onPress ? `${label}, em breve` : `Ir para ${label}`}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: active }}
+        focusable
+        style={staticItemStyle}
+      >
+        {itemContent}
+      </View>
+    );
+
+    if (active) {
+      return webLinkContent;
+    }
+
+    return (
+      <Link
+        href={href}
+        onPress={() => {
+          blurWebFocus();
+          onNavigate?.();
+        }}
+        replace
+        asChild
+      >
+        {webLinkContent}
+      </Link>
+    );
+  }
+
+  const item = (
+    <Pressable
+      accessibilityLabel={onPress ? `${label}, em breve` : `Ir para ${label}`}
+      accessibilityRole={onPress ? 'button' : 'tab'}
+      accessibilityState={onPress ? undefined : { selected: active }}
+      onPress={
+        onPress
+          ? () => {
+              blurWebFocus();
+              onPress();
+            }
+          : Platform.OS === 'android'
+            ? onNavigate
+            : undefined
+      }
+      onPressIn={onPress || Platform.OS === 'android' ? undefined : onNavigate}
+      style={
+        href
+          ? staticItemStyle
+          : ({ pressed }: { pressed: boolean }) => [
+              ...baseStyle,
+              pressed && styles.pressed,
+              active && styles.sectionItemActive,
+            ]
+      }
+    >
+      {itemContent}
     </Pressable>
   );
 
@@ -194,6 +237,39 @@ function GeneralNavigationLink({
   readonly rowHeight: number;
   readonly onNavigate?: () => void;
 }) {
+  const content = (
+    <NavigationItemContent
+      compact={compact}
+      icon={icon}
+      label={label}
+      largeTargets={largeTargets}
+    />
+  );
+  const style = StyleSheet.flatten([
+    styles.sectionItem,
+    compact && styles.compactItem,
+    largeTargets && styles.drawerItem,
+    { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
+  ]);
+
+  if (Platform.OS === 'web') {
+    return (
+      <Link
+        href={href}
+        onPress={() => {
+          blurWebFocus();
+          onNavigate?.();
+        }}
+        replace
+        asChild
+      >
+        <View accessibilityLabel={label} accessibilityRole="link" style={style}>
+          {content}
+        </View>
+      </Link>
+    );
+  }
+
   return (
     <Link href={href} onPress={blurWebFocus} replace asChild>
       <Pressable
@@ -201,19 +277,9 @@ function GeneralNavigationLink({
         accessibilityRole="link"
         onPress={Platform.OS === 'android' ? onNavigate : undefined}
         onPressIn={Platform.OS === 'android' ? undefined : onNavigate}
-        style={StyleSheet.flatten([
-          styles.sectionItem,
-          compact && styles.compactItem,
-          largeTargets && styles.drawerItem,
-          { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
-        ])}
+        style={style}
       >
-        <NavigationItemContent
-          compact={compact}
-          icon={icon}
-          label={label}
-          largeTargets={largeTargets}
-        />
+        {content}
       </Pressable>
     </Link>
   );
@@ -277,6 +343,64 @@ function AccountNavigationLink({
   readonly rowHeight: number;
   readonly onNavigate?: () => void;
 }) {
+  const content = (
+    <>
+      <View style={styles.sectionIcon}>
+        <UserAvatar
+          avatarUrl={account.avatarUrl}
+          displayName={account.name}
+          size={28}
+        />
+      </View>
+      <View style={styles.accountCopy} testID="navigation-account-copy">
+        <AppText
+          numberOfLines={1}
+          style={[
+            styles.accountName,
+            compact && styles.compactSectionLabel,
+            largeTargets && styles.drawerSectionLabel,
+          ]}
+          tone="inverse"
+        >
+          {account.name}
+        </AppText>
+        <AppText numberOfLines={1} style={styles.accountEmail} tone="muted">
+          {account.email}
+        </AppText>
+      </View>
+      <AppIcon color={colors.text.secondary} name="forward" size={16} />
+    </>
+  );
+  const style = StyleSheet.flatten([
+    styles.sectionItem,
+    styles.accountIdentity,
+    { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
+  ]);
+
+  if (Platform.OS === 'web') {
+    return (
+      <Link
+        href="/account"
+        onPress={() => {
+          blurWebFocus();
+          onNavigate?.();
+        }}
+        replace
+        asChild
+      >
+        <View
+          accessibilityHint={`Conta de ${account.name}, ${account.email}. Abrir perfil e configurações da conta.`}
+          accessibilityLabel="Perfil e conta"
+          accessibilityRole="link"
+          style={style}
+          testID="navigation-account-identity"
+        >
+          {content}
+        </View>
+      </Link>
+    );
+  }
+
   return (
     <Link href="/account" onPress={blurWebFocus} replace asChild>
       <Pressable
@@ -285,37 +409,10 @@ function AccountNavigationLink({
         accessibilityRole="link"
         onPress={Platform.OS === 'android' ? onNavigate : undefined}
         onPressIn={Platform.OS === 'android' ? undefined : onNavigate}
-        style={StyleSheet.flatten([
-          styles.sectionItem,
-          styles.accountIdentity,
-          { height: rowHeight, minHeight: rowHeight, paddingVertical: 0 },
-        ])}
+        style={style}
         testID="navigation-account-identity"
       >
-        <View style={styles.sectionIcon}>
-          <UserAvatar
-            avatarUrl={account.avatarUrl}
-            displayName={account.name}
-            size={28}
-          />
-        </View>
-        <View style={styles.accountCopy} testID="navigation-account-copy">
-          <AppText
-            numberOfLines={1}
-            style={[
-              styles.accountName,
-              compact && styles.compactSectionLabel,
-              largeTargets && styles.drawerSectionLabel,
-            ]}
-            tone="inverse"
-          >
-            {account.name}
-          </AppText>
-          <AppText numberOfLines={1} style={styles.accountEmail} tone="muted">
-            {account.email}
-          </AppText>
-        </View>
-        <AppIcon color={colors.text.secondary} name="forward" size={16} />
+        {content}
       </Pressable>
     </Link>
   );
@@ -366,7 +463,7 @@ export function NavigationPanel({
   const { session } = useAuthSession();
   const { fontScale } = useWindowDimensions();
   const profileQuery = useCurrentProfile();
-  const membersQuery = useBandMembers(bandId);
+  const bandContextQuery = useBandContext(bandId);
   const menuFontScale = Math.max(1, fontScale);
   const rowHeight =
     (largeTargets ? layout.minimumTouchTarget : compact ? 28 : 32) *
@@ -393,14 +490,12 @@ export function NavigationPanel({
         email: 'Sessão não iniciada',
         name: 'Visitante',
       };
-  const membership = membersQuery.data?.find(
-    (member) => member.userId === session?.user.id,
-  );
-  const membershipLabel = membership
-    ? roleLabels[membership.role]
-    : membersQuery.isLoading
+  const membershipRole = bandContextQuery.data?.role;
+  const membershipLabel = membershipRole
+    ? roleLabels[membershipRole]
+    : bandContextQuery.isLoading
       ? 'Carregando papel…'
-      : membersQuery.isError
+      : bandContextQuery.isError
         ? 'Papel indisponível'
         : null;
 

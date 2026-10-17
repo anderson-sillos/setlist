@@ -4,6 +4,7 @@ import { useCallback, useLayoutEffect, useRef } from 'react';
 
 import {
   registerActiveScreenQueries,
+  refetchScreenQueries,
   uniqueRefreshQueries,
   type RefreshableScreenQuery,
 } from '@/data/screenQueryRegistry';
@@ -34,11 +35,11 @@ export function useScreenDataRefresh(
       const availableQueries = uniqueRefreshQueries(queriesRef.current).filter(
         ({ isFetching }) => !isFetching,
       );
-      await Promise.all(availableQueries.map(({ refetch }) => refetch()));
+      await refetchScreenQueries(queryClient, availableQueries);
     } finally {
       refreshInProgressRef.current = false;
     }
-  }, [enabled]);
+  }, [enabled, queryClient]);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,7 +58,7 @@ export function useScreenDataRefresh(
           (Boolean(isStale) || now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS),
       );
 
-      void Promise.all(staleQueries.map(({ refetch }) => refetch()));
+      void refetchScreenQueries(queryClient, staleQueries);
       return unregister;
     }, [enabled, queryClient]),
   );

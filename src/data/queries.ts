@@ -115,12 +115,20 @@ export function useBand(bandId: EntityId) {
   });
 }
 
-export function useBandContext(bandId: EntityId) {
+export function useBandContext(bandId: EntityId | undefined) {
   const { currentUserId, repositories } = useAppData();
+  const queryBandId = bandId ?? '';
 
   return useKeyedQuery({
-    queryKey: queryKeys.bands.context(currentUserId, bandId),
-    queryFn: () => repositories.bands.getContext(currentUserId, bandId),
+    enabled: Boolean(bandId),
+    queryKey: queryKeys.bands.context(currentUserId, queryBandId),
+    queryFn: () => {
+      if (!bandId) {
+        throw new Error('A banda é necessária para carregar o contexto.');
+      }
+
+      return repositories.bands.getContext(currentUserId, bandId);
+    },
   });
 }
 

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
 import type { PropsWithChildren } from 'react';
 
+import { refetchScreenQueries } from '@/data/screenQueryRegistry';
 import {
   SCREEN_DATA_FRESHNESS_MS,
   useScreenDataRefresh,
@@ -194,6 +195,40 @@ describe('useScreenDataRefresh', () => {
     });
 
     expect(firstQuery.refetch).toHaveBeenCalledTimes(1);
+    expect(secondQuery.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('não reinicia a mesma consulta enquanto outro consumidor já a atualiza', async () => {
+    let finishRefresh: (() => void) | undefined;
+    const sharedRefreshKey = [['bands', 'band-1', 'context', 'user-1']];
+    const firstQuery = {
+      dataUpdatedAt: 0,
+      isFetching: false,
+      refreshKeys: sharedRefreshKey,
+      refetch: jest.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            finishRefresh = resolve;
+          }),
+      ),
+    };
+    const secondQuery = {
+      dataUpdatedAt: 0,
+      isFetching: false,
+      refreshKeys: sharedRefreshKey,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const firstRefresh = refetchScreenQueries(queryClient, [firstQuery]);
+    await refetchScreenQueries(queryClient, [secondQuery]);
+
+    expect(firstQuery.refetch).toHaveBeenCalledTimes(1);
+    expect(secondQuery.refetch).not.toHaveBeenCalled();
+
+    finishRefresh?.();
+    await firstRefresh;
+    await refetchScreenQueries(queryClient, [secondQuery]);
+
     expect(secondQuery.refetch).toHaveBeenCalledTimes(1);
   });
 

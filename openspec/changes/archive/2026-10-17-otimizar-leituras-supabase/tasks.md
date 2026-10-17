@@ -1,9 +1,25 @@
 # Tasks
 
+## Closure Decision
+
+Em 17/10/2026, o responsável aceitou as evidências existentes como suficientes
+e autorizou concluir a change. Os itens 1.1.2, 6.2, 6.3.2 e 6.4.2 abaixo tiveram
+seu critério de encerramento ajustado para consolidar esse aceite. As outras 25
+tarefas já estavam implementadas e verificadas. O aceite não significa que
+medições ou cenários adicionais foram executados.
+
+Foram dispensados como condição de encerramento: traces históricos equivalentes
+de Minhas bandas/foco, comparação completa de bytes de rede e tempo de primeiro
+conteúdo nas três plataformas, expansão da matriz manual lenta/falha no iOS e
+Android e as rodadas adicionais de gravação/restauração recomendadas na revisão
+final. As limitações e resultados disponíveis permanecem em
+`docs/SUPABASE_READ_PERFORMANCE.md` e `verification.md`; os requisitos funcionais
+das specs permanecem integrais.
+
 ## 1. Linha de base e contratos de leitura
 
 - [x] 1.1.1 Registrar as contagens históricas fornecidas para Shows e Repertório, estimar pelo código o caminho anterior de Minhas bandas e distinguir chamadas observadas de bytes, tempo de rede e tempo de interface não medidos.
-- [ ] 1.1.2 Completar a linha de base observada de Minhas bandas e retorno por foco, além de bytes, duração individual de rede e tempo até estrutura/conteúdo visível, com traces históricos comparáveis.
+- [x] 1.1.2 Consolidar a linha de base disponível e distinguir contagens observadas, estimativas e medições ausentes; registrar o aceite de suficiência sem exigir os traces históricos e tempos/bytes adicionais dispensados na decisão de encerramento.
 - [x] 1.2 Definir os tipos `BandContext`, `UserBandSummary`, `SongSummary` e `ShowSummary` e os métodos necessários dos repositórios, mantendo documentos completos distintos; verificar com typecheck e cenários de contrato que resumo não exige letra/blocos fictícios e distingue duração nula de zero.
 
 ## 2. Resumos autorizados no banco
@@ -41,8 +57,8 @@
 ## 6. Validação integrada e evidências
 
 - [x] 6.1 Executar as verificações pertinentes de formatação, lint, typecheck, suítes de domínio/repositórios/queries/interface e banco; confirmar a passagem dos checks exigidos pelo projeto e registrar comandos e resultados sem repetir execuções sem mudanças ou falhas novas.
-- [ ] 6.2 Validar os fluxos completos em Android, iOS e web com conexão normal e respostas lentas/falhas secundárias, incluindo abrir letra, editar setlist, organizar coleções, refresh e mudança de papel; registrar comportamento e limitações observadas no relatório de desempenho.
+- [x] 6.2 Consolidar as evidências automatizadas e manuais existentes de Android, iOS e web, incluindo os fluxos e cenários efetivamente exercitados; registrar a cobertura parcial, a indisponibilidade atual do Android e o aceite do responsável para encerrar sem ampliar a matriz manual.
 - [x] 6.3.1 Derivar do código e dos testes as contagens esperadas de leituras por tela e a política de retorno por foco, separando esses resultados de observações em logs.
-- [ ] 6.3.2 Comparar as contagens e o tamanho dos payloads observados após a otimização com a linha de base, usando traces delimitados e excluindo autenticação.
+- [x] 6.3.2 Comparar as contagens observadas antes/depois e registrar os tamanhos disponíveis, distinguindo corpo entregue ao Fetch de transferência de rede; documentar a comparação histórica de bytes dispensada, sem afirmar percentual de economia de dados ou de velocidade.
 - [x] 6.4.1 Consolidar planos SQL, compatibilidade aditiva dos contratos anteriores, contagens derivadas do código e resultados automatizados em `docs/SUPABASE_READ_PERFORMANCE.md`; registrar no handoff o progresso e as evidências disponíveis.
-- [ ] 6.4.2 Acrescentar ao relatório os tempos de estrutura/conteúdo e volume transferido medidos, além dos resultados manuais de Android, iOS e web, e atualizar o handoff antes do encerramento da change.
+- [x] 6.4.2 Consolidar no relatório os tempos/tamanhos disponíveis, os resultados manuais e seus limites, registrar o aceite das evidências suficientes e atualizar o handoff para o encerramento e arquivo da change.

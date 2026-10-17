@@ -160,6 +160,21 @@ Registrar tamanho do conteúdo e bytes de rede quando disponíveis, duração do
 5. Na entrega autorizada, aplicar primeiro a migração aditiva no ambiente de destino e depois distribuir os clientes compatíveis. Esta change não autoriza publicação automática ou execução em produção.
 6. Para rollback de cliente, os endpoints antigos permanecem disponíveis. Remover as novas views somente depois de confirmar que nenhum cliente distribuído depende delas; não excluir dados do domínio.
 
+## Closure Decision
+
+Em 17/10/2026, o responsável autorizou concluir a change com as evidências
+existentes. Para o encerramento, as metas de validação da decisão 7 são atendidas
+pelas contagens observadas, testes de contratos/cache/interface e banco e
+inspeções manuais documentadas. Traces históricos equivalentes de Minhas bandas,
+comparação completa de bytes de rede/primeiro conteúdo e ampliação da matriz
+manual lenta/falha não condicionam mais o arquivo desta entrega. Rodadas
+adicionais de gravação/restauração também foram dispensadas pelo aceite.
+
+Essa decisão não altera a arquitetura, os contratos ou regras de autorização.
+O relatório mantém as lacunas e separa bytes do corpo no Fetch de transferência
+HTTP; nenhuma medição ausente é declarada como realizada. `tasks.md` e
+`verification.md` registram o escopo de validação aceito.
+
 ## References
 
 - [Joins e relações na Data API](https://supabase.com/docs/guides/database/joins-and-nesting).

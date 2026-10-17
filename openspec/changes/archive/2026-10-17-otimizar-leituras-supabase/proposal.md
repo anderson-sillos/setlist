@@ -33,3 +33,14 @@ As telas consultam repetidamente banda, participação e perfil, transferem letr
 - `BandAreaLayout`, Minhas bandas, Shows, Repertório, Coleções e consumidores dos contratos compartilhados em detalhe, edição e prévia de palco.
 - Componentes de carregamento, hooks de atualização e suítes pertinentes de banco, queries e interface.
 - Documentação de validação com comparação antes/depois. Nenhuma nova dependência de serviço, publicação ou alteração de produção integra esta proposta.
+
+## Closure acceptance
+
+Em 17/10/2026, o responsável aceitou como suficientes os testes automatizados,
+contratos SQL e evidências manuais/logs já registrados para concluir esta
+entrega. A redução observada de consultas comprova a melhoria proposta. As
+medições históricas adicionais de bytes e tempo de renderização e a expansão
+da matriz manual foram dispensadas como condição de encerramento, preservando
+as limitações no relatório. Não se afirma ganho percentual de tráfego ou de
+velocidade sem comparação equivalente. A decisão ajusta a validação da entrega;
+os requisitos funcionais permanecem inalterados.
