@@ -50,6 +50,30 @@ e Web validados antes de encerrar a distribuição estável.
 - **WHEN** uma plataforma ainda não tem artefato concluído ou validação
 - **THEN** o registro permanece parcial e não declara a versão estável pronta
 
+### Requirement: Otimização e símbolos do build Android
+
+O processo SHALL habilitar R8 com o preset `proguard-android-optimize.txt` para
+otimizar e reduzir código e recursos nos builds Android de release, SHALL
+preservar o `mapping.txt` produzido pelo mesmo build do AAB fora do Git e MUST
+NOT considerar o release Android concluído até que os fluxos críticos estejam
+validados e o mapa esteja associado ao mesmo `versionCode` no Play Console.
+
+#### Scenario: Preparar AAB Android otimizado
+
+- **WHEN** o EAS gera o AAB do perfil `production-android`
+- **THEN** R8 aplica minificação e redução de recursos e o mapa correspondente é
+  disponibilizado como artefato auxiliar do mesmo job
+
+#### Scenario: Tentar associar mapa de outra compilação
+
+- **WHEN** o `mapping.txt` não corresponde ao AAB ou ao `versionCode` da versão
+- **THEN** o processo mantém a validação Android pendente e exige o mapa correto
+
+#### Scenario: Detectar regressão na configuração Android
+
+- **WHEN** o CI verifica uma alteração de código ou configuração do aplicativo
+- **THEN** ele gera o projeto Android do Expo e falha se R8, a redução de recursos, o preset otimizado ou a coleta do `mapping.txt` nos perfis de release não estiverem configurados
+
 ### Requirement: Publicação Web por Release
 
 O Pages de produção SHALL obter o código da tag estável de uma Release

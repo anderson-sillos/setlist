@@ -70,6 +70,9 @@
         "SETLIST_NATIVE_GOOGLE_ANDROID": "1",
         "SETLIST_NATIVE_GOOGLE_IOS": "0"
       },
+      "buildArtifactPaths": [
+        "android/app/build/outputs/mapping/release/mapping.txt"
+      ],
       "android": {
         "buildType": "app-bundle"
       }
@@ -81,6 +84,9 @@
         "SETLIST_NATIVE_GOOGLE_ANDROID": "1",
         "SETLIST_NATIVE_GOOGLE_IOS": "0"
       },
+      "buildArtifactPaths": [
+        "android/app/build/outputs/mapping/release/mapping.txt"
+      ],
       "android": {
         "buildType": "apk"
       }

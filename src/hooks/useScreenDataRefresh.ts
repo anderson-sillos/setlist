@@ -97,13 +97,14 @@ export function useScreenDataRefresh(
         ({ dataUpdatedAt, isStale }) =>
           Boolean(isStale) || now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS,
       );
+      const hasExpiredCache = staleQueries.some(
+        ({ dataUpdatedAt }) =>
+          dataUpdatedAt > 0 && now - dataUpdatedAt >= SCREEN_DATA_FRESHNESS_MS,
+      );
 
       if (staleQueries.length > 0) {
-        // Initial loads have their own feedback; only revalidation uses the circle.
-        void refreshQueries(
-          staleQueries,
-          staleQueries.some(({ dataUpdatedAt }) => dataUpdatedAt > 0),
-        );
+        // Only expired cache needs visible feedback during automatic revalidation.
+        void refreshQueries(staleQueries, hasExpiredCache);
       }
       return unregister;
     }, [enabled, queryClient, refreshQueries]),

@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.0.0 — candidata `v1.0.0-rc.4` em andamento
+
+### Correção do indicador de atualização
+
+- Corrigido o círculo nativo de atualização que podia continuar visível no iOS após retornar a uma tela, mesmo com as consultas concluídas.
+- A instância do `RefreshControl` é recriada nas transições do estado de atualização no iOS. O refresh automático mostra o círculo durante revalidação somente quando o cache atingiu 60 segundos; cache recente é revalidado em silêncio. O gesto manual mantém o feedback.
+- A correção foi validada no simulador iPhone 16 Pro em fluxos de edição e navegação entre Música, Shows, Repertório e Banda. Sete suítes, com 105 testes, passaram; typecheck, ESLint, formatação e `git diff --check` também passaram.
+- A alteração está na PR #44, aberta contra `main`. Sua inclusão no artefato RC.4 deve ser confirmada pelo commit/tag e pelo manifesto da candidata depois da integração e geração dos builds.
+
 ## 1.0.0 — pré-release `v1.0.0-rc.3`
 
 Primeira versão pública para Web, Android e iOS. A versão exibida no aplicativo
