@@ -2,6 +2,21 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 19 de outubro de 2026 — PR #44 integrada e RC.4 em preparação
+
+- A verificação R8 foi adicionada ao CI e à spec OpenSpec: o workflow executa
+  `expo prebuild --platform android --no-install --clean`, confere as opções de
+  minificação/redução de recursos, o preset otimizado e a coleta do
+  `mapping.txt` pelos dois perfis EAS Android. Dois testes de regressão cobrem a
+  configuração válida e a detecção de propriedades/preset/perfil ausentes.
+- Prebuild local, os dois testes do verificador, Prettier e validação estrita
+  OpenSpec passaram. No CI remoto, Qualidade, Migrações/pgTAP e Smoke Web passaram.
+- A PR #44 foi integrada por squash em 19/10/2026; SHA de `main`:
+  `893a633b25a3d3fb33f5c20a66e473df399f2504`. As mudanças estão na
+  `main`; nenhum build ou upload de RC.4 foi iniciado ainda.
+- A tag `v1.0.0-rc.4`, builds AAB/APK/IPA, export Web, manifesto e submissões às
+  lojas ainda precisam ser produzidos a partir do commit final da candidata.
+
 ## Atualização de 19 de outubro de 2026 — R8 previsto para a RC.4
 
 - A tarefa 11.8.10 foi iniciada na branch da PR #44 para incluir R8 na `v1.0.0-rc.4`. O projeto usa Expo SDK 57 e Continuous Native Generation; foi adicionada a dependência compatível `expo-build-properties@~57.0.22` e habilitados `enableMinifyInReleaseBuilds` e `enableShrinkResourcesInReleaseBuilds` no `app.json`. Como o template do SDK usa o preset legado `proguard-android.txt` e o React Native 0.86 fixa AGP 8.12.0, o plugin local `plugins/withR8ReleaseOptimizations.js` troca o preset por `proguard-android-optimize.txt` e configura `android.r8.optimizedResourceShrinking=true`, rejeitando deriva do template e propriedades duplicadas. O prebuild confirmou no Gradle gerado as três propriedades e o preset otimizado; o diretório nativo gerado foi removido depois da conferência.
