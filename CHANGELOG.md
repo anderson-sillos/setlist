@@ -7,7 +7,18 @@
 - Corrigido o círculo nativo de atualização que podia continuar visível no iOS após retornar a uma tela, mesmo com as consultas concluídas.
 - A instância do `RefreshControl` é recriada nas transições do estado de atualização no iOS. O refresh automático mostra o círculo durante revalidação somente quando o cache atingiu 60 segundos; cache recente é revalidado em silêncio. O gesto manual mantém o feedback.
 - A correção foi validada no simulador iPhone 16 Pro em fluxos de edição e navegação entre Música, Shows, Repertório e Banda. Sete suítes, com 105 testes, passaram; typecheck, ESLint, formatação e `git diff --check` também passaram.
-- A alteração está na PR #44, aberta contra `main`. Sua inclusão no artefato RC.4 deve ser confirmada pelo commit/tag e pelo manifesto da candidata depois da integração e geração dos builds.
+- A PR #44 foi integrada à `main` por squash em 19/10/2026
+  (`893a633b25a3d3fb33f5c20a66e473df399f2504`). A candidata e os builds ainda
+  serão gerados a partir da tag RC.4.
+
+### Otimização Android
+
+- Habilitada minificação R8 com o preset `proguard-android-optimize.txt` e
+  redução otimizada de recursos nos builds Android de release.
+- O EAS coleta o `mapping.txt` nos perfis AAB e APK de validação; o CI confere
+  o Gradle gerado e falha se as opções ou a coleta forem removidas.
+- A validação final do AAB, APK e do mapa correspondente ao `versionCode`
+  continuará pendente até a geração e conferência dos artefatos RC.4.
 
 ## 1.0.0 — pré-release `v1.0.0-rc.3`
 
