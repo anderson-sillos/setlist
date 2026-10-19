@@ -69,6 +69,11 @@ validados e o mapa esteja associado ao mesmo `versionCode` no Play Console.
 - **WHEN** o `mapping.txt` não corresponde ao AAB ou ao `versionCode` da versão
 - **THEN** o processo mantém a validação Android pendente e exige o mapa correto
 
+#### Scenario: Detectar regressão na configuração Android
+
+- **WHEN** o CI verifica uma alteração de código ou configuração do aplicativo
+- **THEN** ele gera o projeto Android do Expo e falha se R8, a redução de recursos, o preset otimizado ou a coleta do `mapping.txt` nos perfis de release não estiverem configurados
+
 ### Requirement: Publicação Web por Release
 
 O Pages de produção SHALL obter o código da tag estável de uma Release

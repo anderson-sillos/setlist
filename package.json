@@ -49,7 +49,8 @@
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --runInBand --coverage --forceExit",
     "test:e2e:web": "playwright test",
-    "validate": "npm run format:check && npm run lint && npm run typecheck && npm run test:ci"
+    "validate": "npm run format:check && npm run lint && npm run typecheck && npm run test:ci",
+    "verify:android:r8": "node scripts/verify-android-r8.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
