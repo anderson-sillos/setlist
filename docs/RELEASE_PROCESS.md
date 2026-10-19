@@ -157,12 +157,18 @@ registrar que o aviso de ausência do arquivo é informativo e não há mapa a
 enviar.
 
 No envio do primeiro AAB ao teste interno, o Play Console mostrou esse aviso
-para o `versionCode 2`. As configurações versionadas do projeto não declaram
-R8/ProGuard. Para eliminar o aviso no próximo release Android, habilitar a
-minificação R8 no build de produção, validar o AAB resultante, preservar o
-`mapping.txt` desse build e enviá-lo à versão correspondente no Play Console.
-Se a minificação for mantida desativada, não haverá mapa para enviar e o aviso
-deve ser tratado como informativo.
+para o `versionCode 2`. A configuração inicial do projeto não declarava
+R8/ProGuard. A candidata `v1.0.0-rc.4` prepara R8 com o preset otimizado e
+redução de recursos nos builds Android de release;
+confirmar o resultado no AAB produzido antes de tratar o aviso como resolvido.
+
+O perfil `production-android` configura o EAS para incluir
+`android/app/build/outputs/mapping/release/mapping.txt` nos artefatos auxiliares
+do build. Após a conclusão, baixar esse artefato, conferir que veio do mesmo job
+e commit do AAB, e guardá-lo fora do Git junto ao registro privado da release.
+Depois, associá-lo à compilação com o mesmo `versionCode` no Play Console. A
+presença do arquivo nos artefatos do EAS não comprova que ele foi associado no
+Play Console; conferir também o estado dos indicadores DEX da versão.
 
 Exportar também a Web da mesma tag usando as variáveis públicas de produção:
 `SETLIST_RELEASE_COMMIT` deve ser o SHA da tag e `SETLIST_RELEASE_TAG`, seu nome.

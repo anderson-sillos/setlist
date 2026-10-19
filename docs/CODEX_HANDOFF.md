@@ -2,6 +2,13 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 19 de outubro de 2026 — R8 previsto para a RC.4
+
+- A tarefa 11.8.10 foi iniciada na branch da PR #44 para incluir R8 na `v1.0.0-rc.4`. O projeto usa Expo SDK 57 e Continuous Native Generation; foi adicionada a dependência compatível `expo-build-properties@~57.0.22` e habilitados `enableMinifyInReleaseBuilds` e `enableShrinkResourcesInReleaseBuilds` no `app.json`. Como o template do SDK usa o preset legado `proguard-android.txt` e o React Native 0.86 fixa AGP 8.12.0, o plugin local `plugins/withR8ReleaseOptimizations.js` troca o preset por `proguard-android-optimize.txt` e configura `android.r8.optimizedResourceShrinking=true`, rejeitando deriva do template e propriedades duplicadas. O prebuild confirmou no Gradle gerado as três propriedades e o preset otimizado; o diretório nativo gerado foi removido depois da conferência.
+- Os perfis EAS `production-android` e `production-android-validation` pedem o artefato auxiliar `android/app/build/outputs/mapping/release/mapping.txt`. O processo de release registra que o mapa deve ser baixado do mesmo job/commit, guardado fora do Git e associado no Play Console ao `versionCode` exato do AAB.
+- A tarefa 11.5.5 agora aponta para RC.4; o OpenSpec de release-management e a nota `docs/releases/1.0.0-rc.4.md` incluem a entrega R8. Não houve build EAS, upload ao Play Console nem validação em Android nesta etapa. 11.8.10 permanece aberta até validar o APK/AAB minificado, os fluxos críticos, os indicadores DEX e a associação do mapa.
+- O lockfile foi atualizado para `expo-build-properties@57.0.22`. Não foi executada suíte de testes nem build EAS; a validação limitou-se ao prebuild Android, `git diff --check`, JSON, Prettier e OpenSpec estrito. As alterações estão locais na branch de trabalho da PR #44; qualquer atualização remota permanece sujeita ao fluxo elevado documentado neste handoff.
+
 ## Atualização de 19 de outubro de 2026 — indicador nativo de refresh no iOS
 
 - A causa foi confirmada no iPhone 16 Pro, iOS 18.3, conectado ao Metro 8081: o círculo permanecia visível com os três `RefreshControl` em `refreshing=false`, `_lastNativeRefreshing=false` e todas as consultas em `idle/success`. A inspeção foi feita pelo Hermes/DevTools, sem instrumentação no código do app. Reenviar o comando nativo de encerrar não resolveu; recriar a instância nativa removeu o indicador.

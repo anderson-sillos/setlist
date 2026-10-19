@@ -35,6 +35,16 @@
       "expo-secure-store",
       "expo-web-browser",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ],
+      "./plugins/withR8ReleaseOptimizations",
+      [
         "expo-splash-screen",
         {
           "image": "./assets/icons/app-icon-1024.png",
