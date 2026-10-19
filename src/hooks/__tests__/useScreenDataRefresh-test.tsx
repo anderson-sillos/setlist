@@ -77,7 +77,7 @@ describe('useScreenDataRefresh', () => {
     expect(fetchingQuery.refetch).not.toHaveBeenCalled();
   });
 
-  it('revalida uma consulta invalidada mesmo que ainda tenha cache recente', async () => {
+  it('revalida em silêncio uma consulta invalidada com cache recente', async () => {
     const now = 1_800_000_000_000;
     jest.spyOn(Date, 'now').mockReturnValue(now);
     const invalidatedQuery = {
@@ -93,7 +93,7 @@ describe('useScreenDataRefresh', () => {
       refetch: jest.fn().mockResolvedValue(undefined),
     };
 
-    await renderHook(
+    const { result } = await renderHook(
       () => useScreenDataRefresh([invalidatedQuery, currentQuery]),
       { wrapper: QueryProvider },
     );
@@ -105,6 +105,40 @@ describe('useScreenDataRefresh', () => {
 
     expect(invalidatedQuery.refetch).toHaveBeenCalledTimes(1);
     expect(currentQuery.refetch).not.toHaveBeenCalled();
+    expect(result.current.refreshing).toBe(false);
+  });
+
+  it('mostra o indicador durante a revalidação de cache expirado e o encerra ao concluir', async () => {
+    const now = 1_800_000_000_000;
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    let finishRefresh: (() => void) | undefined;
+    const oldQuery = {
+      dataUpdatedAt: now - SCREEN_DATA_FRESHNESS_MS,
+      isFetching: false,
+      isStale: false,
+      refetch: jest.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            finishRefresh = resolve;
+          }),
+      ),
+    };
+    const { result } = await renderHook(
+      () => useScreenDataRefresh([oldQuery]),
+      { wrapper: QueryProvider },
+    );
+
+    await act(async () => {
+      mockFocusCallback?.();
+    });
+
+    expect(result.current.refreshing).toBe(true);
+
+    await act(async () => {
+      finishRefresh?.();
+    });
+
+    expect(result.current.refreshing).toBe(false);
   });
 
   it('evita pedidos duplicados e limita o gesto aos dados recebidos pela tela', async () => {
@@ -129,9 +163,12 @@ describe('useScreenDataRefresh', () => {
       { wrapper: QueryProvider },
     );
 
-    const firstRefresh = result.current.onRefresh();
-    await Promise.resolve();
-    await result.current.onRefresh();
+    let firstRefresh: Promise<void> | undefined;
+    await act(async () => {
+      firstRefresh = result.current.onRefresh();
+      await Promise.resolve();
+      await result.current.onRefresh();
+    });
 
     expect(refetch).toHaveBeenCalledTimes(1);
     expect(alreadyFetching.refetch).not.toHaveBeenCalled();

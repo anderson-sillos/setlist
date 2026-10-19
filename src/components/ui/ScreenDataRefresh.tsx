@@ -29,6 +29,9 @@ export function getListRefreshControl({
 
   return (
     <RefreshControl
+      // UIKit can retain a completed indicator when a screen is reattached.
+      // Recreate its native control at state changes to discard that stale state.
+      key={Platform.OS === 'ios' ? String(refreshing) : undefined}
       colors={[colors.action.primary]}
       onRefresh={() => {
         void onRefresh();
