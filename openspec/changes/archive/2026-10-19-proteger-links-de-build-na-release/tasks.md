@@ -16,5 +16,5 @@
 
 - [x] 3.1 Gerar um manifesto schema 2 para `v1.0.0-rc.4` a partir dos registros privados EAS e conferir que os IDs, números, perfis, formatos e commits correspondem aos builds existentes, sem gravar URLs de download no arquivo gerado.
 - [x] 3.2 Revisar a Release RC.4 em rascunho, retirar qualquer link direto de download das notas/ativos e anexar somente o manifesto seguro; conferir antes da publicação que a tag e o SHA não foram alterados.
-- [ ] 3.3 Executar o deploy manual do Pages a partir de `main` para `v1.0.0-rc.4` e verificar no site publicado que a versão e o commit correspondem à candidata e que os dois arquivos JSON públicos não contêm endereços de artefato ou credenciais temporárias.
+- [x] 3.3 Executar o deploy manual do Pages a partir de `main` para `v1.0.0-rc.4` e verificar no site publicado que a versão e o commit correspondem à candidata e que os dois arquivos JSON públicos não contêm endereços de artefato ou credenciais temporárias.
 - [x] 3.4 Confirmar que os registros EAS privados comprovam a identidade e o formato dos builds existentes; não é necessário criar nova candidata nem alterar RC.4.
