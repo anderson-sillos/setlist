@@ -317,6 +317,8 @@ test('Pages usa workflow confiável, exporta a tag isolada e valida as duas cóp
     /ref: refs\/tags\/\$\{\{ inputs\.release_tag \|\| github\.event\.release\.tag_name \}\}\s+path: release-source/,
   );
   assert.match(workflow, /--release-metadata/);
+  assert.match(workflow, /cp -R release-source\/dist\/\. pages-site\//);
+  assert.match(workflow, /cp -R release-source\/dist\/\. pages-site\/app\//);
   const releaseCopy = workflow.indexOf('pages-site/release.json');
   const appCopy = workflow.indexOf('pages-site/app/release.json');
   const verifyReleaseCopy = workflow.indexOf('--verify-release-copy');

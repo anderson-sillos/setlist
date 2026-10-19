@@ -173,8 +173,8 @@ jobs:
       - name: Incluir apresentação, documentos legais e fallback de rotas
         run: |
           mkdir -p pages-site/app pages-site/docs pages-site/termos pages-site/privacidade
-          cp -R dist/. pages-site/
-          cp -R dist/. pages-site/app/
+          cp -R release-source/dist/. pages-site/
+          cp -R release-source/dist/. pages-site/app/
           if [ -d release-source/public/.well-known ]; then
             mkdir -p pages-site/.well-known pages-site/app/.well-known
             cp -R release-source/public/.well-known/. pages-site/.well-known/
