@@ -40,18 +40,35 @@ jobs:
       EXPO_WEB_BASE_URL: .
 
     steps:
-      - name: Obter código
+      - name: Exigir workflow manual executado na main
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "Execute o workflow manual selecionando a branch main." >&2
+            exit 1
+          fi
+
+      - name: Obter workflow e validador confiáveis da main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: workflow-source
+          fetch-depth: 0
+
+      - name: Obter código imutável da Release
         uses: actions/checkout@v7
         with:
           ref: refs/tags/${{ inputs.release_tag || github.event.release.tag_name }}
+          path: release-source
           fetch-depth: 0
 
       - name: Configurar Node.js
         id: node
         uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: workflow-source/.nvmrc
           cache: npm
+          cache-dependency-path: release-source/package-lock.json
 
       - name: Configurar npm
         run: |
@@ -60,6 +77,7 @@ jobs:
           fi
 
       - name: Instalar dependências
+        working-directory: release-source
         run: /usr/bin/time -v npm ci --prefer-offline --no-fund
 
       - name: Obter documentos legais atuais da branch principal
@@ -77,9 +95,10 @@ jobs:
       - name: Conferir tag e registro da Release publicada
         env:
           GH_TOKEN: ${{ github.token }}
+        working-directory: release-source
         run: |
           npm run release:check -- --tag "$RELEASE_TAG"
-          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease > "$RUNNER_TEMP/release.json"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease,body,assets > "$RUNNER_TEMP/release.json"
           node --input-type=module - "$RUNNER_TEMP/release.json" <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
           import { execFileSync } from 'node:child_process';
@@ -94,36 +113,21 @@ jobs:
           appendFileSync(process.env.GITHUB_ENV, `SETLIST_RELEASE_COMMIT=${commit}\nSETLIST_RELEASE_TAG=${release.tagName}\nSETLIST_RELEASE_CANDIDATE=${candidate}\n`);
           NODE
 
-      - name: Baixar e conferir manifesto da Release
+      - name: Baixar e validar manifesto seguro da Release
         env:
           GH_TOKEN: ${{ github.token }}
+        working-directory: release-source
         run: |
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern release-manifest.json --dir "$RUNNER_TEMP/release-record"
-          node --input-type=module - "$RUNNER_TEMP/release-record/release-manifest.json" <<'NODE'
-          import { readFileSync } from 'node:fs';
-          const manifest = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-          const version = process.env.RELEASE_TAG.match(/^v(\d+\.\d+\.\d+)/)?.[1];
-          const commit = process.env.SETLIST_RELEASE_COMMIT;
-          const candidate = process.env.SETLIST_RELEASE_CANDIDATE === 'true';
-          if (manifest.schemaVersion !== 1 || manifest.version !== version || manifest.commit !== commit || (candidate && (manifest.tag !== process.env.RELEASE_TAG || manifest.candidate !== true))) {
-            throw new Error('O manifesto não corresponde à versão, ao commit e à tag publicados.');
-          }
-          for (const [platform, profile] of [['android', 'production-android'], ['ios', 'production']]) {
-            const build = manifest.platforms?.[platform];
-            const extension = platform === 'android' ? '.aab' : '.ipa';
-            if (!build || build.version !== version || build.commit !== commit || !build.id || !build.build || build.profile !== profile || build.distribution !== 'STORE' || !build.artifactUrl?.startsWith('https://expo.dev/') || !build.artifactUrl.endsWith(extension)) {
-              throw new Error(`O build ${platform} não corresponde à candidata publicada.`);
-            }
-          }
-          const web = manifest.platforms?.web;
-          if (!web || web.version !== version || web.commit !== commit || web.url !== 'https://setlistbr.app.br') {
-            throw new Error('O registro Web não corresponde à versão, ao commit ou ao domínio público.');
-          }
-          NODE
-          npm run release:manifest -- --tag "$RELEASE_TAG" --manifest "$RUNNER_TEMP/release-record/release-manifest.json"
+          node "$GITHUB_WORKSPACE/workflow-source/scripts/release-manifest.mjs" \
+            --root "$GITHUB_WORKSPACE/release-source" \
+            --tag "$RELEASE_TAG" \
+            --manifest "$RUNNER_TEMP/release-record/release-manifest.json" \
+            --release-metadata "$RUNNER_TEMP/release.json"
 
       - name: Exigir validação completa para publicação estável
         if: env.SETLIST_RELEASE_CANDIDATE != 'true'
+        working-directory: release-source
         run: npm run release:manifest -- --tag "$RELEASE_TAG" --manifest "$RUNNER_TEMP/release-record/release-manifest.json" --ready
 
       - name: Verificar configuração pública do Supabase
@@ -135,6 +139,7 @@ jobs:
           test -n "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" || (echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY não configurada nas variáveis do repositório" && exit 1)
 
       - name: Preparar associações de links nativos
+        working-directory: release-source
         env:
           SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS: ${{ vars.SETLIST_ANDROID_SHA256_CERT_FINGERPRINTS }}
           SETLIST_IOS_TEAM_ID: ${{ vars.SETLIST_IOS_TEAM_ID }}
@@ -157,11 +162,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.metro.outputs.path }}
-          key: metro-production-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.*', 'metro.config.*', 'babel.config.*', 'tsconfig.json') }}-${{ env.SETLIST_RELEASE_COMMIT }}
+          key: metro-production-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('release-source/package-lock.json', 'release-source/app.json', 'release-source/app.config.*', 'release-source/metro.config.*', 'release-source/babel.config.*', 'release-source/tsconfig.json') }}-${{ env.SETLIST_RELEASE_COMMIT }}
           restore-keys: |
-            metro-production-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.*', 'metro.config.*', 'babel.config.*', 'tsconfig.json') }}-
+            metro-production-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.metro.outputs.environment }}-${{ hashFiles('release-source/package-lock.json', 'release-source/app.json', 'release-source/app.config.*', 'release-source/metro.config.*', 'release-source/babel.config.*', 'release-source/tsconfig.json') }}-
 
       - name: Exportar aplicação web
+        working-directory: release-source
         run: /usr/bin/time -v npm run export:web -- --output-dir dist
 
       - name: Incluir apresentação, documentos legais e fallback de rotas
@@ -169,26 +175,36 @@ jobs:
           mkdir -p pages-site/app pages-site/docs pages-site/termos pages-site/privacidade
           cp -R dist/. pages-site/
           cp -R dist/. pages-site/app/
-          if [ -d public/.well-known ]; then
+          if [ -d release-source/public/.well-known ]; then
             mkdir -p pages-site/.well-known pages-site/app/.well-known
-            cp -R public/.well-known/. pages-site/.well-known/
-            cp -R public/.well-known/. pages-site/app/.well-known/
+            cp -R release-source/public/.well-known/. pages-site/.well-known/
+            cp -R release-source/public/.well-known/. pages-site/app/.well-known/
           fi
-          cp docs/apresentacao.html pages-site/docs/apresentacao.html
+          cp release-source/docs/apresentacao.html pages-site/docs/apresentacao.html
           if [ "$PUBLISH_CURRENT_LEGAL_DOCS" = "true" ]; then
             cp legal-source/docs/legal.css pages-site/legal.css
             cp legal-source/docs/termos.html pages-site/termos/index.html
             cp legal-source/docs/privacidade.html pages-site/privacidade/index.html
           else
-            cp docs/legal.css pages-site/legal.css
-            cp docs/termos.html pages-site/termos/index.html
-            cp docs/privacidade.html pages-site/privacidade/index.html
+            cp release-source/docs/legal.css pages-site/legal.css
+            cp release-source/docs/termos.html pages-site/termos/index.html
+            cp release-source/docs/privacidade.html pages-site/privacidade/index.html
           fi
           cp "$RUNNER_TEMP/release-record/release-manifest.json" pages-site/release.json
           cp "$RUNNER_TEMP/release-record/release-manifest.json" pages-site/app/release.json
           cp pages-site/index.html pages-site/404.html
-          find pages-site -type f -name '*.html' ! -path 'pages-site/docs/*' ! -path 'pages-site/termos/*' ! -path 'pages-site/privacidade/*' -print0 | xargs -0 -r node scripts/prepare-pages-html.mjs
+          find pages-site -type f -name '*.html' ! -path 'pages-site/docs/*' ! -path 'pages-site/termos/*' ! -path 'pages-site/privacidade/*' -print0 | xargs -0 -r node workflow-source/scripts/prepare-pages-html.mjs
           touch pages-site/.nojekyll
+
+      - name: Verificar manifestos publicados Web e /app
+        run: |
+          node "$GITHUB_WORKSPACE/workflow-source/scripts/release-manifest.mjs" \
+            --root "$GITHUB_WORKSPACE/release-source" \
+            --tag "$RELEASE_TAG" \
+            --manifest "$RUNNER_TEMP/release-record/release-manifest.json" \
+            --release-metadata "$RUNNER_TEMP/release.json" \
+            --verify-release-copy "$GITHUB_WORKSPACE/pages-site/release.json" \
+            --verify-app-copy "$GITHUB_WORKSPACE/pages-site/app/release.json"
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5

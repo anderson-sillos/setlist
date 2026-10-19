@@ -177,12 +177,14 @@ durante a avaliação do candidato. Não alterar o Supabase de desenvolvimento.
 
 Para validar a primeira versão Web, uma pré-release publicada pode ser enviada
 ao domínio público por um disparo manual do workflow `Publicar GitHub Pages`,
-informando a tag `vX.Y.Z-rc.N`. O workflow exige a Release não rascunho, a tag
-exata, o manifesto correspondente ao commit e builds EAS Android/iOS completos
-da mesma versão e commit. As validações nativas podem continuar pendentes nesse
-deploy; o manifesto Web permanece como `pending` até a conferência manual. Esse
-procedimento substitui o conteúdo público imediatamente pela candidata. A
-publicação automática de pré-release continua desativada.
+informando a tag `vX.Y.Z-rc.N` e selecionando a branch `main`. O workflow usa o
+validador atualizado da `main` e faz um checkout separado do código imutável da
+tag. Ele confere a Release publicada, suas notas e ativos, o manifesto schema 2,
+a tag, o SHA e os builds EAS Android/iOS da mesma versão e commit. As validações
+nativas podem continuar pendentes nesse deploy; o manifesto Web permanece como
+`pending` até a conferência manual. Esse procedimento substitui o conteúdo
+público imediatamente pela candidata. A publicação automática de pré-release
+continua desativada.
 
 Para atualizar termos e política de privacidade sem gerar novos builds nativos,
 execute o workflow manual com `publish_current_legal_docs=true`. O site continua
@@ -193,32 +195,40 @@ branch principal; ela publica o site público imediatamente.
 
 ## Registro da Release
 
-Criar inicialmente uma Release em rascunho com a tag do candidato. Incluir:
+Criar inicialmente uma Release em rascunho com a tag do candidato. Nas notas,
+incluir:
 
 - Versão, commit, resumo das mudanças e limitações conhecidas.
-- Builds EAS Android/iOS, respectivos contadores, perfis e links.
-- APK de instalação direta quando disponível; arquivo Web de validação quando
-  distribuído. O AAB e IPA são os candidatos efetivos das lojas.
-- `release-manifest.json`, checksums SHA-256 dos arquivos anexados e evidências
-  de validação de cada plataforma.
+- Builds EAS Android/iOS, respectivos contadores, perfis e referências às
+  páginas de detalhes dos builds. Essas referências identificam o build e não
+  substituem os canais de instalação das lojas.
+- `release-manifest.json` schema 2 e evidências de validação de cada plataforma.
 - Migrações da entrega e estado dos canais de distribuição: preparação,
   validação, enviado para revisão ou disponível.
+
+Não anexar APK, AAB, IPA, arquivos exportados do EAS nem metadados brutos de
+build. Não incluir URLs diretas de download, URLs assinadas, tokens ou parâmetros
+temporários nas notas ou ativos da Release. Android é distribuído pelo Google
+Play e iOS pelo App Store Connect/TestFlight; os downloads usados na validação
+devem permanecer privados.
 
 ```sh
 npx --yes eas-cli@23.2.0 build:view ID_ANDROID --json > /private/tmp/android-build.json
 npx --yes eas-cli@23.2.0 build:view ID_IOS --json > /private/tmp/ios-build.json
-npm run release:manifest -- --tag v1.0.0-rc.1 --android /private/tmp/android-build.json --ios /private/tmp/ios-build.json
+npm run release:manifest -- --tag v1.0.0-rc.1 --android /private/tmp/android-build.json --ios /private/tmp/ios-build.json --output /private/tmp/release-manifest.json
 ```
 
-O manifesto elimina os logs temporários do EAS e recusa código, versão, perfil
-ou estado incompatíveis. Inicialmente, cada `validation` é `pending`. Alterar
-para `passed` somente após conferir o artefato efetivo, registrando responsável,
-data e evidências nas notas da Release. Se só existir APK, o registro parcial é
-permitido, mas o fechamento da distribuição Android exigirá o AAB validado.
+O manifesto schema 2 registra `buildDetailsUrl` estável e não copia a URL
+privada de download do EAS. O script confere a identidade da aplicação,
+plataforma, versão, commit, perfil, distribuição e tipo de arquivo a partir dos
+metadados privados. Inicialmente, cada `validation` é `pending`. Alterar para
+`passed` somente após conferir o artefato efetivo, registrando responsável,
+data e evidências nas notas da Release. Os arquivos JSON brutos e os artefatos
+baixados ficam em diretório privado temporário, fora da Release e do Pages.
 
 ```sh
 gh release create v1.0.0-rc.1 --verify-tag --draft --prerelease --title 'Setlist 1.0.0 — candidato 1' --notes-file /private/tmp/release-notes.md
-gh release upload v1.0.0-rc.1 release-output/release-manifest.json
+gh release upload v1.0.0-rc.1 /private/tmp/release-manifest.json
 ```
 
 Publicar uma pré-release apenas quando ela estiver pronta para os participantes
@@ -241,14 +251,17 @@ então publicá-la. As lojas têm processos de distribuição próprios; atualiz
 notas com seu estado real, sem declarar disponibilidade antes da confirmação.
 
 O Pages publica automaticamente uma Release estável aprovada, ou pode ser
-disparado manualmente com uma tag estável publicada e validada. Para a validação
-Web da primeira versão, também aceita disparo manual para uma pré-release
-publicada, após conferir o manifesto e os builds móveis; esse deploy coloca a
-candidata no domínio público mesmo enquanto as validações nativas estão
-pendentes. O deploy estável sempre exige `--ready`, com todas as validações
-aprovadas. Um push na `main`, uma Release em rascunho ou a publicação automática
-de uma pré-release não atualiza o Pages. O ambiente GitHub `github-pages` deve
-permitir tags `v*`. Reexecuções usam a mesma tag e não modificam o release.
+disparado manualmente a partir da branch `main` com uma tag estável publicada e
+validada. Para a validação Web da primeira versão, também aceita disparo manual
+para uma pré-release publicada, após conferir o manifesto schema 2 e os builds
+móveis; esse deploy coloca a candidata no domínio público mesmo enquanto as
+validações nativas estão pendentes. O deploy estável sempre exige `--ready`, com
+todas as validações aprovadas. O workflow valida o manifesto antes e depois de
+copiá-lo para `release.json` e `app/release.json`, comparando ambas as cópias
+com o registro validado. Um push na `main`, uma Release em rascunho ou a
+publicação automática de uma pré-release não atualiza o Pages. O ambiente
+GitHub `github-pages` deve permitir tags `v*`. Reexecuções usam a mesma tag e
+não modificam o release.
 
 ## Sobre o Setlist
 

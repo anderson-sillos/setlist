@@ -70,6 +70,10 @@ jobs:
         if: steps.scope.outputs.run_checks == 'true'
         run: npm run verify:android:r8
 
+      - name: Verificar segurança do manifesto de Release
+        if: steps.scope.outputs.run_checks == 'true'
+        run: npm run test:release-manifest
+
       - name: Restaurar transformações Jest e cache ESLint
         if: steps.scope.outputs.run_checks == 'true'
         uses: actions/cache@v6
