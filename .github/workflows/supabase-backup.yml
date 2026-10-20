@@ -1,11 +1,13 @@
 name: Backup diário do Supabase
 
 on:
-  schedule:
-    - cron: '17 6 * * *'
-    # Catch-up run: the script skips this date if the verified daily copy exists.
-    - cron: '37 8 * * *'
   workflow_dispatch:
+    inputs:
+      skip_if_exists:
+        description: Ignore a repeated daily backup when an integrity-checked copy already exists
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -79,7 +81,7 @@ jobs:
           BACKUP_RCLONE_REMOTE: setlist-backup
           BACKUP_PATH: setlist-prod/daily
           BACKUP_RETENTION_COUNT: 84
-          BACKUP_SKIP_IF_EXISTS: ${{ github.event_name == 'schedule' }}
+          BACKUP_SKIP_IF_EXISTS: ${{ inputs.skip_if_exists }}
         run: bash scripts/backup-supabase-to-drive.sh
 
       - name: Apagar a configuração temporária do Drive

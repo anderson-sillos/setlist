@@ -1,0 +1,12 @@
+{
+  "name": "setlist-cron-scheduler",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy --config wrangler.jsonc",
+    "test": "node --test test/index.test.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.102.0"
+  }
+}

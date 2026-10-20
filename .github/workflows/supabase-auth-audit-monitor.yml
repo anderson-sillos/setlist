@@ -1,8 +1,6 @@
 name: Monitor diário da retenção da auditoria Auth
 
 on:
-  schedule:
-    - cron: '27 4 * * *'
   workflow_dispatch:
 
 permissions:
