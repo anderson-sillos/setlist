@@ -306,10 +306,11 @@ Regras que envolvem mais de uma linha serão protegidas por funções ou gatilho
 - O desenvolvimento, o piloto e a primeira distribuição pública permanecerão
   no plano Free, conforme decisão atual do responsável.
 - Banco, tráfego e usuários ativos serão monitorados mensalmente.
-- Antes da distribuição pública, implantar e validar uma cópia semanal própria
+- Antes da distribuição pública, implantar e validar uma cópia diária própria
   do banco em uma conta dedicada do Google Drive, cifrada no cliente com
   `rclone crypt`, transmitida por um runner efêmero do GitHub Actions sem dump
-  local. Reter as 12 cópias semanais mais recentes e ensaiar uma restauração em
+  local. Reter as 84 cópias diárias mais recentes (12 semanas) e ensaiar uma
+  restauração em
   ambiente isolado. O plano Free não oferece backup diário automático nem PITR
   para este projeto.
 - A migração será avaliada ao atingir 80% de qualquer cota, se a

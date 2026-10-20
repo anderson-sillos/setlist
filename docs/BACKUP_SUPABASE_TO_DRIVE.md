@@ -1,4 +1,4 @@
-# Backup semanal do Supabase para Google Drive
+# Backup diário do Supabase para Google Drive
 
 ## Estado atual
 
@@ -8,19 +8,23 @@ cliente pelo `rclone crypt`. O dump não é gravado em arquivo, artefato do
 Actions nem log. O runner usa somente arquivos temporários de configuração do
 rclone e os remove ao final.
 
-O workflow `.github/workflows/supabase-backup.yml` agenda a rotina às 06:17 UTC
-de segunda-feira (03:17 em São Paulo) e permite disparo manual somente na
-`main`. O job exige o Environment `production-backup`, token `contents: read`,
+O workflow `.github/workflows/supabase-backup.yml` agenda a rotina diariamente
+às 06:17 UTC (03:17 em São Paulo) e permite disparo manual somente na `main`.
+O job exige o Environment `production-backup`, token `contents: read`,
 checkout da action fixado por SHA e Docker, usado pelo Supabase CLI para executar
 `pg_dump`. O Environment aceita deployments apenas da `main` e não permite
 bypass administrativo.
 
 Em 20/10/2026, os nomes `RCLONE_CONFIG_B64` e `SUPABASE_DB_URL` foram conferidos
 na lista de Secrets do Environment; os valores não foram lidos nem impressos.
-Workflow, script, `.github/CODEOWNERS` e este runbook estão preparados na branch
-`codex/supabase-backup-drive`. Ainda não há PR integrada, execução real, arquivo
-no Drive ou restauração validada. Não marcar a tarefa OpenSpec 11.8.4 como
-concluída até realizar esses passos.
+Workflow, script, `.github/CODEOWNERS` e este runbook foram integrados pela PR
+#49 no commit `da4543d8eaa211314bf1ec1bc40f25d66e064501`. A primeira execução
+manual em 20/10/2026 parou na validação do remote rclone: a versão atual não
+oferece mais o comando `rclone config get` usado pelo script. A falha ocorreu
+antes da conexão ao banco e antes de qualquer envio ao Drive; a correção está
+em revisão. A recorrência diária e a retenção de 84 cópias (12 semanas) fazem
+parte da mesma correção. Ainda não há arquivo no Drive nem restauração validada. Não marcar a
+tarefa OpenSpec 11.8.4 como concluída até realizar esses passos.
 
 ## Escopo e limitações
 
@@ -70,14 +74,14 @@ atividade, verificar periodicamente se o workflow continua habilitado.
 
 1. Integrar os arquivos por PR após conferir o diff e os checks. Nunca atualizar
    `main` por push direto.
-2. Em Actions, executar `Backup semanal do Supabase` manualmente na branch
+2. Em Actions, executar `Backup diário do Supabase` manualmente na branch
    `main` para validar a primeira cópia; execuções posteriores seguem o horário
-   semanal.
+   diário.
 3. Conferir no resumo do job o resultado de integridade e retenção. O conteúdo
    SQL é enviado por pipe para o remote criptográfico, sem ser impresso.
 4. O script valida a cópia ainda em staging por descriptografia e `gzip -t`,
-   publica o nome semanal após a validação e mantém as 12 cópias semanais mais
-   recentes.
+   publica o nome diário após a validação e mantém até 84 cópias diárias, o que
+   preserva uma janela de 12 semanas.
 5. Se a rotina falhar ou detectar objetos de Storage, não tratar como backup
    concluído; investigar o erro sem copiar dados ou segredos para logs.
 

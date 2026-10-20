@@ -1,8 +1,8 @@
-name: Backup semanal do Supabase
+name: Backup diário do Supabase
 
 on:
   schedule:
-    - cron: '17 6 * * 1'
+    - cron: '17 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,8 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_CLI_VERSION: 2.121.0
           BACKUP_RCLONE_REMOTE: setlist-backup
-          BACKUP_PATH: setlist-prod/weekly
+          BACKUP_PATH: setlist-prod/daily
+          BACKUP_RETENTION_COUNT: 84
         run: bash scripts/backup-supabase-to-drive.sh
 
       - name: Apagar a configuração temporária do Drive
