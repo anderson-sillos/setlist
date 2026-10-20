@@ -5,6 +5,42 @@ import { sendHealthcheckPing } from './healthcheck-ping.mjs';
 
 const SCRIPT_DIRECTORY = fileURLToPath(new URL('.', import.meta.url));
 
+function summarizePsqlFailure(stderr, exitCode) {
+  const sqlState = stderr.match(
+    /(?:ERROR|FATAL|PANIC):\s*([0-9A-Z]{5})\b/u,
+  )?.[1];
+  if (sqlState) {
+    return `A consulta do monitor falhou (SQLSTATE ${sqlState}).`;
+  }
+
+  if (
+    /password authentication failed|no password supplied|authentication failed|role .+ does not exist/iu.test(
+      stderr,
+    )
+  ) {
+    return 'Falha de autenticação ou role na conexão PostgreSQL.';
+  }
+  if (
+    /could not translate host name|could not resolve host|getaddrinfo|name or service not known|temporary failure in name resolution/iu.test(
+      stderr,
+    )
+  ) {
+    return 'Falha de resolução DNS na conexão PostgreSQL.';
+  }
+  if (
+    /timeout expired|timed out|connection refused|no route to host|network is unreachable|server closed the connection unexpectedly|ssl syscall/iu.test(
+      stderr,
+    )
+  ) {
+    return 'Falha de rede ou TLS na conexão PostgreSQL.';
+  }
+  if (/could not open file|no such file or directory/iu.test(stderr)) {
+    return 'Falha ao abrir o arquivo SQL do monitor.';
+  }
+
+  return `psql terminou com código ${exitCode}; detalhe do erro omitido.`;
+}
+
 function runPsql(queryFile, databaseUrl, timeoutMs = 30_000) {
   return new Promise((resolve, reject) => {
     const childEnvironment = {
@@ -25,12 +61,15 @@ function runPsql(queryFile, databaseUrl, timeoutMs = 30_000) {
         '|',
         '-v',
         'ON_ERROR_STOP=1',
+        '-v',
+        'VERBOSITY=sqlstate',
         '-f',
         queryFile,
       ],
-      { env: childEnvironment, stdio: ['ignore', 'pipe', 'ignore'] },
+      { env: childEnvironment, stdio: ['ignore', 'pipe', 'pipe'] },
     );
     let stdout = '';
+    let stderr = '';
     let settled = false;
     const timeout = setTimeout(() => {
       settled = true;
@@ -51,6 +90,13 @@ function runPsql(queryFile, databaseUrl, timeoutMs = 30_000) {
       }
     });
 
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      if (stderr.length < 4096) {
+        stderr += chunk.slice(0, 4096 - stderr.length);
+      }
+    });
+
     child.on('error', () => {
       if (settled) return;
       settled = true;
@@ -62,7 +108,7 @@ function runPsql(queryFile, databaseUrl, timeoutMs = 30_000) {
       settled = true;
       clearTimeout(timeout);
       if (code !== 0) {
-        reject(new Error('A consulta do monitor falhou.'));
+        reject(new Error(summarizePsqlFailure(stderr, code)));
         return;
       }
       resolve(stdout.trim());
