@@ -7,12 +7,12 @@ comandos, logs, documentação ou mensagens.
 
 ## Checks e agenda
 
-| Check                      | Workflow                                                             | Período no Healthchecks |  Grace | O que confirma                                                                                                       |
-| -------------------------- | -------------------------------------------------------------------- | ----------------------: | -----: | -------------------------------------------------------------------------------------------------------------------- |
-| Limpeza de convites        | `supabase-invitation-cleanup-monitor.yml`, diariamente às 04:17 UTC  |                    24 h |    6 h | Job diário ativo, última execução bem-sucedida recente e nenhum convite vencido elegível na conclusão dessa execução |
-| Retenção da auditoria Auth | `supabase-auth-audit-monitor.yml`, diariamente às 04:27 UTC   |                    24 h |    6 h | Job de limpeza diário ativo, execuções bem-sucedidas nos dias esperados e nenhum registro anterior a 30 dias         |
-| Web e Supabase             | `service-availability-monitor.yml`, a cada 30 minutos                |                  30 min | 30 min | Página pública, raiz REST e configuração pública Auth respondem com HTTP 2xx                                         |
-| Ensaio de alertas          | `healthchecks-alert-rehearsal.yml`, manual                           |                   5 min |  5 min | Sinal `fail`, timeout de `start`, ausência de ping ou recuperação; nunca usa o check de backup                       |
+| Check                      | Workflow                                                            | Período no Healthchecks |  Grace | O que confirma                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------- | ----------------------: | -----: | -------------------------------------------------------------------------------------------------------------------- |
+| Limpeza de convites        | `supabase-invitation-cleanup-monitor.yml`, diariamente às 04:17 UTC |                    24 h |    6 h | Job diário ativo, última execução bem-sucedida recente e nenhum convite vencido elegível na conclusão dessa execução |
+| Retenção da auditoria Auth | `supabase-auth-audit-monitor.yml`, diariamente às 04:27 UTC         |                    24 h |    6 h | Job de limpeza diário ativo, execuções bem-sucedidas nos dias esperados e nenhum registro anterior a 30 dias         |
+| Web e Supabase             | `service-availability-monitor.yml`, a cada 30 minutos               |                  30 min | 30 min | Página pública, raiz REST e configuração pública Auth respondem com HTTP 2xx                                         |
+| Ensaio de alertas          | `healthchecks-alert-rehearsal.yml`, manual                          |                   5 min |  5 min | Sinal `fail`, timeout de `start`, ausência de ping ou recuperação; nunca usa o check de backup                       |
 
 As agendas do GitHub Actions podem atrasar ou ser descartadas. O monitor de
 serviços não é um SLA; confirme o histórico de execuções no GitHub junto com
