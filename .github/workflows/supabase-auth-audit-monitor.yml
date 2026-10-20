@@ -1,0 +1,41 @@
+name: Monitor diário da retenção da auditoria Auth
+
+on:
+  schedule:
+    - cron: '27 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-auth-audit-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    if: github.ref == 'refs/heads/main' && vars.HEALTHCHECKS_MONITORING_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: production-backup
+
+    steps:
+      - name: Obter os scripts da branch principal
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Garantir cliente PostgreSQL
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends --yes postgresql-client
+          fi
+
+      - name: Conferir a retenção e reportar ao Healthchecks
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          AUTH_AUDIT_RETENTION_HEARTBEAT_URL: ${{ secrets.AUTH_AUDIT_RETENTION_HEARTBEAT_URL }}
+        run: node scripts/healthchecks/run-pg-monitor.mjs auth-audit-retention-monitor.sql AUTH_AUDIT_RETENTION_HEARTBEAT_URL

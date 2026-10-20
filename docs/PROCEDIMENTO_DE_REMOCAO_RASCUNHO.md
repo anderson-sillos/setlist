@@ -49,9 +49,10 @@ de autenticação do Supabase: há armazenamento externo de logs e o responsáve
 confirmou que a gravação adicional em `auth.audit_log_entries` está **ligada**
 em `setlist-prod`. A exclusão da identidade de autenticação não comprova a
 eliminação desses registros. O responsável escolheu conservá-los por 30 dias
-e limpar diariamente os mais antigos, mas essa rotina ainda não foi
-implementada. Antes de responder sobre eliminação completa, conferir a tabela,
-as exceções de conservação e as cópias de backup.
+e limpar diariamente os mais antigos. A migração foi preparada, mas ainda
+depende da confirmação de permissões/RLS da tabela gerenciada e da aplicação em
+produção. Antes de responder sobre eliminação completa, conferir a tabela, as
+exceções de conservação e as cópias de backup.
 
 ### Retenção de convites e aceites — limpeza conferida
 
@@ -437,8 +438,8 @@ operacional.
   O plano não oferece
   backup diário automático. Conferir
   também a retenção da auditoria de autenticação em
-  `auth.audit_log_entries`, cuja gravação está ligada em produção; implantar
-  e conferir a limpeza diária dos registros com mais de 30 dias, observadas
+  `auth.audit_log_entries`, cuja gravação está ligada em produção; conferir o
+  preflight, aplicar e validar a limpeza diária dos registros com mais de 30 dias, observadas
   exceções documentadas e cópias de backup.
   Para pedidos recebidos por e-mail,
   distinguir mensagens e anexos no Gmail dos registros de encaminhamento do

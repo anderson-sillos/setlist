@@ -10,6 +10,7 @@
     "release:build": "node scripts/release-build.mjs",
     "release:manifest": "node scripts/release-manifest.mjs",
     "test:release-manifest": "node --test scripts/__tests__/release-manifest.test.mjs",
+    "test:healthchecks": "node --test scripts/__tests__/healthchecks.test.mjs",
     "build:production:android": "node scripts/release-build.mjs --platform android",
     "build:production:ios": "node scripts/release-build.mjs --platform ios",
     "build:validation:android": "node scripts/release-build.mjs --platform android --apk",

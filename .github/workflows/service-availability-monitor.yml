@@ -1,0 +1,41 @@
+name: Monitor de disponibilidade Web e Supabase
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: service-availability-monitor
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/main' && vars.HEALTHCHECKS_MONITORING_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: production-backup
+
+    steps:
+      - name: Obter o probe da branch principal
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Sondar a Web e as APIs REST e Auth
+        env:
+          SETLIST_PUBLIC_URL: https://setlistbr.app.br/
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SERVICE_UPTIME_HEARTBEAT_URL: ${{ secrets.SERVICE_UPTIME_HEARTBEAT_URL }}
+        run: node scripts/healthchecks/service-probe.mjs

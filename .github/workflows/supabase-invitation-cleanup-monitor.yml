@@ -1,0 +1,41 @@
+name: Monitor diário da limpeza de convites
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-invitation-cleanup-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    if: github.ref == 'refs/heads/main' && vars.HEALTHCHECKS_MONITORING_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: production-backup
+
+    steps:
+      - name: Obter os scripts da branch principal
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Garantir cliente PostgreSQL
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends --yes postgresql-client
+          fi
+
+      - name: Conferir a limpeza e reportar ao Healthchecks
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          INVITATION_CLEANUP_HEARTBEAT_URL: ${{ secrets.INVITATION_CLEANUP_HEARTBEAT_URL }}
+        run: node scripts/healthchecks/run-pg-monitor.mjs invitation-cleanup-monitor.sql INVITATION_CLEANUP_HEARTBEAT_URL

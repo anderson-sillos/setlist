@@ -1,0 +1,47 @@
+name: Ensaio controlado do Healthchecks
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Sinal a enviar ao check dedicado de ensaio
+        required: true
+        type: choice
+        options:
+          - fail
+          - start
+          - no-ping
+          - success
+      confirmation:
+        description: Digite RUN HEALTHCHECKS REHEARSAL para confirmar
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: healthchecks-alert-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    environment: production-backup
+
+    steps:
+      - name: Obter o script da branch principal
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Enviar o sinal de ensaio escolhido
+        env:
+          REHEARSAL_MODE: ${{ inputs.mode }}
+          REHEARSAL_CONFIRMATION: ${{ inputs.confirmation }}
+          HEALTHCHECKS_REHEARSAL_URL: ${{ secrets.HEALTHCHECKS_REHEARSAL_URL }}
+        run: node scripts/healthchecks/alert-rehearsal.mjs
