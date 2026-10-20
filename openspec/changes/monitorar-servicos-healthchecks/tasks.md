@@ -60,8 +60,11 @@
   `setlist-prod` confirmou job ativo e único, sem entradas vencidas e sem
   exceções órfãs/vencidas; ainda não havia execução bem-sucedida do cron, então
   a recência e a sequência diária de sucessos permaneciam falsas até a primeira
-  execução prevista para 21/10/2026 às 00:20 BRT. O runner agora está alterado
-  localmente para pedir erros em formato SQLSTATE e registrar somente o código
-  ou uma categoria fixa de falha, nunca a mensagem bruta ou dados da conexão;
-  falta publicar essa alteração e repetir o workflow para identificar a causa.
-  Nenhum heartbeat de sucesso foi confirmado.
+  execução prevista para 21/10/2026 às 00:20 BRT. A PR #57 foi mesclada em
+  `main` (`e6ed08e`) e adicionou SQLSTATE/categorias sanitizadas. A execução
+  manual 39504054056 ainda falhou e registrou “Falha ao abrir o arquivo SQL do
+  monitor”, mas o arquivo existe na `main`; portanto, essa categoria ampla não
+  identifica a causa real. O runner está sendo ajustado para resolver e validar
+  explicitamente o caminho do SQL antes de chamar `psql` e distinguir esse caso
+  de arquivos locais de TLS/configuração. Falta publicar o ajuste e repetir o
+  workflow. Nenhum heartbeat de sucesso foi confirmado.
