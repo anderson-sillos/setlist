@@ -136,6 +136,11 @@ backup_listing="$(rclone --log-level ERROR lsf "$backup_root" --files-only --for
 rclone --log-level ERROR cat "$backup_object" | gzip -t \
   || fail 'a cópia não passou pela descriptografia e validação gzip'
 
+rclone --log-level ERROR cat "$backup_object" \
+  | gzip -dc \
+  | python3 scripts/prepare-supabase-restore-stream.py --check-only \
+  || fail 'a cópia não contém a estrutura de dump reconhecida para restauração'
+
 empty_target_check="$(psql --no-psqlrc --set=ON_ERROR_STOP=1 --tuples-only --no-align <<'SQL'
 DO $$
 DECLARE
@@ -182,6 +187,7 @@ printf 'Validando cópia %s e destino isolado; o dump será transmitido sem arqu
 
 rclone --log-level ERROR cat "$backup_object" \
   | gzip -dc \
+  | python3 scripts/prepare-supabase-restore-stream.py \
   | psql --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
       --host "$PGHOST" --port "$PGPORT" --username "$PGUSER" --dbname "$PGDATABASE" \
   || fail 'a restauração em transação única falhou; não repita sobre um destino parcial'
