@@ -1,0 +1,68 @@
+name: Backup semanal do Supabase
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: production-backup
+
+    steps:
+      - name: Obter o script da branch principal
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Instalar ferramentas de banco e criptografia
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes postgresql-client rclone
+          docker info --format 'Docker Engine {{.ServerVersion}}'
+          rclone version
+
+      - name: Preparar a configuração temporária do Drive
+        env:
+          RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG_B64 }}
+        run: |
+          if [ -z "$RCLONE_CONFIG_B64" ]; then
+            printf '%s\n' "RCLONE_CONFIG_B64 não configurado no Environment production-backup" >&2
+            exit 1
+          fi
+          config_dir="$(mktemp -d "$RUNNER_TEMP/rclone-config.XXXXXX")"
+          printf '%s' "$RCLONE_CONFIG_B64" | base64 --decode > "$config_dir/rclone.conf"
+          chmod 600 "$config_dir/rclone.conf"
+          printf 'RCLONE_CONFIG=%s\n' "$config_dir/rclone.conf" >> "$GITHUB_ENV"
+          printf 'RCLONE_CONFIG_DIR=%s\n' "$config_dir" >> "$GITHUB_ENV"
+          unset RCLONE_CONFIG_B64
+
+      - name: Transmitir backup cifrado diretamente ao Drive
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_CLI_VERSION: 2.121.0
+          BACKUP_RCLONE_REMOTE: setlist-backup
+          BACKUP_PATH: setlist-prod/weekly
+        run: bash scripts/backup-supabase-to-drive.sh
+
+      - name: Apagar a configuração temporária do Drive
+        if: always()
+        run: |
+          if [ -n "${RCLONE_CONFIG:-}" ]; then
+            rm -f "$RCLONE_CONFIG"
+          fi
+          if [ -n "${RCLONE_CONFIG_DIR:-}" ]; then
+            rmdir "$RCLONE_CONFIG_DIR" 2>/dev/null || true
+          fi

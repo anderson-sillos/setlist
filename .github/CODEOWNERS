@@ -1,0 +1,4 @@
+# Changes to backup automation and workflows require review by the repository owner.
+/.github/workflows/** @anderson-sillos
+/.github/CODEOWNERS @anderson-sillos
+/scripts/backup-supabase-to-drive.sh @anderson-sillos
