@@ -20,7 +20,8 @@ de convites encerrados após 30 dias e limpeza dos registros temporários de
 denúncia após 24 horas e auditoria de login no Postgres por 30 dias. A limpeza
 de convites e a rotina de frequência de denúncias foram conferidas em produção;
 a primeira cópia diária foi confirmada em 20/10/2026. Permanecem pendentes o
-ensaio de restauração, a retenção do Brevo e a limpeza de auditoria de login.
+ensaio de restauração, a retenção do Brevo e a validação/aplicação da limpeza
+de auditoria de login.
 
 As páginas HTML candidatas `docs/termos.html` e `docs/privacidade.html` foram
 preparadas sem notas internas. O cliente agora apresenta links para os dois
@@ -133,39 +134,41 @@ pendente. A minuta apresenta o ciclo de
 conta, participação, conteúdo, convites e mensagens sem inventar prazos dos
 fornecedores. [LGPD, arts. 6º, 15 e 16](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm).
 
-**Decisão do responsável, ainda não implementada:** apagar convites encerrados
+**Decisão do responsável, implementada em produção:** apagar convites encerrados
 30 dias após uso, revogação ou vencimento; conservar aceites do termo enquanto
 a banda existir, para comprovar a versão aceita durante a participação, e
 eliminá-los com a banda. A tabela de convites guarda o hash do token, rótulo,
 datas e referências de criador/usuário; a tabela de aceites guarda banda,
 versão e data do aceite. Após excluir uma conta, as referências diretas a ela
 são anuladas, mas os demais campos ainda podem permitir associação indireta
-em uma banda pequena. A limpeza de convites exigirá implementação e deve
-preservar casos sob contestação ou obrigação específica de conservação. A
-necessidade e proporcionalidade de cada prazo dependem de revisão jurídica;
-nenhuma das duas regras escolhidas decorre automaticamente da LGPD.
+em uma banda pequena. A limpeza diária preserva casos sob apuração por meio de
+exceções com prazo e justificativa documentados. A necessidade e
+proporcionalidade de cada prazo dependem de revisão jurídica; nenhuma das
+regras escolhidas decorre automaticamente da LGPD.
 
 O responsável também decidiu limpar diariamente os registros de
 `report_rate_limits` quando a janela de envio tiver terminado há pelo menos
 24 horas. Essa tabela guarda o identificador da conta, o último identificador
 do caso e o horário do próximo envio permitido; a janela funcional é de
-1 minuto. Hoje a linha pode persistir até novo envio ou exclusão da conta.
-A limpeza ainda não foi implementada. O e-mail do caso é um registro separado,
+1 minuto. A limpeza diária foi aplicada e conferida em produção em 19/10/2026;
+a consulta daquele dia confirmou 17 execuções bem-sucedidas sem falha desde a
+primeira, e a tabela estava vazia. O e-mail do caso é um registro separado,
 com revisão de necessidade e descarte próprios.
 
-**Decisão do responsável sobre auditoria de login, ainda não implementada:**
-conservar a cópia em
+**Decisão do responsável sobre auditoria de login:** conservar a cópia em
 `auth.audit_log_entries` por 30 dias para permitir apuração de acessos
 suspeitos identificados após a janela de consulta externa do plano Free,
-que é de 1 hora para Auth Audit Logs. Limpar diariamente os registros mais
-antigos após conferir o esquema e as permissões da tabela gerenciada pelo
-Supabase; documentar exceções necessárias à apuração de incidentes. O prazo
-de 30 dias é uma escolha operacional, não exigência legal ou configuração
-efetiva de limpeza. Antes de implantá-la, confirmar se a consulta no banco atende à
-necessidade real de investigação, o volume de armazenamento, a viabilidade
-de limpeza suportada pelo fornecedor e o tratamento dos registros após a
-exclusão de uma conta. Os logs externos do Supabase seguem separados e não
-adotam automaticamente o prazo escolhido para a tabela. [Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs);
+que é de 1 hora para Auth Audit Logs. Exceções administrativas terão motivo
+sem dados pessoais e prazo futuro de revisão em tabela privada. A migração e o monitor diário de limpeza
+foram preparados, com um preflight somente de metadados; ainda não foram
+aplicados em produção nem validados contra a role efetiva. O check Healthchecks
+será diária, assim como a limpeza. Documentar exceções
+necessárias à apuração de incidentes. O prazo de 30 dias é uma escolha
+operacional, não exigência legal. Antes de ativá-la, confirmar se a consulta no
+banco atende à necessidade real de investigação, o volume de armazenamento, a
+viabilidade de limpeza suportada pelo fornecedor e o tratamento dos registros
+após a exclusão de uma conta. Os logs externos do Supabase seguem separados e
+não adotam automaticamente o prazo escolhido para a tabela. [Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs);
 [planos do Supabase](https://supabase.com/pricing).
 
 O inventário local também identificou o identificador da última banda em
@@ -188,16 +191,16 @@ diretamente todos os registros operacionais. A apuração deve separar a base
 ativa, os logs, as cópias de segurança e a caixa de atendimento, inclusive na
 resposta a pedidos de exclusão. [LGPD, arts. 15 e 16](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm).
 
-| Conjunto de dados                        | Informação confirmada em documentação ou código                                                                                                                                                                                                                                                                                                                                       | Conferência necessária para `setlist-prod`                                                                                                                                                                                                                          |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Banco ativo do Supabase                  | O fluxo de exclusão remove perfil e identidade de autenticação, mas preserva o conteúdo de bandas ativas e desvincula referências pessoais de convites e aceites. O responsável escolheu eliminar convites encerrados após 30 dias e manter aceites enquanto a banda existir; execução e exceções foram confirmadas em 19/10/2026.                                                    | Acompanhar pedidos de exclusão e confirmar com a assessoria jurídica as exceções de conservação aplicáveis.                                                                                                                                                         |
-| Logs de API e banco do Supabase          | A [tabela de planos](https://supabase.com/pricing) informa janela de acesso de 1 dia no Free. O responsável confirmou que `setlist-prod` está nesse plano; a janela de consulta não demonstra eliminação de todas as cópias.                                                                                                                                                          | Conferir logs gerados, acesso, destino de eventuais exportações e prazo efetivo de eliminação.                                                                                                                                                                      |
-| Auditoria de autenticação do Supabase    | Os [Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs) registram eventos de login e renovação de token em armazenamento externo; a gravação adicional em `auth.audit_log_entries` está ligada em `setlist-prod`. O responsável decidiu manter essa cópia por 30 dias com limpeza diária, ainda não implantada.                                                        | Conferir o mecanismo suportado para limpar a tabela gerenciada, eventuais exceções e dados identificáveis após exclusão de `auth.users`; validar a execução em produção. A janela externa do plano Free não define a retenção dessa tabela.                         |
-| Backups e PITR do Supabase               | O responsável confirmou `setlist-prod` no plano Free, sem PITR. A documentação do Supabase informa que esse plano não oferece backup diário automático. A rotina própria transmite cópias diárias para uma conta dedicada do Google Drive, com criptografia no cliente e retenção das 84 cópias diárias mais recentes (12 semanas); a primeira execução foi confirmada em 20/10/2026. | A execução e as credenciais protegidas foram implantadas e a primeira cópia foi confirmada. Validar a restauração isolada e a cobertura de dados; confirmar com a assessoria jurídica o tratamento do Drive e as transferências internacionais antes da publicação. |
-| Visitas ao GitHub Pages                  | O [GitHub](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) informa que registra o IP do visitante por segurança, sem prazo de eliminação nessa página.                                                                                                                                                                                       | Identificar a política aplicável ao serviço contratado e distinguir logs de visita dos artefatos e logs do Actions.                                                                                                                                                 |
-| Encaminhamento do e-mail pela Cloudflare | O [Email Routing](https://developers.cloudflare.com/email-service/observability/logs/) expõe registros de atividade e entrega. O intervalo disponível para filtrar a tela não estabelece o prazo de eliminação.                                                                                                                                                                       | Conferir quais metadados são mantidos, quem acessa, por quanto tempo e como pedidos relativos a esses registros são tratados.                                                                                                                                       |
-| Mensagens e anexos no Gmail              | O responsável é a única pessoa com acesso informado, acompanha a caixa nos dias úteis e revisará casos encerrados trimestralmente para descartar o que não precisar mais ser conservado.                                                                                                                                                                                              | Confirmar critérios e exceções de retenção com assessoria jurídica; conferir configuração real e cópias mantidas pelo fornecedor.                                                                                                                                   |
-| Denúncias enviadas pelo Brevo            | A conta é exclusiva do Setlist. O responsável escolheu 1 mês de logs transacionais e nenhuma nova prévia do e-mail. A [documentação do Brevo](https://help.brevo.com/hc/en-us/articles/4415743225746-Configure-a-custom-retention-period-for-your-transactional-logs-and-email-previews) informa retenção indefinida dos logs se não houver regra configurada.                        | Aplicar e conferir a regra no painel, inclusive prévias já existentes, contrato, locais de tratamento e eliminação efetiva.                                                                                                                                         |
+| Conjunto de dados                        | Informação confirmada em documentação ou código                                                                                                                                                                                                                                                                                                                                       | Conferência necessária para `setlist-prod`                                                                                                                                                                                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Banco ativo do Supabase                  | O fluxo de exclusão remove perfil e identidade de autenticação, mas preserva o conteúdo de bandas ativas e desvincula referências pessoais de convites e aceites. O responsável escolheu eliminar convites encerrados após 30 dias e manter aceites enquanto a banda existir; execução e exceções foram confirmadas em 19/10/2026.                                                    | Acompanhar pedidos de exclusão e confirmar com a assessoria jurídica as exceções de conservação aplicáveis.                                                                                                                                                                           |
+| Logs de API e banco do Supabase          | A [tabela de planos](https://supabase.com/pricing) informa janela de acesso de 1 dia no Free. O responsável confirmou que `setlist-prod` está nesse plano; a janela de consulta não demonstra eliminação de todas as cópias.                                                                                                                                                          | Conferir logs gerados, acesso, destino de eventuais exportações e prazo efetivo de eliminação.                                                                                                                                                                                        |
+| Auditoria de autenticação do Supabase    | Os [Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs) registram eventos de login e renovação de token em armazenamento externo; a gravação adicional em `auth.audit_log_entries` está ligada em `setlist-prod`. A migração de limpeza diária após 30 dias e a conferência diária foram preparadas localmente, mas ainda não aplicadas nem verificadas em produção.   | Executar o preflight somente de metadados, confirmar suporte/privilégios da role que aplicará a migração, implantar e observar o primeiro ciclo. Conferir exceções e dados identificáveis após exclusão de `auth.users`; a janela externa do Free não define a retenção dessa tabela. |
+| Backups e PITR do Supabase               | O responsável confirmou `setlist-prod` no plano Free, sem PITR. A documentação do Supabase informa que esse plano não oferece backup diário automático. A rotina própria transmite cópias diárias para uma conta dedicada do Google Drive, com criptografia no cliente e retenção das 84 cópias diárias mais recentes (12 semanas); a primeira execução foi confirmada em 20/10/2026. | A execução e as credenciais protegidas foram implantadas e a primeira cópia foi confirmada. Validar a restauração isolada e a cobertura de dados; confirmar com a assessoria jurídica o tratamento do Drive e as transferências internacionais antes da publicação.                   |
+| Visitas ao GitHub Pages                  | O [GitHub](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) informa que registra o IP do visitante por segurança, sem prazo de eliminação nessa página.                                                                                                                                                                                       | Identificar a política aplicável ao serviço contratado e distinguir logs de visita dos artefatos e logs do Actions.                                                                                                                                                                   |
+| Encaminhamento do e-mail pela Cloudflare | O [Email Routing](https://developers.cloudflare.com/email-service/observability/logs/) expõe registros de atividade e entrega. O intervalo disponível para filtrar a tela não estabelece o prazo de eliminação.                                                                                                                                                                       | Conferir quais metadados são mantidos, quem acessa, por quanto tempo e como pedidos relativos a esses registros são tratados.                                                                                                                                                         |
+| Mensagens e anexos no Gmail              | O responsável é a única pessoa com acesso informado, acompanha a caixa nos dias úteis e revisará casos encerrados trimestralmente para descartar o que não precisar mais ser conservado.                                                                                                                                                                                              | Confirmar critérios e exceções de retenção com assessoria jurídica; conferir configuração real e cópias mantidas pelo fornecedor.                                                                                                                                                     |
+| Denúncias enviadas pelo Brevo            | A conta é exclusiva do Setlist. O responsável escolheu 1 mês de logs transacionais e nenhuma nova prévia do e-mail. A [documentação do Brevo](https://help.brevo.com/hc/en-us/articles/4415743225746-Configure-a-custom-retention-period-for-your-transactional-logs-and-email-previews) informa retenção indefinida dos logs se não houver regra configurada.                        | Aplicar e conferir a regra no painel, inclusive prévias já existentes, contrato, locais de tratamento e eliminação efetiva.                                                                                                                                                           |
 
 O [plano do Supabase pertence à organização](https://supabase.com/docs/guides/platform/billing-on-supabase),
 enquanto PITR é um adicional por projeto. O responsável confirmou o plano Free

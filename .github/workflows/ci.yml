@@ -74,6 +74,10 @@ jobs:
         if: steps.scope.outputs.run_checks == 'true'
         run: npm run test:release-manifest
 
+      - name: Verificar monitores Healthchecks
+        if: steps.scope.outputs.run_checks == 'true'
+        run: npm run test:healthchecks
+
       - name: Restaurar transformações Jest e cache ESLint
         if: steps.scope.outputs.run_checks == 'true'
         uses: actions/cache@v6

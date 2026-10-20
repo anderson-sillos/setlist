@@ -14,10 +14,17 @@ o caso: prorrogar a data com justificativa ou retirar a exceção. O job ignora
 somente exceções ainda vigentes. Essa tabela não é acessível pelo app.
 
 Migração aplicada em `setlist-prod` em 02/10/2026; o job consta como ativo.
-Conferir no painel Supabase → Cron seu histórico de execuções e a contagem de
-convites elegíveis antes e depois da primeira execução. Registrar o resultado
-da conferência. A rotina só poderá ser descrita como efetiva na política de
-privacidade depois dessa validação.
+O monitor diário preparado em
+[`HEALTHCHECKS_OPERACAO.md`](HEALTHCHECKS_OPERACAO.md) confere o estado ativo,
+a última execução bem-sucedida e a ausência de convites elegíveis na conclusão
+do job. Ele envia ao check próprio do Healthchecks somente depois de consultar
+as contagens agregadas; a Ping URL ainda precisa ser cadastrada no Environment
+`production-backup` e o monitor permanece desativado até habilitar
+`HEALTHCHECKS_MONITORING_ENABLED`.
+
+A rotina de limpeza foi confirmada pelo responsável em produção em 19/10/2026.
+A verificação externa recorrente só poderá ser descrita como operacional após
+cadastrar o check e observar um sinal verde no Healthchecks.
 
 Os aceites em `legal_acceptances` não fazem parte do job. Eles permanecem
 vinculados à banda até sua exclusão; a exclusão da conta desvincula a

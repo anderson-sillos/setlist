@@ -267,8 +267,12 @@ em armazenamento externo de logs. O responsável confirmou que, em
 `auth.audit_log_entries` está **ligada**. Esses registros podem conter
 identificador de usuário, IP e metadados de acesso. O responsável decidiu
 conservar essa cópia por **30 dias**, com limpeza diária dos registros mais
-antigos; a rotina ainda precisa ser implementada e validada. Confirmar o
-tratamento após exclusão de conta; não presumir que apagar
+antigos, salvo exceções administrativas temporárias e documentadas para uma
+apuração. O motivo da exceção não deve conter dados pessoais e cada retenção
+tem prazo para revisão. A migração foi preparada, mas a ativação depende da confirmação
+somente de metadados de que a role de implantação tem permissão e bypass efetivo
+de RLS na tabela gerenciada. Até a aplicação e validação em produção, não afirmar
+que o prazo já está efetivo. Confirmar o tratamento após exclusão de conta; não presumir que apagar
 `auth.users` elimine os registros de auditoria.
 
 > **Nota interna de apuração — substituir por prazos confirmados antes de
@@ -278,8 +282,9 @@ tratamento após exclusão de conta; não presumir que apagar
 > no Pro e 28 dias no Team; não especifica um prazo para Enterprise. Essas
 > janelas não demonstram a data de eliminação de todas as cópias mantidas pelo
 > fornecedor. A gravação adicional de auditoria de autenticação no Postgres
-> está ligada em `setlist-prod`; a retenção de 30 dias e a limpeza diária
-> escolhidas ainda precisam ser implementadas. Definir exceções aplicáveis
+> está ligada em `setlist-prod`; a migração para retenção de 30 dias e limpeza
+> diária foi preparada, mas precisa passar pelo preflight, ser aplicada e
+> validada em produção. Definir exceções aplicáveis
 > após a exclusão da conta. Backups automáticos diários não estão
 > incluídos no Free; a documentação informa 7 dias de acesso no Pro, 14 dias no
 > Team e até 30 dias no Enterprise. Quando habilitado, o PITR substitui os
@@ -295,9 +300,9 @@ tratamento após exclusão de conta; não presumir que apagar
 > alterações feitas desde a cópia anterior. Dados removidos do banco ativo
 > podem continuar em uma dessas cópias até a substituição correspondente;
 > exceções de retenção e a eliminação segura do arquivo antigo precisam ser
-> conferidas. A configuração de
-> retenção da auditoria gravada no Postgres foi escolhida, mas sua execução
-> ainda precisa ser conferida. [Planos do Supabase](https://supabase.com/pricing),
+> conferidas. O código de limpeza da auditoria gravada no Postgres foi
+> preparado; a execução diária e a retenção efetiva de 30 dias ainda não foram
+> confirmadas em produção. [Planos do Supabase](https://supabase.com/pricing),
 > [auditoria de autenticação](https://supabase.com/docs/guides/auth/audit-logs),
 > [backups e PITR](https://supabase.com/docs/guides/platform/backups).
 >

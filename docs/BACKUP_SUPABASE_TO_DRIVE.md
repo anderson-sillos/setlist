@@ -47,8 +47,12 @@ tarefa OpenSpec 11.8.4 como concluída até realizar esse ensaio.
 - O job exporta papéis PostgreSQL, schemas `public`, `private` e
   `supabase_migrations`, dados desses schemas e os dados do schema `auth`.
   O Supabase CLI omite schemas gerenciados por padrão; a exportação de dados de
-  `auth` é explícita e exclui sessões e outros registros temporários indicados
-  no script.
+  `auth` é explícita e exclui sessões, `auth.audit_log_entries` e outros
+  registros temporários indicados no script. A auditoria removida pela
+  retenção de 30 dias não pode ser restaurada dessas cópias. Metadados de
+  exceções de retenção ficam em `private.auth_audit_retention_holds`; após uma
+  restauração sem as linhas Auth correspondentes, a limpeza diária remove as
+  exceções órfãs.
 - O job consulta `storage.objects` antes do dump. Se houver qualquer objeto,
   interrompe a rotina para não criar uma cópia incompleta. O armazenamento
   binário do Supabase Storage ainda não faz parte desta rotina.

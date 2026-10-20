@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-20
+goal: Detectar execuções ausentes ou falhas nas rotinas de limpeza, verificar a
+  disponibilidade da Web e da API Supabase a cada 30 minutos e validar o canal
+  de alertas sem afetar o check de backup de produção.
