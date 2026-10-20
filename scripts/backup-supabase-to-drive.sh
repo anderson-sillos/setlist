@@ -8,7 +8,8 @@ umask 077
 
 SUPABASE_CLI_VERSION="${SUPABASE_CLI_VERSION:-2.121.0}"
 BACKUP_RCLONE_REMOTE="${BACKUP_RCLONE_REMOTE:-setlist-backup}"
-BACKUP_PATH="${BACKUP_PATH:-setlist-prod/weekly}"
+BACKUP_PATH="${BACKUP_PATH:-setlist-prod/daily}"
+BACKUP_RETENTION_COUNT="${BACKUP_RETENTION_COUNT:-84}"
 
 export SUPABASE_TELEMETRY_DISABLED=true
 
@@ -24,13 +25,25 @@ supabase_dump() {
     || fail "Supabase CLI could not export the requested database section"
 }
 
-[[ "$(rclone config get "$BACKUP_RCLONE_REMOTE" type)" == "crypt" ]] \
-  || fail "the configured backup remote must use rclone crypt"
+python3 - "$RCLONE_CONFIG" "$BACKUP_RCLONE_REMOTE" <<'PY' \
+  || fail "the configured backup remote must use rclone crypt over Google Drive"
+import configparser
+import sys
 
-underlying_remote="$(rclone config get "$BACKUP_RCLONE_REMOTE" remote)"
-underlying_name="${underlying_remote%%:*}"
-[[ "$(rclone config get "$underlying_name" type)" == "drive" ]] \
-  || fail "the crypt remote must wrap a Google Drive remote"
+config_path, crypt_name = sys.argv[1:]
+config = configparser.ConfigParser(interpolation=None)
+try:
+    with open(config_path, encoding="utf-8") as config_file:
+        config.read_file(config_file)
+    if config.get(crypt_name, "type", fallback="") != "crypt":
+        raise ValueError
+    drive_remote = config.get(crypt_name, "remote", fallback="")
+    drive_name, separator, _ = drive_remote.partition(":")
+    if not separator or config.get(drive_name, "type", fallback="") != "drive":
+        raise ValueError
+except (OSError, configparser.Error, ValueError):
+    sys.exit(1)
+PY
 
 storage_object_count="$(PGCONNECT_TIMEOUT=30 psql "$SUPABASE_DB_URL" \
   --no-psqlrc --set ON_ERROR_STOP=1 --tuples-only --no-align \
@@ -42,11 +55,11 @@ storage_object_count="${storage_object_count//[[:space:]]/}"
 [[ "$storage_object_count" == "0" ]] \
   || fail "Supabase Storage contains files; this job only backs up database data"
 
-week="$(date -u +%G-W%V)"
+backup_date="$(date -u +%F)"
 run_id="${GITHUB_RUN_ID:-manual}-$(date -u +%s)"
 backup_root="${BACKUP_RCLONE_REMOTE}:${BACKUP_PATH}"
-staging_path="${backup_root}/.setlist-prod-${week}-${run_id}.staging.sql.gz"
-final_path="${backup_root}/setlist-prod-${week}.sql.gz"
+staging_path="${backup_root}/.setlist-prod-${backup_date}-${run_id}.staging.sql.gz"
+final_path="${backup_root}/setlist-prod-${backup_date}.sql.gz"
 
 cleanup() {
   if [[ -n "${staging_path:-}" ]]; then
@@ -56,7 +69,7 @@ cleanup() {
 trap cleanup EXIT
 
 rclone --log-level ERROR mkdir "$backup_root"
-printf 'Starting encrypted Supabase backup for ISO week %s.\n' "$week"
+printf 'Starting encrypted Supabase backup for %s.\n' "$backup_date"
 
 if ! {
   printf '\n-- Setlist production backup: PostgreSQL roles\n'
@@ -92,17 +105,17 @@ rclone --log-level ERROR cat "$staging_path" | gzip -t \
   || fail "the uploaded staging copy failed decryption or gzip integrity validation"
 
 existing_backups="$(rclone --log-level ERROR lsf "$backup_root" --files-only --format p)" \
-  || fail "could not inspect the existing weekly copy"
+  || fail "could not inspect the existing daily copy"
 previous_path=""
-if [[ $'\n'"$existing_backups"$'\n' == *$'\n'"setlist-prod-${week}.sql.gz"$'\n'* ]]; then
-  previous_path="${backup_root}/.previous-setlist-prod-${week}-${run_id}.sql.gz"
+if [[ $'\n'"$existing_backups"$'\n' == *$'\n'"setlist-prod-${backup_date}.sql.gz"$'\n'* ]]; then
+  previous_path="${backup_root}/.previous-setlist-prod-${backup_date}-${run_id}.sql.gz"
   rclone --log-level ERROR moveto "$final_path" "$previous_path"
 fi
 
 if ! rclone --log-level ERROR moveto "$staging_path" "$final_path"; then
   if [[ -n "$previous_path" ]]; then
     rclone --log-level ERROR moveto "$previous_path" "$final_path" \
-      || fail "new upload failed and the previous weekly copy could not be restored"
+      || fail "new upload failed and the previous daily copy could not be restored"
   fi
   fail "could not publish the verified staging copy"
 fi
@@ -123,19 +136,19 @@ backup_listing="$(rclone --log-level ERROR lsf "$backup_root" --files-only --for
   || fail "could not list backups for retention"
 mapfile -t backups < <(
   printf '%s\n' "$backup_listing" \
-    | grep -E '^setlist-prod-[0-9]{4}-W[0-9]{2}\.sql\.gz$' \
+    | grep -E '^setlist-prod-[0-9]{4}-[0-9]{2}-[0-9]{2}\.sql\.gz$' \
     | sort -r
 )
 
-if (( ${#backups[@]} > 12 )); then
-  for old_backup in "${backups[@]:12}"; do
+if (( ${#backups[@]} > BACKUP_RETENTION_COUNT )); then
+  for old_backup in "${backups[@]:BACKUP_RETENTION_COUNT}"; do
     rclone --log-level ERROR deletefile "${backup_root}/${old_backup}"
   done
 fi
 
 retained_count="${#backups[@]}"
-if (( retained_count > 12 )); then
-  retained_count=12
+if (( retained_count > BACKUP_RETENTION_COUNT )); then
+  retained_count="$BACKUP_RETENTION_COUNT"
 fi
-printf 'Backup completed and verified for ISO week %s; retained %s weekly copies.\n' \
-  "$week" "$retained_count"
+printf 'Backup completed and verified for %s; retained %s daily copies.\n' \
+  "$backup_date" "$retained_count"
