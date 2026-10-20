@@ -1,11 +1,12 @@
 import { spawn } from 'node:child_process';
+import { constants as fsConstants } from 'node:fs';
+import { access } from 'node:fs/promises';
+import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { sendHealthcheckPing } from './healthcheck-ping.mjs';
 
-const SCRIPT_DIRECTORY = fileURLToPath(new URL('.', import.meta.url));
-
-function summarizePsqlFailure(stderr, exitCode) {
+function summarizePsqlFailure(stderr, exitCode, queryFilePath) {
   const sqlState = stderr.match(
     /(?:ERROR|FATAL|PANIC):\s*([0-9A-Z]{5})\b/u,
   )?.[1];
@@ -34,8 +35,23 @@ function summarizePsqlFailure(stderr, exitCode) {
   ) {
     return 'Falha de rede ou TLS na conexão PostgreSQL.';
   }
-  if (/could not open file|no such file or directory/iu.test(stderr)) {
+  const missingFile = /could not open file|no such file or directory/iu.test(
+    stderr,
+  );
+  const queryFileName = basename(queryFilePath);
+  if (missingFile && stderr.includes(queryFileName)) {
     return 'Falha ao abrir o arquivo SQL do monitor.';
+  }
+  if (
+    missingFile &&
+    /root certificate|ssl certificate|private key|certificate file|sslrootcert/iu.test(
+      stderr,
+    )
+  ) {
+    return 'Arquivo de certificado ou chave TLS indisponível para a conexão PostgreSQL.';
+  }
+  if (missingFile) {
+    return 'Arquivo local exigido pelo cliente PostgreSQL indisponível.';
   }
 
   return `psql terminou com código ${exitCode}; detalhe do erro omitido.`;
@@ -108,7 +124,7 @@ function runPsql(queryFile, databaseUrl, timeoutMs = 30_000) {
       settled = true;
       clearTimeout(timeout);
       if (code !== 0) {
-        reject(new Error(summarizePsqlFailure(stderr, code)));
+        reject(new Error(summarizePsqlFailure(stderr, code, queryFile)));
         return;
       }
       resolve(stdout.trim());
@@ -133,10 +149,15 @@ export async function runPostgresMonitor({
     await sendPing(heartbeatUrl, '/start');
     if (!databaseUrl) throw new Error('SUPABASE_DB_URL ausente.');
 
-    const output = await runQuery(
-      `${SCRIPT_DIRECTORY}${queryFile}`,
-      databaseUrl,
-    );
+    const queryFilePath = fileURLToPath(new URL(queryFile, import.meta.url));
+    try {
+      await access(queryFilePath, fsConstants.R_OK);
+    } catch {
+      throw new Error(
+        'Arquivo SQL do monitor ausente ou sem permissão de leitura.',
+      );
+    }
+    const output = await runQuery(queryFilePath, databaseUrl);
     if (!isHealthyMonitorResult(output)) {
       throw new Error('A verificação agregada encontrou uma pendência.');
     }
