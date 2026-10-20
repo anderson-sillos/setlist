@@ -177,6 +177,7 @@ isolado, sem reutilizar senhas de produção.
 
    Confira também constraints e funções essenciais. Registre apenas os nomes
    dos objetos e as contagens, sem exportar linhas de usuários.
+
 2. Faça a validação funcional apenas com uma conta de teste preparada para o
    projeto isolado. Não envie e-mails a usuários reais, não use credenciais de
    provedores de produção e não direcione o app público para esse banco.
