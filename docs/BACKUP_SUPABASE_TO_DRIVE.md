@@ -149,12 +149,16 @@ ou o `psql` falhar. `ON_ERROR_STOP` interrompe no primeiro erro e
 importação sobre um destino parcialmente restaurado: descarte o projeto de
 recuperação e prepare um projeto vazio antes de tentar novamente.
 
-Não ignore erros de permissão, objetos existentes ou papéis gerenciados. A
-restauração pode exigir ajustes próprios do Supabase para ownership e grants;
-pare, consulte as notas de troubleshooting na documentação oficial e registre
-quais ajustes foram necessários. Senhas de papéis personalizados com `LOGIN`
-não são recuperadas pelo dump e devem ser definidas novamente no ambiente
-isolado, sem reutilizar senhas de produção.
+O dump antigo inclui uma seção de papéis globais, que não pode ser reproduzida
+integralmente em outro projeto Supabase: a plataforma provisiona os próprios
+papéis e reserva `supabase_admin`. O restaurador valida a seção sem gravá-la
+localmente, descarta essa parte do fluxo e as instruções de ownership para
+`supabase_admin`, e reaplica somente a configuração de `authenticator` usada
+pelo Setlist (`pgrst.db_pre_request`). Backups novos não exportam papéis
+globais; incluem apenas essa configuração da aplicação.
+Senhas de papéis personalizados com `LOGIN` não são recuperadas pelo dump e
+devem ser definidas novamente no ambiente isolado, sem reutilizar senhas de
+produção.
 
 ### 4. Conferir a recuperação e encerrar o ensaio
 
@@ -199,11 +203,12 @@ externos. Para um incidente real, primeiro restaure em um projeto separado,
 valide os dados e planeje a troca de conexão/cutover. Não execute uma
 restauração destrutiva no banco ativo sem um plano de recuperação específico.
 
-O procedimento está documentado e o workflow/script de restauração foram
-preparados localmente. O projeto descartável existe e o responsável informou
-que cadastrou o secret de conexão; ainda falta conferir o secret no GitHub,
-integrar o workflow à `main` e executar a restauração isolada. Não marcar a
-tarefa OpenSpec 11.8.4 como concluída até o ensaio terminar com sucesso.
+Os workflows e scripts foram integrados à `main` na PR #52. A primeira
+execução, com a cópia de 20/10/2026, parou ao tentar aplicar papéis gerenciados
+do Supabase; a transação única foi interrompida. A correção em andamento remove
+papéis globais e ownership reservado durante o fluxo e mantém o dump direto do
+Drive ao banco. Não marque a tarefa OpenSpec 11.8.4 como concluída até uma nova
+execução terminar com sucesso e as contagens serem conferidas.
 Para o formato de dump, preparação do projeto, restauração por `psql`
 e tratamento de papéis do Supabase, consulte o
 [guia oficial de backup e restauração pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).

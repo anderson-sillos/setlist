@@ -72,8 +72,8 @@ rclone --log-level ERROR mkdir "$backup_root"
 printf 'Starting encrypted Supabase backup for %s.\n' "$backup_date"
 
 if ! {
-  printf '\n-- Setlist production backup: PostgreSQL roles\n'
-  supabase_dump --role-only
+  printf '\n-- Setlist production backup: application role configuration\n'
+  printf "ALTER ROLE authenticator SET pgrst.db_pre_request = 'public.reject_suspended_request';\n"
 
   printf '\n-- Setlist production backup: application schema\n'
   supabase_dump --schema public,private
