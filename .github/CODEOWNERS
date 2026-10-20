@@ -2,3 +2,4 @@
 /.github/workflows/** @anderson-sillos
 /.github/CODEOWNERS @anderson-sillos
 /scripts/backup-supabase-to-drive.sh @anderson-sillos
+/scripts/restore-supabase-from-drive.sh @anderson-sillos

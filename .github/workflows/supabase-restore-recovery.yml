@@ -1,0 +1,84 @@
+name: Restaurar backup do Supabase em projeto isolado
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_date:
+        description: 'Data UTC do backup (AAAA-MM-DD)'
+        required: true
+        type: string
+      confirmation:
+        description: 'Confirme que o destino é um projeto descartável, nunca setlist-prod'
+        required: true
+        type: choice
+        default: CANCELAR
+        options:
+          - CANCELAR
+          - RESTAURAR-ISOLADO
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-isolated-restore
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'RESTAURAR-ISOLADO'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    environment: production-backup
+
+    steps:
+      - name: Obter o script da branch principal
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Instalar ferramentas de restauração
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes postgresql-client rclone
+          psql --version
+          rclone version
+          gzip --version | head -n 1
+
+      - name: Preparar a configuração temporária do Drive
+        env:
+          RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG_B64 }}
+        run: |
+          umask 077
+          if [ -z "$RCLONE_CONFIG_B64" ]; then
+            printf '%s\n' "RCLONE_CONFIG_B64 não configurado no Environment production-backup" >&2
+            exit 1
+          fi
+          config_dir="$(mktemp -d "$RUNNER_TEMP/rclone-config.XXXXXX")"
+          printf 'RCLONE_CONFIG=%s\n' "$config_dir/rclone.conf" >> "$GITHUB_ENV"
+          printf 'RCLONE_CONFIG_DIR=%s\n' "$config_dir" >> "$GITHUB_ENV"
+          printf '%s' "$RCLONE_CONFIG_B64" | base64 --decode > "$config_dir/rclone.conf"
+          chmod 600 "$config_dir/rclone.conf"
+          unset RCLONE_CONFIG_B64
+
+      - name: Restaurar diretamente do Drive para o projeto isolado
+        env:
+          SUPABASE_RECOVERY_DB_URL: ${{ secrets.SUPABASE_RECOVERY_DB_URL }}
+          BACKUP_DATE: ${{ inputs.backup_date }}
+          RESTORE_CONFIRMATION: ${{ inputs.confirmation }}
+          RESTORE_RCLONE_REMOTE: setlist-backup
+          RESTORE_PATH: setlist-prod/daily
+          SOURCE_PRODUCTION_PROJECT_REF: tqijocmmiwistinrjpwl
+          RESTORE_TARGET_PROJECT_REF: rksthbddfecjpvoxclgo
+        run: bash scripts/restore-supabase-from-drive.sh "$BACKUP_DATE"
+
+      - name: Apagar a configuração temporária do Drive
+        if: always()
+        run: |
+          if [ -n "${RCLONE_CONFIG:-}" ]; then
+            rm -f "$RCLONE_CONFIG"
+          fi
+          if [ -n "${RCLONE_CONFIG_DIR:-}" ]; then
+            rmdir "$RCLONE_CONFIG_DIR" 2>/dev/null || true
+          fi

@@ -149,26 +149,37 @@ e atualizar esta tabela caso os valores mudem.
 ### Símbolos de depuração Android
 
 Antes de enviar um AAB ao Google Play, conferir se o build de produção usa
-ofuscação R8/ProGuard. Se usar, guardar o `mapping.txt` gerado para aquele AAB e
-enviá-lo à mesma versão no Play Console para tornar legíveis os relatórios de
-falhas e ANRs. O arquivo precisa corresponder exatamente ao `versionCode` do
-bundle; não reutilizar o mapa de outro build. Se a ofuscação não estiver ativa,
-registrar que o aviso de ausência do arquivo é informativo e não há mapa a
-enviar.
+ofuscação R8/ProGuard. Sempre preservar o `mapping.txt` do mesmo build fora do
+Git, vinculado ao `versionCode` do bundle; nunca reutilizar o mapa de outro
+build. Para AABs produzidos pelo Gradle com Android Gradle Plugin 4.1 ou mais
+recente, o mapa é incluído no bundle e o Play Console o associa automaticamente.
+Não é necessário enviá-lo manualmente quando ele está presente no AAB. Se o
+arquivo estiver ausente, ou para uma compilação distribuída como APK, usar o
+App bundle explorer e a seção Downloads/Assets para fazer o envio manual.
 
 No envio do primeiro AAB ao teste interno, o Play Console mostrou esse aviso
-para o `versionCode 2`. A configuração inicial do projeto não declarava
-R8/ProGuard. A candidata `v1.0.0-rc.4` prepara R8 com o preset otimizado e
-redução de recursos nos builds Android de release;
-confirmar o resultado no AAB produzido antes de tratar o aviso como resolvido.
+para o `versionCode 2`, quando o projeto ainda não declarava R8/ProGuard. A
+RC.4 habilitou R8 com o preset otimizado e redução de recursos. O AAB
+`versionCode 6` contém o `r8.json` e o mapa de R8; o Play Console mostrou DEX
+code optimization `High`.
 
 O perfil `production-android` configura o EAS para incluir
 `android/app/build/outputs/mapping/release/mapping.txt` nos artefatos auxiliares
 do build. Após a conclusão, baixar esse artefato, conferir que veio do mesmo job
 e commit do AAB, e guardá-lo fora do Git junto ao registro privado da release.
-Depois, associá-lo à compilação com o mesmo `versionCode` no Play Console. A
-presença do arquivo nos artefatos do EAS não comprova que ele foi associado no
-Play Console; conferir também o estado dos indicadores DEX da versão.
+Comparar seu conteúdo com
+`BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map` dentro do AAB
+confirma que o mapa correspondente foi incorporado. Conferir no App bundle
+explorer os indicadores DEX e, quando necessário, a presença do mapa na seção
+Downloads/Assets. Consulte a orientação oficial [Deobfuscate or symbolicate
+crash stack traces](https://support.google.com/googleplay/android-developer/answer/9848633?hl=en)
+sobre arquivos de desofuscação em AABs e APKs.
+
+Na RC.4, o AAB `versionCode 6` do commit `d32840d61c1d2564cf5395c040712571bb762f8a`
+contém o mapa R8; seu SHA-256 é
+`f3fa741849765bf0eceb0029bfc87338ea1af49c92fc7ada96473e9e80650544`. O
+Play Console mostrou DEX code optimization `High` e obfuscation `89%`. A cópia
+privada do mapa foi guardada fora do Git junto aos artefatos da release.
 
 Exportar também a Web da mesma tag usando as variáveis públicas de produção:
 `SETLIST_RELEASE_COMMIT` deve ser o SHA da tag e `SETLIST_RELEASE_TAG`, seu nome.

@@ -2,6 +2,111 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 20 de outubro de 2026 — ensaio de restauração isolada
+
+- A cópia diária do Supabase já foi enviada e validada no Google Drive pela
+  execução Actions `39365774924`; nenhum dump foi salvo no Mac.
+- Foram preparados localmente `.github/workflows/supabase-restore-recovery.yml`
+  e `scripts/restore-supabase-from-drive.sh`. A ação aceita somente `main`,
+  exige confirmação `RESTAURAR-ISOLADO`, valida uma cópia por data, verifica
+  que o destino Supabase não seja `setlist-prod`, exige que tabelas da aplicação,
+  Auth e Storage estejam vazias, valida a integridade gzip e transmite o dump
+  do Drive ao `psql` em uma transação. A URI do banco fica em Secret; a senha
+  não é passada na linha de comando. A configuração temporária do Drive e o
+  `pgpass` são removidos ao final.
+- O projeto descartável `setlist-restore` foi criado: ref
+  `rksthbddfecjpvoxclgo`, região `us-west-2`, PostgreSQL 17.11. O projeto de
+  desenvolvimento `setlist-dev` (`zncaahgaoqwksdidunza`) está `INACTIVE`; a
+  produção (`tqijocmmiwistinrjpwl`) permanece `ACTIVE_HEALTHY`. A versão principal
+  do PostgreSQL no destino e na produção é 17. O workflow agora exige a ref
+  exata do destino, além de rejeitar a produção. O responsável informou que
+  criou `SUPABASE_RECOVERY_DB_URL`; ainda falta verificar que esteja no
+  Environment `production-backup`, sem ler o valor.
+- O workflow ainda não foi integrado à `main` e a restauração não foi executada.
+  A tarefa OpenSpec 11.8.4 continua aberta. O GitHub CLI foi conferido com acesso elevado; a
+  única sessão estava inválida e foi removida conforme solicitação do
+  responsável. Para criar/atualizar a PR será necessário autenticar novamente
+  a mesma conta existente, não criar uma nova conta.
+
+## Atualização de 20 de outubro de 2026 — backup diário no Google Drive
+
+- O repositório `anderson-sillos/setlist` é público. A `main` exige PR e os
+  checks configurados; force-push e escrita direta continuam bloqueados. O
+  bypass administrativo de revisão se aplica somente à integração por PR e
+  mantém os checks obrigatórios.
+- O Environment `production-backup` restringe deployments à `main` e não tem
+  bypass administrativo. Os nomes `RCLONE_CONFIG_B64` e `SUPABASE_DB_URL` estão
+  cadastrados nele; valores secretos não foram lidos nem registrados. O token
+  padrão do Actions tem `contents: read`.
+- A PR #49 integrou workflow, script, CODEOWNERS e runbook. A PR #50 ajustou a
+  validação do rclone, o agendamento diário às 06:17 UTC (03:17 em São Paulo)
+  e a retenção de 84 cópias diárias (12 semanas). O dump é transmitido em fluxo,
+  comprimido e cifrado com `rclone crypt`; a execução para se encontrar objetos
+  no Supabase Storage, que exigem procedimento de backup próprio.
+- A execução manual #39365774924, no commit `1c8043d09a830e45dc945ea2a7eebc3a563ffc25`,
+  terminou com sucesso em 20/10. A cópia cifrada foi conferida no Drive; nenhum
+  dump foi salvo localmente. A PR #51 registrou a evidência e integrou o estado
+  à `main` no commit `2c41254bb17961c8a4b426678142013b453fc6da`. Ainda falta
+  testar uma restauração isolada; por isso, a tarefa 11.8.4 continua aberta.
+- O runbook `docs/BACKUP_SUPABASE_TO_DRIVE.md` agora contém o procedimento
+  passo a passo para listar e validar uma cópia, restaurá-la em fluxo para um
+  projeto Supabase isolado, conferir o resultado e limpar os recursos
+  temporários. O workflow de restauração e o ensaio ainda não foram executados;
+  não direcionar a importação a `setlist-prod`.
+- A autenticação OAuth do rclone usa a conta dedicada do Drive e o escopo
+  `drive.file`. O material temporário usado para configurar a conexão foi
+  apagado do Mac. Não registrar tokens, URLs de conexão ou valores dos Secrets
+  no handoff.
+- A branch `codex/reconcile-local-docs-2026-10-20` parte da `origin/main` em
+  `2c41254`. Os grupos já registrados localmente, sem push, são: `f60e277`
+  (documentação legal e retenção), `3f7a529` (evidências da RC.4) e `6808951`
+  (progresso OpenSpec). Esta atualização do handoff será registrada em commit
+  separado. A restauração isolada do backup continua pendente.
+
+## Atualização de 19 de outubro de 2026 — RC.4 enviada e R8 conferido
+
+- O EAS confirmou que a tag `v1.0.0-rc.4` e os builds Android foram gerados do
+  commit `d32840d61c1d2564cf5395c040712571bb762f8a`: AAB `versionCode 6`, build
+  `7a8874df-5744-46d1-a587-d183c03f0653`, perfil `production-android`; APK de
+  validação `versionCode 7`, build `97d43bb4-04a4-496d-9b4d-d17e5f6ae89f`,
+  perfil `production-android-validation`. O EAS confirmou também o build iOS
+  `f59ad69f-54f4-4458-90ba-f1d56c901a7a`, build number `6`, do mesmo commit.
+  O responsável confirmou os envios às lojas; no Play Console, o AAB 6 aparece
+  ativo em teste fechado.
+- O Play Console mostrou `DEX code optimization: High`, `Obfuscation: 89%`,
+  Full Mode e redução otimizada de recursos. O AAB contém
+  `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map` e
+  `BUNDLE-METADATA/com.android.tools/r8.json`; o mapa incorporado tem o mesmo
+  SHA-256 (`f3fa741849765bf0eceb0029bfc87338ea1af49c92fc7ada96473e9e80650544`)
+  do artefato `mapping.txt` fornecido pelo EAS. A cópia privada foi guardada
+  fora do Git com permissões restritas. A documentação do Google Play estabelece associação
+  automática do mapa para AAB gerado com AGP 4.1 ou mais recente; não é preciso
+  repetir o envio manual neste caso.
+- O responsável confirmou que as validações dos itens 1 e 2 foram concluídas.
+  A tarefa 11.8.10 está concluída. A exportação Web da RC.4 foi gerada do SHA
+  candidato com 22 rotas e associações Android/iOS. O histórico do GitHub
+  confirma que `Publicar GitHub Pages` (run 78) concluiu com sucesso em
+  19/10/2026, usando a tag `v1.0.0-rc.4` e o SHA
+  `d32840d61c1d2564cf5395c040712571bb762f8a`; os dois jobs de publicação
+  passaram. O responsável confirmou que `https://setlistbr.app.br/about?returnTo=%2F`
+  mostra a tag e o commit. Os manifestos públicos retornaram os metadados e IDs
+  EAS corretos, sem URLs de download, mas ainda declaram todas as plataformas
+  como `pending` (`ready: false`). O manifesto local registra Android/iOS como
+  `passed` e Web como `pending`. Ainda é necessário validar os fluxos críticos
+  da Web, atualizar os estados do manifesto com evidências, republicá-lo,
+  conferir as duas cópias e alinhar as notas públicas da pré-release.
+
+- A tarefa 11.8.3 foi conferida em `setlist-prod` por consultas somente leitura
+  em 19/10/2026. O histórico contém 17 execuções bem-sucedidas e nenhuma falha;
+  a primeira ocorreu em 03/10 às 03:10 UTC. O job está ativo nesse horário
+  diário, e a definição implantada apaga apenas linhas com
+  `next_allowed_at < now() - interval '24 hours'`. A reserva de envio dura um
+  minuto, então envios em andamento não atendem ao predicado. A tabela estava
+  vazia na consulta e o Cron guarda `1 row`, sem a contagem de exclusões; não
+  foram inseridos dados de teste em produção. A política pública da RC.4 já
+  descreve a limpeza diária após 24 horas. A tarefa foi marcada como concluída
+  com esse limite de evidência registrado em `docs/RETENCAO_DENUNCIAS.md`.
+
 ## Atualização de 19 de outubro de 2026 — PR #44 integrada e RC.4 em preparação
 
 - A verificação R8 foi adicionada ao CI e à spec OpenSpec: o workflow executa

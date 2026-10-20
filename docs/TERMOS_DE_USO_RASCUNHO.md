@@ -108,9 +108,9 @@ Como o conteúdo é compartilhado com a banda, ele pode continuar disponível ao
 demais integrantes se a conta de quem o enviou for excluída. A autorização para
 esse conteúdo termina quando ele for removido da banda e dos sistemas ativos,
 ressalvadas cópias técnicas de segurança e retenções exigidas por lei, que
-permanecerão apenas pelo prazo aplicável. O plano de backup próprio prevê
-conservar as 12 cópias semanais mais recentes, conforme detalhado na política
-de privacidade; a rotina ainda depende de implantação. Esta cláusula não
+permanecerão apenas pelo prazo aplicável. A rotina própria pode conservar até 84 cópias diárias (12 semanas),
+cifradas no cliente, conforme detalhado na política de privacidade; dados
+removidos da base ativa podem permanecer nas cópias até sua substituição. Esta cláusula não
 transfere direitos autorais ao Setlist nem substitui autorização de terceiros
 quando necessária.
 
