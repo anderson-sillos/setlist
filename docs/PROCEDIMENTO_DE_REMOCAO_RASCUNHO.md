@@ -35,10 +35,11 @@
 
 O backend desvincula do perfil excluído os registros de aceite e as referências
 de criação/uso de convites. O conteúdo de bandas ainda ativas permanece para os
-demais integrantes e pode continuar associado à banda. O backup próprio
-planejado para produção manterá até 12 cópias semanais criptografadas, após
-implantação e validação da rotina. A remoção de dados em logs e sistemas dos
-fornecedores segue prazos próprios. O inventário preliminar está na revisão
+demais integrantes e pode continuar associado à banda. O backup próprio de
+produção mantém até 84 cópias diárias (12 semanas), criptografadas no cliente.
+A primeira execução foi confirmada em 20/10/2026; a restauração isolada ainda
+não foi validada. A remoção de dados em logs e sistemas dos fornecedores segue
+prazos próprios. O inventário preliminar está na revisão
 jurídica; ainda precisam ser confirmados os prazos efetivos de eliminação de
 registros de Supabase, GitHub Pages, Cloudflare, Gmail e provedores de login.
 No Brevo, foram escolhidos 1 mês para logs transacionais e nenhuma nova
@@ -52,7 +53,7 @@ e limpar diariamente os mais antigos, mas essa rotina ainda não foi
 implementada. Antes de responder sobre eliminação completa, conferir a tabela,
 as exceções de conservação e as cópias de backup.
 
-### Retenção de convites e aceites — limpeza pendente
+### Retenção de convites e aceites — limpeza conferida
 
 O responsável decidiu descartar convites 30 dias após o primeiro evento que
 encerrar sua utilidade: uso, revogação ou vencimento. Aceites do termo da banda
@@ -62,10 +63,11 @@ referências diretas dessa pessoa em convites e aceites são anuladas, mas os
 demais campos podem continuar associados indiretamente a ela.
 
 A limpeza automática foi implantada em `setlist-prod` em 02/10/2026, com job
-diário ativo e tabela de exceções para casos em apuração. Ainda falta conferir
-a primeira execução e documentar eventuais suspensões de descarte. Até essa
-conferência, não afirmar em respostas a titulares que o prazo de 30 dias já foi
-observado na prática. Cópias em backups seguem ciclo próprio de substituição.
+diário ativo e tabela de exceções para casos em apuração. Em 19/10/2026, o
+responsável confirmou a execução para convites usados, revogados e expirados,
+as exceções, a preservação dos aceites enquanto a banda existe e o alinhamento
+da política de privacidade. Cópias em backups seguem ciclo próprio de
+substituição.
 
 ## 2. Remoção de conteúdo de banda
 
@@ -299,24 +301,31 @@ operações voltam a funcionar. Se qualquer etapa falhar, manter o caso aberto e
 registrar o estado parcial. Os comandos de banco exigem acesso administrativo
 ao projeto.
 
-### Descarte do controle de frequência — primeira execução pendente
+### Descarte do controle de frequência — execução conferida
 
 `report_rate_limits` serve para impedir envios repetidos durante a janela de
 1 minuto. O responsável decidiu limpar diariamente as linhas cujo
 `next_allowed_at` terminou há pelo menos 24 horas. A rotina foi implantada em
-`setlist-prod` em 02/10/2026, com job diário ativo; a primeira execução ainda
-precisa ser conferida. A linha também é substituída no próximo envio, removida
-quando o envio falha ou eliminada com a conta. Conferir que o job não interfere
-em um envio em andamento e que registra falhas sem
-copiar identificadores de casos para logs. A caixa de e-mail continua sendo
-o histórico operacional da denúncia e segue critérios próprios de descarte.
+`setlist-prod` em 02/10/2026. Em 19/10/2026, consulta somente leitura confirmou
+o job ativo às 03:10 UTC, 17 execuções bem-sucedidas sem falhas e a primeira
+execução em 03/10. A função implantada seleciona somente `next_allowed_at` mais
+antigo que `now() - interval '24 hours'`; como uma reserva de envio dura um
+minuto, ela não alcança envios em andamento. A tabela estava vazia no momento
+da consulta e o histórico do Cron não informa quantas linhas foram apagadas,
+portanto não houve comprovação de exclusão de uma linha de teste. A linha também
+é substituída no próximo envio, removida quando o envio falha ou eliminada com
+a conta. A caixa de e-mail continua sendo o histórico operacional da denúncia
+e segue critérios próprios de descarte.
 
-### Backup próprio de `setlist-prod` — implantação pendente
+### Backup próprio de `setlist-prod` — restauração pendente
 
 O responsável decidiu manter o projeto no plano Supabase Free, sem PITR, e
-produzir uma cópia do banco **uma vez por semana** em **disco externo
-criptografado**, conservando as **12 cópias semanais** mais recentes. A rotina
-ainda não foi implementada nem validada por restauração.
+produzir cópias do banco **diariamente** numa conta dedicada do Google Drive,
+protegidas por criptografia no cliente com `rclone crypt`, conservando as **84
+cópias diárias** mais recentes (12 semanas). O GitHub Actions executa a rotina
+às 06:17 UTC; o dump é transmitido em fluxo, sem gravação em disco local ou
+artefatos. A primeira execução foi confirmada em 20/10/2026. A restauração
+isolada ainda precisa ser testada.
 
 1. Usar o procedimento oficial de exportação lógica do Supabase para obter os
    dados necessários à recuperação, incluindo dados do aplicativo e identidades
@@ -325,17 +334,24 @@ ainda não foi implementada nem validada por restauração.
    arquivo de instruções. Se o aplicativo passar a usar objetos do Supabase
    Storage, incluí-los em procedimento separado, pois o dump do banco não
    contém os arquivos.
-2. Gravar a exportação somente no disco criptografado, com acesso restrito ao
-   responsável. Conferir conclusão, integridade e legibilidade da cópia antes
-   de substituir a mais antiga. Registrar data, resultado e falhas sem copiar
-   conteúdo privado para logs ou para o repositório.
-3. Conservar apenas as 12 cópias semanais mais recentes; remover com segurança
+2. Transmitir a exportação do Supabase CLI diretamente ao Drive por um executor
+   externo, comprimida e cifrada no cliente. Não escrever o dump em disco local,
+   artefatos de CI ou logs; limitar os logs a data, resultado, tamanho e falhas.
+   Conferir a conclusão e a integridade antes de substituir a cópia mais antiga.
+   Manter a credencial de conexão e a configuração OAuth do Drive somente em
+   GitHub Actions Environment Secrets restritos à `main`, sem colocá-las nos
+   secrets do Supabase ou no repositório. No repositório público, o workflow
+   deve rodar apenas por agendamento ou disparo manual na `main`, usar token de
+   leitura; alterações no workflow, no script e no `CODEOWNERS` passam por PR.
+   Se houver novas contas com escrita, revisar novamente as regras do Environment
+   e o acesso aos Secrets.
+3. Conservar apenas as 84 cópias diárias mais recentes; remover com segurança
    as anteriores após confirmar uma nova cópia íntegra. Ao atender pedidos de
    exclusão, informar que dados removidos do banco ativo podem persistir nessas
    cópias até sua substituição, observadas exceções legais aplicáveis.
-4. Antes do lançamento, restaurar uma cópia em ambiente isolado e conferir
-   contas, bandas, músicas, shows e controles de acesso. Definir a recorrência
-   dos ensaios de restauração e a forma de guardar o disco quando desconectado.
+4. Restaurar uma cópia em ambiente isolado e conferir contas, bandas, músicas,
+   shows e controles de acesso antes de concluir a tarefa 11.8.4. Definir a
+   recorrência dos ensaios de restauração.
 
 Referência técnica: [Backup e restauração com Supabase CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
 
@@ -410,11 +426,12 @@ operacional.
 - Confirmar como tratar cópias de backup e registros operacionais com os
   fornecedores. O responsável confirmou que `setlist-prod` está no plano
   Supabase **Free**, sem PITR, e decidiu manter o plano com backup próprio.
-  O plano escolhido é gerar uma cópia **semanal** em disco externo
-  **criptografado**, mantendo as **12 cópias semanais** mais recentes. Antes de
-  distribuir publicamente, implementar e conferir a rotina, restringir o
-  acesso ao disco e testar a
-  restauração em ambiente separado. Conferir se a cópia cobre tanto os dados
+  O plano em operação gera cópias **diárias** numa conta dedicada do Google
+  Drive, com criptografia no cliente, mantendo as **84 cópias diárias** mais
+  recentes (12 semanas). O dump é transmitido pelo GitHub Actions sem gravação
+  em disco local ou artefatos; a primeira execução foi confirmada em
+  20/10/2026. Antes de concluir a tarefa 11.8.4, testar a restauração em
+  ambiente separado e confirmar a cobertura dos dados. Conferir se a cópia cobre tanto os dados
   da aplicação quanto as identidades de autenticação e se as configurações
   necessárias à recuperação estão documentadas sem expor segredos no backup.
   O plano não oferece

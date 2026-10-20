@@ -25,9 +25,12 @@ Antes de publicar uma versão:
    “a partir da publicação”, não substitui o registro da data de publicação.
 4. Conferir a configuração efetiva em produção antes de fixar a descrição
    final dos prazos de retenção. As migrações de convites e de frequência de
-   denúncias foram aplicadas; falta conferir a primeira execução e o efeito dos
-   jobs. Auditoria de login, backup semanal próprio e configurações de retenção
-   do Brevo permanecem pendentes.
+   denúncias foram aplicadas e conferidas em produção. A limpeza de convites
+   foi confirmada; o job de frequência registrava 17 execuções sem falhas em
+   19/10/2026, embora não exponha quantas linhas removeu. A rotina de backup
+   diário foi implantada e a primeira cópia cifrada no Drive foi confirmada em
+   20/10/2026; a restauração isolada ainda está pendente. Auditoria de login e
+   configurações de retenção do Brevo continuam pendentes.
 5. Publicar a versão aprovada e abrir ambas as URLs sem autenticação na Web e
    nos navegadores de Android e iOS. Confirmar conteúdo, título, versão,
    data, links cruzados, contato e acesso pelo login e pelo menu do app.
@@ -69,6 +72,9 @@ ativa. A presença dos nomes não confirma a validade da chave nem a entrega de
 e-mail. A consulta de produção ainda mostrou zero contas e bandas, portanto
 não há como confirmar uma denúncia autenticada com alvo existente sem criar
 dados de ensaio. Os dois jobs estavam ativos, mas ainda sem execução registrada.
-Antes da publicação, conferir o envio, a ocultação, a suspensão, a resposta do
-filtro e a primeira execução dos jobs. A dispensa do backup antes da migração não altera a decisão de
-implantar backup semanal próprio antes de receber dados da distribuição pública.
+Na conferência de 02/10/2026, o envio, a ocultação, a suspensão e a resposta do
+filtro ainda dependiam de dados de ensaio; essa anotação é histórica. A validação
+de produção dos fluxos foi confirmada pelo responsável em 19/10/2026. A dispensa
+do backup antes das migrações também foi uma decisão histórica: desde 20/10/2026,
+a rotina diária está ativa e a primeira cópia cifrada no Drive foi confirmada;
+a restauração isolada ainda precisa ser validada.
