@@ -9,7 +9,7 @@
 ## 2. Implementar e revisar a retenção da auditoria
 
 - [x] 2.1 Consultar somente metadados em `setlist-prod` para confirmar colunas, privilégio `DELETE` e compatibilidade da operação com a tabela gerenciada; registrar resultado sem consultar ou exibir linhas de auditoria.
-- [ ] 2.2 Se o fornecedor e os privilégios permitirem, criar limpeza diária de `auth.audit_log_entries` com prazo de 30 dias, exceções privadas com prazo/motivo sem dados pessoais e teste pgTAP; se não permitirem, interromper esta tarefa e registrar a restrição.
+- [x] 2.2 Se o fornecedor e os privilégios permitirem, criar limpeza diária de `auth.audit_log_entries` com prazo de 30 dias, exceções privadas com prazo/motivo sem dados pessoais e teste pgTAP; se não permitirem, interromper esta tarefa e registrar a restrição.
 - [x] 2.3 Criar workflow diário que confirme as execuções esperadas e a condição de retenção, enviando apenas resultado agregado ao check `AUTH_AUDIT_RETENTION_HEARTBEAT_URL`; cobrir estados de sucesso e falha no teste do runner.
 - [x] 2.4 Atualizar a documentação de retenção e recuperação, explicando os 30 dias, a limpeza diária, o check diário e que a auditoria não está incluída no backup; conferir coerência com a política de privacidade e o script de backup.
 
@@ -39,9 +39,9 @@
   inclui `auth.audit_log_entries`; essa compatibilidade é uma inferência da
   lista publicada, não uma garantia de estabilidade futura do esquema:
   https://supabase.com/changelog/34270-restricting-access-on-auth-storage-and-realtime-schemas-on-april-21-2025
-- O código da limpeza diária de auditoria e seu pgTAP foram preparados, mas a
-  tarefa 2.2 ainda depende de validar o pgTAP no CI antes de considerar a
-  migração pronta para implantação.
+- O código da limpeza diária de auditoria e o pgTAP passaram no workflow
+  `Testes do banco` da PR #56 ([run 39455484841](https://github.com/anderson-sillos/setlist/actions/runs/39455484841)).
+  A migração ainda não foi aplicada em produção.
 - Exceções de auditoria ficam em tabela privada, com prazo e motivo sem dados
   pessoais. O monitor considera antigos vencidos somente os registros sem
   exceção vigente e detecta metadados de exceções expiradas/orfãs.
