@@ -21,10 +21,15 @@ Workflow, script, `.github/CODEOWNERS` e este runbook foram integrados pela PR
 #49 no commit `da4543d8eaa211314bf1ec1bc40f25d66e064501`. A primeira execução
 manual em 20/10/2026 parou na validação do remote rclone: a versão atual não
 oferece mais o comando `rclone config get` usado pelo script. A falha ocorreu
-antes da conexão ao banco e antes de qualquer envio ao Drive; a correção está
-em revisão. A recorrência diária e a retenção de 84 cópias (12 semanas) fazem
-parte da mesma correção. Ainda não há arquivo no Drive nem restauração validada. Não marcar a
-tarefa OpenSpec 11.8.4 como concluída até realizar esses passos.
+antes da conexão ao banco e antes de qualquer envio ao Drive. A PR #50 corrigiu
+essa validação, implantou a recorrência diária e definiu retenção de 84 cópias
+(12 semanas). A execução manual seguinte, no commit
+`1c8043d09a830e45dc945ea2a7eebc3a563ffc25`, concluiu em 20/10/2026; o job
+confirmou o envio cifrado, a validação gzip e 1 cópia retida ([execução do
+workflow](https://github.com/anderson-sillos/setlist/actions/runs/39365774924)).
+O dump foi transmitido em fluxo e não foi salvo localmente. Ainda falta testar
+uma restauração isolada; não marcar a tarefa OpenSpec 11.8.4 como concluída até
+realizar esse ensaio.
 
 ## Escopo e limitações
 
