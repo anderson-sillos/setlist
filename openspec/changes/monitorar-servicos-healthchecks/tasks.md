@@ -65,6 +65,11 @@
   manual 39504054056 ainda falhou e registrou “Falha ao abrir o arquivo SQL do
   monitor”, mas o arquivo existe na `main`; portanto, essa categoria ampla não
   identifica a causa real. O runner está sendo ajustado para resolver e validar
-  explicitamente o caminho do SQL antes de chamar `psql` e distinguir esse caso
-  de arquivos locais de TLS/configuração. Falta publicar o ajuste e repetir o
-  workflow. Nenhum heartbeat de sucesso foi confirmado.
+  explicitamente o caminho do SQL antes de chamar `psql`. A execução
+  39504972536 confirmou que o SQL foi localizado, mas `psql` ainda falhou com
+  “Arquivo local exigido pelo cliente PostgreSQL indisponível”; o caminho exato
+  foi omitido. O runner agora converte os componentes permitidos da URL em
+  variáveis `PG*` explícitas e identifica tentativa de socket local, sem enviar
+  a URL completa nos argumentos do processo ou nos logs. Falta publicar o
+  ajuste, repetir o workflow e confirmar o primeiro sucesso. Nenhum heartbeat
+  de sucesso foi confirmado.

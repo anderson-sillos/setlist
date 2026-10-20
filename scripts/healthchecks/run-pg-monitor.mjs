@@ -6,6 +6,59 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { sendHealthcheckPing } from './healthcheck-ping.mjs';
 
+const CONNECTION_URL_ENVIRONMENT_OPTIONS = new Map([
+  ['sslmode', 'PGSSLMODE'],
+  ['sslrootcert', 'PGSSLROOTCERT'],
+  ['sslcert', 'PGSSLCERT'],
+  ['sslkey', 'PGSSLKEY'],
+  ['sslcrl', 'PGSSLCRL'],
+  ['application_name', 'PGAPPNAME'],
+  ['options', 'PGOPTIONS'],
+  ['target_session_attrs', 'PGTARGETSESSIONATTRS'],
+  ['channel_binding', 'PGCHANNELBINDING'],
+  ['gssencmode', 'PGGSSENCMODE'],
+]);
+
+function getPsqlConnectionEnvironment(databaseUrl) {
+  let connectionUrl;
+  try {
+    connectionUrl = new URL(databaseUrl);
+  } catch {
+    throw new Error('URL de conexão PostgreSQL inválida.');
+  }
+
+  if (
+    !['postgres:', 'postgresql:'].includes(connectionUrl.protocol) ||
+    !connectionUrl.hostname ||
+    !connectionUrl.username ||
+    !connectionUrl.pathname ||
+    connectionUrl.pathname === '/'
+  ) {
+    throw new Error('URL de conexão PostgreSQL inválida.');
+  }
+
+  const childEnvironment = {
+    PATH: process.env.PATH,
+    HOME: process.env.HOME,
+    PGHOST: connectionUrl.hostname,
+    PGPORT: connectionUrl.port || '5432',
+    PGDATABASE: decodeURIComponent(connectionUrl.pathname.slice(1)),
+    PGUSER: decodeURIComponent(connectionUrl.username),
+    PGPASSWORD: decodeURIComponent(connectionUrl.password),
+    PGCONNECT_TIMEOUT: '15',
+  };
+
+  for (const [
+    urlOption,
+    environmentName,
+  ] of CONNECTION_URL_ENVIRONMENT_OPTIONS) {
+    const value = connectionUrl.searchParams.get(urlOption);
+    if (value !== null) childEnvironment[environmentName] = value;
+  }
+
+  return childEnvironment;
+}
+
 function summarizePsqlFailure(stderr, exitCode, queryFilePath) {
   const sqlState = stderr.match(
     /(?:ERROR|FATAL|PANIC):\s*([0-9A-Z]{5})\b/u,
@@ -35,6 +88,9 @@ function summarizePsqlFailure(stderr, exitCode, queryFilePath) {
   ) {
     return 'Falha de rede ou TLS na conexão PostgreSQL.';
   }
+  if (/connection to server on socket|\.s\.PGSQL/iu.test(stderr)) {
+    return 'psql tentou um socket local em vez do host configurado.';
+  }
   const missingFile = /could not open file|no such file or directory/iu.test(
     stderr,
   );
@@ -59,12 +115,13 @@ function summarizePsqlFailure(stderr, exitCode, queryFilePath) {
 
 function runPsql(queryFile, databaseUrl, timeoutMs = 30_000) {
   return new Promise((resolve, reject) => {
-    const childEnvironment = {
-      PATH: process.env.PATH,
-      HOME: process.env.HOME,
-      PGDATABASE: databaseUrl,
-      PGCONNECT_TIMEOUT: '15',
-    };
+    let childEnvironment;
+    try {
+      childEnvironment = getPsqlConnectionEnvironment(databaseUrl);
+    } catch (error) {
+      reject(error);
+      return;
+    }
 
     const child = spawn(
       'psql',
