@@ -90,23 +90,119 @@ atividade, verificar periodicamente se o workflow continua habilitado.
 5. Se a rotina falhar ou detectar objetos de Storage, não tratar como backup
    concluído; investigar o erro sem copiar dados ou segredos para logs.
 
-## Ensaio de restauração
+## Procedimento de restauração isolada
 
-Antes de concluir a tarefa 11.8.4, validar uma recuperação em um projeto Supabase
-isolado. A conexão de destino deve ser diferente de `setlist-prod` e não deve
-ser adicionada ao workflow de backup:
+Use este procedimento para ensaiar a recuperação sem substituir o banco de
+produção. O dump é lido do Drive, descriptografado e enviado em fluxo ao banco
+de recuperação; não é salvo no Mac nem como arquivo no runner.
 
-1. Criar um projeto de recuperação descartável e preparar extensões e opções
-   necessárias.
-2. Usar um runner temporário com o mesmo remote crypt e transmitir
-   `rclone cat` para `gzip -dc` e então para `psql` apontado à URL de recuperação,
-   com `ON_ERROR_STOP=1` e `--single-transaction`. Não salvar o dump no Mac nem
-   no runner.
-3. Conferir schemas e funções, contagens de linhas, chaves estrangeiras,
-   registros de usuários/identidades e acesso com uma conta de teste. Reaplicar
-   separadamente configurações gerenciadas e serviços externos que não fazem
-   parte da exportação.
-4. Registrar data, commit do workflow e resultado sem incluir dados pessoais,
-   URLs com senha, tokens ou senhas crypt.
+### 1. Preparar o destino e um runner protegido
 
-Não declarar a restauração validada até o ensaio isolado terminar com sucesso.
+1. O projeto descartável `setlist-restore` foi criado na região `us-west-2`, ref
+   `rksthbddfecjpvoxclgo`, PostgreSQL 17.11. `setlist-prod` usa PostgreSQL 17.6;
+   ambos estão na mesma versão principal 17. Use um projeto, não uma branch de
+   `setlist-prod`: a branch parte do projeto base e pode trazer schema ou dados
+   que conflitam com a restauração integral. Não reutilize produção nem um banco
+   que contenha dados que precisem ser preservados.
+2. Confirme que o projeto recém-criado não recebeu dados da aplicação nem
+   outra restauração e configure nele as extensões necessárias. O Supabase já
+   cria objetos gerenciados nos schemas `auth` e `storage`; não copie
+   configurações de provedores, chaves ou secrets de produção para ele.
+3. O responsável informou que cadastrou o secret `SUPABASE_RECOVERY_DB_URL` no
+   GitHub. Confirme que está em **Settings → Environments → production-backup**;
+   não leia nem cole seu valor. O workflow `.github/workflows/supabase-restore-recovery.yml` foi preparado
+   localmente e executará a restauração somente depois de integrado à `main`.
+   Ele usa o Environment `production-backup`, já restrito à `main`, para
+   reutilizar a configuração existente do Drive. O workflow não referencia
+   `SUPABASE_DB_URL`; portanto, a URL de produção não é passada ao job de
+   restauração. Não cole secrets na linha de comando, no workflow, no chat ou
+   nos logs.
+4. A ação exige a confirmação `RESTAURAR-ISOLADO`, aceita somente uma data UTC
+   válida e valida a URI para que a referência seja exatamente
+   `rksthbddfecjpvoxclgo`, nunca a de produção `tqijocmmiwistinrjpwl` nem outro
+   projeto. Também verifica que as tabelas de aplicação, Auth e Storage estejam
+   vazias, que o arquivo exista e que a descriptografia e o gzip estejam
+   íntegros. A URI e a senha nunca são impressas; o log mostra somente a
+   referência do projeto isolado.
+5. O runner efêmero decodifica `RCLONE_CONFIG_B64` em arquivo temporário com
+   permissão `600`, cria um arquivo temporário `pgpass` com permissão `600` e
+   apaga ambos ao terminar, inclusive se o job falhar. O dump é transmitido
+   diretamente do Drive ao `psql` em uma transação; não habilite `set -x`.
+
+### 2. Escolher e validar uma cópia
+
+No formulário manual do workflow, selecione a branch `main`, informe a data UTC
+da cópia no formato `AAAA-MM-DD` e selecione `RESTAURAR-ISOLADO`. O nome lógico
+é `setlist-prod-AAAA-MM-DD.sql.gz`. O script lista o remote criptográfico,
+confirma que o nome existe e lê/descriptografa o arquivo para validar o gzip;
+nenhum dump é gravado localmente. A cópia mais recente registrada neste runbook
+foi criada em 20/10/2026.
+
+### 3. Restaurar em uma única transação
+
+O workflow faz a importação em uma transação depois de validar destino, cópia e
+estado vazio. Não execute uma restauração manual em `setlist-prod`.
+
+`pipefail` faz o job falhar se o download, a descriptografia, a descompressão
+ou o `psql` falhar. `ON_ERROR_STOP` interrompe no primeiro erro e
+`--single-transaction` desfaz a importação em caso de falha. Não repita a
+importação sobre um destino parcialmente restaurado: descarte o projeto de
+recuperação e prepare um projeto vazio antes de tentar novamente.
+
+Não ignore erros de permissão, objetos existentes ou papéis gerenciados. A
+restauração pode exigir ajustes próprios do Supabase para ownership e grants;
+pare, consulte as notas de troubleshooting na documentação oficial e registre
+quais ajustes foram necessários. Senhas de papéis personalizados com `LOGIN`
+não são recuperadas pelo dump e devem ser definidas novamente no ambiente
+isolado, sem reutilizar senhas de produção.
+
+### 4. Conferir a recuperação e encerrar o ensaio
+
+1. Confirme no projeto de recuperação a presença dos schemas e objetos da
+   aplicação, das migrações e dos registros de Auth. Antes da restauração,
+   capture no SQL Editor de `setlist-prod` as contagens agregadas abaixo; rode
+   a mesma consulta no projeto de recuperação e compare os resultados:
+
+   ```sql
+   select 'bands' as object_name, count(*)::bigint as row_count from public.bands
+   union all select 'band_members', count(*) from public.band_members
+   union all select 'profiles', count(*) from public.profiles
+   union all select 'songs', count(*) from public.songs
+   union all select 'repertoire_collections', count(*) from public.repertoire_collections
+   union all select 'repertoire_collection_songs', count(*) from public.repertoire_collection_songs
+   union all select 'shows', count(*) from public.shows
+   union all select 'auth.users', count(*) from auth.users
+   order by object_name;
+   ```
+
+   Confira também constraints e funções essenciais. Registre apenas os nomes
+   dos objetos e as contagens, sem exportar linhas de usuários.
+2. Faça a validação funcional apenas com uma conta de teste preparada para o
+   projeto isolado. Não envie e-mails a usuários reais, não use credenciais de
+   provedores de produção e não direcione o app público para esse banco.
+3. Registre data do backup, data do ensaio, ref do projeto de recuperação,
+   commit do workflow e resultado das verificações. Não registre linhas de
+   usuários, tokens, URLs com senha ou valores dos secrets.
+4. Depois de guardar as evidências, remova o projeto descartável e os secrets
+   temporários do Environment de recuperação, salvo se houver uma decisão
+   explícita de manter um ambiente de recuperação protegido. Se o secret foi
+   adicionado a `production-backup` somente para este ensaio, remova
+   `SUPABASE_RECOVERY_DB_URL` ao terminar.
+
+### Recuperação do projeto de produção
+
+Este ensaio não autoriza importar um dump sobre `setlist-prod`. A rotina cobre
+os schemas e dados descritos em **Escopo e limitações**, mas não inclui objetos
+binários do Storage, configurações de Auth, Edge Functions ou serviços
+externos. Para um incidente real, primeiro restaure em um projeto separado,
+valide os dados e planeje a troca de conexão/cutover. Não execute uma
+restauração destrutiva no banco ativo sem um plano de recuperação específico.
+
+O procedimento está documentado e o workflow/script de restauração foram
+preparados localmente. O projeto descartável existe e o responsável informou
+que cadastrou o secret de conexão; ainda falta conferir o secret no GitHub,
+integrar o workflow à `main` e executar a restauração isolada. Não marcar a
+tarefa OpenSpec 11.8.4 como concluída até o ensaio terminar com sucesso.
+Para o formato de dump, preparação do projeto, restauração por `psql`
+e tratamento de papéis do Supabase, consulte o
+[guia oficial de backup e restauração pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).

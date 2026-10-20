@@ -2,6 +2,32 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 20 de outubro de 2026 — ensaio de restauração isolada
+
+- A cópia diária do Supabase já foi enviada e validada no Google Drive pela
+  execução Actions `39365774924`; nenhum dump foi salvo no Mac.
+- Foram preparados localmente `.github/workflows/supabase-restore-recovery.yml`
+  e `scripts/restore-supabase-from-drive.sh`. A ação aceita somente `main`,
+  exige confirmação `RESTAURAR-ISOLADO`, valida uma cópia por data, verifica
+  que o destino Supabase não seja `setlist-prod`, exige que tabelas da aplicação,
+  Auth e Storage estejam vazias, valida a integridade gzip e transmite o dump
+  do Drive ao `psql` em uma transação. A URI do banco fica em Secret; a senha
+  não é passada na linha de comando. A configuração temporária do Drive e o
+  `pgpass` são removidos ao final.
+- O projeto descartável `setlist-restore` foi criado: ref
+  `rksthbddfecjpvoxclgo`, região `us-west-2`, PostgreSQL 17.11. O projeto de
+  desenvolvimento `setlist-dev` (`zncaahgaoqwksdidunza`) está `INACTIVE`; a
+  produção (`tqijocmmiwistinrjpwl`) permanece `ACTIVE_HEALTHY`. A versão principal
+  do PostgreSQL no destino e na produção é 17. O workflow agora exige a ref
+  exata do destino, além de rejeitar a produção. O responsável informou que
+  criou `SUPABASE_RECOVERY_DB_URL`; ainda falta verificar que esteja no
+  Environment `production-backup`, sem ler o valor.
+- O workflow ainda não foi integrado à `main` e a restauração não foi executada.
+  A tarefa OpenSpec 11.8.4 continua aberta. O GitHub CLI foi conferido com acesso elevado; a
+  única sessão estava inválida e foi removida conforme solicitação do
+  responsável. Para criar/atualizar a PR será necessário autenticar novamente
+  a mesma conta existente, não criar uma nova conta.
+
 ## Atualização de 20 de outubro de 2026 — backup diário no Google Drive
 
 - O repositório `anderson-sillos/setlist` é público. A `main` exige PR e os
@@ -22,6 +48,11 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   dump foi salvo localmente. A PR #51 registrou a evidência e integrou o estado
   à `main` no commit `2c41254bb17961c8a4b426678142013b453fc6da`. Ainda falta
   testar uma restauração isolada; por isso, a tarefa 11.8.4 continua aberta.
+- O runbook `docs/BACKUP_SUPABASE_TO_DRIVE.md` agora contém o procedimento
+  passo a passo para listar e validar uma cópia, restaurá-la em fluxo para um
+  projeto Supabase isolado, conferir o resultado e limpar os recursos
+  temporários. O workflow de restauração e o ensaio ainda não foram executados;
+  não direcionar a importação a `setlist-prod`.
 - A autenticação OAuth do rclone usa a conta dedicada do Drive e o escopo
   `drive.file`. O material temporário usado para configurar a conexão foi
   apagado do Mac. Não registrar tokens, URLs de conexão ou valores dos Secrets
