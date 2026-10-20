@@ -3,6 +3,8 @@ name: Backup diário do Supabase
 on:
   schedule:
     - cron: '17 6 * * *'
+    # Catch-up run: the script skips this date if the verified daily copy exists.
+    - cron: '37 8 * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,6 +22,27 @@ jobs:
     environment: production-backup
 
     steps:
+      - name: Sinalizar início ao monitor externo
+        env:
+          BACKUP_HEARTBEAT_URL: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+        run: |
+          if [ -z "$BACKUP_HEARTBEAT_URL" ]; then
+            echo "::warning::BACKUP_HEARTBEAT_URL ausente; monitor externo ainda não está configurado"
+            exit 0
+          fi
+          case "$BACKUP_HEARTBEAT_URL" in
+            https://hc-ping.com/*) ;;
+            *)
+              echo "::warning::BACKUP_HEARTBEAT_URL não usa o endpoint esperado do Healthchecks.io"
+              exit 0
+              ;;
+          esac
+          if ! curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            --connect-timeout 10 --max-time 20 --output /dev/null \
+            "${BACKUP_HEARTBEAT_URL%/}/start" 2>/dev/null; then
+            echo "::warning::não foi possível enviar o sinal de início ao monitor externo"
+          fi
+
       - name: Obter o script da branch principal
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -56,6 +79,7 @@ jobs:
           BACKUP_RCLONE_REMOTE: setlist-backup
           BACKUP_PATH: setlist-prod/daily
           BACKUP_RETENTION_COUNT: 84
+          BACKUP_SKIP_IF_EXISTS: ${{ github.event_name == 'schedule' }}
         run: bash scripts/backup-supabase-to-drive.sh
 
       - name: Apagar a configuração temporária do Drive
@@ -66,4 +90,31 @@ jobs:
           fi
           if [ -n "${RCLONE_CONFIG_DIR:-}" ]; then
             rmdir "$RCLONE_CONFIG_DIR" 2>/dev/null || true
+          fi
+
+      - name: Sinalizar resultado ao monitor externo
+        if: always()
+        env:
+          BACKUP_HEARTBEAT_URL: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+          BACKUP_JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ -z "$BACKUP_HEARTBEAT_URL" ]; then
+            echo "::warning::BACKUP_HEARTBEAT_URL ausente; resultado não enviado ao monitor externo"
+            exit 0
+          fi
+          case "$BACKUP_HEARTBEAT_URL" in
+            https://hc-ping.com/*) ;;
+            *)
+              echo "::warning::BACKUP_HEARTBEAT_URL não usa o endpoint esperado do Healthchecks.io"
+              exit 0
+              ;;
+          esac
+          signal=""
+          if [ "$BACKUP_JOB_STATUS" != "success" ]; then
+            signal="/fail"
+          fi
+          if ! curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            --connect-timeout 10 --max-time 20 --output /dev/null \
+            "${BACKUP_HEARTBEAT_URL%/}${signal}" 2>/dev/null; then
+            echo "::warning::não foi possível enviar o resultado ao monitor externo"
           fi

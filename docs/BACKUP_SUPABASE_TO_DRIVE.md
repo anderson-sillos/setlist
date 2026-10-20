@@ -8,8 +8,11 @@ cliente pelo `rclone crypt`. O dump não é gravado em arquivo, artefato do
 Actions nem log. O runner usa somente arquivos temporários de configuração do
 rclone e os remove ao final.
 
-O workflow `.github/workflows/supabase-backup.yml` agenda a rotina diariamente
-às 06:17 UTC (03:17 em São Paulo) e permite disparo manual somente na `main`.
+O workflow `.github/workflows/supabase-backup.yml` agenda uma tentativa principal
+diária às 06:17 UTC (03:17 em São Paulo) e uma recuperação às 08:37 UTC (05:37
+em São Paulo). A recuperação inspeciona a cópia diária no Drive e só repete o
+envio se ela não existir ou falhar na validação de integridade. O workflow
+permite disparo manual somente na `main`.
 O job exige o Environment `production-backup`, token `contents: read`,
 checkout da action fixado por SHA e Docker, usado pelo Supabase CLI para executar
 `pg_dump`. O Environment aceita deployments apenas da `main` e não permite
@@ -27,9 +30,17 @@ essa validação, implantou a recorrência diária e definiu retenção de 84 c�
 `1c8043d09a830e45dc945ea2a7eebc3a563ffc25`, concluiu em 20/10/2026; o job
 confirmou o envio cifrado, a validação gzip e 1 cópia retida ([execução do
 workflow](https://github.com/anderson-sillos/setlist/actions/runs/39365774924)).
-O dump foi transmitido em fluxo e não foi salvo localmente. Ainda falta testar
-uma restauração isolada; não marcar a tarefa OpenSpec 11.8.4 como concluída até
-realizar esse ensaio.
+O dump foi transmitido em fluxo e não foi salvo localmente. Em 20/10/2026, o
+evento automático esperado às 03:17 em São Paulo iniciou somente às 08:47
+(atraso de 5h30) e terminou com sucesso às 08:50 ([execução 39417422417](https://github.com/anderson-sillos/setlist/actions/runs/39417422417)).
+A execução manual anterior daquele dia também concluiu com sucesso. O histórico
+público do GitHub Status não mostra incidente de Actions em 20/10 que explique
+o atraso; o GitHub documenta que eventos `schedule` podem atrasar ou ser
+descartados sob carga, mas a causa específica desta ocorrência não foi
+confirmada. Esta alteração adiciona um horário posterior de recuperação e
+suporte a heartbeat externo; o alerta permanece inativo até cadastrar
+`BACKUP_HEARTBEAT_URL`. Ainda falta testar uma restauração isolada; não marcar a
+tarefa OpenSpec 11.8.4 como concluída até realizar esse ensaio.
 
 ## Escopo e limitações
 
@@ -75,13 +86,33 @@ conceder `Maintain` ou `Admin` como substituto.
 Como o repositório público pode desativar workflows agendados após 60 dias sem
 atividade, verificar periodicamente se o workflow continua habilitado.
 
+### Monitoramento da ausência ou falha do workflow
+
+O workflow pode enviar sinais `start`, sucesso ou falha ao Healthchecks.io. Para
+que o alerta independente funcione:
+
+1. Crie no Healthchecks.io um check diário chamado `Setlist Supabase backup`,
+   com período de 24 horas, tolerância (grace) de 6 horas e um canal de alerta
+   por e-mail configurado. Consulte a [documentação do ping e dos sinais de
+   falha](https://healthchecks.io/docs/http_api/).
+2. Copie a Ping URL desse check e cadastre-a como secret
+   `BACKUP_HEARTBEAT_URL` em **Settings → Environments → production-backup**.
+   Não a coloque no repositório, no chat ou em logs.
+3. O job envia `/start` ao começar, o ping normal após concluir o backup e
+   `/fail` se alguma etapa do job falhar. Se nenhum job agendado iniciar, o
+   monitor alerta quando vencer o período e a tolerância configurados.
+
+Sem esse secret, os backups continuam sendo executados, mas o job avisa no log
+que o monitor externo não está configurado. A ausência do secret não deve ser
+interpretada como monitoramento ativo.
+
 ## Execução e retenção
 
 1. Integrar os arquivos por PR após conferir o diff e os checks. Nunca atualizar
    `main` por push direto.
 2. Em Actions, executar `Backup diário do Supabase` manualmente na branch
-   `main` para validar a primeira cópia; execuções posteriores seguem o horário
-   diário.
+   `main` para validar uma cópia. Para validar o agendamento, conferir uma
+   execução com evento `schedule`; disparos manuais não validam o cron.
 3. Conferir no resumo do job o resultado de integridade e retenção. O conteúdo
    SQL é enviado por pipe para o remote criptográfico, sem ser impresso.
 4. O script valida a cópia ainda em staging por descriptografia e `gzip -t`,
