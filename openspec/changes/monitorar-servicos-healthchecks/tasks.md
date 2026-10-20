@@ -27,7 +27,8 @@
 ## 5. Conferir a integração
 
 - [x] 5.1 Validar o schema OpenSpec, analisar sintaticamente os workflows, executar os testes focados e conferir o diff para assegurar que nenhum valor de secret real foi incluído.
-- [ ] 5.2 Configurar os checks e Secrets no Environment, habilitar a variável de monitoramento, confirmar os sinais diários e a cada 30 minutos, e concluir o ensaio de falha e recuperação usando somente o check dedicado.
+- [x] 5.2 Configurar os checks e Secrets no Environment e habilitar `HEALTHCHECKS_MONITORING_ENABLED` no escopo do repositório; concluído em 20/10/2026.
+- [ ] 5.3 Confirmar os sinais automáticos diários e a cada 30 minutos e concluir o ensaio de falha e recuperação usando somente o check dedicado.
 
 ## Estado e pendências externas
 
@@ -41,11 +42,26 @@
   https://supabase.com/changelog/34270-restricting-access-on-auth-storage-and-realtime-schemas-on-april-21-2025
 - O código da limpeza diária de auditoria e o pgTAP passaram no workflow
   `Testes do banco` da PR #56 ([run 39455484841](https://github.com/anderson-sillos/setlist/actions/runs/39455484841)).
-  A migração ainda não foi aplicada em produção.
+  A migração `20261020120000_add_auth_audit_retention.sql` foi aplicada em
+  `setlist-prod` e `setlist-dev` em 20/10/2026. O histórico remoto e a consulta
+  de verificação confirmaram a tabela privada, a função e um job cron ativo
+  (`20 3 * * *`) em ambos. Ainda não há execução registrada do cron; a primeira
+  está prevista para 21/10/2026 às 00:20 no horário de Brasília.
 - Exceções de auditoria ficam em tabela privada, com prazo e motivo sem dados
   pessoais. O monitor considera antigos vencidos somente os registros sem
   exceção vigente e detecta metadados de exceções expiradas/orfãs.
 - Os testes Node focados e a validação OpenSpec passaram. Os testes pgTAP serão
   executados no workflow de banco do CI; o Docker local não foi iniciado.
-- A tarefa 5.2 depende de criar os quatro checks no Healthchecks, guardar as
-  Ping URLs no Environment, habilitar a variável e observar os sinais reais.
+- A tarefa 5.3 depende de observar os sinais automáticos dos três monitores e
+  concluir o ensaio de falha e recuperação. O monitor Auth enviou `/fail` numa
+  execução manual após a migração (Actions run 39496520738, 20/10/2026 17:58
+  BRT). O log do runner confirma que `psql` terminou com erro, mas ocultava
+  `stderr`. A consulta agregada read-only executada via Supabase CLI em
+  `setlist-prod` confirmou job ativo e único, sem entradas vencidas e sem
+  exceções órfãs/vencidas; ainda não havia execução bem-sucedida do cron, então
+  a recência e a sequência diária de sucessos permaneciam falsas até a primeira
+  execução prevista para 21/10/2026 às 00:20 BRT. O runner agora está alterado
+  localmente para pedir erros em formato SQLSTATE e registrar somente o código
+  ou uma categoria fixa de falha, nunca a mensagem bruta ou dados da conexão;
+  falta publicar essa alteração e repetir o workflow para identificar a causa.
+  Nenhum heartbeat de sucesso foi confirmado.
