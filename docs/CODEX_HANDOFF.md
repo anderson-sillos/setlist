@@ -2,6 +2,30 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 20 de outubro de 2026 — autenticação persistente do GitHub CLI
+
+- Foi encontrada uma única instalação do `gh`, em
+  `/Users/anderson.martins/.local/bin/gh`. PATH, usuário e diretório de
+  configuração são iguais no ambiente normal e no elevado; não havia
+  instalação duplicada para remover.
+- O histórico confirmou que a execução anterior do agente fez `gh auth logout`
+  às 01:13 em São Paulo depois de interpretar a mensagem de token inválido
+  recebida no sandbox. A conta foi removida de `~/.config/gh/hosts.yml` sem
+  validar antes a credencial com acesso elevado.
+- A credencial já existente no Chaves foi validada pela API como
+  `anderson-sillos` e reutilizada para restaurar o login. O token permanece no
+  Chaves, sem cópia em texto em `hosts.yml`; não foi necessário gerar outro
+  token. O helper HTTPS do Git foi configurado com `gh auth setup-git`.
+- A verificação em shells novos reproduziu a causa: o comando elevado confirma
+  conta ativa, armazenamento `keyring` e permissão de escrita; o sandbox
+  continua apresentando uma mensagem falsa de token inválido.
+- Regra persistente em `AGENTS.md`: conferir `gh auth status` e `gh api user`
+  com acesso elevado antes de diagnosticar credencial inválida. Não fazer
+  logout, apagar `hosts.yml` nem remover itens do Chaves durante diagnósticos.
+  Ao remover uma sessão a pedido do usuário, confirmar primeiro a falha real
+  da credencial pela API elevada. Falhas de rede, TLS ou acesso ao Chaves não
+  comprovam invalidez. Preservar o token no Chaves e o executável existente.
+
 ## Atualização de 20 de outubro de 2026 — ensaio de restauração isolada
 
 - A cópia diária do Supabase já foi enviada e validada no Google Drive pela
@@ -23,10 +47,9 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   criou `SUPABASE_RECOVERY_DB_URL`; ainda falta verificar que esteja no
   Environment `production-backup`, sem ler o valor.
 - O workflow ainda não foi integrado à `main` e a restauração não foi executada.
-  A tarefa OpenSpec 11.8.4 continua aberta. O GitHub CLI foi conferido com acesso elevado; a
-  única sessão estava inválida e foi removida conforme solicitação do
-  responsável. Para criar/atualizar a PR será necessário autenticar novamente
-  a mesma conta existente, não criar uma nova conta.
+  A tarefa OpenSpec 11.8.4 continua aberta neste registro histórico. A conclusão
+  anterior sobre a sessão inválida do GitHub CLI foi corrigida pela investigação
+  de autenticação acima; a conta existente foi recuperada sem gerar outro token.
 
 ## Atualização de 20 de outubro de 2026 — backup diário no Google Drive
 

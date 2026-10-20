@@ -10,6 +10,7 @@ SUPABASE_CLI_VERSION="${SUPABASE_CLI_VERSION:-2.121.0}"
 BACKUP_RCLONE_REMOTE="${BACKUP_RCLONE_REMOTE:-setlist-backup}"
 BACKUP_PATH="${BACKUP_PATH:-setlist-prod/daily}"
 BACKUP_RETENTION_COUNT="${BACKUP_RETENTION_COUNT:-84}"
+BACKUP_SKIP_IF_EXISTS="${BACKUP_SKIP_IF_EXISTS:-false}"
 
 export SUPABASE_TELEMETRY_DISABLED=true
 
@@ -69,6 +70,22 @@ cleanup() {
 trap cleanup EXIT
 
 rclone --log-level ERROR mkdir "$backup_root"
+
+if [[ "${BACKUP_SKIP_IF_EXISTS,,}" == "true" ]]; then
+  existing_backups="$(rclone --log-level ERROR lsf "$backup_root" --files-only --format p)" \
+    || fail "could not inspect the existing daily copy before the scheduled run"
+  existing_filename="$(basename "$final_path")"
+  if grep -Fqx "$existing_filename" <<< "$existing_backups"; then
+    if rclone --log-level ERROR cat "$final_path" 2>/dev/null | gzip -t 2>/dev/null; then
+      printf 'A verified backup already exists for %s; skipping the duplicate scheduled upload.\n' \
+        "$backup_date"
+      exit 0
+    fi
+    printf 'The existing backup for %s did not pass integrity validation; creating a replacement.\n' \
+      "$backup_date" >&2
+  fi
+fi
+
 printf 'Starting encrypted Supabase backup for %s.\n' "$backup_date"
 
 if ! {
