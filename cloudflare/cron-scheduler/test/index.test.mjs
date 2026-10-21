@@ -165,9 +165,13 @@ test('valida o token do GitHub e o revoga sem devolver o token', async () => {
   const fetchImpl = async (url, options) => {
     calls.push({ url, options });
     if (calls.length === 1) {
-      return response(201, { token: 'temporary-installation-token' }, {
-        'x-github-request-id': 'GH-REQUEST-123',
-      });
+      return response(
+        201,
+        { token: 'temporary-installation-token' },
+        {
+          'x-github-request-id': 'GH-REQUEST-123',
+        },
+      );
     }
     return new Response(null, { status: 204 });
   };

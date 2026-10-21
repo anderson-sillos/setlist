@@ -225,7 +225,8 @@ function githubFailureCode(status) {
   if (status === 401) return 'github_rejected_app_jwt';
   if (status === 403) return 'github_forbidden_for_app_installation';
   if (status === 404) return 'github_installation_not_found_for_app';
-  if (status === 422) return 'github_rejected_requested_repository_or_permission';
+  if (status === 422)
+    return 'github_rejected_requested_repository_or_permission';
   if (status === 429) return 'github_rate_limited';
   return 'github_token_request_failed';
 }
@@ -253,7 +254,12 @@ export async function validateGithubAppAccess(
 ) {
   let installationToken;
   try {
-    const result = await createInstallationToken(env, fetchImpl, cryptoApi, now);
+    const result = await createInstallationToken(
+      env,
+      fetchImpl,
+      cryptoApi,
+      now,
+    );
     installationToken = result.token;
     const cleanup = await revokeInstallationToken(installationToken, fetchImpl);
     installationToken = null;
@@ -282,7 +288,8 @@ export async function validateGithubAppAccess(
 }
 
 async function diagnosticSecretsMatch(received, expected, cryptoApi) {
-  if (typeof received !== 'string' || typeof expected !== 'string') return false;
+  if (typeof received !== 'string' || typeof expected !== 'string')
+    return false;
   const [receivedHash, expectedHash] = await Promise.all([
     cryptoApi.subtle.digest('SHA-256', encoder.encode(received)),
     cryptoApi.subtle.digest('SHA-256', encoder.encode(expected)),
@@ -343,7 +350,12 @@ export async function dispatchScheduledWorkflows(
   const due = getDueWorkflows(scheduledTime);
   if (due.length === 0) return [];
 
-  const { token } = await createInstallationToken(env, fetchImpl, cryptoApi, now);
+  const { token } = await createInstallationToken(
+    env,
+    fetchImpl,
+    cryptoApi,
+    now,
+  );
   for (const job of due)
     await dispatchWorkflow(job.workflow, job.inputs, token, fetchImpl);
   return due.map(({ workflow }) => workflow);
@@ -370,7 +382,9 @@ export default {
 
       const authorization = request.headers.get('Authorization') || '';
       const receivedSecret = authorization.match(/^Bearer\s+(.+)$/i)?.[1] || '';
-      if (!(await diagnosticSecretsMatch(receivedSecret, expectedSecret, crypto))) {
+      if (
+        !(await diagnosticSecretsMatch(receivedSecret, expectedSecret, crypto))
+      ) {
         return jsonResponse({ ok: false, code: 'unauthorized' }, 401);
       }
 
