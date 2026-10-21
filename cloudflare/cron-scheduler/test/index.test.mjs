@@ -128,6 +128,10 @@ test('emite workflow_dispatch em main e limita o token a Actions:write no reposi
     permissions: { actions: 'write' },
   });
   assert.equal(
+    calls[0].options.headers['User-Agent'],
+    'Setlist-Cron-Scheduler',
+  );
+  assert.equal(
     calls[1].url,
     'https://api.github.com/repos/anderson-sillos/setlist/actions/workflows/supabase-backup.yml/dispatches',
   );
@@ -138,6 +142,10 @@ test('emite workflow_dispatch em main e limita o token a Actions:write no reposi
   assert.equal(
     calls[1].options.headers.Authorization,
     'Bearer temporary-installation-token',
+  );
+  assert.equal(
+    calls[1].options.headers['User-Agent'],
+    'Setlist-Cron-Scheduler',
   );
 });
 
@@ -200,11 +208,19 @@ test('valida o token do GitHub e o revoga sem devolver o token', async () => {
     repositories: ['setlist'],
     permissions: { actions: 'write' },
   });
+  assert.equal(
+    calls[0].options.headers['User-Agent'],
+    'Setlist-Cron-Scheduler',
+  );
   assert.equal(calls[1].url, 'https://api.github.com/installation/token');
   assert.equal(calls[1].options.method, 'DELETE');
   assert.equal(
     calls[1].options.headers.Authorization,
     'Bearer temporary-installation-token',
+  );
+  assert.equal(
+    calls[1].options.headers['User-Agent'],
+    'Setlist-Cron-Scheduler',
   );
   assert.doesNotMatch(JSON.stringify(result), /temporary-installation-token/);
 });
@@ -312,8 +328,9 @@ test('desativado não dispara workflows; ativo usa o horário do Cron Trigger', 
   assert.deepEqual(await pending, undefined);
 
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = async (url, options) => {
     calls.push(String(url));
+    assert.equal(options.headers['User-Agent'], 'Setlist-Cron-Scheduler');
     if (calls.length === 1) return response(201, { token: 'temporary-token' });
     return response(200, { workflow_run_id: 42 });
   };

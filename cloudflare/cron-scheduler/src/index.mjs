@@ -1,5 +1,6 @@
 const GITHUB_API = 'https://api.github.com';
 const GITHUB_API_VERSION = '2022-11-28';
+const GITHUB_USER_AGENT = 'Setlist-Cron-Scheduler';
 const GITHUB_OWNER = 'anderson-sillos';
 const GITHUB_REPOSITORY = 'setlist';
 const GITHUB_REF = 'main';
@@ -213,6 +214,7 @@ async function createInstallationToken(env, fetchImpl, cryptoApi, now) {
           Authorization: `Bearer ${jwt}`,
           'X-GitHub-Api-Version': GITHUB_API_VERSION,
           'Content-Type': 'application/json',
+          'User-Agent': GITHUB_USER_AGENT,
         },
         body: JSON.stringify({
           repositories: [GITHUB_REPOSITORY],
@@ -282,6 +284,7 @@ async function revokeInstallationToken(token, fetchImpl) {
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${token}`,
         'X-GitHub-Api-Version': GITHUB_API_VERSION,
+        'User-Agent': GITHUB_USER_AGENT,
       },
       signal: AbortSignal.timeout(10_000),
     });
@@ -371,6 +374,7 @@ async function dispatchWorkflow(workflow, inputs, token, fetchImpl) {
           Authorization: `Bearer ${token}`,
           'X-GitHub-Api-Version': GITHUB_API_VERSION,
           'Content-Type': 'application/json',
+          'User-Agent': GITHUB_USER_AGENT,
         },
         body: JSON.stringify({ ref: GITHUB_REF, inputs }),
         signal: AbortSignal.timeout(10_000),
