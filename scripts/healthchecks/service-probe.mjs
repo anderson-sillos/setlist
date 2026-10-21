@@ -367,6 +367,9 @@ export async function probeServices(
           await waitImpl(delayMs);
           continue;
         }
+        report.error?.(
+          `${target.name}: ${operation}, tentativa ${attempt}/${attemptLimit} falhou após ${elapsedMs} ms — ${lastFailure.reason}; limite de tentativas atingido.`,
+        );
         break;
       }
 
@@ -413,6 +416,15 @@ export async function probeServices(
         );
         await waitImpl(delayMs);
         continue;
+      }
+      if (isRetryableStatus(response.status)) {
+        report.error?.(
+          `${target.name}: ${operation}, tentativa ${attempt}/${attemptLimit} falhou após ${elapsedMs} ms — HTTP ${response.status}${diagnosticDetail ? `; ${diagnosticDetail}` : ''}${requestDetail}; limite de tentativas atingido.`,
+        );
+      } else {
+        report.error?.(
+          `${target.name}: ${operation}, tentativa ${attempt}/${attemptLimit} recebeu HTTP ${response.status}${diagnosticDetail ? `; ${diagnosticDetail}` : ''}${requestDetail}; resposta não transitória, encerrando as tentativas.`,
+        );
       }
       break;
     }
