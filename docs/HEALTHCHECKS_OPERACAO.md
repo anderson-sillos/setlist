@@ -54,10 +54,16 @@ acima, em vez de 1.440 chamadas por minuto.
      `SETLIST_CRON_GITHUB_APP_PRIVATE_KEY` de um GitHub App instalado somente
      no repositório `anderson-sillos/setlist`, com a permissão `Actions: write`.
 
-   O Worker usa esses dados somente para emitir installation tokens temporários
-   e despachar workflows. Não cadastre credenciais de banco, Drive ou Healthchecks
-   nesse Environment. A rotina de deploy publica o Worker inativo, grava as
-   credenciais como Worker Secrets e publica a versão ativa.
+   O App ID e o Installation ID são valores distintos. O App ID aparece nas
+   configurações do GitHub App; o Installation ID é o número final da URL da
+   instalação após **Configure** em **Installed GitHub Apps**. O Worker envia
+   `User-Agent` válido nas chamadas REST do GitHub. Não cadastre credenciais de
+   banco, Drive ou Healthchecks nesse Environment. A rotina de deploy publica o
+   Worker inativo, grava as credenciais como Worker Secrets, remove de forma
+   idempotente o secret temporário de diagnóstico e publica a versão ativa.
+
+   O Worker de produção não expõe o hostname `workers.dev` nem uma rota HTTP de
+   disparo/diagnóstico; os workflows são disparados pelos Cron Triggers.
 
 6. Integre a alteração e execute **Publicar agendador Cloudflare** na `main`.
    Defina `HEALTHCHECKS_MONITORING_ENABLED=true` no repositório somente depois

@@ -62,6 +62,21 @@ jobs:
           printf '%s' "$GITHUB_INSTALLATION_ID" | npx --prefix cloudflare/cron-scheduler wrangler secret put GITHUB_INSTALLATION_ID --config cloudflare/cron-scheduler/wrangler.jsonc >/dev/null
           printf '%s' "$GITHUB_APP_PRIVATE_KEY" | npx --prefix cloudflare/cron-scheduler wrangler secret put GITHUB_APP_PRIVATE_KEY --config cloudflare/cron-scheduler/wrangler.jsonc >/dev/null
 
+      - name: Remover secret temporário de diagnóstico
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          secret_metadata="$(npx --prefix cloudflare/cron-scheduler wrangler secret list --format json --config cloudflare/cron-scheduler/wrangler.jsonc)"
+          has_diagnostic_secret="$(printf '%s' "$secret_metadata" | node -e 'let input = ""; process.stdin.setEncoding("utf8"); process.stdin.on("data", (chunk) => { input += chunk; }); process.stdin.on("end", () => { const secrets = JSON.parse(input); process.stdout.write(String(secrets.some(({ name }) => name === "DIAGNOSTIC_TOKEN"))); });')"
+          if [[ "$has_diagnostic_secret" == "true" ]]; then
+            npx --prefix cloudflare/cron-scheduler wrangler secret delete DIAGNOSTIC_TOKEN --config cloudflare/cron-scheduler/wrangler.jsonc
+          else
+            echo "Secret temporário DIAGNOSTIC_TOKEN já removido."
+          fi
+
       - name: Ativar os schedules no Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
