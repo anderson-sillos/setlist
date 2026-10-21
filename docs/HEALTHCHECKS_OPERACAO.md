@@ -96,12 +96,12 @@ acima, em vez de 1.440 chamadas por minuto.
    a publicação; os valores não devem ser copiados para o chat, para o código ou
    para Secrets de produção.
 
-## Preflight somente leitura para a auditoria Auth
+## Retenção da auditoria Auth
 
-Antes de aplicar a migração, abra o SQL Editor de `setlist-prod` e execute o
-conteúdo de
+O preflight somente de metadados usado antes da migração está em
 [`scripts/healthchecks/auth-audit-retention-prerequisites.sql`](../scripts/healthchecks/auth-audit-retention-prerequisites.sql)
-com a mesma role que aplicará a migração. A saída tem cinco campos booleanos:
+e pode ser repetido, com a role administrativa, em cada projeto. A saída tem
+cinco campos booleanos:
 
 - `table_exists` deve ser `true`;
 - `created_at_is_timestamptz` deve ser `true`;
@@ -111,18 +111,29 @@ com a mesma role que aplicará a migração. A saída tem cinco campos booleanos
   habilitado; a role de migração ainda precisa ignorar as políticas efetivas,
   conforme o campo anterior.
 
-Se algum dos quatro requisitos divergir, não aplique a migração. Mesmo quando
-todos os quatro forem `true`, eles comprovam apenas esquema e permissões da role, não
-uma garantia de estabilidade futura da tabela gerenciada. A lista oficial de
-restrições a DML destrutivo do Supabase é específica para tabelas de migração e
-não inclui `auth.audit_log_entries`; essa compatibilidade é uma inferência da
+Em 21/10/2026, o preflight passou em `setlist-prod` e `setlist-dev`. A migração
+`20261020120000` está aplicada nos dois. A consulta de
+[`auth-audit-retention-monitor.sql`](../scripts/healthchecks/auth-audit-retention-monitor.sql)
+retornou `true` para os cinco critérios em cada projeto: job único/ativo,
+última execução bem-sucedida, execuções diárias esperadas, nenhum evento
+vencido sem exceção e nenhuma exceção vencida ou órfã. Se algum dos requisitos
+divergir em conferências futuras, investigue antes de alterar a migração. Mesmo
+quando o preflight passa, ele comprova apenas esquema e permissões da role,
+não uma garantia de estabilidade futura da tabela gerenciada. A lista oficial
+de restrições a DML destrutivo do Supabase é específica para tabelas de migração
+e não inclui `auth.audit_log_entries`; essa compatibilidade é uma inferência da
 [lista publicada](https://supabase.com/changelog/34270-restricting-access-on-auth-storage-and-realtime-schemas-on-april-21-2025),
 não uma garantia de que a estrutura da tabela permanecerá estável. A
 [documentação de Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs)
 descreve a gravação Postgres como opcional. A consulta não lê eventos,
 payloads, IDs ou dados de usuários.
-A rotina proposta remove diariamente linhas com `created_at` anterior a 30 dias
-que não tenham exceção vigente.
+O job `setlist-prune-auth-audit-logs` remove diariamente linhas com `created_at`
+anterior a 30 dias que não tenham exceção vigente. A exclusão da conta não
+apaga imediatamente a auditoria: não há FK nem trigger de exclusão em
+`auth.users` que faça isso; a retenção é aplicada pela rotina diária. O backup
+do Drive exclui `auth.audit_log_entries`, portanto registros já limpos não
+podem ser restaurados dessas cópias. Os logs Auth externos do Supabase ficam
+fora desse mecanismo de retenção e seguem configuração do fornecedor.
 
 ### Exceção temporária de auditoria
 
@@ -171,12 +182,22 @@ estados agregados, sem IDs ou justificativas.
 O probe de disponibilidade solicita somente:
 
 - `https://setlistbr.app.br/`;
-- `<EXPO_PUBLIC_SUPABASE_URL>/rest/v1/` com a chave publicável;
+- `<EXPO_PUBLIC_SUPABASE_URL>/rest/v1/songs?select=id&limit=0` com a chave publicável;
 - `<EXPO_PUBLIC_SUPABASE_URL>/auth/v1/settings` com a chave publicável.
 
-Os corpos HTTP são descartados. Os logs mostram apenas o nome do serviço e o
-status HTTP ou uma mensagem genérica de falha; URLs completas e respostas não
-são registradas. O sinal de sucesso só é enviado depois de todos os probes.
+Os corpos das respostas são descartados. Em falha, o ping `/fail` usa `POST`
+para anexar ao evento o resumo, cada tentativa por serviço, duração, categoria
+da falha, status HTTP e identificador de requisição quando disponível, além do
+link da execução do GitHub Actions e do commit. Se um retry recuperar a
+sondagem, o ping de sucesso também registra a sequência que levou à recuperação.
+O corpo fica limitado localmente a 16 kB e não inclui chaves, cabeçalhos de
+autenticação, URLs sondadas nem corpos de resposta. Um sucesso sem retries
+continua usando um ping simples, sem corpo. O `User-Agent` identifica o
+`Setlist-Service-Availability-Monitor/1.0`.
+
+O sinal final só é enviado depois de todos os probes. Os eventos e seus corpos
+podem ser consultados no histórico do check do Healthchecks.io; os mesmos
+detalhes continuam nos logs da execução do GitHub Actions.
 
 Os monitores de retenção consultam `cron.job`, `cron.job_run_details`, os
 predicados de retenção e contagens. Não retornam IDs, tokens, e-mails, payloads
@@ -203,8 +224,11 @@ exibe o Secret.
 
 Um check `Down` por falta de sinal pode indicar atraso/ausência do workflow ou
 falta de Secret; verifique primeiro o histórico do Actions e depois os eventos
-do Healthchecks. Falha de probe mostra somente o serviço e o status, sem corpo
-de resposta. Corrija o serviço ou workflow e aguarde o próximo sinal saudável.
+do Healthchecks. Abra o evento para consultar o corpo diagnóstico e siga a ação
+sugerida pelo tipo de falha. Para HTTP 5xx, use o `request_id` para procurar a
+requisição nos logs do provedor; para timeout ou falha de rede, compare o horário
+com a disponibilidade do provedor e a execução do runner. Corrija a causa e
+aguarde o próximo sinal saudável.
 
 Os registros de `auth.audit_log_entries` são deliberadamente excluídos do
 backup. Depois de eliminados pela retenção de 30 dias, não podem ser restaurados

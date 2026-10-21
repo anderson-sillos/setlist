@@ -1,14 +1,15 @@
 # Termos de uso do Setlist — rascunho
 
-> **RASCUNHO PARA DISCUSSÃO. Não publicar nem usar como contrato vigente.**
-> A revisão por profissional jurídico foi informada como concluída pelo
-> responsável; decisões e configurações restantes precisam ser incorporadas
-> antes de qualquer distribuição pública.
+> **RASCUNHO HISTÓRICO. Não publicar nem usar como contrato vigente.** A versão
+> pública aprovada é a 1.0.0, vigente desde 21/10/2026, em
+> <https://setlistbr.app.br/termos/>. Este arquivo preserva notas da preparação;
+> pendências e afirmações operacionais abaixo devem ser lidas como registros da
+> época e conferidas na lista atual do OpenSpec antes de qualquer reutilização.
 
 - Versão de trabalho: 0.1
 - Data de preparação: 29/09/2026; revisão de moderação: 02/10/2026
-- URL canônica aprovada para publicação futura:
-  **https://setlistbr.app.br/termos/** (página ainda não publicada)
+- URL da versão pública atual:
+  **https://setlistbr.app.br/termos/** (versão 1.0.0, vigente desde 21/10/2026)
 - Nome definitivo de apresentação do serviço: **Setlist**
   (`setlistbr.app.br`). Segundo o responsável, a revisão jurídica aprovou
   **Setlist** como identificação pública do responsável pessoa física.

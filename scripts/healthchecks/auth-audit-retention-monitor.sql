@@ -68,11 +68,16 @@ stale_holds as (
     )
 )
 select
-  coalesce((select bool_and(active) and bool_and(job_count = 1) from target_job), false),
+  coalesce((select bool_and(active) and bool_and(job_count = 1) from target_job), false)
+    as job_active_and_unique,
   coalesce((select status = 'succeeded'
             and end_time > now() - interval '36 hours'
-            from latest_run), false),
+            from latest_run), false)
+    as latest_run_succeeded,
   coalesce((select successful_count = expected_count
-            from successful_day_count cross join expected_day_count), false),
-  coalesce((select row_count = 0 from expired_entries), false),
-  coalesce((select row_count = 0 from stale_holds), false);
+            from successful_day_count cross join expected_day_count), false)
+    as expected_daily_runs_succeeded,
+  coalesce((select row_count = 0 from expired_entries), false)
+    as no_unheld_expired_entries,
+  coalesce((select row_count = 0 from stale_holds), false)
+    as no_expired_or_orphaned_holds;

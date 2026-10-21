@@ -1,13 +1,18 @@
 # Política de privacidade do Setlist — rascunho
 
-> **RASCUNHO PARA DISCUSSÃO. Não publicar.** O responsável informou que a
-> revisão por profissional jurídico foi concluída; decisões e configurações
-> restantes precisam ser incorporadas antes da publicação.
+> **RASCUNHO HISTÓRICO. Não publicar como política vigente.** A versão pública
+> aprovada é a 1.0.0, vigente desde 21/10/2026, em
+> <https://setlistbr.app.br/privacidade/>. Este arquivo preserva notas da
+> preparação; pendências e afirmações operacionais abaixo são registros da
+> época e devem ser conferidas em `openspec/changes/definir-mvp-setlist/tasks.md`
+> e `docs/PUBLICACAO_DOCUMENTOS_LEGAIS.md` antes de qualquer reutilização. As
+> tarefas 11.8.1–11.8.10 estão concluídas; o grupo 11.8 permanece aberto até
+> a distribuição pública Android/iOS.
 
 - Versão de trabalho: 0.1
 - Data de preparação: 29/09/2026; revisão de moderação: 02/10/2026
-- URL canônica aprovada para publicação futura:
-  **https://setlistbr.app.br/privacidade/** (página ainda não publicada)
+- URL da versão pública atual:
+  **https://setlistbr.app.br/privacidade/** (versão 1.0.0, vigente desde 21/10/2026)
 - Nome definitivo de apresentação do serviço: **Setlist**
   (`setlistbr.app.br`). Segundo o responsável, a revisão jurídica aprovou
   **Setlist** como identificação pública do controlador pessoa física.
@@ -31,8 +36,9 @@ aberto sob GNU AGPL-3.0-only. Isso não torna público o conteúdo das contas ou
 bandas. **Setlist** é o nome definitivo de apresentação do serviço. A pessoa
 física que o opera é a controladora; segundo o responsável, a revisão jurídica
 aprovou **Setlist** como sua identificação pública, com contato separado pelo
-e-mail informado abaixo. A região do serviço e os prazos
-de retenção ainda precisam ser confirmados. O canal escolhido é o e-mail geral
+e-mail informado abaixo. A versão pública 1.0.0 reflete os prazos operacionais
+confirmados nas tarefas 11.8.2–11.8.8; detalhes de logs mantidos por outros
+fornecedores continuam sujeitos a revisão. O canal escolhido é o e-mail geral
 **contato@setlistbr.app.br**, que também receberá solicitações de titulares e
 pedidos de remoção de conteúdo. O responsável acompanhará a caixa em todos os
 dias úteis e informou ser a única pessoa com acesso à caixa Gmail de destino.
@@ -69,8 +75,9 @@ O código e o schema atuais indicam estas categorias:
 
 Não foi localizado SDK de analytics ou publicidade no código consultado. Isso
 não confirma a ausência de registros produzidos por hospedagem, autenticação,
-infraestrutura, navegador ou ferramentas operacionais. O responsável deve
-inventariá-los antes da publicação.
+infraestrutura, navegador ou ferramentas operacionais. A versão pública 1.0.0
+descreve as categorias e os fornecedores identificados; revisar esse inventário
+quando o código ou os serviços contratados mudarem.
 
 ## 3. Finalidades e bases legais
 
@@ -143,67 +150,29 @@ Nome, e-mail disponível, avatar e conteúdo da banda podem ser vistos por
 integrantes com acesso àquela banda, conforme o papel e as permissões da
 aplicação. Não há catálogo público de músicas ou bandas. O responsável
 autorizado pode consultar conteúdo privado quando necessário para analisar
-denúncia ou inspeção e aplicar uma medida. As políticas de acesso do banco são
-aplicadas no backend; a lista final de dados visíveis a cada papel deve ser
-conferida contra a configuração
-de produção antes do lançamento.
+denúncia ou indício concreto e aplicar uma medida. As políticas de acesso do
+banco e as operações protegidas de contas suspensas foram conferidas em
+produção na tarefa 11.8.1; revisar permissões se o schema ou os papéis mudarem.
 
 Os fornecedores e integrações identificados no código e na configuração são:
 
-| Fornecedor/integração            | Situação e finalidade                                                                                                                        | Dados e observações                                                                                                                                                                                                                                                                                                                                                                           |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google                           | Ativo como provedor de login e destino final Gmail/Google da caixa de contato encaminhada pela Cloudflare                                    | No Android e iOS, o login Google usa o fluxo nativo quando disponível e envia o token de identidade ao Supabase; nos demais casos usa OAuth no navegador. O app recebe identificador e, quando disponíveis, e-mail, nome e avatar do perfil. O Gmail/Google também recebe as mensagens enviadas ao canal de contato. Confirmar no Google Cloud e no Supabase os escopos e atributos efetivos. |
-| Supabase                         | Ativo para autenticação, banco de dados e acesso ao conteúdo                                                                                 | Guarda contas, perfis, bandas, integrantes, convites, aceites e conteúdo. Os projetos consultados usam a região primária `sa-east-1` (São Paulo). O contrato e a lista de suboperadores precisam ser conferidos; a região primária não determina por si só todos os locais de processamento.                                                                                                  |
-| GitHub Pages                     | Ativo para servir a versão Web                                                                                                               | Além dos arquivos públicos da aplicação, o GitHub informa que registra o IP de visitantes para segurança. O prazo desses registros específicos ainda precisa ser confirmado. Logs de CI/build são tratados separadamente e não são registros de uso do app.                                                                                                                                   |
-| YouTube                          | Referência externa aberta somente a pedido da pessoa usuária; o protótipo com player incorporado está sem acesso na primeira versão pública  | Ao acionar a referência de uma música, o app abre o endereço no aplicativo ou navegador externo. O tratamento resultante é feito pelo YouTube conforme seus próprios termos e política. O Setlist não envia letras ou repertórios para sincronização.                                                                                                                                         |
-| Apple — Iniciar sessão com Apple | Ativo como opção de autenticação; usa fluxo nativo no iOS e OAuth nas demais plataformas configuradas                                        | No fluxo nativo de iOS, o app solicita e-mail e nome completo; a Apple pode fornecer nome apenas na primeira autorização e e-mail, inclusive endereço de retransmissão privada, conforme a escolha da pessoa. Confirmar no Apple Developer e no Supabase os atributos efetivamente recebidos e os escopos do fluxo OAuth.                                                                     |
-| Cloudflare Email Routing         | Roteamento de entrada do e-mail de contato, conforme os registros MX públicos do domínio                                                     | O recebimento passa primeiro por servidores MX da Cloudflare e, conforme confirmação do responsável, é encaminhado a uma caixa Gmail/Google.                                                                                                                                                                                                                                                  |
-| Brevo                            | Envio transacional das denúncias feitas no app por meio de uma Edge Function do Supabase; integração validada no ambiente de desenvolvimento | Recebe identificadores do caso, da banda, do alvo e do denunciante e a descrição escrita pela pessoa para encaminhar ao e-mail de contato. A letra completa não é anexada automaticamente. O responsável escolheu 1 mês de retenção de logs e nenhuma nova prévia; aplicar e conferir essa configuração e confirmar contrato e locais de tratamento antes da publicação.                      |
+| Fornecedor/integração            | Situação e finalidade                                                                                                                       | Dados e observações                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google                           | Ativo como provedor de login e destino final Gmail/Google da caixa de contato encaminhada pela Cloudflare                                   | No Android e iOS, o login Google usa o fluxo nativo quando disponível e envia o token de identidade ao Supabase; nos demais casos usa OAuth no navegador. O app recebe identificador e, quando disponíveis, e-mail, nome e avatar do perfil. O Gmail/Google também recebe as mensagens enviadas ao canal de contato. Confirmar no Google Cloud e no Supabase os escopos e atributos efetivos. |
+| Supabase                         | Ativo para autenticação, banco de dados e acesso ao conteúdo                                                                                | Guarda contas, perfis, bandas, integrantes, convites, aceites e conteúdo. Os projetos consultados usam a região primária `sa-east-1` (São Paulo). O contrato e a lista de suboperadores precisam ser conferidos; a região primária não determina por si só todos os locais de processamento.                                                                                                  |
+| GitHub Pages                     | Ativo para servir a versão Web                                                                                                              | Além dos arquivos públicos da aplicação, o GitHub informa que registra o IP de visitantes para segurança. O prazo desses registros específicos ainda precisa ser confirmado. Logs de CI/build são tratados separadamente e não são registros de uso do app.                                                                                                                                   |
+| YouTube                          | Referência externa aberta somente a pedido da pessoa usuária; o protótipo com player incorporado está sem acesso na primeira versão pública | Ao acionar a referência de uma música, o app abre o endereço no aplicativo ou navegador externo. O tratamento resultante é feito pelo YouTube conforme seus próprios termos e política. O Setlist não envia letras ou repertórios para sincronização.                                                                                                                                         |
+| Apple — Iniciar sessão com Apple | Ativo como opção de autenticação; usa fluxo nativo no iOS e OAuth nas demais plataformas configuradas                                       | No fluxo nativo de iOS, o app solicita e-mail e nome completo; a Apple pode fornecer nome apenas na primeira autorização e e-mail, inclusive endereço de retransmissão privada, conforme a escolha da pessoa. Confirmar no Apple Developer e no Supabase os atributos efetivamente recebidos e os escopos do fluxo OAuth.                                                                     |
+| Cloudflare Email Routing         | Roteamento de entrada do e-mail de contato, conforme os registros MX públicos do domínio                                                    | O recebimento passa primeiro por servidores MX da Cloudflare e, conforme confirmação do responsável, é encaminhado a uma caixa Gmail/Google.                                                                                                                                                                                                                                                  |
+| Brevo                            | Envio transacional das denúncias pelo app por meio da Edge Function do Supabase; o responsável confirmou o fluxo de produção em 19/10/2026  | Recebe o identificador do caso, da banda, do alvo e do denunciante e a descrição escrita pela pessoa. A letra completa não é anexada automaticamente. O DPA foi revisado em 21/10/2026 para a integração transacional. Em 21/10/2026, o responsável confirmou a retenção de 1 mês dos logs e a desativação de novas prévias; a versão pública 1.0.0 já reflete essa configuração.             |
 
 O responsável confirma que o Setlist não veicula publicidade própria, faz
 marketing, vende dados ou mantém patrocínio ou compartilhamento comercial. O
 YouTube pode exibir publicidade própria após a abertura externa. O canal de
 contato é monitorado e as mensagens são encaminhadas da Cloudflare ao
-Gmail/Google. Antes da publicação,
-confirmar escopos OAuth, contratos, regiões de processamento, suboperadores,
-prazos de logs e mecanismo aplicável a cada transferência internacional.
-
-### Transferências e coleta fora do Brasil — apuração pendente
-
-Os projetos Supabase consultados têm região primária em São Paulo. Isso não
-garante que operações de suporte, registros técnicos ou suboperadores desse
-fornecedor permaneçam no Brasil. Outros serviços listados acima podem tratar
-dados fora do país: o login depende de Google ou Apple; a versão Web é servida
-pelo GitHub Pages; denúncias no app passam pela Edge Function do Supabase e
-pela API do Brevo antes de chegar à caixa de contato, cujo recebimento passa
-por Cloudflare e Gmail/Google. A
-referência externa de uma música pode levar a pessoa ao YouTube somente após
-sua ação de abertura; a primeira versão não carrega player incorporado. Os
-países de destino, os dados envolvidos em cada fluxo e os mecanismos
-jurídicos aplicáveis ainda precisam ser confirmados antes da publicação. Para
-solicitar informações sobre esses fluxos, o canal é
-**contato@setlistbr.app.br**.
-
-> **Nota interna de transferência internacional:** os metadados atuais do
-> Supabase mostram os projetos em `sa-east-1` (São Paulo). O DPA do fornecedor
-> diz que os dados dirigidos a uma região específica são armazenados e
-> primariamente processados nela, mas também permite subprocessadores em locais
-> onde o fornecedor mantenha instalações. O controlador deve revisar os termos
-> efetivamente aplicáveis e identificar destinos e salvaguardas, considerando
-> o Regulamento de Transferência Internacional da ANPD. Não afirmar que todos
-> os dados ficam no Brasil apenas pela região primária do banco. [Regiões do Supabase](https://supabase.com/docs/guides/platform/regions),
-> [DPA e suboperadores do Supabase](https://supabase.com/legal/customer-resources/data-processing-addendum),
-> [Resolução CD/ANPD nº 19/2024](https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-19-de-23-de-agosto-de-2024).
->
-> A regulamentação distingue transferência entre agentes de coleta direta
-> pelo agente situado no exterior (arts. 3º, 5º e 6º). Classificar cada fluxo
-> concreto antes de atribuir ao Setlist uma transferência internacional. Se a
-> transferência usar cláusulas-padrão, verificar a incorporação integral das
-> cláusulas da ANPD ao contrato e preparar a transparência do art. 17. O DPA
-> público do Supabase menciona cláusulas da União Europeia; isso, sem análise
-> do instrumento efetivamente aplicável, não comprova a adoção das cláusulas
-> brasileiras nem a validade do mecanismo para a LGPD. [Regulamento da ANPD](https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-19-de-23-de-agosto-de-2024),
-> [DPA do Supabase](https://supabase.com/legal/customer-resources/data-processing-addendum).
+Gmail/Google. Para futuras revisões desta minuta, acompanhar escopos OAuth,
+contratos, suboperadores e prazos de logs; esta lista não altera o estado da
+política 1.0.0 já publicada.
 
 ## 5. Armazenamento local e segurança
 
@@ -239,14 +208,14 @@ encerrada essa necessidade, são excluídos ou anonimizados, salvo hipótese leg
 que justifique retenção adicional. O controlador não pretende manter esses
 registros indefinidamente e revisará os casos encerrados na caixa Gmail a cada
 três meses para apagar mensagens e anexos que não precisem mais ser mantidos.
-Os prazos concretos e exceções devem ser registrados e conferidos no
-inventário de retenção antes da publicação.
+Os prazos e exceções publicados estão registrados na versão 1.0.0 e no
+inventário operacional; confira essas fontes antes de reutilizar este rascunho.
 Logs operacionais dos fornecedores têm prazos próprios e não representam o
 prazo de retenção dos dados da conta. Cópias de backup podem continuar
 contendo dados já removidos da base ativa até expirarem. A rotina própria
 conserva até 84 cópias diárias (12 semanas) numa conta Google Drive dedicada,
-cifradas no cliente. A primeira execução foi confirmada em 20/10/2026; a
-restauração isolada ainda não foi validada.
+cifradas no cliente. A primeira execução foi confirmada em 20/10/2026 e a
+restauração isolada foi validada em `setlist-restore` no mesmo dia (11.8.4).
 
 O ciclo observado no banco ativo, antes de considerar logs e backups, é:
 
@@ -269,11 +238,15 @@ identificador de usuário, IP e metadados de acesso. O responsável decidiu
 conservar essa cópia por **30 dias**, com limpeza diária dos registros mais
 antigos, salvo exceções administrativas temporárias e documentadas para uma
 apuração. O motivo da exceção não deve conter dados pessoais e cada retenção
-tem prazo para revisão. A migração foi preparada, mas a ativação depende da confirmação
-somente de metadados de que a role de implantação tem permissão e bypass efetivo
-de RLS na tabela gerenciada. Até a aplicação e validação em produção, não afirmar
-que o prazo já está efetivo. Confirmar o tratamento após exclusão de conta; não presumir que apagar
-`auth.users` elimine os registros de auditoria.
+tem prazo para revisão. Em 21/10/2026, a migração `20261020120000` e o job
+diário foram confirmados em `setlist-prod` e `setlist-dev`. O preflight de
+metadados passou nos dois ambientes, e a conferência agregada confirmou a
+última execução bem-sucedida, a recorrência diária, nenhum evento vencido sem
+exceção e nenhuma exceção vencida ou órfã. A exclusão da conta não remove
+imediatamente esses registros; a rotina os remove depois do prazo, salvo
+exceção documentada. A auditoria Postgres é excluída do backup diário do Drive
+e não pode ser recuperada dessas cópias. Os logs externos do fornecedor têm
+retenção própria e não são controlados por essa rotina.
 
 > **Nota interna de apuração — substituir por prazos confirmados antes de
 > publicar:** a tabela de planos do Supabase informa janela de acesso aos logs
@@ -283,9 +256,9 @@ que o prazo já está efetivo. Confirmar o tratamento após exclusão de conta; 
 > janelas não demonstram a data de eliminação de todas as cópias mantidas pelo
 > fornecedor. A gravação adicional de auditoria de autenticação no Postgres
 > está ligada em `setlist-prod`; a migração para retenção de 30 dias e limpeza
-> diária foi preparada, mas precisa passar pelo preflight, ser aplicada e
-> validada em produção. Definir exceções aplicáveis
-> após a exclusão da conta. Backups automáticos diários não estão
+> diária está aplicada nos projetos `setlist-prod` e `setlist-dev`; a consulta
+> de 21/10/2026 confirmou job ativo, execuções esperadas, ausência de registros
+> vencidos e ausência de exceções vencidas ou órfãs. Backups automáticos diários não estão
 > incluídos no Free; a documentação informa 7 dias de acesso no Pro, 14 dias no
 > Team e até 30 dias no Enterprise. Quando habilitado, o PITR substitui os
 > backups diários e tem janela de recuperação própria. O CLI lista os projetos
@@ -296,13 +269,16 @@ que o prazo já está efetivo. Confirmar o tratamento após exclusão de conta; 
 > conta dedicada do Google Drive, cifradas no cliente, e conserva as **84 cópias
 > diárias** mais recentes (12 semanas). O executor transmite o dump sem gravá-lo
 > em disco local ou artefatos. A primeira execução foi confirmada em 20/10/2026;
-> a restauração isolada ainda não foi validada. Um backup diário pode não incluir
+> uma restauração isolada foi validada no projeto `setlist-restore` em
+> 20/10/2026. Um backup diário pode não incluir
 > alterações feitas desde a cópia anterior. Dados removidos do banco ativo
 > podem continuar em uma dessas cópias até a substituição correspondente;
 > exceções de retenção e a eliminação segura do arquivo antigo precisam ser
-> conferidas. O código de limpeza da auditoria gravada no Postgres foi
-> preparado; a execução diária e a retenção efetiva de 30 dias ainda não foram
-> confirmadas em produção. [Planos do Supabase](https://supabase.com/pricing),
+> conferidas. A migração `20261020120000` e a limpeza diária da auditoria Auth
+> foram confirmadas em `setlist-prod` e `setlist-dev` em 21/10/2026; o monitor
+> agregou `true` nos cinco critérios nos dois ambientes. A exclusão da conta
+> não apaga esses eventos imediatamente, e a tabela não está incluída no backup
+> do Drive. [Planos do Supabase](https://supabase.com/pricing),
 > [auditoria de autenticação](https://supabase.com/docs/guides/auth/audit-logs),
 > [backups e PITR](https://supabase.com/docs/guides/platform/backups).
 >
@@ -317,12 +293,11 @@ que o prazo já está efetivo. Confirmar o tratamento após exclusão de conta; 
 > prévias de e-mail não são apagados automaticamente. O painel permite definir
 > retenção de logs de 1 a 24 meses por remetente e desabilitar novas
 > prévias; a mudança do prazo de logs também alcança registros existentes,
-> enquanto a mudança de prévias não elimina as já guardadas. Conferir a regra
-> efetiva antes de publicar. O responsável informou que a conta Brevo é
-> exclusiva do Setlist e escolheu conservar logs transacionais por **1 mês**,
-> sem guardar novas prévias do e-mail. Essa é uma decisão de configuração, ainda
-> não uma configuração confirmada no painel; prévias antigas exigem verificação
-> separada. Não presumir que a exclusão no Gmail apague dados mantidos pelo
+> enquanto a mudança de prévias não elimina as já guardadas. A captura do
+> painel enviada em 21/10/2026 confirma a regra para todos os remetentes,
+> retenção de **1 mês** e **Never store previews**. Pré-visualizações de logs
+> anteriores ainda podem permanecer até que seus logs expirem. Não presumir
+> que a exclusão no Gmail apague dados mantidos pelo
 > Brevo. [Regras de retenção do Brevo](https://help.brevo.com/hc/en-us/articles/4415743225746-Configure-a-custom-retention-period-for-your-transactional-logs-and-email-previews).
 >
 > No Gmail, apagar uma mensagem a envia à Lixeira, onde ela pode permanecer por
@@ -343,8 +318,8 @@ banda só pode ser excluída pelo seu único Proprietário quando for também o
 único integrante. Para `setlist-prod`, no plano Free sem PITR, o responsável
 mantém até 84 cópias diárias próprias numa conta dedicada do Google Drive,
 com criptografia no cliente e transmissão direta pelo executor externo. A
-primeira execução foi confirmada em 20/10/2026; a restauração isolada ainda não
-foi validada. Dados apagados do banco ativo poderão persistir nessas cópias até
+primeira execução foi confirmada em 20/10/2026; a restauração isolada foi
+validada no projeto `setlist-restore` em 20/10/2026 (11.8.4). Dados apagados do banco ativo poderão persistir nessas cópias até
 a respectiva substituição. Os prazos e mecanismos de eliminação dos registros independentes
 mantidos pelos fornecedores ainda precisam ser confirmados.
 
@@ -395,8 +370,9 @@ observar seu melhor interesse.
 
 ## 9. Atualizações e contato
 
-O controlador manterá uma versão datada desta política em
-**https://setlistbr.app.br/privacidade/** após a aprovação e publicação.
+O controlador mantém uma versão datada desta política em
+**https://setlistbr.app.br/privacidade/**; a versão pública atual é a 1.0.0,
+vigente desde 21/10/2026.
 Alterações de finalidade, forma ou duração do tratamento, identificação do
 controlador ou uso compartilhado de dados serão comunicadas às pessoas afetadas
 com destaque específico do que mudou, pelo e-mail cadastrado quando disponível
@@ -406,11 +382,13 @@ revogar o consentimento caso discorde. Dúvidas, exercício de direitos,
 reclamações ou suspeitas de incidente de segurança podem ser enviados ao e-mail
 geral de contato **contato@setlistbr.app.br**.
 
-> **Nota interna antes da publicação:** confirmar remetente e capacidade de
+> **Nota interna para futuras alterações materiais:** confirmar remetente e capacidade de
 > envio ao e-mail cadastrado, cobertura de contas sem e-mail alcançável, meio
 > alternativo direto, registro da versão e dos avisos enviados, tratamento de
 > falhas de entrega e eventual fluxo de novo aceite. A redação acima não
-> comprova que esses meios já estão operacionais.
+> comprova que esses meios já estão operacionais. Esta pendência não altera o
+> status da publicação da versão 1.0.0; deve ser tratada antes de uma mudança
+> que exija aviso direto ou novo aceite.
 
 ### Referências para validação jurídica
 

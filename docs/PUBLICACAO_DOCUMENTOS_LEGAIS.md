@@ -1,6 +1,21 @@
 # Publicação dos documentos legais
 
-As páginas candidatas estão em `docs/termos.html` e
+## Estado atual em 21/10/2026
+
+Os documentos públicos versão 1.0.0, com vigência em 21/10/2026, foram
+publicados a partir da `main` pela PR #70 e pelo workflow [Publicar GitHub
+Pages, execução 39628507603](https://github.com/anderson-sillos/setlist/actions/runs/39628507603).
+As URLs canônicas `/termos/` e `/privacidade/` retornaram HTTP 200 sem
+autenticação e exibiram a versão e a data aprovadas. A tarefa 11.8.9 está
+concluída. Este runbook passa a servir para futuras alterações dos documentos.
+
+O grupo 11.8 permanece aberto: os documentos legais da Web estão publicados e
+as configurações etárias das lojas foram conferidas, mas o app ainda não está
+em distribuição pública nas duas lojas. O Google Play mantém o AAB em teste
+fechado e o App Store Connect solicitou informações adicionais sob a diretriz
+2.1.
+
+As páginas públicas aprovadas estão em `docs/termos.html` e
 `docs/privacidade.html`. O workflow de GitHub Pages copia esses arquivos para
 `/termos/` e `/privacidade/`. O aplicativo aponta para os endereços canônicos
 `https://setlistbr.app.br/termos/` e
@@ -22,9 +37,9 @@ Antes de publicar uma versão:
    Política de privacidade permanece para consulta, sem ser apresentada como
    consentimento geral. O aceite separado do termo de responsabilidade da
    banda continua existindo.
-3. As candidatas registram vigência em 21/10/2026, data aprovada pelo
-   responsável. Se o deploy ocorrer em outra data, atualizar ambas as páginas
-   para a vigência efetiva correta antes de publicar.
+3. As páginas publicadas registram vigência em 21/10/2026, data aprovada pelo
+   responsável. Para uma futura atualização, definir a nova vigência antes de
+   publicar e atualizar ambas as páginas.
 4. Conferir a configuração efetiva em produção antes de fixar a descrição
    final dos prazos de retenção. As migrações de convites e de frequência de
    denúncias foram aplicadas e conferidas em produção. Em 21/10/2026, a limpeza
@@ -33,24 +48,24 @@ Antes de publicar uma versão:
    passaram nos dois projetos. A rotina de backup diário foi implantada e uma
    restauração isolada foi validada no projeto `setlist-restore` em 20/10/2026.
    Em 21/10/2026, o responsável determinou considerar concluídas a retenção
-   do Brevo e a revisão do DPA na 11.8.8. A descrição pública final deve
-   refletir a retenção definida de um mês e a desativação de novas prévias.
+   do Brevo e a revisão do DPA na 11.8.8. As páginas publicadas refletem a
+   retenção definida de um mês e a desativação de novas prévias.
 5. As configurações foram conferidas em 21/10/2026: Google Play com público
    exclusivo 18+ e restrição para contas identificadas como menores; App Store
    Connect com override +18, A18 no Brasil e valores regionais registrados na
    seção 11.8.7. Não afirmar que o login verifica a idade ou que as lojas
-   restringem a versão Web. Depois da publicação, conferir os rótulos nas
-   fichas públicas.
-6. Publicar a versão aprovada e abrir ambas as URLs sem autenticação na Web e
-   nos navegadores de Android e iOS. Confirmar conteúdo, título, versão,
-   data, links cruzados, contato e acesso pelo login e pelo menu do app.
+   restringem a versão Web. Conferir os rótulos das fichas públicas quando a
+   distribuição nas lojas avançar.
+6. Em uma futura publicação, abrir ambas as URLs sem autenticação na Web e nos
+   navegadores de Android e iOS. Confirmar conteúdo, título, versão, data,
+   links cruzados, contato e acesso pelo login e pelo menu do app.
 
-Para publicar os documentos legais atuais junto à Web candidata, primeiro
-integre a versão aprovada à `main`. Depois execute **Publicar GitHub Pages** por
+Para publicar uma futura atualização dos documentos legais junto à Web
+candidata, primeiro integre a versão aprovada à `main`. Depois execute **Publicar GitHub Pages** por
 `workflow_dispatch`, selecione a branch `main`, informe a Release candidata já
 publicada `v1.0.0-rc.4` e ative `publish_current_legal_docs`. O site Web será
 gerado da tag; os documentos legais virão da `main`. Confira a execução e os
-conteúdos publicados antes de encerrar a tarefa.
+conteúdos publicados antes de encerrar a atualização.
 
 ### Configuração etária nas lojas (11.8.7)
 
@@ -226,5 +241,6 @@ Na conferência de 02/10/2026, o envio, a ocultação, a suspensão e a resposta
 filtro ainda dependiam de dados de ensaio; essa anotação é histórica. A validação
 de produção dos fluxos foi confirmada pelo responsável em 19/10/2026. A dispensa
 do backup antes das migrações também foi uma decisão histórica: desde 20/10/2026,
-a rotina diária está ativa e a primeira cópia cifrada no Drive foi confirmada;
-a restauração isolada ainda precisa ser validada.
+a rotina diária está ativa e a primeira cópia cifrada no Drive foi confirmada.
+A restauração isolada foi validada em 20/10/2026 no projeto `setlist-restore`,
+conforme a tarefa 11.8.4.
