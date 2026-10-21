@@ -37,22 +37,33 @@ A execução manual anterior daquele dia também concluiu com sucesso. O histór
 público do GitHub Status não mostra incidente de Actions em 20/10 que explique
 o atraso; o GitHub documenta que eventos `schedule` podem atrasar ou ser
 descartados sob carga, mas a causa específica desta ocorrência não foi
-confirmada. Esta alteração adiciona um horário posterior de recuperação e
-suporte a heartbeat externo; o alerta permanece inativo até cadastrar
-`BACKUP_HEARTBEAT_URL`. Ainda falta testar uma restauração isolada; não marcar a
-tarefa OpenSpec 11.8.4 como concluída até realizar esse ensaio.
+confirmada. O fluxo passou a ter um horário posterior de recuperação e suporte
+a heartbeat externo; o alerta permanece inativo até cadastrar
+`BACKUP_HEARTBEAT_URL`.
+
+A PR #53 corrigiu o tratamento dos papéis gerenciados; a primeira tentativa de
+restauração parou em `supabase_admin`, antes da importação do schema. Em
+20/10/2026, a execução [39372156437](https://github.com/anderson-sillos/setlist/actions/runs/39372156437)
+restaurou a cópia `2026-10-20` no projeto isolado `setlist-restore`
+(`rksthbddfecjpvoxclgo`). Consultas agregadas somente leitura confirmaram
+contagens correspondentes entre produção e recuperação: 19 bandas, 33
+associações, 27 perfis, 96 músicas, 15 coleções, 185 vínculos de músicas, 41
+shows, 116 blocos, 908 itens, 31 convites, 27 usuários Auth e 31 registros de
+migração. Também foram conferidos `public.reject_suspended_request()`, a
+configuração de `authenticator` e a migração mais recente `20261015110000`.
+Nenhuma linha de usuário foi consultada.
 
 ## Escopo e limitações
 
-- O job exporta papéis PostgreSQL, schemas `public`, `private` e
-  `supabase_migrations`, dados desses schemas e os dados do schema `auth`.
-  O Supabase CLI omite schemas gerenciados por padrão; a exportação de dados de
-  `auth` é explícita e exclui sessões, `auth.audit_log_entries` e outros
-  registros temporários indicados no script. A auditoria removida pela
-  retenção de 30 dias não pode ser restaurada dessas cópias. Metadados de
-  exceções de retenção ficam em `private.auth_audit_retention_holds`; após uma
-  restauração sem as linhas Auth correspondentes, a limpeza diária remove as
-  exceções órfãs.
+- O job exporta os schemas `public`, `private` e `supabase_migrations`, dados
+  desses schemas e dados do schema `auth`. O Supabase CLI omite schemas
+  gerenciados por padrão; a exportação de `auth` é explícita e exclui sessões,
+  `auth.audit_log_entries` e outros registros temporários indicados no script.
+  Papéis globais não são exportados: o destino os recebe da plataforma, e o dump
+  mantém a configuração de `authenticator` necessária ao app. A auditoria removida
+  pela retenção de 30 dias não pode ser restaurada dessas cópias. Metadados de
+  exceções ficam em `private.auth_audit_retention_holds`; após uma restauração sem
+  as linhas Auth correspondentes, a limpeza diária remove exceções órfãs.
 - O job consulta `storage.objects` antes do dump. Se houver qualquer objeto,
   interrompe a rotina para não criar uma cópia incompleta. O armazenamento
   binário do Supabase Storage ainda não faz parte desta rotina.
@@ -236,12 +247,12 @@ externos. Para um incidente real, primeiro restaure em um projeto separado,
 valide os dados e planeje a troca de conexão/cutover. Não execute uma
 restauração destrutiva no banco ativo sem um plano de recuperação específico.
 
-Os workflows e scripts foram integrados à `main` na PR #52. A primeira
-execução, com a cópia de 20/10/2026, parou ao tentar aplicar papéis gerenciados
-do Supabase; a transação única foi interrompida. A correção em andamento remove
-papéis globais e ownership reservado durante o fluxo e mantém o dump direto do
-Drive ao banco. Não marque a tarefa OpenSpec 11.8.4 como concluída até uma nova
-execução terminar com sucesso e as contagens serem conferidas.
+Os workflows e scripts foram integrados à `main` nas PRs #52 e #53. A execução
+de restauração `39372156437` concluiu a importação em transação única na ref
+isolada `rksthbddfecjpvoxclgo`; as contagens e configurações essenciais foram
+conferidas conforme a evidência acima. O dump permaneceu em fluxo entre Drive e
+banco, sem arquivo intermediário local. A tarefa OpenSpec 11.8.4 foi concluída
+em 20/10/2026.
 Para o formato de dump, preparação do projeto, restauração por `psql`
 e tratamento de papéis do Supabase, consulte o
 [guia oficial de backup e restauração pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
