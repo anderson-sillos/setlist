@@ -3,7 +3,7 @@
 ## 1. Monitorar a limpeza de convites
 
 - [x] 1.1 Criar consulta somente agregada para confirmar job ativo, execução recente bem-sucedida e ausência de convites vencidos não protegidos; preparar pgTAP para confirmar que Holds vigentes são excluídos e teste automatizado para garantir que a saída não contém IDs ou tokens.
-- [x] 1.2 Criar workflow diário que execute a consulta e envie `start`, sucesso ou `/fail` ao check próprio; configurar agenda, referência `main`, timeout, permissões mínimas e teste focado no CI.
+- [x] 1.2 Criar workflow manual que execute a consulta e envie `start`, sucesso ou `/fail` ao check próprio; manter referência `main`, timeout, permissões mínimas e teste focado no CI. O Cloudflare Worker despacha a execução diária.
 - [x] 1.3 Documentar check diário, período, tolerância, secret `INVITATION_CLEANUP_HEARTBEAT_URL`, ativação e leitura dos eventos; conferir o runbook contra o workflow.
 
 ## 2. Implementar e revisar a retenção da auditoria
@@ -16,8 +16,8 @@
 ## 3. Sondar Web e APIs Supabase a cada 30 minutos
 
 - [x] 3.1 Implementar probe sem leitura de dados de usuários para a página pública, REST e Auth, usando somente URL e chave publicável; testar status, timeout, tratamento de respostas, redirecionamentos e ausência de bodies nos logs.
-- [x] 3.2 Criar workflow `*/30 * * * *` restrito a `main`, com check próprio, sinais de início/sucesso/falha e timeout; manter o workflow inativo até `HEALTHCHECKS_MONITORING_ENABLED` ser habilitado.
-- [x] 3.3 Documentar o check de 30 minutos, tolerância, URLs verificadas, secret `SERVICE_UPTIME_HEARTBEAT_URL`, variável de habilitação e limite de precisão do agendamento do GitHub; conferir instruções e workflows.
+- [x] 3.2 Criar workflow manual restrito a `main`, com check próprio, sinais de início/sucesso/falha e timeout; o Cloudflare Worker o despacha a cada 30 minutos. O workflow permanece condicionado a `HEALTHCHECKS_MONITORING_ENABLED`.
+- [x] 3.3 Documentar o check de 30 minutos, tolerância, URLs verificadas, secret `SERVICE_UPTIME_HEARTBEAT_URL`, variável de habilitação e limite de precisão do agendador externo; conferir instruções e workflows.
 
 ## 4. Ensaiar o canal de alertas
 
@@ -29,6 +29,13 @@
 - [x] 5.1 Validar o schema OpenSpec, analisar sintaticamente os workflows, executar os testes focados e conferir o diff para assegurar que nenhum valor de secret real foi incluído.
 - [x] 5.2 Configurar os checks e Secrets no Environment e habilitar `HEALTHCHECKS_MONITORING_ENABLED` no escopo do repositório; concluído em 20/10/2026.
 - [ ] 5.3 Confirmar os sinais automáticos diários e a cada 30 minutos e concluir o ensaio de falha e recuperação usando somente o check dedicado.
+
+## 6. Substituir os cron schedules do GitHub pelo Cloudflare Worker
+
+- [x] 6.1 Implementar Worker com Cron Trigger UTC, lista fixa dos workflows, GitHub App token efêmero limitado a `Actions: write` no repositório, dispatch apenas na `main` e testes de horários, JWT, permissões e erros sanitizados.
+- [x] 6.2 Remover `on.schedule` de todos os workflows de produção afetados, preservar `workflow_dispatch` e garantir que os dois horários de backup mantenham `skip_if_exists=true`.
+- [x] 6.3 Criar deploy do Worker na `main`, com Environment separado `cloudflare-scheduler`, secrets enviados sem exposição em logs e publicação final habilitada apenas após configurar as credenciais.
+- [ ] 6.4 Configurar GitHub App, token de deploy Cloudflare e variáveis/secrets no Environment `cloudflare-scheduler`; implantar, conferir o Cron Trigger e validar dispatches e sinais no Healthchecks.
 
 ## Estado e pendências externas
 
@@ -52,6 +59,10 @@
   exceção vigente e detecta metadados de exceções expiradas/orfãs.
 - Os testes Node focados e a validação OpenSpec passaram. Os testes pgTAP serão
   executados no workflow de banco do CI; o Docker local não foi iniciado.
+- Os cron schedules dos quatro workflows foram removidos neste branch. Até a PR
+  ser integrada e o Environment `cloudflare-scheduler` configurado, `main` ainda
+  conserva a automação anterior; a substituição só estará ativa depois do deploy
+  habilitado e da confirmação dos primeiros dispatches.
 - A tarefa 5.3 depende de observar os sinais automáticos dos três monitores e
   concluir o ensaio de falha e recuperação. O monitor Auth enviou `/fail` numa
   execução manual após a migração (Actions run 39496520738, 20/10/2026 17:58
@@ -60,16 +71,18 @@
   `setlist-prod` confirmou job ativo e único, sem entradas vencidas e sem
   exceções órfãs/vencidas; ainda não havia execução bem-sucedida do cron, então
   a recência e a sequência diária de sucessos permaneciam falsas até a primeira
-  execução prevista para 21/10/2026 às 00:20 BRT. A PR #57 foi mesclada em
-  `main` (`e6ed08e`) e adicionou SQLSTATE/categorias sanitizadas. A execução
-  manual 39504054056 ainda falhou e registrou “Falha ao abrir o arquivo SQL do
-  monitor”, mas o arquivo existe na `main`; portanto, essa categoria ampla não
-  identifica a causa real. O runner está sendo ajustado para resolver e validar
-  explicitamente o caminho do SQL antes de chamar `psql`. A execução
-  39504972536 confirmou que o SQL foi localizado, mas `psql` ainda falhou com
-  “Arquivo local exigido pelo cliente PostgreSQL indisponível”; o caminho exato
-  foi omitido. O runner agora converte os componentes permitidos da URL em
-  variáveis `PG*` explícitas e identifica tentativa de socket local, sem enviar
-  a URL completa nos argumentos do processo ou nos logs. Falta publicar o
-  ajuste, repetir o workflow e confirmar o primeiro sucesso. Nenhum heartbeat
-  de sucesso foi confirmado.
+  execução prevista para 21/10/2026 às 00:20 BRT. A PR #57 (`e6ed08e`), #58
+  (`e870e2c`) e #59 (`ed32b40`) foram mescladas em `main` para melhorar o
+  diagnóstico sanitizado e configurar explicitamente os parâmetros de conexão
+  do `psql`. A execução manual 39504054056 identificou o SQL incorretamente
+  como ausente; a execução 39504972536 confirmou que o arquivo foi localizado,
+  mas ainda falhou ao abrir outro arquivo local do cliente. A execução
+  39505759649 chegou ao banco e executou a consulta agregada sem erro de
+  conexão; ela enviou `/fail` porque a retenção ainda não tem a primeira
+  execução diária bem-sucedida. A consulta read-only anterior confirmou job
+  ativo e único, sem entradas vencidas nem exceções órfãs/vencidas; recência e
+  sequência diária ainda não podiam passar antes da primeira execução do cron.
+  A primeira execução está prevista para 21/10/2026 às 00:20 BRT, seguida pelo
+  monitor diário às 01:27 BRT. Manter 5.3 pendente até observar a limpeza e o
+  heartbeat verde, confirmar os outros monitores e concluir o ensaio de
+  falha/recuperação. Nenhum sucesso deve ser sinalizado manualmente.

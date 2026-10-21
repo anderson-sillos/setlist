@@ -1,8 +1,6 @@
 name: Monitor de disponibilidade Web e Supabase
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:

@@ -323,10 +323,11 @@ e segue critérios próprios de descarte.
 O responsável decidiu manter o projeto no plano Supabase Free, sem PITR, e
 produzir cópias do banco **diariamente** numa conta dedicada do Google Drive,
 protegidas por criptografia no cliente com `rclone crypt`, conservando as **84
-cópias diárias** mais recentes (12 semanas). O GitHub Actions executa a rotina
-às 06:17 UTC; o dump é transmitido em fluxo, sem gravação em disco local ou
-artefatos. A primeira execução foi confirmada em 20/10/2026. A restauração
-isolada ainda precisa ser testada.
+cópias diárias** mais recentes (12 semanas). Um Cloudflare Worker despacha o
+workflow do GitHub Actions às 06:17 UTC e, se necessário, às 08:37 UTC; o dump
+é transmitido em fluxo, sem gravação em disco local ou artefatos. A primeira
+execução foi confirmada em 20/10/2026. A restauração isolada ainda precisa ser
+testada.
 
 1. Usar o procedimento oficial de exportação lógica do Supabase para obter os
    dados necessários à recuperação, incluindo dados do aplicativo e identidades
@@ -341,9 +342,10 @@ isolada ainda precisa ser testada.
    Conferir a conclusão e a integridade antes de substituir a cópia mais antiga.
    Manter a credencial de conexão e a configuração OAuth do Drive somente em
    GitHub Actions Environment Secrets restritos à `main`, sem colocá-las nos
-   secrets do Supabase ou no repositório. No repositório público, o workflow
-   deve rodar apenas por agendamento ou disparo manual na `main`, usar token de
-   leitura; alterações no workflow, no script e no `CODEOWNERS` passam por PR.
+   secrets do Supabase ou no repositório. No repositório público, o Worker
+   despacha o workflow apenas na `main`; o disparo manual também fica restrito à
+   `main`. O workflow usa token de leitura; alterações no workflow, no script e
+   no `CODEOWNERS` passam por PR.
    Se houver novas contas com escrita, revisar novamente as regras do Environment
    e o acesso aos Secrets.
 3. Conservar apenas as 84 cópias diárias mais recentes; remover com segurança

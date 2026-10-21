@@ -1,22 +1,25 @@
 # Monitoramento operacional com Healthchecks.io
 
 Este runbook descreve três checks independentes dos backups e um check isolado
-para ensaiar alertas. As URLs de ping são credenciais: mantenha-as somente em
-Secrets do GitHub Environment `production-backup`; não as cole em issues,
-comandos, logs, documentação ou mensagens.
+para ensaiar alertas. Um Cloudflare Worker agenda os workflows de monitoramento
+e backup; GitHub Actions executa o trabalho e mantém os secrets operacionais.
+As URLs de ping são credenciais: mantenha-as somente em Secrets do GitHub
+Environment `production-backup`; não as cole em issues, comandos, logs,
+documentação ou mensagens.
 
 ## Checks e agenda
 
-| Check                      | Workflow                                                            | Período no Healthchecks |  Grace | O que confirma                                                                                                       |
-| -------------------------- | ------------------------------------------------------------------- | ----------------------: | -----: | -------------------------------------------------------------------------------------------------------------------- |
-| Limpeza de convites        | `supabase-invitation-cleanup-monitor.yml`, diariamente às 04:17 UTC |                    24 h |    6 h | Job diário ativo, última execução bem-sucedida recente e nenhum convite vencido elegível na conclusão dessa execução |
-| Retenção da auditoria Auth | `supabase-auth-audit-monitor.yml`, diariamente às 04:27 UTC         |                    24 h |    6 h | Job de limpeza diário ativo, execuções bem-sucedidas nos dias esperados e nenhum registro anterior a 30 dias         |
-| Web e Supabase             | `service-availability-monitor.yml`, a cada 30 minutos               |                  30 min | 30 min | Página pública, raiz REST e configuração pública Auth respondem com HTTP 2xx                                         |
-| Ensaio de alertas          | `healthchecks-alert-rehearsal.yml`, manual                          |                   5 min |  5 min | Sinal `fail`, timeout de `start`, ausência de ping ou recuperação; nunca usa o check de backup                       |
+| Check                      | Workflow                                                                           | Período no Healthchecks |  Grace | O que confirma                                                                                                       |
+| -------------------------- | ---------------------------------------------------------------------------------- | ----------------------: | -----: | -------------------------------------------------------------------------------------------------------------------- |
+| Limpeza de convites        | Worker despacha `supabase-invitation-cleanup-monitor.yml` às 04:17 UTC diariamente |                    24 h |    6 h | Job diário ativo, última execução bem-sucedida recente e nenhum convite vencido elegível na conclusão dessa execução |
+| Retenção da auditoria Auth | Worker despacha `supabase-auth-audit-monitor.yml` às 04:27 UTC diariamente         |                    24 h |    6 h | Job de limpeza diário ativo, execuções bem-sucedidas nos dias esperados e nenhum registro anterior a 30 dias         |
+| Web e Supabase             | Worker despacha `service-availability-monitor.yml` a cada 30 minutos               |                  30 min | 30 min | Página pública, raiz REST e configuração pública Auth respondem com HTTP 2xx                                         |
+| Ensaio de alertas          | `healthchecks-alert-rehearsal.yml`, manual                                         |                   5 min |  5 min | Sinal `fail`, timeout de `start`, ausência de ping ou recuperação; nunca usa o check de backup                       |
 
-As agendas do GitHub Actions podem atrasar ou ser descartadas. O monitor de
-serviços não é um SLA; confirme o histórico de execuções no GitHub junto com
-os eventos do Healthchecks antes de atribuir uma falha ao serviço.
+Os horários do Worker são UTC e não mudam com horário de verão. O monitor de
+serviços não é um SLA; confirme o histórico de Cron Triggers no Cloudflare, os
+dispatches no GitHub Actions e os eventos do Healthchecks antes de atribuir uma
+falha ao serviço.
 
 ## Configuração inicial
 
@@ -39,12 +42,50 @@ os eventos do Healthchecks antes de atribuir uma falha ao serviço.
 4. Execute o preflight da auditoria descrito abaixo. A migração é fail-closed
    e não instala a limpeza se a tabela, coluna, permissão ou bypass efetivo de
    RLS não corresponderem ao esperado.
-5. Depois de mesclar e aplicar a migração aprovada, defina a variável de
-   repositório `HEALTHCHECKS_MONITORING_ENABLED=true`. Até então, os schedules
-   permanecem inativos. Os quatro workflows estão restritos a `main`.
-6. Execute manualmente cada monitor uma vez na branch `main` e confira os
-   eventos correspondentes no Healthchecks. A execução manual também exige a
-   variável de ativação. Não registre nem compartilhe as Ping URLs.
+5. Configure o Environment **cloudflare-scheduler**, permitido somente para
+   deployments da `main`:
+
+   - variável `CLOUDFLARE_ACCOUNT_ID`;
+   - secret `CLOUDFLARE_API_TOKEN`, com acesso de edição a Workers na conta;
+   - secrets `SETLIST_CRON_GITHUB_APP_ID`,
+     `SETLIST_CRON_GITHUB_INSTALLATION_ID` e
+     `SETLIST_CRON_GITHUB_APP_PRIVATE_KEY` de um GitHub App instalado somente
+     no repositório `anderson-sillos/setlist`, com a permissão `Actions: write`.
+
+   O Worker usa esses dados somente para emitir installation tokens temporários
+   e despachar workflows. Não cadastre credenciais de banco, Drive ou Healthchecks
+   nesse Environment. A rotina de deploy publica o Worker inativo, grava as
+   credenciais como Worker Secrets e publica a versão ativa.
+
+6. Integre a alteração e execute **Publicar agendador Cloudflare** na `main`.
+   Defina `HEALTHCHECKS_MONITORING_ENABLED=true` no repositório somente depois
+   de conferir que os checks e Secrets de produção estão prontos. Os workflows
+   de monitoramento e backup são disparados pelo Worker e continuam disponíveis
+   para operação manual na `main`.
+7. Confira no Cloudflare o Cron Trigger `* * * * *` e os logs do Worker; depois
+   confirme dispatches e sinais nos três checks monitorados. Valide o ensaio de
+   alertas manualmente no check separado. Não registre nem compartilhe as Ping
+   URLs.
+
+### Criar as credenciais de deploy e dispatch
+
+1. No GitHub, abra **Settings → Developer settings → GitHub Apps → New GitHub
+   App**. Use `https://setlistbr.app.br` como Homepage URL, desative o webhook,
+   conceda somente **Repository permissions → Actions → Read and write**, e
+   crie o App. Instale-o somente no repositório `anderson-sillos/setlist`. Gere
+   uma chave privada PEM e guarde-a em local seguro. No Environment
+   `cloudflare-scheduler`, grave o App ID como
+   `SETLIST_CRON_GITHUB_APP_ID`, o ID da instalação como
+   `SETLIST_CRON_GITHUB_INSTALLATION_ID` e o conteúdo PEM como
+   `SETLIST_CRON_GITHUB_APP_PRIVATE_KEY`.
+2. No Cloudflare, abra **My Profile → API Tokens → Create Token → Custom Token**.
+   Limite o token à conta Setlist e à permissão **Workers Scripts: Edit**. Grave
+   o token como `CLOUDFLARE_API_TOKEN` e o Account ID da mesma conta como a
+   variável `CLOUDFLARE_ACCOUNT_ID` no Environment.
+3. Depois de cadastrar os valores, integre a alteração. O workflow de deploy
+   usa o token do GitHub App para o dispatch e o token Cloudflare somente durante
+   a publicação; os valores não devem ser copiados para o chat, para o código ou
+   para Secrets de produção.
 
 ## Preflight somente leitura para a auditoria Auth
 

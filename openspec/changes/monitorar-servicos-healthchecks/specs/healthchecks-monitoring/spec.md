@@ -6,6 +6,25 @@ Detecta falhas ou ausências nas rotinas de retenção e nos serviços públicos
 
 ## ADDED Requirements
 
+### Requirement: Agendar os workflows pelo Cloudflare
+Um Cloudflare Worker SHALL despachar por GitHub `workflow_dispatch` os workflows de disponibilidade (a cada 30 minutos), limpeza de convites (04:17 UTC diariamente), retenção de auditoria (04:27 UTC diariamente) e backup (06:17 e 08:37 UTC diariamente). Os dispatches SHALL usar somente a referência `main` e a lista fixa de workflows. Os workflows correspondentes MUST NOT declarar `on.schedule`; a execução manual MUST permanecer disponível. O Worker MUST usar GitHub App instalado somente no repositório `setlist`, com permissão `Actions: write`, e MUST NOT receber credenciais de banco, Drive ou Healthchecks.
+
+#### Scenario: Horário agendado alcançado
+- **WHEN** o Cron Trigger do Cloudflare alcança um horário configurado
+- **THEN** o Worker cria um token temporário do GitHub App restrito ao repositório e dispara somente o workflow correspondente na `main`
+
+#### Scenario: Nenhum workflow está previsto
+- **WHEN** um minuto não corresponde a nenhum dos horários de execução
+- **THEN** o Worker não chama a API do GitHub
+
+#### Scenario: Agendador desativado ou credencial inválida
+- **WHEN** o Worker está desativado ou o GitHub rejeita a autenticação/dispatch
+- **THEN** não declara a rotina como concluída e não registra credenciais ou corpos privados da resposta
+
+#### Scenario: Backup de recuperação
+- **WHEN** um dos horários diários de backup é disparado
+- **THEN** envia `skip_if_exists=true`, para repetir somente se a cópia diária ainda não estiver íntegra
+
 ### Requirement: Validar a limpeza diária de convites
 O monitor SHALL confirmar diariamente que o job de limpeza de convites está ativo, concluiu com sucesso e registrou sua execução. O monitor MUST NOT enviar IDs, tokens, endereços ou outros dados pessoais ao Healthchecks.io.
 
