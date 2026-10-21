@@ -46,7 +46,14 @@ Healthchecks usa intervalo de 30 minutos e tolerância de 30 minutos para acomod
 
 ### Agendador Cloudflare
 
-O Worker `setlist-cron-scheduler` recebe um Cron Trigger a cada minuto e compara o horário UTC programado com quatro rotinas fixas: disponibilidade a cada 30 minutos; limpeza de convites às 04:17; retenção da auditoria às 04:27; backup às 06:17 e às 08:37 UTC. Para o backup envia `skip_if_exists=true`, preservando a proteção contra cópias repetidas. Todos os dispatches apontam para `main`. Os workflows de monitoramento e backup não têm mais `on.schedule`; `workflow_dispatch` permanece disponível para execução manual.
+O Worker `setlist-cron-scheduler` usa quatro expressões Cron UTC, em vez de ser invocado a cada minuto:
+
+- `*/30 * * * *` para disponibilidade;
+- `17 4,6 * * *` para limpeza de convites às 04:17 e a primeira tentativa de backup às 06:17;
+- `27 4 * * *` para retenção da auditoria às 04:27;
+- `37 8 * * *` para a segunda tentativa de backup às 08:37.
+
+Isso reduz as invocações programadas de 1.440 para 52 por dia, mantendo os horários das rotinas. Para o backup envia `skip_if_exists=true`, preservando a proteção contra cópias repetidas. Todos os dispatches apontam para `main`. Os workflows de monitoramento e backup não têm mais `on.schedule`; `workflow_dispatch` permanece disponível para execução manual.
 
 O Worker cria um JWT efêmero de GitHub App e solicita um installation token com `Actions: write` somente para o repositório `setlist`. A lista de workflows e a referência são constantes no código; o endpoint HTTP do Worker responde 404. As únicas credenciais no Cloudflare são as do GitHub App; `SUPABASE_DB_URL`, Drive, publishable key e Ping URLs permanecem no GitHub Environment `production-backup`. O Environment separado `cloudflare-scheduler`, limitado a deployments da `main`, guarda o Cloudflare API token e os três valores do GitHub App. A automação publica o Worker inativo, atualiza os secrets e então publica a versão ativa.
 

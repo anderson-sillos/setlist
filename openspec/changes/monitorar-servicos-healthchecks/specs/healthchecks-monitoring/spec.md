@@ -7,15 +7,15 @@ Detecta falhas ou ausências nas rotinas de retenção e nos serviços públicos
 ## ADDED Requirements
 
 ### Requirement: Agendar os workflows pelo Cloudflare
-Um Cloudflare Worker SHALL despachar por GitHub `workflow_dispatch` os workflows de disponibilidade (a cada 30 minutos), limpeza de convites (04:17 UTC diariamente), retenção de auditoria (04:27 UTC diariamente) e backup (06:17 e 08:37 UTC diariamente). Os dispatches SHALL usar somente a referência `main` e a lista fixa de workflows. Os workflows correspondentes MUST NOT declarar `on.schedule`; a execução manual MUST permanecer disponível. O Worker MUST usar GitHub App instalado somente no repositório `setlist`, com permissão `Actions: write`, e MUST NOT receber credenciais de banco, Drive ou Healthchecks.
+Um Cloudflare Worker SHALL despachar por GitHub `workflow_dispatch` os workflows de disponibilidade (a cada 30 minutos), limpeza de convites (04:17 UTC diariamente), retenção de auditoria (04:27 UTC diariamente) e backup (06:17 e 08:37 UTC diariamente). O Worker SHALL usar somente quatro expressões Cron UTC (`*/30 * * * *`, `17 4,6 * * *`, `27 4 * * *` e `37 8 * * *`), totalizando 52 invocações programadas por dia. Os dispatches SHALL usar somente a referência `main` e a lista fixa de workflows. Os workflows correspondentes MUST NOT declarar `on.schedule`; a execução manual MUST permanecer disponível. O Worker MUST usar GitHub App instalado somente no repositório `setlist`, com permissão `Actions: write`, e MUST NOT receber credenciais de banco, Drive ou Healthchecks.
 
 #### Scenario: Horário agendado alcançado
 - **WHEN** o Cron Trigger do Cloudflare alcança um horário configurado
 - **THEN** o Worker cria um token temporário do GitHub App restrito ao repositório e dispara somente o workflow correspondente na `main`
 
-#### Scenario: Nenhum workflow está previsto
-- **WHEN** um minuto não corresponde a nenhum dos horários de execução
-- **THEN** o Worker não chama a API do GitHub
+#### Scenario: Invocações limitadas aos horários operacionais
+- **WHEN** as rotinas estão agendadas com as quatro expressões Cron UTC
+- **THEN** o Worker recebe 52 eventos por dia, em vez de ser invocado a cada minuto, e despacha somente os workflows devidos
 
 #### Scenario: Agendador desativado ou credencial inválida
 - **WHEN** o Worker está desativado ou o GitHub rejeita a autenticação/dispatch
