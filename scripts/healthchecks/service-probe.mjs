@@ -36,8 +36,11 @@ export function buildServiceTargets({ siteUrl, supabaseUrl, publishableKey }) {
     { name: 'Web', url: site.href, headers: {}, redirect: 'follow' },
     {
       name: 'Supabase REST',
-      url: `${base}/rest/v1/`,
-      headers: { ...publicHeaders, accept: 'application/openapi+json' },
+      // The PostgREST root exposes OpenAPI metadata and requires a secret key.
+      // Probe a zero-row query instead so the public publishable key is enough
+      // and no application data is returned.
+      url: `${base}/rest/v1/songs?select=id&limit=0`,
+      headers: { ...publicHeaders, accept: 'application/json' },
       redirect: 'error',
     },
     {

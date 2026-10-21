@@ -74,13 +74,14 @@ test('constrói três sondagens públicas com a chave apenas nas APIs Supabase',
   assert.deepEqual(targets[0].headers, {});
   assert.equal(
     targets[1].url,
-    'https://tqijocmmiwistinrjpwl.supabase.co/rest/v1/',
+    'https://tqijocmmiwistinrjpwl.supabase.co/rest/v1/songs?select=id&limit=0',
   );
   assert.equal(
     targets[2].url,
     'https://tqijocmmiwistinrjpwl.supabase.co/auth/v1/settings',
   );
   assert.equal(targets[1].headers.apikey, 'sb_publishable_public_key');
+  assert.equal(targets[1].headers.accept, 'application/json');
   assert.equal(targets[2].headers.apikey, 'sb_publishable_public_key');
   assert.equal(targets[0].redirect, 'follow');
   assert.equal(targets[1].redirect, 'error');
