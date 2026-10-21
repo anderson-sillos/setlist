@@ -28,18 +28,19 @@
 
 - [x] 5.1 Validar o schema OpenSpec, analisar sintaticamente os workflows, executar os testes focados e conferir o diff para assegurar que nenhum valor de secret real foi incluído.
 - [x] 5.2 Configurar os checks e Secrets no Environment e habilitar `HEALTHCHECKS_MONITORING_ENABLED` no escopo do repositório; concluído em 20/10/2026.
-- [ ] 5.3 Confirmar os sinais automáticos diários e a cada 30 minutos e concluir o ensaio de falha e recuperação usando somente o check dedicado.
+- [x] 5.3 Confirmar os sinais automáticos diários e a cada 30 minutos e concluir o ensaio de falha e recuperação usando somente o check dedicado. Em 21/10/2026, os monitores de convites e auditoria concluíram com sucesso às 01:17 e 01:27 BRT ([39543190964](https://github.com/anderson-sillos/setlist/actions/runs/39543190964), [39544148965](https://github.com/anderson-sillos/setlist/actions/runs/39544148965)); o monitor Web/API passou em quatro dispatches consecutivos de 30 minutos ([39541631634](https://github.com/anderson-sillos/setlist/actions/runs/39541631634), [39544384804](https://github.com/anderson-sillos/setlist/actions/runs/39544384804), [39547102035](https://github.com/anderson-sillos/setlist/actions/runs/39547102035), [39549917610](https://github.com/anderson-sillos/setlist/actions/runs/39549917610)). As falhas anteriores do probe foram corrigidas. O responsável confirmou a recuperação do check dedicado após observar os estados down/up; os workflows do ensaio também concluíram com sucesso ([39542217837](https://github.com/anderson-sillos/setlist/actions/runs/39542217837), [39542755690](https://github.com/anderson-sillos/setlist/actions/runs/39542755690), [39546357591](https://github.com/anderson-sillos/setlist/actions/runs/39546357591)).
 
 ## 6. Substituir os cron schedules do GitHub pelo Cloudflare Worker
 
 - [x] 6.1 Implementar Worker com Cron Trigger UTC, lista fixa dos workflows, GitHub App token efêmero limitado a `Actions: write` no repositório, dispatch apenas na `main` e testes de horários, JWT, permissões e erros sanitizados.
 - [x] 6.2 Remover `on.schedule` de todos os workflows de produção afetados, preservar `workflow_dispatch` e garantir que os dois horários de backup mantenham `skip_if_exists=true`.
 - [x] 6.3 Criar deploy do Worker na `main`, com Environment separado `cloudflare-scheduler`, secrets enviados sem exposição em logs e publicação final habilitada apenas após configurar as credenciais.
-- [ ] 6.4 Configurar GitHub App, token de deploy Cloudflare e variáveis/secrets no Environment `cloudflare-scheduler`; implantar, conferir o Cron Trigger e validar dispatches e sinais no Healthchecks.
+- [x] 6.4 Configurar GitHub App, token de deploy Cloudflare e variáveis/secrets no Environment `cloudflare-scheduler`; implantar, conferir os Cron Triggers e validar dispatches e sinais no Healthchecks. O deploy pós-correção concluiu com sucesso ([39535532070](https://github.com/anderson-sillos/setlist/actions/runs/39535532070)); o responsável confirmou no painel os quatro Cron Triggers configurados. Os dispatches nos horários previstos foram confirmados pelos runs de convites, auditoria e Web/API registrados na tarefa 5.3.
 
-## Estado e pendências externas
 
-- O preflight de `setlist-prod`, recebido em 20/10/2026, confirmou `table_exists`,
+## Estado e evidências externas
+
+- O preflight de `setlist-prod`, em 20/10/2026, confirmou `table_exists`,
   `created_at_is_timestamptz`, `current_role_can_delete` e
   `current_role_bypasses_effective_rls` como `true`; `row_level_security_enabled`
   também é `true`. Nenhuma linha de auditoria foi consultada. A lista oficial de
@@ -47,42 +48,23 @@
   inclui `auth.audit_log_entries`; essa compatibilidade é uma inferência da
   lista publicada, não uma garantia de estabilidade futura do esquema:
   https://supabase.com/changelog/34270-restricting-access-on-auth-storage-and-realtime-schemas-on-april-21-2025
-- O código da limpeza diária de auditoria e o pgTAP passaram no workflow
-  `Testes do banco` da PR #56 ([run 39455484841](https://github.com/anderson-sillos/setlist/actions/runs/39455484841)).
-  A migração `20261020120000_add_auth_audit_retention.sql` foi aplicada em
-  `setlist-prod` e `setlist-dev` em 20/10/2026. O histórico remoto e a consulta
-  de verificação confirmaram a tabela privada, a função e um job cron ativo
-  (`20 3 * * *`) em ambos. Ainda não há execução registrada do cron; a primeira
-  está prevista para 21/10/2026 às 00:20 no horário de Brasília.
+- A migração `20261020120000_add_auth_audit_retention.sql` foi aplicada em
+  `setlist-prod` e `setlist-dev` em 20/10/2026. O histórico remoto confirmou a
+  função, a tabela privada de exceções e um job cron ativo (`20 3 * * *`) nos
+  dois projetos. O monitor diário da auditoria teve execução bem-sucedida em
+  21/10/2026 às 01:27 BRT ([39544148965](https://github.com/anderson-sillos/setlist/actions/runs/39544148965)).
 - Exceções de auditoria ficam em tabela privada, com prazo e motivo sem dados
   pessoais. O monitor considera antigos vencidos somente os registros sem
-  exceção vigente e detecta metadados de exceções expiradas/orfãs.
-- Os testes Node focados e a validação OpenSpec passaram. Os testes pgTAP serão
-  executados no workflow de banco do CI; o Docker local não foi iniciado.
-- Os cron schedules dos quatro workflows foram removidos neste branch. Até a PR
-  ser integrada e o Environment `cloudflare-scheduler` configurado, `main` ainda
-  conserva a automação anterior; a substituição só estará ativa depois do deploy
-  habilitado e da confirmação dos primeiros dispatches.
-- A tarefa 5.3 depende de observar os sinais automáticos dos três monitores e
-  concluir o ensaio de falha e recuperação. O monitor Auth enviou `/fail` numa
-  execução manual após a migração (Actions run 39496520738, 20/10/2026 17:58
-  BRT). O log do runner confirma que `psql` terminou com erro, mas ocultava
-  `stderr`. A consulta agregada read-only executada via Supabase CLI em
-  `setlist-prod` confirmou job ativo e único, sem entradas vencidas e sem
-  exceções órfãs/vencidas; ainda não havia execução bem-sucedida do cron, então
-  a recência e a sequência diária de sucessos permaneciam falsas até a primeira
-  execução prevista para 21/10/2026 às 00:20 BRT. A PR #57 (`e6ed08e`), #58
-  (`e870e2c`) e #59 (`ed32b40`) foram mescladas em `main` para melhorar o
-  diagnóstico sanitizado e configurar explicitamente os parâmetros de conexão
-  do `psql`. A execução manual 39504054056 identificou o SQL incorretamente
-  como ausente; a execução 39504972536 confirmou que o arquivo foi localizado,
-  mas ainda falhou ao abrir outro arquivo local do cliente. A execução
-  39505759649 chegou ao banco e executou a consulta agregada sem erro de
-  conexão; ela enviou `/fail` porque a retenção ainda não tem a primeira
-  execução diária bem-sucedida. A consulta read-only anterior confirmou job
-  ativo e único, sem entradas vencidas nem exceções órfãs/vencidas; recência e
-  sequência diária ainda não podiam passar antes da primeira execução do cron.
-  A primeira execução está prevista para 21/10/2026 às 00:20 BRT, seguida pelo
-  monitor diário às 01:27 BRT. Manter 5.3 pendente até observar a limpeza e o
-  heartbeat verde, confirmar os outros monitores e concluir o ensaio de
-  falha/recuperação. Nenhum sucesso deve ser sinalizado manualmente.
+  exceção vigente e detecta metadados de exceções expiradas ou órfãs. A auditoria
+  permanece excluída do backup, conforme documentado em
+  `docs/BACKUP_SUPABASE_TO_DRIVE.md`.
+- Os testes Node focados, a validação OpenSpec e os testes pgTAP passaram no CI.
+  O Docker local não foi iniciado.
+- O Worker `setlist-cron-scheduler` foi implantado com sucesso após a correção do
+  GitHub App ([deploy 39535532070](https://github.com/anderson-sillos/setlist/actions/runs/39535532070)).
+  O responsável confirmou no painel os quatro Cron Triggers. Os dispatches
+  automáticos dos monitores ocorreram nos horários previstos em 21/10/2026;
+  as execuções e os sinais bem-sucedidos estão referenciados na tarefa 5.3.
+- O check isolado `setlist-alert-rehearsal` foi usado no ensaio; o responsável
+  confirmou sua recuperação após observar a transição de falha para saudável.
+  O check do backup não foi usado no ensaio.
