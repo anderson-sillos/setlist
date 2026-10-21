@@ -182,12 +182,22 @@ estados agregados, sem IDs ou justificativas.
 O probe de disponibilidade solicita somente:
 
 - `https://setlistbr.app.br/`;
-- `<EXPO_PUBLIC_SUPABASE_URL>/rest/v1/` com a chave publicável;
+- `<EXPO_PUBLIC_SUPABASE_URL>/rest/v1/songs?select=id&limit=0` com a chave publicável;
 - `<EXPO_PUBLIC_SUPABASE_URL>/auth/v1/settings` com a chave publicável.
 
-Os corpos HTTP são descartados. Os logs mostram apenas o nome do serviço e o
-status HTTP ou uma mensagem genérica de falha; URLs completas e respostas não
-são registradas. O sinal de sucesso só é enviado depois de todos os probes.
+Os corpos das respostas são descartados. Em falha, o ping `/fail` usa `POST`
+para anexar ao evento o resumo, cada tentativa por serviço, duração, categoria
+da falha, status HTTP e identificador de requisição quando disponível, além do
+link da execução do GitHub Actions e do commit. Se um retry recuperar a
+sondagem, o ping de sucesso também registra a sequência que levou à recuperação.
+O corpo fica limitado localmente a 16 kB e não inclui chaves, cabeçalhos de
+autenticação, URLs sondadas nem corpos de resposta. Um sucesso sem retries
+continua usando um ping simples, sem corpo. O `User-Agent` identifica o
+`Setlist-Service-Availability-Monitor/1.0`.
+
+O sinal final só é enviado depois de todos os probes. Os eventos e seus corpos
+podem ser consultados no histórico do check do Healthchecks.io; os mesmos
+detalhes continuam nos logs da execução do GitHub Actions.
 
 Os monitores de retenção consultam `cron.job`, `cron.job_run_details`, os
 predicados de retenção e contagens. Não retornam IDs, tokens, e-mails, payloads
@@ -214,8 +224,11 @@ exibe o Secret.
 
 Um check `Down` por falta de sinal pode indicar atraso/ausência do workflow ou
 falta de Secret; verifique primeiro o histórico do Actions e depois os eventos
-do Healthchecks. Falha de probe mostra somente o serviço e o status, sem corpo
-de resposta. Corrija o serviço ou workflow e aguarde o próximo sinal saudável.
+do Healthchecks. Abra o evento para consultar o corpo diagnóstico e siga a ação
+sugerida pelo tipo de falha. Para HTTP 5xx, use o `request_id` para procurar a
+requisição nos logs do provedor; para timeout ou falha de rede, compare o horário
+com a disponibilidade do provedor e a execução do runner. Corrija a causa e
+aguarde o próximo sinal saudável.
 
 Os registros de `auth.audit_log_entries` são deliberadamente excluídos do
 backup. Depois de eliminados pela retenção de 30 dias, não podem ser restaurados
