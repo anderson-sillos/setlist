@@ -20,6 +20,8 @@ Os horários do Worker são UTC e não mudam com horário de verão. O monitor d
 serviços não é um SLA; confirme o histórico de Cron Triggers no Cloudflare, os
 dispatches no GitHub Actions e os eventos do Healthchecks antes de atribuir uma
 falha ao serviço.
+O Worker recebe 52 eventos programados por dia com os quatro Cron Triggers
+acima, em vez de 1.440 chamadas por minuto.
 
 ## Configuração inicial
 
@@ -62,7 +64,8 @@ falha ao serviço.
    de conferir que os checks e Secrets de produção estão prontos. Os workflows
    de monitoramento e backup são disparados pelo Worker e continuam disponíveis
    para operação manual na `main`.
-7. Confira no Cloudflare o Cron Trigger `* * * * *` e os logs do Worker; depois
+7. Confira no Cloudflare os quatro Cron Triggers (`*/30 * * * *`,
+   `17 4,6 * * *`, `27 4 * * *` e `37 8 * * *`) e os logs do Worker; depois
    confirme dispatches e sinais nos três checks monitorados. Valide o ensaio de
    alertas manualmente no check separado. Não registre nem compartilhe as Ping
    URLs.
