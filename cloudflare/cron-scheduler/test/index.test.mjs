@@ -209,13 +209,24 @@ test('valida o token do GitHub e o revoga sem devolver o token', async () => {
   assert.doesNotMatch(JSON.stringify(result), /temporary-installation-token/);
 });
 
-test('diagnóstico retorna status e request id sanitizados para 403', async () => {
+test('diagnóstico retorna detalhes GitHub seguros e sanitizados para 403', async () => {
   const result = await validateGithubAppAccess(env, {
     fetchImpl: async () =>
-      new Response('private response data', {
-        status: 403,
-        headers: { 'x-github-request-id': 'GH-FORBIDDEN-456' },
-      }),
+      response(
+        403,
+        {
+          message: 'Resource not accessible by integration',
+          errors: [
+            {
+              resource: 'Installation',
+              field: 'permissions',
+              code: 'missing',
+              message: 'Bearer ghs_123456789012345678901234567890123456',
+            },
+          ],
+        },
+        { 'x-github-request-id': 'GH-FORBIDDEN-456' },
+      ),
     cryptoApi: webcrypto,
     now: fixedNow,
   });
@@ -226,8 +237,17 @@ test('diagnóstico retorna status e request id sanitizados para 403', async () =
     code: 'github_forbidden_for_app_installation',
     http_status: 403,
     github_request_id: 'GH-FORBIDDEN-456',
+    github_message: 'Resource not accessible by integration',
+    github_errors: [
+      {
+        resource: 'Installation',
+        field: 'permissions',
+        code: 'missing',
+        message: 'Bearer [redacted]',
+      },
+    ],
   });
-  assert.doesNotMatch(JSON.stringify(result), /private response data/);
+  assert.doesNotMatch(JSON.stringify(result), /ghs_1234567890/);
 });
 
 test('endpoint HTTP do Worker não aceita disparos externos', async () => {

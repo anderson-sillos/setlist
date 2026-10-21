@@ -149,6 +149,41 @@ function requiredSetting(value, settingName) {
   return value.trim();
 }
 
+function safeGithubText(value, maxLength = 160) {
+  if (typeof value !== 'string') return null;
+  const normalized = value
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(
+      /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/gi,
+      '[redacted]',
+    )
+    .replace(
+      /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
+      '[redacted]',
+    )
+    .replace(/\bBearer\s+\S+/gi, 'Bearer [redacted]')
+    .trim();
+  return normalized.length > 0 ? normalized.slice(0, maxLength) : null;
+}
+
+function safeGithubErrors(errors) {
+  if (!Array.isArray(errors)) return [];
+  return errors.slice(0, 3).map((error) => {
+    if (typeof error === 'string') {
+      return { message: safeGithubText(error) };
+    }
+    if (typeof error !== 'object' || error === null) {
+      return { message: null };
+    }
+    return {
+      resource: safeGithubText(error.resource, 64),
+      field: safeGithubText(error.field, 64),
+      code: safeGithubText(error.code, 64),
+      message: safeGithubText(error.message),
+    };
+  });
+}
+
 async function createInstallationToken(env, fetchImpl, cryptoApi, now) {
   const appId = requiredSetting(env.GITHUB_APP_ID, 'GITHUB_APP_ID');
   const installationId = requiredSetting(
@@ -196,10 +231,18 @@ async function createInstallationToken(env, fetchImpl, cryptoApi, now) {
     const error = new Error(
       `GitHub recusou a criação do token temporário (HTTP ${response.status})`,
     );
+    let responseBody;
+    try {
+      responseBody = await response.json();
+    } catch {
+      responseBody = null;
+    }
     error.phase = 'request_installation_token';
     error.code = githubFailureCode(response.status);
     error.status = response.status;
     error.requestId = response.headers.get('x-github-request-id');
+    error.githubMessage = safeGithubText(responseBody?.message);
+    error.githubErrors = safeGithubErrors(responseBody?.errors);
     throw error;
   }
 
@@ -279,6 +322,8 @@ export async function validateGithubAppAccess(
       code: error.code || 'github_token_request_failed',
       http_status: error.status || null,
       github_request_id: error.requestId || null,
+      github_message: error.githubMessage || null,
+      github_errors: error.githubErrors || [],
     };
   } finally {
     // Never log or return the installation token. It is revoked immediately
