@@ -10,6 +10,7 @@ import scheduler, {
   createAppJwt,
   dispatchScheduledWorkflows,
   getDueWorkflows,
+  validateGithubAppAccess,
 } from '../src/index.mjs';
 
 const fixedNow = Date.UTC(2026, 9, 20, 0, 0, 0);
@@ -25,8 +26,8 @@ const env = {
   GITHUB_APP_PRIVATE_KEY: privateKey,
 };
 
-function response(status, body = {}) {
-  return new Response(JSON.stringify(body), { status });
+function response(status, body = {}, headers = {}) {
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 function scheduledTime(hour, minute) {
@@ -159,11 +160,102 @@ test('não inclui respostas do GitHub nas mensagens de erro', async () => {
   );
 });
 
+test('valida o token do GitHub e o revoga sem devolver o token', async () => {
+  const calls = [];
+  const fetchImpl = async (url, options) => {
+    calls.push({ url, options });
+    if (calls.length === 1) {
+      return response(201, { token: 'temporary-installation-token' }, {
+        'x-github-request-id': 'GH-REQUEST-123',
+      });
+    }
+    return new Response(null, { status: 204 });
+  };
+
+  const result = await validateGithubAppAccess(env, {
+    fetchImpl,
+    cryptoApi: webcrypto,
+    now: fixedNow,
+  });
+
+  assert.deepEqual(result, {
+    ok: true,
+    phase: 'complete',
+    github_access: 'validated',
+    token_created_http_status: 201,
+    token_revoked: true,
+    revoke_http_status: 204,
+    github_request_id: 'GH-REQUEST-123',
+  });
+  assert.equal(calls.length, 2);
+  assert.equal(
+    calls[0].url,
+    'https://api.github.com/app/installations/67890/access_tokens',
+  );
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    repositories: ['setlist'],
+    permissions: { actions: 'write' },
+  });
+  assert.equal(calls[1].url, 'https://api.github.com/installation/token');
+  assert.equal(calls[1].options.method, 'DELETE');
+  assert.equal(
+    calls[1].options.headers.Authorization,
+    'Bearer temporary-installation-token',
+  );
+  assert.doesNotMatch(JSON.stringify(result), /temporary-installation-token/);
+});
+
+test('diagnóstico retorna status e request id sanitizados para 403', async () => {
+  const result = await validateGithubAppAccess(env, {
+    fetchImpl: async () =>
+      new Response('private response data', {
+        status: 403,
+        headers: { 'x-github-request-id': 'GH-FORBIDDEN-456' },
+      }),
+    cryptoApi: webcrypto,
+    now: fixedNow,
+  });
+
+  assert.deepEqual(result, {
+    ok: false,
+    phase: 'request_installation_token',
+    code: 'github_forbidden_for_app_installation',
+    http_status: 403,
+    github_request_id: 'GH-FORBIDDEN-456',
+  });
+  assert.doesNotMatch(JSON.stringify(result), /private response data/);
+});
+
 test('endpoint HTTP do Worker não aceita disparos externos', async () => {
   const result = await scheduler.fetch(
     new Request('https://scheduler.example/dispatch'),
   );
   assert.equal(result.status, 404);
+});
+
+test('rota diagnóstica exige token e não chama GitHub sem autorização', async () => {
+  let calls = 0;
+  const diagnosticEnv = { ...env, DIAGNOSTIC_TOKEN: 'x'.repeat(64) };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    calls += 1;
+    throw new Error('should not call GitHub');
+  };
+  try {
+    const result = await scheduler.fetch(
+      new Request('https://scheduler.example/_internal/github-app-check', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer wrong-token' },
+      }),
+      diagnosticEnv,
+    );
+
+    assert.equal(result.status, 401);
+    assert.deepEqual(await result.json(), { ok: false, code: 'unauthorized' });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(calls, 0);
 });
 
 test('desativado não dispara workflows; ativo usa o horário do Cron Trigger', async () => {
