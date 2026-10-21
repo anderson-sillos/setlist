@@ -137,6 +137,10 @@ jobs:
         run: |
           test "$EXPO_PUBLIC_SUPABASE_URL" = "https://tqijocmmiwistinrjpwl.supabase.co" || (echo "EXPO_PUBLIC_SUPABASE_URL deve apontar para setlist-prod" && exit 1)
           test -n "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" || (echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY não configurada nas variáveis do repositório" && exit 1)
+          case "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" in
+            sb_publishable_*) ;;
+            *) echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY deve ser uma chave publicável sb_publishable_; nunca use sb_secret ou service_role" >&2; exit 1 ;;
+          esac
 
       - name: Preparar associações de links nativos
         working-directory: release-source

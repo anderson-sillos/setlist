@@ -2,16 +2,37 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { sendHealthcheckPing } from './healthcheck-ping.mjs';
 
-const TIMEOUT_MS = 10_000;
+const DEFAULT_TIMEOUT_MS = 10_000;
+const MAX_TIMEOUT_MS = 60_000;
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1_000;
 const HEALTHCHECKS_USER_AGENT =
   'Setlist-Service-Availability-Monitor/1.0 (GitHub Actions; https://github.com/anderson-sillos/setlist)';
 const PRODUCTION_WEB_HOST = 'setlistbr.app.br';
+// Independent allowlist: the probe target still comes from the environment,
+// but an incorrect variable must not redirect production monitoring to dev.
 const PRODUCTION_SUPABASE_HOST = 'tqijocmmiwistinrjpwl.supabase.co';
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function configuredTimeoutMs(value = process.env.SERVICE_PROBE_TIMEOUT_MS) {
+  if (value === undefined || value.trim() === '') return DEFAULT_TIMEOUT_MS;
+
+  const normalized = value.trim();
+  const timeoutMs = Number(normalized);
+  if (
+    !/^\d+$/u.test(normalized) ||
+    !Number.isSafeInteger(timeoutMs) ||
+    timeoutMs < 1 ||
+    timeoutMs > MAX_TIMEOUT_MS
+  ) {
+    throw new Error(
+      `SERVICE_PROBE_TIMEOUT_MS deve ser um inteiro entre 1 e ${MAX_TIMEOUT_MS} ms.`,
+    );
+  }
+  return timeoutMs;
 }
 
 function networkFailureReason(error, timeoutMs) {
@@ -72,12 +93,94 @@ function httpFailureAction(targetName, status) {
   return 'o endpoint respondeu, mas a sondagem não foi aceita; confira rota e configuração do monitor';
 }
 
-function responseRequestId(response) {
-  for (const header of ['sb-request-id', 'cf-ray', 'x-request-id']) {
+function responseRequestId(target, response) {
+  const requestIdHeaders =
+    target.name === 'Web'
+      ? ['cf-ray', 'x-request-id']
+      : ['sb-request-id', 'x-request-id'];
+  for (const header of requestIdHeaders) {
     const value = response.headers.get(header);
     if (value && /^[A-Za-z0-9._:-]{1,128}$/u.test(value)) return value;
   }
   return undefined;
+}
+
+function responseHeader(response, name, pattern) {
+  const value = response.headers.get(name)?.trim();
+  return value && pattern.test(value) ? value : undefined;
+}
+
+function responseDiagnostics(target, response) {
+  const fields = [];
+  const contentType = responseHeader(
+    response,
+    'content-type',
+    /^[\x20-\x7e]{1,128}$/u,
+  );
+  if (contentType) fields.push(`content-type=${JSON.stringify(contentType)}`);
+
+  const contentLength = responseHeader(
+    response,
+    'content-length',
+    /^\d{1,15}$/u,
+  );
+  if (contentLength) {
+    fields.push(`content-length=${contentLength} B (declarado)`);
+  } else fields.push('content-length=ausente');
+
+  const contentEncoding = responseHeader(
+    response,
+    'content-encoding',
+    /^(?:identity|gzip|br|deflate|zstd|compress)(?:\s*,\s*(?:identity|gzip|br|deflate|zstd|compress))*$/iu,
+  );
+  if (contentEncoding) fields.push(`content-encoding=${contentEncoding}`);
+
+  if (target.name === 'Web') {
+    const cacheStatus = responseHeader(
+      response,
+      'cf-cache-status',
+      /^[A-Za-z_-]{1,32}$/u,
+    );
+    if (cacheStatus) fields.push(`cf-cache-status=${cacheStatus}`);
+
+    const cacheAge = responseHeader(response, 'age', /^\d{1,12}$/u);
+    if (cacheAge) fields.push(`age=${cacheAge}s`);
+  }
+
+  if (response.status === 429 || response.status >= 500) {
+    const headerValue = responseHeader(
+      response,
+      'retry-after',
+      /^[\x20-\x7e]{1,64}$/u,
+    );
+    if (headerValue && /^\d{1,10}$/u.test(headerValue)) {
+      fields.push(`retry-after=${headerValue}s`);
+    } else if (headerValue) {
+      const parsedDate = Date.parse(headerValue);
+      if (Number.isFinite(parsedDate)) {
+        fields.push(`retry-after=${new Date(parsedDate).toISOString()}`);
+      }
+    }
+  }
+
+  return { fields, requestId: responseRequestId(target, response) };
+}
+
+function operationLabel(target) {
+  const method = target.method ?? 'GET';
+  let path = target.path;
+  if (typeof path !== 'string') {
+    try {
+      path = new URL(target.url).pathname;
+    } catch {
+      path = '/';
+    }
+  }
+  return `${method} ${path}`;
+}
+
+function requestPolicyLabel(target, timeoutMs) {
+  return `${operationLabel(target)} (timeout ${timeoutMs} ms; redirects ${target.redirect ?? 'follow'})`;
 }
 
 function isRetryableStatus(status) {
@@ -129,6 +232,7 @@ function formatHealthcheckEvent({
       lines.push(
         `- ${result.name}: ${result.healthy ? 'saudável' : 'falha final'}`,
       );
+      if (result.operation) lines.push(`  operação: ${result.operation}`);
       for (const attempt of result.attempts) {
         const requestId = attempt.requestId
           ? `; request_id=${attempt.requestId}`
@@ -165,7 +269,9 @@ export function buildServiceTargets({ siteUrl, supabaseUrl, publishableKey }) {
     supabase.pathname !== '/' ||
     supabase.search ||
     supabase.hash ||
-    !publishableKey
+    typeof publishableKey !== 'string' ||
+    publishableKey.length < 20 ||
+    !publishableKey.startsWith('sb_publishable_')
   ) {
     throw new Error('Configuração de sondagem pública incompleta.');
   }
@@ -173,9 +279,18 @@ export function buildServiceTargets({ siteUrl, supabaseUrl, publishableKey }) {
   const base = supabase.href.replace(/\/+$/u, '');
   const publicHeaders = { apikey: publishableKey };
   return [
-    { name: 'Web', url: site.href, headers: {}, redirect: 'follow' },
+    {
+      name: 'Web',
+      method: 'GET',
+      path: site.pathname,
+      url: site.href,
+      headers: {},
+      redirect: 'follow',
+    },
     {
       name: 'Supabase REST',
+      method: 'GET',
+      path: '/rest/v1/songs',
       // The PostgREST root exposes OpenAPI metadata and requires a secret key.
       // Probe a zero-row query instead so the public publishable key is enough
       // and no application data is returned.
@@ -185,6 +300,8 @@ export function buildServiceTargets({ siteUrl, supabaseUrl, publishableKey }) {
     },
     {
       name: 'Supabase Auth',
+      method: 'GET',
+      path: '/auth/v1/settings',
       url: `${base}/auth/v1/settings`,
       headers: publicHeaders,
       redirect: 'error',
@@ -196,7 +313,7 @@ export async function probeServices(
   targets,
   {
     fetchImpl = fetch,
-    timeoutMs = TIMEOUT_MS,
+    timeoutMs = configuredTimeoutMs(),
     maxAttempts = MAX_ATTEMPTS,
     retryDelayMs = RETRY_DELAY_MS,
     waitImpl = wait,
@@ -216,13 +333,14 @@ export async function probeServices(
     let lastFailure;
     let attemptsMade = 0;
     const attempts = [];
+    const operation = requestPolicyLabel(target, timeoutMs);
     for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
       attemptsMade = attempt;
       const startedAt = Date.now();
       let response;
       try {
         response = await fetchImpl(target.url, {
-          method: 'GET',
+          method: target.method ?? 'GET',
           headers: target.headers,
           redirect: target.redirect,
           signal: AbortSignal.timeout(timeoutMs),
@@ -244,7 +362,7 @@ export async function probeServices(
           const delayMs = retryDelay * 2 ** (attempt - 1);
           attemptResult.retryDelayMs = delayMs;
           report.warn?.(
-            `${target.name}: tentativa ${attempt}/${attemptLimit} falhou após ${elapsedMs} ms — ${lastFailure.reason}; nova tentativa em ${delayMs} ms.`,
+            `${target.name}: ${operation}, tentativa ${attempt}/${attemptLimit} falhou após ${elapsedMs} ms — ${lastFailure.reason}; nova tentativa em ${delayMs} ms.`,
           );
           await waitImpl(delayMs);
           continue;
@@ -254,14 +372,20 @@ export async function probeServices(
 
       const elapsedMs = Date.now() - startedAt;
       await response.body?.cancel().catch(() => {});
+      const diagnostics = responseDiagnostics(target, response);
+      const diagnosticDetail = diagnostics.fields.join('; ');
+      const requestDetail = diagnostics.requestId
+        ? `; request_id=${diagnostics.requestId}`
+        : '';
       if (response.status >= 200 && response.status < 300) {
         attempts.push({
           number: attempt,
-          detail: `HTTP ${response.status}`,
+          detail: `HTTP ${response.status}${diagnosticDetail ? `; ${diagnosticDetail}` : ''}`,
           elapsedMs,
+          requestId: diagnostics.requestId,
         });
         report.info(
-          `${target.name}: HTTP ${response.status} em ${elapsedMs} ms (tentativa ${attempt}/${attemptLimit}).`,
+          `${target.name}: ${operation} → HTTP ${response.status} em ${elapsedMs} ms (tentativa ${attempt}/${attemptLimit})${diagnosticDetail ? `; ${diagnosticDetail}` : ''}${requestDetail}.`,
         );
         lastFailure = undefined;
         break;
@@ -271,22 +395,21 @@ export async function probeServices(
         kind: 'http',
         status: response.status,
         elapsedMs,
+        diagnostics: diagnosticDetail,
       };
-      const requestId = responseRequestId(response);
-      lastFailure.requestId = requestId;
+      lastFailure.requestId = diagnostics.requestId;
       const attemptResult = {
         number: attempt,
-        detail: `HTTP ${response.status}`,
+        detail: `HTTP ${response.status}${diagnosticDetail ? `; ${diagnosticDetail}` : ''}`,
         elapsedMs,
-        requestId,
+        requestId: diagnostics.requestId,
       };
       attempts.push(attemptResult);
-      const requestDetail = requestId ? `, request_id=${requestId}` : '';
       if (isRetryableStatus(response.status) && attempt < attemptLimit) {
         const delayMs = retryDelay * 2 ** (attempt - 1);
         attemptResult.retryDelayMs = delayMs;
         report.warn?.(
-          `${target.name}: tentativa ${attempt}/${attemptLimit} falhou após ${elapsedMs} ms — HTTP ${response.status}${requestDetail}; nova tentativa em ${delayMs} ms.`,
+          `${target.name}: ${operation}, tentativa ${attempt}/${attemptLimit} falhou após ${elapsedMs} ms — HTTP ${response.status}${diagnosticDetail ? `; ${diagnosticDetail}` : ''}${requestDetail}; nova tentativa em ${delayMs} ms.`,
         );
         await waitImpl(delayMs);
         continue;
@@ -301,16 +424,20 @@ export async function probeServices(
         : '';
       if (lastFailure.kind === 'network') {
         failures.push(
-          `${target.name}: falha de rede ou timeout — sem resposta HTTP (${lastFailure.reason}) na tentativa final (${lastFailure.elapsedMs} ms); sondagem falhou após ${attemptSummary}. Verifique a conectividade/latência entre o runner do GitHub Actions e o serviço e compare com o status do provedor.`,
+          `${target.name}: falha de rede ou timeout — ${operation} sem resposta HTTP (${lastFailure.reason}) na tentativa final (${lastFailure.elapsedMs} ms); sondagem falhou após ${attemptSummary}. Verifique a conectividade/latência entre o runner do GitHub Actions e o serviço e compare com o status do provedor.`,
         );
       } else {
+        const diagnosticDetail = lastFailure.diagnostics
+          ? `; ${lastFailure.diagnostics}`
+          : '';
         failures.push(
-          `${target.name}: HTTP ${lastFailure.status} na tentativa final (${lastFailure.elapsedMs} ms${requestDetail}); sondagem falhou após ${attemptSummary}. Ação: ${httpFailureAction(target.name, lastFailure.status)}.`,
+          `${target.name}: HTTP ${lastFailure.status} na tentativa final (${lastFailure.elapsedMs} ms${diagnosticDetail}${requestDetail}); operação: ${operation}; sondagem falhou após ${attemptSummary}. Ação: ${httpFailureAction(target.name, lastFailure.status)}.`,
         );
       }
     }
     results.push({
       name: target.name,
+      operation,
       healthy: !lastFailure,
       attempts,
     });
