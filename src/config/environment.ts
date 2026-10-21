@@ -13,7 +13,11 @@ const publicEnvironmentSchema = z.object({
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
     .string({ error: 'é obrigatória' })
     .trim()
-    .min(20, 'deve ser uma chave pública válida'),
+    .min(20, 'deve ser uma chave pública válida')
+    .refine((value) => value.startsWith('sb_publishable_'), {
+      message:
+        'deve usar uma chave sb_publishable_; chaves secret/service_role não podem ser incluídas no app',
+    }),
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: z.string().trim().min(1).optional(),
   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: z.string().trim().min(1).optional(),
   EXPO_PUBLIC_WEB_BASE_URL: z

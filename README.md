@@ -220,6 +220,12 @@ No PowerShell, use `Copy-Item .env.development.example .env.local`. Para testar 
 | `EXPO_PUBLIC_WEB_BASE_URL`             | URL HTTPS pública usada nos links de convite                          |
 | `SETLIST_IOS_TEAM_ID`                  | Team ID Apple para `ios.appleTeamId` e associações de Universal Links |
 
+As variáveis `EXPO_PUBLIC_*` são incorporadas ao JavaScript durante o build
+Web e podem ser lidas por qualquer pessoa que abra a aplicação. A URL e a
+publishable key do Supabase são públicas por projeto; proteja os dados com RLS
+e permissões mínimas. Nunca use no cliente chaves `service_role` ou `sb_secret_*`,
+credenciais de banco ou tokens privados.
+
 Enquanto `setlistbr.app.br` aguarda a publicação DNS, mantenha no `.env.local`
 o endereço temporário `https://anderson-sillos.github.io/setlist/app`. Depois
 que o domínio canônico estiver acessível, substitua-o por

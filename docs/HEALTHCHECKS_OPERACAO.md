@@ -40,7 +40,12 @@ acima, em vez de 1.440 chamadas por minuto.
    públicas `EXPO_PUBLIC_SUPABASE_URL` e
    `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` estão configuradas no repositório.
    A chave publicável é usada somente nos probes REST/Auth; nenhum token de
-   usuário, service-role ou conteúdo de resposta é enviado.
+   usuário, service-role ou conteúdo de resposta é enviado. A URL do probe vem
+   da variável; o host de produção também é verificado por uma lista permitida
+   fixa no código para impedir que uma configuração errada monitore dev ou
+   outro projeto. Opcionalmente, configure a variável de repositório
+   `SERVICE_PROBE_TIMEOUT_MS` com um inteiro de `1` a `60000`; se ausente ou
+   vazia, o probe usa `10000` ms.
 4. Execute o preflight da auditoria descrito abaixo. A migração é fail-closed
    e não instala a limpeza se a tabela, coluna, permissão ou bypass efetivo de
    RLS não corresponderem ao esperado.
@@ -190,10 +195,34 @@ para anexar ao evento o resumo, cada tentativa por serviço, duração, categori
 da falha, status HTTP e identificador de requisição quando disponível, além do
 link da execução do GitHub Actions e do commit. Se um retry recuperar a
 sondagem, o ping de sucesso também registra a sequência que levou à recuperação.
-O corpo fica limitado localmente a 16 kB e não inclui chaves, cabeçalhos de
-autenticação, URLs sondadas nem corpos de resposta. Um sucesso sem retries
-continua usando um ping simples, sem corpo. O `User-Agent` identifica o
+As tentativas também registram método e rota, `Content-Type`, tamanho declarado
+em `Content-Length`, `Content-Encoding` e, para a Web, estado/idade do cache e
+`CF-Ray`. Para respostas Supabase é registrado `sb-request-id` (ou
+`x-request-id`); respostas 429 e 5xx incluem `Retry-After` quando informado.
+`Content-Length` é o valor declarado pelo servidor, não uma contagem de bytes
+lidos: o probe cancela o corpo sem consumi-lo nem armazená-lo.
+O timeout é configurável por `SERVICE_PROBE_TIMEOUT_MS`; aumentar o valor dá
+mais margem a respostas lentas e também aumenta o tempo para declarar uma falha.
+Valores muito baixos provocam falhas artificiais e enviam `/fail` ao check de
+produção. Para simular o canal de alerta, use o check separado de ensaio; para
+simular timeout no probe, use a variável somente numa execução controlada e
+restaure-a em seguida.
+O corpo do evento fica limitado localmente a 16 kB e não inclui chaves,
+cabeçalhos de autenticação, URLs sondadas nem corpos de resposta. Um sucesso sem
+retries continua usando um ping simples, sem corpo; seus detalhes ficam nos logs
+da execução do GitHub Actions. O `User-Agent` identifica o
 `Setlist-Service-Availability-Monitor/1.0`.
+
+`EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` são
+configurações públicas. No workflow `Publicar GitHub Pages`, o GitHub injeta
+essas variáveis na etapa de build e o Expo grava as referências `EXPO_PUBLIC_*`
+no JavaScript estático publicado; visitantes conseguem vê-las no navegador.
+Isso é esperado para a URL e para a chave publicável. O acesso aos dados deve
+ser protegido por políticas RLS e grants mínimos no Supabase. Nunca coloque no
+bundle `service_role`, `sb_secret_*`, credenciais de banco ou tokens privados;
+essas credenciais só podem existir em ambientes de servidor/Actions como
+Secrets. O app e o workflow de publicação exigem o prefixo `sb_publishable_`
+para barrar uma chave `sb_secret_*` configurada por engano.
 
 O sinal final só é enviado depois de todos os probes. Os eventos e seus corpos
 podem ser consultados no histórico do check do Healthchecks.io; os mesmos
