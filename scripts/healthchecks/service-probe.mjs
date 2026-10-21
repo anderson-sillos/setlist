@@ -63,9 +63,10 @@ function httpFailureAction(targetName, status) {
     return 'requisições limitadas; confira rate limits e frequência do monitor';
   }
   if (status >= 500) {
-    const providerLogs = targetName === 'Web'
-      ? 'logs do provedor de hospedagem/CDN'
-      : 'logs do projeto Supabase';
+    const providerLogs =
+      targetName === 'Web'
+        ? 'logs do provedor de hospedagem/CDN'
+        : 'logs do projeto Supabase';
     return `erro no serviço ou gateway; use o request_id para correlacionar com os ${providerLogs}`;
   }
   return 'o endpoint respondeu, mas a sondagem não foi aceita; confira rota e configuração do monitor';
@@ -125,9 +126,13 @@ function formatHealthcheckEvent({
   if (results.length > 0) {
     lines.push('Tentativas por serviço:');
     for (const result of results) {
-      lines.push(`- ${result.name}: ${result.healthy ? 'saudável' : 'falha final'}`);
+      lines.push(
+        `- ${result.name}: ${result.healthy ? 'saudável' : 'falha final'}`,
+      );
       for (const attempt of result.attempts) {
-        const requestId = attempt.requestId ? `; request_id=${attempt.requestId}` : '';
+        const requestId = attempt.requestId
+          ? `; request_id=${attempt.requestId}`
+          : '';
         const retry = Number.isFinite(attempt.retryDelayMs)
           ? `; retry em ${attempt.retryDelayMs} ms`
           : '';
@@ -343,22 +348,21 @@ async function main() {
     serviceResults = Array.isArray(error?.serviceResults)
       ? error.serviceResults
       : [];
-    console.error(
-      failureMessage,
-    );
+    console.error(failureMessage);
   }
 
   const recoveredAfterRetry =
     !failed && serviceResults.some((result) => result.attempts.length > 1);
-  const eventBody = failed || recoveredAfterRetry
-    ? formatHealthcheckEvent({
-        outcome: failed ? 'FALHA' : 'RECUPERADO APÓS RETRY',
-        startedAt,
-        durationMs: Date.now() - startedAtMs,
-        results: serviceResults,
-        failureMessage,
-      })
-    : undefined;
+  const eventBody =
+    failed || recoveredAfterRetry
+      ? formatHealthcheckEvent({
+          outcome: failed ? 'FALHA' : 'RECUPERADO APÓS RETRY',
+          startedAt,
+          durationMs: Date.now() - startedAtMs,
+          results: serviceResults,
+          failureMessage,
+        })
+      : undefined;
 
   try {
     await sendHealthcheckPing(heartbeatUrl, failed ? '/fail' : '', {

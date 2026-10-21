@@ -9,12 +9,7 @@ export function validatePingUrl(value) {
 export async function sendHealthcheckPing(
   pingUrl,
   suffix = '',
-  {
-    fetchImpl = fetch,
-    timeoutMs = 15_000,
-    body,
-    userAgent,
-  } = {},
+  { fetchImpl = fetch, timeoutMs = 15_000, body, userAgent } = {},
 ) {
   if (!validatePingUrl(pingUrl)) {
     throw new Error('Healthchecks Ping URL ausente ou inválida.');
