@@ -1,8 +1,17 @@
 # Procedimento de remoção e solicitações — rascunho
 
 > **RASCUNHO OPERACIONAL INTERNO. Não publicar este documento como termo do
-> serviço.** A revisão por profissional jurídico foi informada como concluída;
-> confirmar acesso ao canal, prazos e configurações antes de ativá-lo.
+> serviço.** A revisão por profissional jurídico foi informada como concluída.
+> Este roteiro não substitui as páginas públicas vigentes nem o status atual das
+> tarefas; confira `docs/PUBLICACAO_DOCUMENTOS_LEGAIS.md` e o OpenSpec antes de
+> executar ou reutilizar qualquer etapa histórica.
+
+> **Estado em 21/10/2026:** o fluxo de denúncia, encaminhamento, resposta e
+> restrição/moderação foi confirmado em produção (11.8.1). A medida é manual e
+> caso a caso: o envio não bloqueia automaticamente a pessoa denunciada nem
+> garante sanção. As limpezas, retenções, backup/restauração, configuração etária
+> e publicação dos documentos concluídas para 11.8 estão listadas no OpenSpec;
+> o grupo continua aberto por causa da distribuição pública Android/iOS.
 
 - Versão de trabalho: 0.1
 - Data de preparação: 29/09/2026; revisão de moderação: 02/10/2026
@@ -37,22 +46,24 @@ O backend desvincula do perfil excluído os registros de aceite e as referência
 de criação/uso de convites. O conteúdo de bandas ainda ativas permanece para os
 demais integrantes e pode continuar associado à banda. O backup próprio de
 produção mantém até 84 cópias diárias (12 semanas), criptografadas no cliente.
-A primeira execução foi confirmada em 20/10/2026; a restauração isolada ainda
-não foi validada. A remoção de dados em logs e sistemas dos fornecedores segue
+A primeira execução foi confirmada em 20/10/2026; a restauração isolada foi
+validada no projeto `setlist-restore` nessa data (11.8.4). A remoção de dados em logs e sistemas dos fornecedores segue
 prazos próprios. O inventário preliminar está na revisão
 jurídica; ainda precisam ser confirmados os prazos efetivos de eliminação de
 registros de Supabase, GitHub Pages, Cloudflare, Gmail e provedores de login.
-No Brevo, foram escolhidos 1 mês para logs transacionais e nenhuma nova
-prévia, mas a configuração ainda precisa ser aplicada e conferida.
+No Brevo, a captura do painel enviada em 21/10/2026 confirma 1 mês de retenção
+dos logs transacionais para todos os remetentes e nenhuma nova prévia. Registros
+anteriores à mudança podem conservar uma prévia até o log expirar; essa
+configuração foi considerada concluída na tarefa 11.8.5.
 Na apuração de cada pedido, considerar separadamente os registros de auditoria
 de autenticação do Supabase: há armazenamento externo de logs e o responsável
 confirmou que a gravação adicional em `auth.audit_log_entries` está **ligada**
-em `setlist-prod`. A exclusão da identidade de autenticação não comprova a
-eliminação desses registros. O responsável escolheu conservá-los por 30 dias
-e limpar diariamente os mais antigos. A migração foi preparada, mas ainda
-depende da confirmação de permissões/RLS da tabela gerenciada e da aplicação em
-produção. Antes de responder sobre eliminação completa, conferir a tabela, as
-exceções de conservação e as cópias de backup.
+em `setlist-prod`. A exclusão da identidade de autenticação não apaga esses
+registros imediatamente. A migração `20261020120000` e a limpeza diária de
+registros com mais de 30 dias foram confirmadas em `setlist-prod` e
+`setlist-dev` em 21/10/2026 (11.8.6). Essa tabela não entra no backup do Drive;
+antes de responder sobre eliminação completa, considerar também exceções
+temporárias e logs externos do fornecedor, que seguem retenção própria.
 
 ### Retenção de convites e aceites — limpeza conferida
 
@@ -114,9 +125,10 @@ automaticamente o acervo anterior nem identificam todas as infrações. O texto
 recusado não entra em fila de análise e uma edição recusada preserva o registro
 anterior. A tabela de músicas ainda não guarda quem criou ou alterou cada
 registro; não se deve presumir a autoria do Proprietário ou Editor. A ocultação
-e a reversão foram validadas no ambiente de desenvolvimento; antes de usar este
-procedimento em produção, conferir a implantação coordenada das migrations, da
-função de denúncia e do cliente no projeto correto.
+e a reversão foram validadas em desenvolvimento, e os controles de denúncia e
+restrição foram conferidos separadamente em produção conforme 11.8.1. Arquivar
+uma música não substitui a ocultação administrativa; a suspensão é manual e
+afeta operações protegidas da conta.
 
 ## 3. Revisão posterior por denúncia ou inspeção
 
@@ -200,8 +212,8 @@ descrito abaixo; não copiar a letra ou dados sensíveis para uma planilha.
    cada três meses e apagar mensagens e anexos que não precisem mais ser
    mantidos; registrar na própria conversa a justificativa de retenções
    excepcionais, quando couber. Não manter mensagens indefinidamente. O prazo
-   e as exceções aplicáveis devem ser confirmados no inventário de retenção
-   antes da publicação.
+   e as exceções aplicáveis devem ser mantidos no inventário de retenção e
+   revistos periodicamente.
 
 O responsável aprovou o fluxo operacional acima: identificação do conteúdo e
 motivo, verificação proporcional do direito quando aplicável, ocultação urgente
@@ -318,7 +330,7 @@ portanto não houve comprovação de exclusão de uma linha de teste. A linha ta
 a conta. A caixa de e-mail continua sendo o histórico operacional da denúncia
 e segue critérios próprios de descarte.
 
-### Backup próprio de `setlist-prod` — restauração pendente
+### Backup próprio de `setlist-prod` — restauração isolada validada
 
 O responsável decidiu manter o projeto no plano Supabase Free, sem PITR, e
 produzir cópias do banco **diariamente** numa conta dedicada do Google Drive,
@@ -326,8 +338,10 @@ protegidas por criptografia no cliente com `rclone crypt`, conservando as **84
 cópias diárias** mais recentes (12 semanas). Um Cloudflare Worker despacha o
 workflow do GitHub Actions às 06:17 UTC e, se necessário, às 08:37 UTC; o dump
 é transmitido em fluxo, sem gravação em disco local ou artefatos. A primeira
-execução foi confirmada em 20/10/2026. A restauração isolada ainda precisa ser
-testada.
+execução foi confirmada em 20/10/2026. A restauração isolada da cópia
+`2026-10-20` foi validada com sucesso no projeto `setlist-restore` em
+20/10/2026; contagens agregadas da recuperação coincidiram com produção
+(11.8.4).
 
 1. Usar o procedimento oficial de exportação lógica do Supabase para obter os
    dados necessários à recuperação, incluindo dados do aplicativo e identidades
@@ -352,9 +366,9 @@ testada.
    as anteriores após confirmar uma nova cópia íntegra. Ao atender pedidos de
    exclusão, informar que dados removidos do banco ativo podem persistir nessas
    cópias até sua substituição, observadas exceções legais aplicáveis.
-4. Restaurar uma cópia em ambiente isolado e conferir contas, bandas, músicas,
-   shows e controles de acesso antes de concluir a tarefa 11.8.4. Definir a
-   recorrência dos ensaios de restauração.
+4. A restauração isolada da cópia de 20/10/2026 e a conferência dos dados foram
+   concluídas para a tarefa 11.8.4. Registrar no runbook a data do próximo
+   exercício de restauração como manutenção contínua.
 
 Referência técnica: [Backup e restauração com Supabase CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
 
@@ -381,15 +395,19 @@ realizadas. O responsável deve conferir os contatos, a contagem dos prazos e
 o registro das decisões em um ensaio antes de ativar este rascunho como plano
 operacional.
 
-## 5. Pendências para ativar este procedimento
+## 5. Acompanhamento operacional e jurídico
+
+Os itens abaixo descrevem atividades contínuas ou o checklist histórico de
+preparação. Não são todos pendências de ativação: o estado de cada entrega de
+11.8 está na fonte de status do OpenSpec.
 
 - Usar **Setlist** como identificação pública do controlador, conforme a
   conclusão jurídica informada pelo responsável. O próprio responsável atenderá as solicitações
   recebidas no canal de contato.
-- Publicar as páginas aprovadas em `https://setlistbr.app.br/termos/` e
-  `https://setlistbr.app.br/privacidade/` e tornar seus links acessíveis antes
-  do login e no menu do aplicativo. Hoje a tela de login só menciona os
-  documentos, e o item "Termos e privacidade" no menu está desabilitado.
+- As páginas aprovadas foram publicadas em `https://setlistbr.app.br/termos/` e
+  `https://setlistbr.app.br/privacidade/` e conferidas em 21/10/2026; os links
+  estão disponíveis antes do login e no menu (11.8.9). Repetir a conferência
+  se os endereços ou a versão pública forem alterados.
 - Disponibilizar **contato@setlistbr.app.br** na Web e nos aplicativos para
   solicitações de privacidade, remoção e comunicação de incidentes; manter a
   caixa monitorada e restringir o acesso conforme a natureza do caso.
@@ -411,13 +429,11 @@ operacional.
   cumprir o prazo de 3 dias úteis quando a comunicação à ANPD e às pessoas
   afetadas for exigida; registrar eventual justificativa e complementação em
   etapas conforme o regulamento.
-- Registrar a classificação de serviço adulto sem acesso provável por menores,
-  conforme conclusão jurídica informada pelo responsável. A decisão para a
-  primeira versão é manter a regra de 18 anos nos termos e configurar os
-  controles disponíveis no Google Play e na App Store, sem confirmação de idade
-  no cadastro do Setlist. Registrar que a Web permanece sem bloqueio etário,
-  definir a resposta a indícios de uso por menores e reavaliar a classificação
-  se o público ou as funcionalidades mudarem.
+- A classificação etária das lojas foi conferida em 21/10/2026 (11.8.7): Play
+  com público 18+ e restrição de contas que o Google identifica como menores;
+  App Store Connect com override +18 e classificações regionais registradas no
+  OpenSpec. O app e a Web não verificam idade. Manter a resposta a indícios de
+  uso por menores e reavaliar se o público ou as funcionalidades mudarem.
 - Confirmar no inventário de retenção os prazos e
   exceções aplicáveis aos registros dos pedidos. Revisar trimestralmente os
   casos encerrados na caixa Gmail e excluir ou anonimizar os registros após o
@@ -433,47 +449,53 @@ operacional.
   Drive, com criptografia no cliente, mantendo as **84 cópias diárias** mais
   recentes (12 semanas). O dump é transmitido pelo GitHub Actions sem gravação
   em disco local ou artefatos; a primeira execução foi confirmada em
-  20/10/2026. Antes de concluir a tarefa 11.8.4, testar a restauração em
-  ambiente separado e confirmar a cobertura dos dados. Conferir se a cópia cobre tanto os dados
-  da aplicação quanto as identidades de autenticação e se as configurações
-  necessárias à recuperação estão documentadas sem expor segredos no backup.
+  20/10/2026. A restauração isolada e a cobertura foram validadas em
+  `setlist-restore` em 20/10/2026 (11.8.4). A validação confirmou os dados da
+  aplicação e as identidades de autenticação; as configurações necessárias à
+  recuperação estão documentadas sem expor segredos no backup.
   O plano não oferece
   backup diário automático. Conferir
   também a retenção da auditoria de autenticação em
-  `auth.audit_log_entries`, cuja gravação está ligada em produção; conferir o
-  preflight, aplicar e validar a limpeza diária dos registros com mais de 30 dias, observadas
-  exceções documentadas e cópias de backup.
+  `auth.audit_log_entries`, cuja gravação está ligada em produção. O preflight,
+  a migração e o monitor diário para 30 dias foram conferidos em produção e
+  desenvolvimento em 21/10/2026 (11.8.6); observar exceções documentadas e
+  lembrar que a auditoria não entra no backup do Drive.
   Para pedidos recebidos por e-mail,
   distinguir mensagens e anexos no Gmail dos registros de encaminhamento do
   Cloudflare Email Routing; para denúncias feitas no app, incluir os registros
-  de envio do Brevo e a janela de frequência em `report_rate_limits`. Aplicar
-  a limpeza diária decidida para as linhas cuja janela terminou há pelo menos
-  24 horas e definir os demais critérios de descarte, sem presumir que excluir
+  de envio do Brevo e a janela de frequência em `report_rate_limits`. A limpeza
+  diária das linhas cuja janela terminou há pelo menos 24 horas foi conferida
+  em produção (11.8.3); definir os demais critérios de descarte, sem presumir que excluir
   a mensagem no Gmail elimine cópias mantidas pelos fornecedores. O responsável informou
   que a conta Brevo é exclusiva do Setlist e escolheu **1 mês** de retenção dos
-  logs transacionais, sem guardar novas prévias do e-mail. Aplicar e conferir
-  essas opções em **Settings → Transactional emails → Retention rules** antes
-  da publicação. Como a alteração das prévias não elimina cópias anteriores,
-  conferir se há prévias antigas e apagá-las quando não houver motivo para
-  conservá-las. Sem regra configurada, o fornecedor informa que não há exclusão
-  automática dos logs transacionais e de eventuais prévias.
+  logs transacionais, sem guardar novas prévias do e-mail. Em 21/10/2026, o
+  responsável determinou considerar concluída essa configuração (11.8.5).
+  Como a opção de prévias não elimina cópias anteriores, a retenção de um mês
+  dos logs também limita o período das prévias associadas. A interface do
+  fornecedor pode apagar um log inteiro; não usar essa ação para remover só uma
+  prévia sem confirmar que há exclusão seletiva. Sem regra configurada, o
+  fornecedor informa que não há exclusão automática dos logs transacionais e
+  de eventuais prévias.
 - Ensaiar o fluxo de denúncias de direitos autorais, conteúdo de terceiros e
   solicitações de remoção de dados; registrar os prazos legais aplicáveis em
   cada caso, as manifestações e o resultado das contestações.
-- Avaliar se a cobertura limitada do filtro preventivo e a rotina de resposta
-  atendem às regras de conteúdo gerado por usuários da App Store e do Google
-  Play antes da submissão; as validações técnicas em desenvolvimento não
-  significam aprovação pelas lojas.
+- A avaliação técnica do filtro e da rotina de resposta para as regras de
+  conteúdo gerado por usuários foi registrada na 11.8.1. A App Review ainda
+  está em andamento e a distribuição pública do Play não ocorreu; a validação
+  interna não significa aprovação pelas lojas.
 - Aplicar a revisão posterior apenas diante de denúncia ou indício concreto
   documentado, com acesso restrito ao responsável e registro mínimo do caso;
   conferir o descarte conforme o inventário. Manter o acompanhamento da caixa
   em dias úteis e monitorar falhas de entrega.
-  Confirmar em produção a chave API do Brevo e o remetente verificado como
-  segredos da Edge Function, sem colocá-los no aplicativo.
-- Conferir, na implantação em produção, que o cliente e o banco exigem a mesma
-  versão `2026-10` do termo da banda e que o novo aceite é solicitado.
-- Repetir a conferência de ocultação e suspensão no projeto de produção após a
-  implantação, incluindo música associada a show e sessão já emitida.
+  O fluxo de denúncias em produção e o recebimento dos e-mails foram
+  confirmados em 19/10/2026 (11.8.1); os valores da API e do remetente devem
+  permanecer somente nos Secrets da Edge Function, fora do aplicativo.
+- A versão `2026-10` do termo da banda e seu registro de aceite foram
+  conferidos conforme 11.8.2. Repetir essa verificação quando uma nova versão
+  do termo for implantada.
+- A conferência de ocultação e suspensão em produção, inclusive operações
+  protegidas de sessões já emitidas, foi registrada como concluída em 11.8.1;
+  repetir se a implementação de moderação mudar.
 - Incorporar às versões finais as decisões da revisão profissional informada
   como concluída pelo responsável.
 
@@ -491,8 +513,9 @@ operacional.
   protegidas mesmo quando a conta ainda pôde autenticar. A reversão restaurou
   o acesso.
 
-Essas verificações ocorreram em `setlist-dev`. Não comprovam implantação nem
-funcionamento das medidas em `setlist-prod`.
+Essas verificações funcionais detalhadas ocorreram em `setlist-dev` e, isoladas,
+não comprovam implantação em produção. A validação de produção foi feita
+separadamente e confirmada pelo responsável conforme a tarefa 11.8.1.
 
 ### Referência para resposta a incidentes
 

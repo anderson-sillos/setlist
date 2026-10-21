@@ -96,12 +96,12 @@ acima, em vez de 1.440 chamadas por minuto.
    a publicação; os valores não devem ser copiados para o chat, para o código ou
    para Secrets de produção.
 
-## Preflight somente leitura para a auditoria Auth
+## Retenção da auditoria Auth
 
-Antes de aplicar a migração, abra o SQL Editor de `setlist-prod` e execute o
-conteúdo de
+O preflight somente de metadados usado antes da migração está em
 [`scripts/healthchecks/auth-audit-retention-prerequisites.sql`](../scripts/healthchecks/auth-audit-retention-prerequisites.sql)
-com a mesma role que aplicará a migração. A saída tem cinco campos booleanos:
+e pode ser repetido, com a role administrativa, em cada projeto. A saída tem
+cinco campos booleanos:
 
 - `table_exists` deve ser `true`;
 - `created_at_is_timestamptz` deve ser `true`;
@@ -111,18 +111,29 @@ com a mesma role que aplicará a migração. A saída tem cinco campos booleanos
   habilitado; a role de migração ainda precisa ignorar as políticas efetivas,
   conforme o campo anterior.
 
-Se algum dos quatro requisitos divergir, não aplique a migração. Mesmo quando
-todos os quatro forem `true`, eles comprovam apenas esquema e permissões da role, não
-uma garantia de estabilidade futura da tabela gerenciada. A lista oficial de
-restrições a DML destrutivo do Supabase é específica para tabelas de migração e
-não inclui `auth.audit_log_entries`; essa compatibilidade é uma inferência da
+Em 21/10/2026, o preflight passou em `setlist-prod` e `setlist-dev`. A migração
+`20261020120000` está aplicada nos dois. A consulta de
+[`auth-audit-retention-monitor.sql`](../scripts/healthchecks/auth-audit-retention-monitor.sql)
+retornou `true` para os cinco critérios em cada projeto: job único/ativo,
+última execução bem-sucedida, execuções diárias esperadas, nenhum evento
+vencido sem exceção e nenhuma exceção vencida ou órfã. Se algum dos requisitos
+divergir em conferências futuras, investigue antes de alterar a migração. Mesmo
+quando o preflight passa, ele comprova apenas esquema e permissões da role,
+não uma garantia de estabilidade futura da tabela gerenciada. A lista oficial
+de restrições a DML destrutivo do Supabase é específica para tabelas de migração
+e não inclui `auth.audit_log_entries`; essa compatibilidade é uma inferência da
 [lista publicada](https://supabase.com/changelog/34270-restricting-access-on-auth-storage-and-realtime-schemas-on-april-21-2025),
 não uma garantia de que a estrutura da tabela permanecerá estável. A
 [documentação de Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs)
 descreve a gravação Postgres como opcional. A consulta não lê eventos,
 payloads, IDs ou dados de usuários.
-A rotina proposta remove diariamente linhas com `created_at` anterior a 30 dias
-que não tenham exceção vigente.
+O job `setlist-prune-auth-audit-logs` remove diariamente linhas com `created_at`
+anterior a 30 dias que não tenham exceção vigente. A exclusão da conta não
+apaga imediatamente a auditoria: não há FK nem trigger de exclusão em
+`auth.users` que faça isso; a retenção é aplicada pela rotina diária. O backup
+do Drive exclui `auth.audit_log_entries`, portanto registros já limpos não
+podem ser restaurados dessas cópias. Os logs Auth externos do Supabase ficam
+fora desse mecanismo de retenção e seguem configuração do fornecedor.
 
 ### Exceção temporária de auditoria
 

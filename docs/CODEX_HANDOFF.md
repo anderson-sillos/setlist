@@ -1405,18 +1405,16 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
 
 77. O inventário técnico identificou Google OAuth, Supabase (Auth e banco),
     GitHub Pages para a versão Web e player oficial do YouTube. O CLI Supabase
-    lista dev e prod em `sa-east-1` (São Paulo); a região primária não prova que
-    todo processamento/subprocessamento ocorre no Brasil, pois o DPA permite
-    subprocessadores em outros locais. O GitHub declara que registra IPs de
-    visitantes do Pages por segurança; prazo desses registros de visita não
-    foi confirmado e é separado da retenção de logs/artifacts do Actions. O
+    lista dev e prod em `sa-east-1` (São Paulo). O GitHub declara que registra
+    IPs de visitantes do Pages por segurança; prazo desses registros de visita
+    não foi confirmado e é separado da retenção de logs/artifacts do Actions. O
     código usa `youtube.com/iframe_api`, portanto o player externo é carregado
     quando usado. A Apple foi incluída como integração planejada: o botão de
     login está desabilitado e indica “em breve”, então ainda não foi incluída
     como fluxo ativo. O fornecedor da caixa `contato@setlistbr.app.br`, os
-    escopos Google, contratos e suboperadores, destinos e mecanismos para
-    transferências internacionais ainda precisam ser inventariados. Política
-    §2 e §4 recebeu o inventário e ressalvas. Referências: <https://supabase.com/docs/guides/platform/regions>,
+    escopos Google, contratos e suboperadores ainda precisam ser inventariados.
+    Política §2 e §4 recebeu o inventário e ressalvas. Referências:
+    <https://supabase.com/docs/guides/platform/regions>,
     <https://supabase.com/legal/customer-resources/data-processing-addendum>,
     <https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages>,
     <https://developers.google.com/identity/protocols/oauth2/policies>,
@@ -1669,8 +1667,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      ainda não aparece na Web/app; `Termos e privacidade` está desabilitado no
      menu, e a mensagem de login não contém links para os documentos. Permanecem
      pendentes identificação pública suficiente do controlador, URL canônica,
-     escopos/contratos e subprocessadores dos fornecedores, transferências
-     internacionais, prazos de retenção e backups, medidas de segurança
+     escopos/contratos e subprocessadores dos fornecedores, prazos de retenção
+     e backups, medidas de segurança
      confirmadas, critérios de remoção e revisão por profissional jurídico.
      Progresso OpenSpec permanece 85/113; 11.3 não foi marcada como concluída.
 
@@ -1686,8 +1684,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      com as orientações atuais da ANPD, inclusive o limiar do art. 31 para
      relatório de transparência. Continuam pendentes a identificação suficiente
      do controlador, acesso público e aceite dos documentos, inventário e
-     retenção dos dados, transferências internacionais, enquadramento como
-     pequeno porte, aferição de idade e avaliação por profissional habilitado.
+     retenção dos dados, enquadramento como pequeno porte, aferição de idade e
+     avaliação por profissional habilitado.
      Os três textos continuam rascunhos; o item 11.3 permanece aberto.
 
 107. Em 01/10/2026, o responsável confirmou as URLs canônicas futuras dos
@@ -1735,19 +1733,14 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      consultado; o protótipo YouTube também deve entrar na avaliação. A
      classificação e o mecanismo proporcional dependem de análise jurídica.
 
-111. A etapa seguinte do item 11.3 mapeou os fluxos de Supabase, Google/Apple,
-     GitHub Pages, YouTube e Cloudflare → Gmail na revisão jurídica preliminar.
-     A política agora separa a região primária brasileira do Supabase das
-     possíveis operações fora do país, descreve a coleta do player já na
-     abertura da tela e distingue anúncios próprios do Setlist de publicidade
-     eventualmente exibida pelo YouTube. Os termos passaram a descrever o
-     player incorporado e a vincular os Termos de Serviço do YouTube. A
-     Resolução CD/ANPD nº 19/2024 exige classificar cada fluxo como coleta
-     direta ou transferência entre agentes; o DPA público do Supabase cita
-     cláusulas europeias, mas isso não comprova mecanismo brasileiro válido.
-     Faltam checagem dos contratos/configurações efetivos, países de destino,
-     bases legais e eventual transparência do art. 17. As minutas seguem sem
-     autorização para publicação; o item 11.3 permanece aberto.
+111. A etapa seguinte do item 11.3 mapeou os fluxos técnicos de Supabase,
+     Google/Apple, GitHub Pages, YouTube e Cloudflare → Gmail na revisão
+     jurídica preliminar. A política descreveu o fluxo de autenticação, a
+     hospedagem Web, o encaminhamento de e-mail e a abertura externa de
+     referências no YouTube; os termos passaram a descrever o player
+     incorporado e a vincular os Termos de Serviço do YouTube. As minutas
+     continuavam sem autorização para publicação e o item 11.3 permanecia
+     aberto naquele registro histórico.
 
 112. A revisão de retenção local identificou que a última banda selecionada
      fica em SecureStore no móvel e localStorage na Web. O logout não a limpava;
@@ -2427,3 +2420,19 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      SHA-256 `faa43e5a2e01caf1c082f5b2f544a4d6d173b4a7bcecdc60b5530eeb11f99484`.
      As validações funcionais dos artefatos Web/Android/iOS continuam pendentes;
      não registrar os builds como validados antes de completar os testes.
+164. Em 21/10/2026, a validação do piloto e dos builds `v1.0.0-rc.4` foi
+     registrada na tarefa 11.5.5 de `definir-mvp-setlist`; o responsável também
+     confirmou concluído o piloto 11.6. O Pages foi republicado pelo workflow
+     `39553347521` e os dois manifestos públicos correspondem ao ativo da
+     Release. A retenção da cópia Postgres de Auth foi conferida em produção
+     (`tqijocmmiwistinrjpwl`) e desenvolvimento (`zncaahgaoqwksdidunza`): a
+     migração `20261020120000` está aplicada, o preflight de metadados e os
+     cinco critérios agregados do monitor passaram nos dois projetos. Não foi
+     lida nenhuma linha de auditoria ou de usuário. A exclusão de conta não
+     apaga esses registros imediatamente; a rotina diária aplica 30 dias, com
+     exceções temporárias documentadas. O backup próprio exclui
+     `auth.audit_log_entries`. A documentação oficial descreve a tabela como
+     armazenamento opcional, mas não garante estabilidade futura nem declara
+     explicitamente suporte a retenção personalizada; essa limitação e a
+     compatibilidade observada estão descritas no runbook e no inventário
+     jurídico preliminar.
