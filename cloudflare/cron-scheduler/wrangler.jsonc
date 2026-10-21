@@ -3,7 +3,7 @@
   "name": "setlist-cron-scheduler",
   "main": "src/index.mjs",
   "compatibility_date": "2026-10-20",
-  "workers_dev": false,
+  "workers_dev": true,
   "observability": {
     "enabled": true,
   },
