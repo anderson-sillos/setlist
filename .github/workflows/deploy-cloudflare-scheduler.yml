@@ -48,19 +48,19 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          GITHUB_APP_ID: ${{ secrets.GITHUB_APP_ID }}
-          GITHUB_INSTALLATION_ID: ${{ secrets.GITHUB_INSTALLATION_ID }}
-          GITHUB_APP_PRIVATE_KEY: ${{ secrets.GITHUB_APP_PRIVATE_KEY }}
+          GITHUB_APP_ID: ${{ secrets.SETLIST_CRON_GITHUB_APP_ID }}
+          GITHUB_INSTALLATION_ID: ${{ secrets.SETLIST_CRON_GITHUB_INSTALLATION_ID }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.SETLIST_CRON_GITHUB_APP_PRIVATE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
-          for name in GITHUB_APP_ID GITHUB_INSTALLATION_ID GITHUB_APP_PRIVATE_KEY; do
-            if [[ -z "${!name}" ]]; then
-              echo "Secret obrigatório ausente no Environment cloudflare-scheduler: ${name}" >&2
-              exit 1
-            fi
-            printf '%s' "${!name}" | npx --prefix cloudflare/cron-scheduler wrangler secret put "$name" --config cloudflare/cron-scheduler/wrangler.jsonc >/dev/null
-          done
+          if [[ -z "$GITHUB_APP_ID" || -z "$GITHUB_INSTALLATION_ID" || -z "$GITHUB_APP_PRIVATE_KEY" ]]; then
+            echo "Secrets obrigatórios ausentes no Environment cloudflare-scheduler: SETLIST_CRON_GITHUB_APP_ID, SETLIST_CRON_GITHUB_INSTALLATION_ID e SETLIST_CRON_GITHUB_APP_PRIVATE_KEY" >&2
+            exit 1
+          fi
+          printf '%s' "$GITHUB_APP_ID" | npx --prefix cloudflare/cron-scheduler wrangler secret put GITHUB_APP_ID --config cloudflare/cron-scheduler/wrangler.jsonc >/dev/null
+          printf '%s' "$GITHUB_INSTALLATION_ID" | npx --prefix cloudflare/cron-scheduler wrangler secret put GITHUB_INSTALLATION_ID --config cloudflare/cron-scheduler/wrangler.jsonc >/dev/null
+          printf '%s' "$GITHUB_APP_PRIVATE_KEY" | npx --prefix cloudflare/cron-scheduler wrangler secret put GITHUB_APP_PRIVATE_KEY --config cloudflare/cron-scheduler/wrangler.jsonc >/dev/null
 
       - name: Ativar os schedules no Worker
         env:

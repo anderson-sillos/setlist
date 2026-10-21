@@ -47,9 +47,10 @@ falha ao serviço.
 
    - variável `CLOUDFLARE_ACCOUNT_ID`;
    - secret `CLOUDFLARE_API_TOKEN`, com acesso de edição a Workers na conta;
-   - secrets `GITHUB_APP_ID`, `GITHUB_INSTALLATION_ID` e
-     `GITHUB_APP_PRIVATE_KEY` de um GitHub App instalado somente no repositório
-     `anderson-sillos/setlist`, com a permissão `Actions: write`.
+   - secrets `SETLIST_CRON_GITHUB_APP_ID`,
+     `SETLIST_CRON_GITHUB_INSTALLATION_ID` e
+     `SETLIST_CRON_GITHUB_APP_PRIVATE_KEY` de um GitHub App instalado somente
+     no repositório `anderson-sillos/setlist`, com a permissão `Actions: write`.
 
    O Worker usa esses dados somente para emitir installation tokens temporários
    e despachar workflows. Não cadastre credenciais de banco, Drive ou Healthchecks
@@ -72,9 +73,11 @@ falha ao serviço.
    App**. Use `https://setlistbr.app.br` como Homepage URL, desative o webhook,
    conceda somente **Repository permissions → Actions → Read and write**, e
    crie o App. Instale-o somente no repositório `anderson-sillos/setlist`. Gere
-   uma chave privada PEM e guarde-a em local seguro. Use o App ID, o ID da
-   instalação (visível na URL da instalação) e o conteúdo PEM para os três
-   Secrets de mesmo nome no Environment `cloudflare-scheduler`.
+   uma chave privada PEM e guarde-a em local seguro. No Environment
+   `cloudflare-scheduler`, grave o App ID como
+   `SETLIST_CRON_GITHUB_APP_ID`, o ID da instalação como
+   `SETLIST_CRON_GITHUB_INSTALLATION_ID` e o conteúdo PEM como
+   `SETLIST_CRON_GITHUB_APP_PRIVATE_KEY`.
 2. No Cloudflare, abra **My Profile → API Tokens → Create Token → Custom Token**.
    Limite o token à conta Setlist e à permissão **Workers Scripts: Edit**. Grave
    o token como `CLOUDFLARE_API_TOKEN` e o Account ID da mesma conta como a
