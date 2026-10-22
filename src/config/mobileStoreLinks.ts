@@ -1,5 +1,4 @@
-/** Temporary store searches until the Setlist listings are published. */
 export const mobileStoreLinks = {
-  android: 'https://play.google.com/store/search?q=Setlist&c=apps',
-  ios: 'https://apps.apple.com/br/search?term=Setlist',
+  android: 'https://play.google.com/store/apps/details?id=com.andersonsillos.setlist',
+  ios: 'https://apps.apple.com/br/app/setlist/id6818584212',
 } as const;
