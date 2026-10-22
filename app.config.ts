@@ -63,6 +63,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ]);
   }
 
+  for (const pluginName of ['expo-asset', 'expo-font', 'expo-sharing']) {
+    if (
+      !plugins.some((plugin) =>
+        Array.isArray(plugin)
+          ? plugin[0] === pluginName
+          : plugin === pluginName,
+      )
+    ) {
+      plugins.push(pluginName);
+    }
+  }
+
   return {
     ...config,
     name: config.name ?? 'Setlist',

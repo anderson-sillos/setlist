@@ -12,6 +12,25 @@
 - O primeiro envio Android continua aguardando o processo do Google Play; esta
   candidata não inclui um novo build Android.
 
+## Próxima candidata — versão e tag pendentes
+
+### Exportação de shows e calendário pessoal
+
+- Exportação do setlist em PDF A4 com texto selecionável, TXT UTF-8 e PNG A4
+  paginado. A pessoa escolhe os metadados e observações que deseja incluir; as
+  letras nunca são exportadas.
+- Prévia estável, atualização explícita a partir dos dados atuais, paginação
+  comum e entrega por download/compartilhamento ou impressão conforme o suporte
+  da plataforma.
+- Criação pontual de uma cópia do show no formulário de calendário do iOS e
+  Android, com horário final editável e fuso `America/Sao_Paulo`; `.ics` fica
+  disponível como alternativa para importar ou compartilhar.
+- O término não altera o show salvo. Alterações futuras não sincronizam eventos
+  pessoais; uma nova adição pode criar duplicatas. O Android não confirma se o
+  evento foi salvo.
+- Requer nova validação de Web e development builds iOS/Android antes de
+  atribuir a candidata, tag e commit de release.
+
 ## 1.0.0 — candidata `v1.0.0-rc.5` em preparação
 
 ### Correções no cadastro de músicas e shows

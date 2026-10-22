@@ -148,6 +148,13 @@ const MEMBER_SHOW = createShow({
   startsAt: '2026-12-05T20:30:00-03:00',
   venue: 'Casa das Artes',
 });
+const CANCELLED_SHOW = createShow({
+  id: 'show-cancelled',
+  bandId: BAND_ID,
+  name: 'Show cancelado',
+  startsAt: '2027-04-01T20:00:00-03:00',
+  status: 'cancelled',
+});
 
 function renderShowDetail({
   showId,
@@ -304,6 +311,10 @@ describe('<ShowDetailScreen />', () => {
     await fireEvent.press(view.getByLabelText('Mais opções do show'));
 
     expect(view.getByTestId('show-detail-actions-sheet')).toBeTruthy();
+    expect(view.getByLabelText('Exportar setlist do show')).toBeTruthy();
+    expect(
+      view.getByLabelText('Adicionar cópia do show ao calendário'),
+    ).toBeTruthy();
     expect(view.getByLabelText('Editar show')).toBeTruthy();
     expect(view.getByLabelText('Duplicar show')).toBeTruthy();
     expect(view.getByLabelText('Marcar como Pronto')).toBeTruthy();
@@ -435,15 +446,68 @@ describe('<ShowDetailScreen />', () => {
     });
   });
 
-  it('oculta ações para integrante sem permissão de edição', async () => {
+  it('permite que integrante consulte as cópias do show sem ações de edição', async () => {
     const view = await renderShowDetail({
       showId: MEMBER_SHOW.id,
       role: 'member',
     });
 
     await view.findByText('Encontro de Dezembro');
-    expect(view.queryByLabelText('Mais opções do show')).toBeNull();
+    await fireEvent.press(view.getByLabelText('Mais opções do show'));
+    expect(view.getByLabelText('Exportar setlist do show')).toBeTruthy();
+    expect(
+      view.getByLabelText('Adicionar cópia do show ao calendário'),
+    ).toBeTruthy();
+    expect(view.queryByLabelText('Editar show')).toBeNull();
+    expect(view.queryByLabelText('Duplicar show')).toBeNull();
     expect(view.queryByLabelText('Editar setlist')).toBeNull();
+  });
+
+  it('encerra o menu antes de abrir a rota de exportação para integrante', async () => {
+    const view = await renderShowDetail({
+      showId: MEMBER_SHOW.id,
+      role: 'member',
+    });
+
+    await view.findByText('Encontro de Dezembro');
+    await fireEvent.press(view.getByLabelText('Mais opções do show'));
+    await fireEvent.press(view.getByLabelText('Exportar setlist do show'));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        `/bands/${BAND_ID}/shows/${MEMBER_SHOW.id}/export`,
+      );
+    });
+  });
+
+  it('abre a preparação de calendário para integrante e desabilita show cancelado', async () => {
+    const memberView = await renderShowDetail({
+      showId: MEMBER_SHOW.id,
+      role: 'member',
+    });
+
+    await memberView.findByText('Encontro de Dezembro');
+    await fireEvent.press(memberView.getByLabelText('Mais opções do show'));
+    await fireEvent.press(
+      memberView.getByLabelText('Adicionar cópia do show ao calendário'),
+    );
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        `/bands/${BAND_ID}/shows/${MEMBER_SHOW.id}/calendar`,
+      );
+    });
+
+    const cancelledView = await renderShowDetail({
+      showId: CANCELLED_SHOW.id,
+      shows: [CANCELLED_SHOW],
+    });
+    await cancelledView.findByText('Show cancelado');
+    await fireEvent.press(cancelledView.getByLabelText('Mais opções do show'));
+
+    const cancelledAction = cancelledView.getByLabelText(
+      'Indisponível: shows cancelados não podem ser adicionados como eventos ativos',
+    );
+    expect(cancelledAction.props.accessibilityState.disabled).toBe(true);
   });
 
   it.each([

@@ -20,6 +20,14 @@ export function getShowEditHref(bandId: EntityId, showId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/shows/${encodeURIComponent(showId)}/edit` as Href;
 }
 
+export function getShowExportHref(bandId: EntityId, showId: EntityId): Href {
+  return `/bands/${encodeURIComponent(bandId)}/shows/${encodeURIComponent(showId)}/export` as Href;
+}
+
+export function getShowCalendarHref(bandId: EntityId, showId: EntityId): Href {
+  return `/bands/${encodeURIComponent(bandId)}/shows/${encodeURIComponent(showId)}/calendar` as Href;
+}
+
 export function getSongLyricsHref(bandId: EntityId, songId: EntityId): Href {
   return `/bands/${encodeURIComponent(bandId)}/repertoire/${encodeURIComponent(songId)}/lyrics` as Href;
 }
