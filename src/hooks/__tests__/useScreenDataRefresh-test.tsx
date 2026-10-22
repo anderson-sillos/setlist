@@ -2,7 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
 import type { PropsWithChildren } from 'react';
 
-import { refetchScreenQueries } from '@/data/screenQueryRegistry';
+import {
+  refetchScreenQueries,
+  refreshActiveScreenQueries,
+} from '@/data/screenQueryRegistry';
 import {
   SCREEN_DATA_FRESHNESS_MS,
   useScreenDataRefresh,
@@ -106,6 +109,59 @@ describe('useScreenDataRefresh', () => {
     expect(invalidatedQuery.refetch).toHaveBeenCalledTimes(1);
     expect(currentQuery.refetch).not.toHaveBeenCalled();
     expect(result.current.refreshing).toBe(false);
+  });
+
+  it('respeita consultas desabilitadas no foco, na atualização manual e ao retomar o app', async () => {
+    const disabledQuery = {
+      dataUpdatedAt: 0,
+      isEnabled: false,
+      isFetching: false,
+      refreshKeys: [['bands', 'band-1', 'songs', '']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const activeQuery = {
+      dataUpdatedAt: 0,
+      isEnabled: true,
+      isFetching: false,
+      refreshKeys: [['bands', 'band-1', 'context']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const { result } = await renderHook(
+      () => useScreenDataRefresh([disabledQuery, activeQuery]),
+      { wrapper: QueryProvider },
+    );
+
+    await act(async () => {
+      mockFocusCallback?.();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await result.current.onRefresh();
+      await refreshActiveScreenQueries(queryClient);
+    });
+
+    expect(activeQuery.refetch).toHaveBeenCalledTimes(3);
+    expect(disabledQuery.refetch).not.toHaveBeenCalled();
+  });
+
+  it('uma consulta desabilitada não suprime outra habilitada com a mesma chave', async () => {
+    const disabledQuery = {
+      dataUpdatedAt: 0,
+      isEnabled: false,
+      isFetching: false,
+      refreshKeys: [['shared']],
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+    const activeQuery = {
+      ...disabledQuery,
+      isEnabled: true,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    };
+
+    await refetchScreenQueries(queryClient, [disabledQuery, activeQuery]);
+
+    expect(disabledQuery.refetch).not.toHaveBeenCalled();
+    expect(activeQuery.refetch).toHaveBeenCalledTimes(1);
   });
 
   it('mostra o indicador durante a revalidação de cache expirado e o encerra ao concluir', async () => {
