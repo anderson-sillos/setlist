@@ -195,6 +195,11 @@ para anexar ao evento o resumo, cada tentativa por serviço, duração, categori
 da falha, status HTTP e identificador de requisição quando disponível, além do
 link da execução do GitHub Actions e do commit. Se um retry recuperar a
 sondagem, o ping de sucesso também registra a sequência que levou à recuperação.
+Cada endpoint aceita até três tentativas: a sondagem para ao receber HTTP 2xx;
+falhas de rede e respostas HTTP 408, 425, 429 e 5xx são repetidas com espera
+crescente. A tentativa final agora também gera uma linha explícita no log. Uma
+resposta HTTP não transitória encerra as tentativas imediatamente e informa o
+motivo.
 As tentativas também registram método e rota, `Content-Type`, tamanho declarado
 em `Content-Length`, `Content-Encoding` e, para a Web, estado/idade do cache e
 `CF-Ray`. Para respostas Supabase é registrado `sb-request-id` (ou
