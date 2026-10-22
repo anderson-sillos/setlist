@@ -2,7 +2,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 
 import {
   ConnectionBanner,
-  DemoActionNotice,
+  ActionNotice,
   ErrorFeedback,
   feedbackMessages,
   getFeedbackMessage,
@@ -119,13 +119,13 @@ describe('feedback compartilhado', () => {
   it('apresenta avisos de demonstração em um popup acessível', async () => {
     const onClose = jest.fn();
     const view = await render(
-      <DemoActionNotice
+      <ActionNotice
         message="Essa função entra no próximo incremento."
         onClose={onClose}
       />,
     );
 
-    expect(view.getByTestId('demo-action-notice')).toBeTruthy();
+    expect(view.getByTestId('action-notice')).toBeTruthy();
     expect(view.getByRole('alert')).toBeTruthy();
     expect(
       view.getByText('Essa função entra no próximo incremento.'),

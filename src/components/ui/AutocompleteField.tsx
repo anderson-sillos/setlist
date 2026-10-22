@@ -11,6 +11,7 @@ import {
 
 import { AppText } from '@/components/ui/AppText';
 import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
+import { APP_LOCALE } from '@/config/localization';
 import { normalizeForSearch } from '@/utils/text';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 
@@ -20,6 +21,7 @@ interface AutocompleteFieldProps {
   readonly error?: string;
   readonly label: string;
   readonly onChangeText: (value: string) => void;
+  readonly onSuggestionsVisibilityChange?: (visible: boolean) => void;
   readonly options: readonly string[];
   readonly placeholder: string;
   readonly value: string;
@@ -31,6 +33,7 @@ export function AutocompleteField({
   error,
   label,
   onChangeText,
+  onSuggestionsVisibilityChange,
   options,
   placeholder,
   value,
@@ -38,7 +41,9 @@ export function AutocompleteField({
   const inputRef = useRef<TextInput>(null);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [focused, setFocused] = useState(false);
+  const [suggestionsDismissed, setSuggestionsDismissed] = useState(false);
   const pendingSelectionRef = useRef<string | null>(null);
+  const selectionFocusPendingRef = useRef(false);
 
   const clearBlurTimeout = () => {
     if (blurTimeoutRef.current !== null) {
@@ -58,20 +63,24 @@ export function AutocompleteField({
     const query = normalizeForSearch(value);
     const seen = new Set<string>();
 
-    return options.filter((option) => {
-      const normalizedOption = normalizeForSearch(option);
+    return options
+      .filter((option) => {
+        const normalizedOption = normalizeForSearch(option);
 
-      if (
-        !normalizedOption ||
-        seen.has(normalizedOption) ||
-        (query.length > 0 && !normalizedOption.includes(query))
-      ) {
-        return false;
-      }
+        if (
+          !normalizedOption ||
+          seen.has(normalizedOption) ||
+          (query.length > 0 && !normalizedOption.includes(query))
+        ) {
+          return false;
+        }
 
-      seen.add(normalizedOption);
-      return true;
-    });
+        seen.add(normalizedOption);
+        return true;
+      })
+      .sort((left, right) =>
+        left.localeCompare(right, APP_LOCALE, { sensitivity: 'base' }),
+      );
   }, [options, value]);
 
   const normalizedValue = normalizeForSearch(value);
@@ -79,7 +88,14 @@ export function AutocompleteField({
     suggestions.length === 1 &&
     normalizeForSearch(suggestions[0] ?? '') !== normalizedValue;
   const showSuggestions =
-    focused && (suggestions.length > 1 || hasDifferentSingleSuggestion);
+    focused &&
+    !suggestionsDismissed &&
+    (suggestions.length > 1 || hasDifferentSingleSuggestion);
+
+  useEffect(() => {
+    onSuggestionsVisibilityChange?.(showSuggestions);
+  }, [onSuggestionsVisibilityChange, showSuggestions]);
+
   const selectSuggestion = (suggestion: string) => {
     if (pendingSelectionRef.current === suggestion) {
       pendingSelectionRef.current = null;
@@ -93,9 +109,14 @@ export function AutocompleteField({
       }
     }, 0);
     clearBlurTimeout();
+    setSuggestionsDismissed(true);
     onChangeText(suggestion);
     setFocused(true);
-    inputRef.current?.focus();
+    const input = inputRef.current;
+    if (input && !input.isFocused()) {
+      selectionFocusPendingRef.current = true;
+      input.focus();
+    }
   };
 
   return (
@@ -121,12 +142,22 @@ export function AutocompleteField({
         }
         autoCapitalize="sentences"
         autoCorrect={false}
-        onChangeText={onChangeText}
+        onChangeText={(text) => {
+          selectionFocusPendingRef.current = false;
+          setSuggestionsDismissed(false);
+          onChangeText(text);
+        }}
         onFocus={() => {
           clearBlurTimeout();
           setFocused(true);
+          // Restaurar o foco após a seleção não reabre a lista confirmada.
+          if (!selectionFocusPendingRef.current) {
+            setSuggestionsDismissed(false);
+          }
+          selectionFocusPendingRef.current = false;
         }}
         onBlur={() => {
+          selectionFocusPendingRef.current = false;
           clearBlurTimeout();
           blurTimeoutRef.current = setTimeout(() => {
             blurTimeoutRef.current = null;

@@ -120,7 +120,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Sem conexão, uma faixa compacta ficará abaixo do cabeçalho. Conteúdo já carregado permanecerá somente para leitura, criação e edição indicarão que exigem conexão e os aplicativos móveis continuarão oferecendo os shows previamente baixados.
 - Ao recuperar a conexão, o cliente atualizará os dados automaticamente e informará brevemente o restabelecimento.
 - Sucessos e ações reversíveis usarão mensagens temporárias não bloqueantes acima da barra inferior, com `Desfazer` quando aplicável. Validações ficarão junto aos campos; diálogos serão reservados para confirmações destrutivas.
-- Como exceção temporária da primeira versão navegável, ações ainda não implementadas usarão `DemoActionNotice` em um popup modal acessível, com título, mensagem e fechamento explícito ou pelo fundo, evitando que o aviso se misture ao conteúdo da tela. Esse componente não será usado para sucessos, erros ou validações reais.
+- Como exceção temporária da primeira versão navegável, ações ainda não implementadas usarão `ActionNotice` em um popup modal acessível, com título, mensagem e fechamento explícito ou pelo fundo, evitando que o aviso se misture ao conteúdo da tela. Esse componente não será usado para sucessos, erros ou validações reais.
 - Toda informação de estado será comunicada por texto, sem depender apenas de cor. Leitores de tela receberão o mesmo significado das mensagens visuais quando o estado mudar.
 
 ### Tom de voz da interface

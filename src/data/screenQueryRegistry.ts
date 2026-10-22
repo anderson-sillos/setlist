@@ -2,6 +2,7 @@ import type { QueryClient, QueryKey } from '@tanstack/react-query';
 
 export interface RefreshableScreenQuery {
   readonly dataUpdatedAt: number;
+  readonly isEnabled?: boolean;
   readonly isFetching: boolean;
   readonly isStale?: boolean;
   readonly refreshKeys?: readonly QueryKey[];
@@ -27,11 +28,15 @@ function isCoveredBy(
 export function uniqueRefreshQueries(
   queries: readonly RefreshableScreenQuery[],
 ): readonly RefreshableScreenQuery[] {
-  const keyedQueries = queries.map((query, index) => ({
-    index,
-    keys: (query.refreshKeys ?? []).map(serializeQueryKey),
-    query,
-  }));
+  // refetch() ignora enabled: false; consultas sem os parâmetros necessários
+  // devem ser excluídas antes da deduplicação e de qualquer atualização.
+  const keyedQueries = queries
+    .filter(({ isEnabled }) => isEnabled !== false)
+    .map((query, index) => ({
+      index,
+      keys: (query.refreshKeys ?? []).map(serializeQueryKey),
+      query,
+    }));
 
   return keyedQueries
     .filter(({ index, keys }) => {

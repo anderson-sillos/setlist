@@ -129,7 +129,7 @@ Confirmar que a primeira versão navegável permite avaliar a estrutura do produ
 - Preservar edições após falha de salvamento e mostrar a mensagem próxima da ação correspondente.
 - Exibir uma faixa compacta de falta de conexão abaixo do cabeçalho, manter conteúdo carregado somente para leitura e atualizar automaticamente ao reconectar.
 - Usar mensagens temporárias não bloqueantes para sucesso e desfazer; reservar diálogos para ações destrutivas.
-- Enquanto uma ação existir apenas na versão demonstrativa, apresentar seu `DemoActionNotice` em um popup acessível com título, mensagem e fechamento explícito ou pelo fundo, sem misturá-lo ao conteúdo da tela.
+- Enquanto uma ação existir apenas na versão demonstrativa, apresentar seu `ActionNotice` em um popup acessível com título, mensagem e fechamento explícito ou pelo fundo, sem misturá-lo ao conteúdo da tela.
 - Comunicar estados por texto e disponibilizar o mesmo significado a leitores de tela.
 
 ### Tom de voz

@@ -4,18 +4,16 @@ import { Platform } from 'react-native';
 import { AutocompleteField } from '@/components/ui/AutocompleteField';
 
 describe('<AutocompleteField />', () => {
-  it('filtra as bandas e preenche o campo ao selecionar uma sugestão', async () => {
+  it('fecha a lista após selecionar um nome com outras correspondências e reabre ao editar', async () => {
     const onChangeText = jest.fn();
-    const view = await render(
-      <AutocompleteField
-        accessibilityLabel="Artista/Banda"
-        label="Artista/Banda"
-        onChangeText={onChangeText}
-        options={['Banda Horizonte', 'Trio Aurora', 'Trio Auroras']}
-        placeholder="Ex.: Artista original"
-        value="aur"
-      />,
-    );
+    const props = {
+      accessibilityLabel: 'Artista/Banda',
+      label: 'Artista/Banda',
+      onChangeText,
+      options: ['Banda Horizonte', 'Trio Aurora', 'Trio Auroras'],
+      placeholder: 'Ex.: Artista original',
+    };
+    const view = await render(<AutocompleteField {...props} value="aur" />);
 
     await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
 
@@ -25,6 +23,13 @@ describe('<AutocompleteField />', () => {
     await fireEvent.press(view.getByLabelText('Usar Trio Aurora'));
 
     expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+    expect(view.queryByLabelText('Usar Trio Auroras')).toBeNull();
+    await view.rerender(<AutocompleteField {...props} value="Trio Aurora" />);
+    expect(view.queryByLabelText('Usar Trio Auroras')).toBeNull();
+
+    await fireEvent.changeText(view.getByLabelText('Artista/Banda'), 'aur');
+    await view.rerender(<AutocompleteField {...props} value="aur" />);
+    expect(view.getByLabelText('Usar Trio Auroras')).toBeTruthy();
   });
 
   it('mantém o campo focalizável no Android', async () => {
@@ -64,41 +69,43 @@ describe('<AutocompleteField />', () => {
       value: 'web',
     });
 
-    const onChangeText = jest.fn();
-    const view = await render(
-      <AutocompleteField
-        accessibilityLabel="Artista/Banda"
-        label="Artista/Banda"
-        onChangeText={onChangeText}
-        options={['Banda Horizonte', 'Trio Aurora']}
-        placeholder="Ex.: Artista original"
-        value="aur"
-      />,
-    );
+    try {
+      const onChangeText = jest.fn();
+      const view = await render(
+        <AutocompleteField
+          accessibilityLabel="Artista/Banda"
+          label="Artista/Banda"
+          onChangeText={onChangeText}
+          options={['Banda Horizonte', 'Trio Aurora', 'Trio Auroras']}
+          placeholder="Ex.: Artista original"
+          value="aur"
+        />,
+      );
 
-    await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
-    await fireEvent(view.getByLabelText('Usar Trio Aurora'), 'pressIn');
+      await fireEvent(view.getByLabelText('Artista/Banda'), 'focus');
+      await fireEvent(view.getByLabelText('Usar Trio Aurora'), 'pressIn');
 
-    expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
-
-    Object.defineProperty(Platform, 'OS', {
-      configurable: true,
-      value: originalPlatform,
-    });
+      expect(onChangeText).toHaveBeenCalledTimes(1);
+      expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+      expect(view.queryByLabelText('Usar Trio Auroras')).toBeNull();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
   });
 
   it('permite selecionar uma sugestão mesmo quando o campo perde o foco', async () => {
     const onChangeText = jest.fn();
-    const view = await render(
-      <AutocompleteField
-        accessibilityLabel="Artista/Banda"
-        label="Artista/Banda"
-        onChangeText={onChangeText}
-        options={['Banda Horizonte', 'Trio Aurora', 'Trio Auroras']}
-        placeholder="Ex.: Artista original"
-        value="aur"
-      />,
-    );
+    const props = {
+      accessibilityLabel: 'Artista/Banda',
+      label: 'Artista/Banda',
+      onChangeText,
+      options: ['Banda Horizonte', 'Trio Aurora', 'Trio Auroras'],
+      placeholder: 'Ex.: Artista original',
+    };
+    const view = await render(<AutocompleteField {...props} value="aur" />);
 
     const input = view.getByLabelText('Artista/Banda');
     await fireEvent(input, 'focus');
@@ -106,6 +113,12 @@ describe('<AutocompleteField />', () => {
     await fireEvent.press(view.getByLabelText('Usar Trio Aurora'));
 
     expect(onChangeText).toHaveBeenCalledWith('Trio Aurora');
+    expect(view.queryByLabelText('Usar Trio Auroras')).toBeNull();
+    await view.rerender(<AutocompleteField {...props} value="Trio Aurora" />);
+
+    await fireEvent(input, 'blur');
+    await fireEvent(input, 'focus');
+    expect(view.getByLabelText('Usar Trio Auroras')).toBeTruthy();
   });
 
   it('não exibe a lista quando a única sugestão já está preenchida', async () => {

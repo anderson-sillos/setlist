@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TextInput,
   View,
+  type LayoutRectangle,
 } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
@@ -87,6 +88,67 @@ export function ShowCreationDialog({
 }: ShowCreationDialogProps) {
   const reducedMotion = useReducedMotionPreference();
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const [venueSuggestionsVisible, setVenueSuggestionsVisible] = useState(false);
+  const formScrollRef = useRef<ScrollView>(null);
+  const venueLayoutRef = useRef<LayoutRectangle | null>(null);
+  const viewportHeightRef = useRef(0);
+  const contentHeightRef = useRef(0);
+  const scrollOffsetRef = useRef(0);
+  const scrollFrameRef = useRef<number | null>(null);
+  const keepVenueSuggestionsVisible = useCallback(() => {
+    if (
+      !visible ||
+      !venueSuggestionsVisible ||
+      scrollFrameRef.current !== null
+    ) {
+      return;
+    }
+
+    // Aguarda o layout da lista e o redimensionamento causado pelo teclado.
+    scrollFrameRef.current = requestAnimationFrame(() => {
+      scrollFrameRef.current = null;
+      const field = venueLayoutRef.current;
+      const viewportHeight = viewportHeightRef.current;
+      if (!field || viewportHeight <= 0) return;
+
+      const inset = spacing.sm;
+      const currentOffset = scrollOffsetRef.current;
+      const availableHeight = viewportHeight - inset * 2;
+      // Listas maiores que a área visível começam junto ao campo; as demais
+      // opções continuam acessíveis pela rolagem normal do formulário.
+      const desiredOffset =
+        field.height > availableHeight || field.y < currentOffset + inset
+          ? field.y - inset
+          : Math.max(
+              currentOffset,
+              field.y + field.height + inset - viewportHeight,
+            );
+      const maxOffset = Math.max(0, contentHeightRef.current - viewportHeight);
+      const nextOffset = Math.max(0, Math.min(desiredOffset, maxOffset));
+      if (Math.abs(nextOffset - currentOffset) < 1) return;
+
+      scrollOffsetRef.current = nextOffset;
+      formScrollRef.current?.scrollTo({
+        animated: !reducedMotion,
+        y: nextOffset,
+      });
+    });
+  }, [reducedMotion, venueSuggestionsVisible, visible]);
+
+  useEffect(() => {
+    keepVenueSuggestionsVisible();
+    const keyboardShown = visible
+      ? Keyboard.addListener('keyboardDidShow', keepVenueSuggestionsVisible)
+      : null;
+    return () => {
+      keyboardShown?.remove();
+      if (scrollFrameRef.current !== null) {
+        cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
+    };
+  }, [keepVenueSuggestionsVisible, visible]);
+
   const initialForm: ShowCreationForm = {
     date: initialValues?.date ?? initialDate ?? localDateKey(new Date()),
     name: initialValues?.name ?? '',
@@ -201,6 +263,19 @@ export function ShowCreationDialog({
               Platform.OS === 'ios' ? 'interactive' : 'on-drag'
             }
             keyboardShouldPersistTaps="handled"
+            onContentSizeChange={(_, height) => {
+              contentHeightRef.current = height;
+              keepVenueSuggestionsVisible();
+            }}
+            onLayout={({ nativeEvent }) => {
+              viewportHeightRef.current = nativeEvent.layout.height;
+              keepVenueSuggestionsVisible();
+            }}
+            onScroll={({ nativeEvent }) => {
+              scrollOffsetRef.current = nativeEvent.contentOffset.y;
+            }}
+            ref={formScrollRef}
+            scrollEventThrottle={16}
             style={styles.formScroll}
           >
             <KeyboardDismissRegion>
@@ -276,14 +351,22 @@ export function ShowCreationDialog({
                 </View>
               </View>
             </View>
-            <AutocompleteField
-              accessibilityLabel="Local do show"
-              label="Local"
-              onChangeText={(value) => setField('venue', value)}
-              options={venueOptions}
-              placeholder="Ex.: Praça Central"
-              value={form.venue}
-            />
+            <View
+              onLayout={({ nativeEvent }) => {
+                venueLayoutRef.current = nativeEvent.layout;
+                keepVenueSuggestionsVisible();
+              }}
+            >
+              <AutocompleteField
+                accessibilityLabel="Local do show"
+                label="Local"
+                onChangeText={(value) => setField('venue', value)}
+                onSuggestionsVisibilityChange={setVenueSuggestionsVisible}
+                options={venueOptions}
+                placeholder="Ex.: Praça Central"
+                value={form.venue}
+              />
+            </View>
             <Field
               label="Observações"
               accessibilityLabel="Observações do show"
@@ -417,7 +500,7 @@ const styles = StyleSheet.create({
   errorText: { color: colors.semantic.danger },
   fieldGroup: { gap: spacing.xs },
   formContent: { gap: spacing.lg, padding: spacing.xl },
-  formScroll: { flexGrow: 0 },
+  formScroll: { flexGrow: 0, flexShrink: 1, minHeight: 0 },
   halfField: { flex: 1, minWidth: 180 },
   header: {
     alignItems: 'center',

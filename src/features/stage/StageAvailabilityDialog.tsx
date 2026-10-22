@@ -1,4 +1,4 @@
-import { DemoActionNotice } from '@/components/feedback/DemoActionNotice';
+import { ActionNotice } from '@/components/feedback/ActionNotice';
 
 interface StageAvailabilityDialogProps {
   readonly onClose: () => void;
@@ -13,7 +13,7 @@ export function StageAvailabilityDialog({
   visible,
 }: StageAvailabilityDialogProps) {
   return (
-    <DemoActionNotice
+    <ActionNotice
       message={visible ? stageAvailabilityMessage : null}
       onClose={onClose}
       testID="stage-availability-dialog"

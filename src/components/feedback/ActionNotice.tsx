@@ -4,19 +4,19 @@ import { AppText } from '@/components/ui/AppText';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
-interface DemoActionNoticeProps {
+interface ActionNoticeProps {
   readonly message: string | null;
   readonly onClose: () => void;
   readonly testID?: string;
   readonly title?: string;
 }
 
-export function DemoActionNotice({
+export function ActionNotice({
   message,
   onClose,
-  testID = 'demo-action-notice',
+  testID = 'action-notice',
   title = 'Demonstração',
-}: DemoActionNoticeProps) {
+}: ActionNoticeProps) {
   const reducedMotion = useReducedMotionPreference();
   if (!message) return null;
 

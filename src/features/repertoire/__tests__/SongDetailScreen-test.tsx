@@ -501,7 +501,7 @@ describe('<SongDetailScreen />', () => {
 
     await fireEvent.press(view.getByLabelText('Editar música'));
 
-    expect(view.queryByTestId('demo-action-notice')).toBeNull();
+    expect(view.queryByTestId('action-notice')).toBeNull();
   });
 
   it('permite denunciar a música exibida e envia o identificador correto', async () => {

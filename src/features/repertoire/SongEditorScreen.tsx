@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import {
-  DemoActionNotice,
+  ActionNotice,
   ErrorFeedback,
   LoadingFeedback,
   UnavailableFeedback,
@@ -40,7 +40,7 @@ import {
   useCurrentBandTermAcceptance,
   useSong,
   useBandContext,
-  useUserRepertoireSongSummaries,
+  useSongSummaries,
 } from '@/data/queries';
 import { invalidateBandReadData } from '@/data/queryInvalidations';
 import type { EntityId, LyricDocument } from '@/domain';
@@ -81,8 +81,9 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const bandContextQuery = useBandContext(bandId);
-  const userRepertoireSongSummariesQuery = useUserRepertoireSongSummaries();
+  const bandSongSummariesQuery = useSongSummaries(bandId, true);
   const songQuery = useSong(bandId, songId ?? '', Boolean(songId));
+  const hasSongLoadError = Boolean(songId) && songQuery.isError;
   const [isAcceptingTerm, setIsAcceptingTerm] = useState(false);
   const [termAcceptanceError, setTermAcceptanceError] = useState<string | null>(
     null,
@@ -116,7 +117,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
   );
   useScreenDataRefresh([
     bandContextQuery,
-    userRepertoireSongSummariesQuery,
+    bandSongSummariesQuery,
     songQuery,
     termAcceptanceQuery,
   ]);
@@ -126,7 +127,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     (canEdit && termAcceptanceQuery.isPending);
   const originalArtistOptions = Array.from(
     new Set(
-      userRepertoireSongSummariesQuery.data
+      bandSongSummariesQuery.data
         ?.map(({ originalArtist }) => originalArtist?.trim() ?? '')
         .filter(Boolean) ?? [],
     ),
@@ -378,7 +379,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {bandContextQuery.isError ? (
         <ErrorFeedback onRetry={() => void bandContextQuery.refetch()} />
       ) : null}
-      {songQuery.isError && songId ? (
+      {hasSongLoadError ? (
         <ErrorFeedback onRetry={() => void songQuery.refetch()} />
       ) : null}
       {termAcceptanceQuery.isError ? (
@@ -387,10 +388,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       {!isLoading && !bandContextQuery.isError && !canEdit ? (
         <UnavailableFeedback title="Seu papel permite consultar o repertório, não editá-lo" />
       ) : null}
-      {!isLoading && songId && !songQuery.isError && !song ? (
+      {!isLoading && songId && !hasSongLoadError && !song ? (
         <UnavailableFeedback title="Música indisponível" />
       ) : null}
-      <DemoActionNotice
+      <ActionNotice
         message={submitError ?? lifecycleNotice}
         onClose={() => {
           setSubmitError(null);
@@ -420,7 +421,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       />
       {!isLoading &&
       !bandContextQuery.isError &&
-      !songQuery.isError &&
+      !hasSongLoadError &&
       !termAcceptanceQuery.isError &&
       termAcceptanceQuery.data === true &&
       canEdit &&
@@ -528,7 +529,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
       ) : null}
       {!isLoading &&
       !bandContextQuery.isError &&
-      !songQuery.isError &&
+      !hasSongLoadError &&
       !termAcceptanceQuery.isError &&
       canEdit &&
       termAcceptanceQuery.data === false ? (
