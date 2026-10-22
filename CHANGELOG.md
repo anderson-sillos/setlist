@@ -1,5 +1,24 @@
 # Histórico de versões
 
+## 1.0.0 — candidata `v1.0.0-rc.5` em preparação
+
+### Correções no cadastro de músicas e shows
+
+- A tela de nova música deixa de ficar vazia quando uma consulta de música
+  desativada falha ao recuperar dados em segundo plano; erros de carregamento
+  continuam visíveis ao editar uma música existente.
+- As sugestões de artista consideram o repertório da banda atual, incluindo
+  músicas arquivadas, sem misturar artistas de outras bandas.
+- As listas de autocomplete aparecem em ordem alfabética, fecham após uma
+  seleção e voltam ao entrar no campo ou editar o texto.
+- A lista de locais sugeridos para um show permanece visível com a rolagem
+  ajustada ao espaço disponível quando o teclado abre.
+- O aviso de ação de demonstração passa a se chamar `ActionNotice`.
+
+Os builds Android/iOS e a exportação Web serão gerados a partir do commit
+integrado e identificado pela tag imutável `v1.0.0-rc.5`. Os artefatos e a
+validação das lojas ficam pendentes até essa etapa.
+
 ## 1.0.0 — candidata `v1.0.0-rc.4` em andamento
 
 ### Correção do indicador de atualização
