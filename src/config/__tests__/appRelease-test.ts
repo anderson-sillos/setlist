@@ -1,6 +1,8 @@
 import { requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
+import appConfig from '../../../app.json';
+
 import { getAppReleaseInfo } from '@/config/appRelease';
 
 jest.mock('expo', () => ({ requireOptionalNativeModule: jest.fn() }));
@@ -10,6 +12,7 @@ jest.mock('expo-constants', () => ({
   ExecutionEnvironment: { StoreClient: 'storeClient' },
 }));
 
+const currentCodeVersion = appConfig.expo.version;
 const mockNative = jest.mocked(requireOptionalNativeModule);
 const constants = jest.requireMock('expo-constants').default as {
   executionEnvironment: string;
@@ -28,7 +31,7 @@ beforeEach(() => {
     value: 'android',
   });
   constants.executionEnvironment = 'standalone';
-  constants.expoConfig = { version: '1.0.0' };
+  constants.expoConfig = { version: currentCodeVersion };
   mockNative.mockReturnValue(null);
   process.env.EXPO_PUBLIC_APP_ENV = 'development';
 });
@@ -45,14 +48,14 @@ afterAll(() => {
 it('consulta a versão e o build reais do binário Setlist', () => {
   mockNative.mockReturnValue({
     applicationId: 'com.andersonsillos.setlist',
-    nativeApplicationVersion: '1.0.0',
+    nativeApplicationVersion: currentCodeVersion,
     nativeBuildVersion: '12',
   } as never);
   constants.expoConfig = { version: '1.1.0' };
   expect(getAppReleaseInfo()).toMatchObject({
-    version: '1.0.0',
-    installedVersion: '1.0.0',
-    codeVersion: '1.0.0',
+    version: currentCodeVersion,
+    installedVersion: currentCodeVersion,
+    codeVersion: currentCodeVersion,
     build: '12',
     platform: 'Android',
   });
@@ -60,8 +63,8 @@ it('consulta a versão e o build reais do binário Setlist', () => {
 
 it('preserva o fallback em um client antigo sem o módulo', () => {
   expect(getAppReleaseInfo()).toMatchObject({
-    version: '1.0.0',
-    codeVersion: '1.0.0',
+    version: currentCodeVersion,
+    codeVersion: currentCodeVersion,
     installedVersion: null,
     build: null,
   });
@@ -69,15 +72,15 @@ it('preserva o fallback em um client antigo sem o módulo', () => {
 
 it('usa app.json quando a configuração Expo não está disponível', () => {
   constants.expoConfig = null;
-  expect(getAppReleaseInfo().version).toBe('1.0.0');
+  expect(getAppReleaseInfo().version).toBe(currentCodeVersion);
 });
 
 it('usa a versão do código mesmo quando o manifesto iOS mantém uma versão anterior', () => {
   Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
   constants.expoConfig = { version: '0.1.0' };
   expect(getAppReleaseInfo()).toMatchObject({
-    version: '1.0.0',
-    codeVersion: '1.0.0',
+    version: currentCodeVersion,
+    codeVersion: currentCodeVersion,
     installedVersion: null,
     build: null,
     platform: 'iOS',
@@ -94,7 +97,7 @@ it('distingue um binário antigo do código atual sem inventar a versão instala
   expect(getAppReleaseInfo()).toMatchObject({
     version: '0.1.0',
     installedVersion: '0.1.0',
-    codeVersion: '1.0.0',
+    codeVersion: currentCodeVersion,
     build: '1',
   });
 });
@@ -111,7 +114,10 @@ it('ignora o binário de outro aplicativo', () => {
     nativeApplicationVersion: '57.0.0',
     nativeBuildVersion: '900',
   } as never);
-  expect(getAppReleaseInfo()).toMatchObject({ version: '1.0.0', build: null });
+  expect(getAppReleaseInfo()).toMatchObject({
+    version: currentCodeVersion,
+    build: null,
+  });
 });
 
 it('identifica iOS e usa o fallback para constantes nativas ausentes', () => {
@@ -120,7 +126,7 @@ it('identifica iOS e usa o fallback para constantes nativas ausentes', () => {
     applicationId: 'com.andersonsillos.setlist',
   } as never);
   expect(getAppReleaseInfo()).toMatchObject({
-    version: '1.0.0',
+    version: currentCodeVersion,
     build: null,
     platform: 'iOS',
   });
@@ -129,14 +135,14 @@ it('identifica iOS e usa o fallback para constantes nativas ausentes', () => {
 it('consulta somente os metadados do export na Web', () => {
   Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
   constants.expoConfig = {
-    version: '1.0.0',
-    extra: { release: { commit: 'a'.repeat(40), tag: 'v1.0.0-rc.1' } },
+    version: currentCodeVersion,
+    extra: { release: { commit: 'a'.repeat(40), tag: 'v1.0.1-rc.1' } },
   };
   expect(getAppReleaseInfo()).toMatchObject({
-    version: '1.0.0',
+    version: currentCodeVersion,
     platform: 'Web',
     commit: 'a'.repeat(40),
-    tag: 'v1.0.0-rc.1',
+    tag: 'v1.0.1-rc.1',
     build: null,
   });
   expect(mockNative).not.toHaveBeenCalled();
@@ -149,7 +155,7 @@ it.each([undefined, 123, 'commit-invalido'])(
     expect(getAppReleaseInfo()).toMatchObject({
       commit: null,
       tag: null,
-      version: '1.0.0',
+      version: currentCodeVersion,
     });
   },
 );
