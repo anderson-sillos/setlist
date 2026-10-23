@@ -123,9 +123,7 @@ export const AppButton = forwardRef<
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      <AnimatedSurface
-        style={[styles.pressOverlay, animatedSurface]}
-      />
+      <AnimatedSurface style={[styles.pressOverlay, animatedSurface]} />
       <View style={styles.content}>
         {leading ??
           (icon ? (

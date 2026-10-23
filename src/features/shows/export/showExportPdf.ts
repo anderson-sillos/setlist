@@ -5,10 +5,7 @@ import {
   buildShowExportPages,
   getPageLineColor,
 } from './showExportLayout';
-import {
-  documentFontkit,
-  loadDocumentFontResources,
-} from './documentFonts';
+import { documentFontkit, loadDocumentFontResources } from './documentFonts';
 import type { ShowExportDocument, ShowExportOptions } from './showExportModel';
 
 function parseColor(value: string) {

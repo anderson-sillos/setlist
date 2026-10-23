@@ -16,7 +16,9 @@ function resolveNearestTslibEsm(originModulePath) {
       const exportModule = packageJson.exports?.['.']?.module;
       const entryPoint =
         packageJson.module ??
-        (typeof exportModule === 'string' ? exportModule : exportModule?.default);
+        (typeof exportModule === 'string'
+          ? exportModule
+          : exportModule?.default);
 
       if (entryPoint) {
         return path.resolve(packageDirectory, entryPoint);

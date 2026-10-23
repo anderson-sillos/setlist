@@ -1,14 +1,22 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import { ShowExportScreen } from '@/features/shows/ShowExportScreen';
 import { queryKeys } from '@/data/queryKeys';
 import type { Show } from '@/domain';
 import {
+  canShareDocumentFile,
+  closePrintTarget,
+  downloadDocumentFile,
   prepareDocumentFile,
+  preparePrintTarget,
+  printShowDocument,
+  releaseDocumentFile,
   shareDocumentFile,
 } from '@/features/shows/export/documentDelivery';
+import { loadDocumentFontResources } from '@/features/shows/export/documentFonts';
 import { createShowExportPdf } from '@/features/shows/export/showExportPdf';
 import {
   createShow,
@@ -78,14 +86,60 @@ jest.mock('@/features/shows/export/showExportPdf', () => ({
   createShowExportPdf: jest.fn(),
 }));
 
-jest.mock('@/features/shows/export/PngPageRenderer', () => ({
-  PngPageRenderer: () => null,
-}));
+jest.mock('@/features/shows/export/PngPageRenderer', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable: MockPressable, Text: MockText } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    PngPageRenderer: ({
+      onRendered,
+      requestId,
+    }: {
+      onRendered: (id: number, base64: string) => void;
+      requestId: number;
+    }) =>
+      requestId > 0
+        ? React.createElement(
+            React.Fragment,
+            null,
+            React.createElement(
+              MockPressable,
+              {
+                onPress: () =>
+                  onRendered(requestId, 'data:image/png;base64,aGVsbG8='),
+                testID: 'mock-png-renderer',
+              },
+              React.createElement(MockText, null, 'PNG pronto'),
+            ),
+            React.createElement(
+              MockPressable,
+              {
+                onPress: () => onRendered(requestId, ''),
+                testID: 'mock-png-empty',
+              },
+              React.createElement(MockText, null, 'PNG vazio'),
+            ),
+            React.createElement(
+              MockPressable,
+              {
+                onPress: () =>
+                  onRendered(requestId + 1, 'data:image/png;base64,aGVsbG8='),
+                testID: 'mock-png-stale',
+              },
+              React.createElement(MockText, null, 'PNG obsoleto'),
+            ),
+          )
+        : null,
+  };
+});
 
 describe('<ShowExportScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedQueryClient = null;
+    jest.mocked(canShareDocumentFile).mockResolvedValue(true);
+    jest.mocked(shareDocumentFile).mockResolvedValue({ status: 'opened' });
+    jest.mocked(downloadDocumentFile).mockResolvedValue({ status: 'opened' });
     jest.mocked(prepareDocumentFile).mockResolvedValue({
       name: 'noite-de-teste-2026-10-24.pdf',
       mimeType: 'application/pdf',
@@ -268,6 +322,522 @@ describe('<ShowExportScreen />', () => {
     expect(jest.mocked(shareDocumentFile)).toHaveBeenCalledTimes(1);
   });
 
+  it('gera e compartilha o arquivo de texto no dispositivo', async () => {
+    const bandId = 'band-text-export';
+    const showId = 'show-text-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-text-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show em texto' })],
+    });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByLabelText('Texto'));
+    await fireEvent.press(view.getByText('Gerar TXT'));
+
+    expect(
+      await view.findByText(/O seletor do sistema foi aberto/),
+    ).toBeTruthy();
+    expect(shareDocumentFile).toHaveBeenCalledTimes(1);
+    expect(prepareDocumentFile).toHaveBeenCalledWith(
+      expect.stringMatching(/show-em-texto-.*\.txt$/),
+      'text/plain;charset=utf-8',
+      expect.any(Uint8Array),
+    );
+    expect(view.getByText('Atualizar visualização')).toBeTruthy();
+
+    await fireEvent.press(view.getByText('Gerar TXT'));
+    await view.findByText(/O seletor do sistema foi aberto/);
+    expect(jest.mocked(releaseDocumentFile)).toHaveBeenCalledTimes(1);
+    await fireEvent.press(view.getByText('Atualizar visualização'));
+    expect(jest.mocked(releaseDocumentFile)).toHaveBeenCalledTimes(2);
+  });
+
+  it('gera uma imagem para a página selecionada após receber a renderização', async () => {
+    const bandId = 'band-png-export';
+    const showId = 'show-png-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-png-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show em imagem' })],
+    });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByLabelText('Imagem'));
+    await fireEvent.press(view.getByText('Gerar imagem da página 1'));
+    await fireEvent.press(await view.findByTestId('mock-png-stale'));
+    await fireEvent.press(await view.findByTestId('mock-png-renderer'));
+
+    expect(
+      await view.findByText(/O seletor do sistema foi aberto/),
+    ).toBeTruthy();
+    expect(prepareDocumentFile).toHaveBeenCalledWith(
+      expect.stringMatching(/show-em-imagem-.*-pagina-01\.png$/),
+      'image/png',
+      expect.any(Uint8Array),
+    );
+  });
+
+  it('mostra um erro quando a renderização da imagem retorna conteúdo vazio', async () => {
+    const bandId = 'band-empty-png-export';
+    const showId = 'show-empty-png-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-empty-png-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show sem imagem' })],
+    });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByLabelText('Imagem'));
+    await fireEvent.press(view.getByText('Gerar imagem da página 1'));
+    await fireEvent.press(await view.findByTestId('mock-png-empty'));
+
+    expect(await view.findByText('A imagem gerada ficou vazia.')).toBeTruthy();
+    expect(prepareDocumentFile).not.toHaveBeenCalled();
+  });
+
+  it('abre a impressão no sistema e permite atualizar a pré-visualização', async () => {
+    const bandId = 'band-print-export';
+    const showId = 'show-print-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-print-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show para imprimir' })],
+    });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByLabelText('Imprimir'));
+    await fireEvent.press(view.getByText('Gerar e imprimir'));
+
+    expect(
+      await view.findByText('A janela de impressão foi aberta.'),
+    ).toBeTruthy();
+    expect(jest.mocked(printShowDocument)).toHaveBeenCalledTimes(1);
+    expect(view.getByText('Atualizar visualização')).toBeTruthy();
+  });
+
+  it('usa download como alternativa quando o compartilhamento web não está disponível', async () => {
+    const previousPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    try {
+      const bandId = 'band-web-export';
+      const showId = 'show-web-export';
+      const scenario = createBandScenario({
+        bandId,
+        userId: 'user-web-export',
+        role: 'member',
+        shows: [createShow({ id: showId, bandId, name: 'Show web' })],
+      });
+      jest.mocked(canShareDocumentFile).mockResolvedValue(false);
+      const view = await render(
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowExportScreen bandId={bandId} showId={showId} />
+        </TestAppProviders>,
+      );
+
+      await view.findByText('1 página · A4');
+      await fireEvent.press(view.getByLabelText('Texto'));
+      await fireEvent.press(view.getByText('Gerar TXT'));
+
+      expect(await view.findByText(/download foi iniciado/)).toBeTruthy();
+      expect(downloadDocumentFile).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: previousPlatform,
+      });
+    }
+  });
+
+  it('registra o cancelamento do compartilhamento sem descartar o arquivo', async () => {
+    const bandId = 'band-cancelled-export';
+    const showId = 'show-cancelled-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-cancelled-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show cancelado' })],
+    });
+    jest.mocked(shareDocumentFile).mockResolvedValue({ status: 'cancelled' });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByText('Gerar PDF'));
+
+    expect(await view.findByText(/Compartilhamento cancelado/)).toBeTruthy();
+    expect(view.getByText('Atualizar visualização')).toBeTruthy();
+  });
+
+  it('informa quando o compartilhamento nativo não está disponível', async () => {
+    const bandId = 'band-unsupported-export';
+    const showId = 'show-unsupported-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-unsupported-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show sem destino' })],
+    });
+    jest.mocked(shareDocumentFile).mockResolvedValue({ status: 'unsupported' });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByText('Gerar PDF'));
+
+    expect(
+      await view.findByText(
+        /O compartilhamento está indisponível neste dispositivo/,
+      ),
+    ).toBeTruthy();
+    expect(view.getByText('Atualizar visualização')).toBeTruthy();
+  });
+
+  it('usa download se a API de compartilhamento web lançar erro', async () => {
+    const previousPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    try {
+      const bandId = 'band-web-share-error';
+      const showId = 'show-web-share-error';
+      const scenario = createBandScenario({
+        bandId,
+        userId: 'user-web-share-error',
+        role: 'member',
+        shows: [createShow({ id: showId, bandId, name: 'Show web offline' })],
+      });
+      jest
+        .mocked(canShareDocumentFile)
+        .mockRejectedValue(new Error('bloqueado'));
+      const view = await render(
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowExportScreen bandId={bandId} showId={showId} />
+        </TestAppProviders>,
+      );
+
+      await view.findByText('1 página · A4');
+      await fireEvent.press(view.getByLabelText('Texto'));
+      await fireEvent.press(view.getByText('Gerar TXT'));
+
+      expect(
+        await view.findByText(/não abriu o compartilhamento automaticamente/),
+      ).toBeTruthy();
+      expect(downloadDocumentFile).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: previousPlatform,
+      });
+    }
+  });
+
+  it('abre o compartilhamento web quando o navegador aceita o arquivo', async () => {
+    const previousPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    try {
+      const bandId = 'band-web-share';
+      const showId = 'show-web-share';
+      const scenario = createBandScenario({
+        bandId,
+        userId: 'user-web-share',
+        role: 'member',
+        shows: [
+          createShow({ id: showId, bandId, name: 'Show compartilhável' }),
+        ],
+      });
+      jest.mocked(canShareDocumentFile).mockResolvedValue(true);
+      const view = await render(
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowExportScreen bandId={bandId} showId={showId} />
+        </TestAppProviders>,
+      );
+
+      await view.findByText('1 página · A4');
+      await fireEvent.press(view.getByLabelText('Texto'));
+      await fireEvent.press(view.getByText('Gerar TXT'));
+
+      expect(
+        await view.findByText(/O seletor de compartilhamento foi aberto/),
+      ).toBeTruthy();
+      expect(shareDocumentFile).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: previousPlatform,
+      });
+    }
+  });
+
+  it('preserva o arquivo quando o compartilhamento web é cancelado', async () => {
+    const previousPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    try {
+      const bandId = 'band-web-cancelled-share';
+      const showId = 'show-web-cancelled-share';
+      const scenario = createBandScenario({
+        bandId,
+        userId: 'user-web-cancelled-share',
+        role: 'member',
+        shows: [
+          createShow({
+            id: showId,
+            bandId,
+            name: 'Show compartilhamento cancelado',
+          }),
+        ],
+      });
+      jest.mocked(canShareDocumentFile).mockResolvedValue(true);
+      jest.mocked(shareDocumentFile).mockResolvedValue({ status: 'cancelled' });
+      const view = await render(
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowExportScreen bandId={bandId} showId={showId} />
+        </TestAppProviders>,
+      );
+
+      await view.findByText('1 página · A4');
+      await fireEvent.press(view.getByLabelText('Texto'));
+      await fireEvent.press(view.getByText('Gerar TXT'));
+
+      expect(await view.findByText(/Compartilhamento cancelado/)).toBeTruthy();
+      expect(downloadDocumentFile).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: previousPlatform,
+      });
+    }
+  });
+
+  it('mostra o erro quando o download web também falha', async () => {
+    const previousPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    try {
+      const bandId = 'band-web-download-error';
+      const showId = 'show-web-download-error';
+      const scenario = createBandScenario({
+        bandId,
+        userId: 'user-web-download-error',
+        role: 'member',
+        shows: [createShow({ id: showId, bandId, name: 'Show sem download' })],
+      });
+      jest.mocked(canShareDocumentFile).mockResolvedValue(false);
+      jest
+        .mocked(downloadDocumentFile)
+        .mockResolvedValue({ status: 'unsupported' });
+      const view = await render(
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowExportScreen bandId={bandId} showId={showId} />
+        </TestAppProviders>,
+      );
+
+      await view.findByText('1 página · A4');
+      await fireEvent.press(view.getByLabelText('Texto'));
+      await fireEvent.press(view.getByText('Gerar TXT'));
+
+      expect(
+        await view.findByText(
+          'O navegador não conseguiu iniciar o download do arquivo.',
+        ),
+      ).toBeTruthy();
+      expect(closePrintTarget).toHaveBeenCalledWith(null);
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: previousPlatform,
+      });
+    }
+  });
+
+  it('imprime no navegador sem iniciar uma atualização de dados em segundo plano', async () => {
+    const previousPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    try {
+      const bandId = 'band-web-print';
+      const showId = 'show-web-print';
+      const scenario = createBandScenario({
+        bandId,
+        userId: 'user-web-print',
+        role: 'member',
+        shows: [
+          createShow({ id: showId, bandId, name: 'Show para imprimir web' }),
+        ],
+      });
+      const view = await render(
+        <TestAppProviders
+          currentUserId={scenario.currentUserId}
+          repositories={scenario.repositories}
+        >
+          <ShowExportScreen bandId={bandId} showId={showId} />
+        </TestAppProviders>,
+      );
+
+      await view.findByText('1 página · A4');
+      await fireEvent.press(view.getByLabelText('Imprimir'));
+      await fireEvent.press(view.getByText('Gerar e imprimir'));
+
+      expect(
+        await view.findByText('A janela de impressão foi aberta.'),
+      ).toBeTruthy();
+      expect(jest.mocked(printShowDocument)).toHaveBeenCalledTimes(1);
+      expect(
+        view.queryByText(/Atualizando os dados do show e da banda/),
+      ).toBeNull();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: previousPlatform,
+      });
+    }
+  });
+
+  it('mostra mensagens claras se a janela de impressão não puder ser aberta', async () => {
+    const bandId = 'band-print-popup-error';
+    const showId = 'show-print-popup-error';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-print-popup-error',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show pop-up' })],
+    });
+    jest
+      .mocked(preparePrintTarget)
+      .mockImplementationOnce(() => {
+        throw new Error('Pop-up bloqueado');
+      })
+      .mockImplementationOnce(() => {
+        throw 'não abriu';
+      });
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByLabelText('Imprimir'));
+    await fireEvent.press(view.getByText('Gerar e imprimir'));
+    expect(await view.findByText('Pop-up bloqueado')).toBeTruthy();
+
+    await fireEvent.press(view.getByText('Gerar e imprimir'));
+    expect(
+      await view.findByText('Não foi possível preparar a janela de impressão.'),
+    ).toBeTruthy();
+  });
+
+  it('mostra uma mensagem genérica para falhas sem objeto Error', async () => {
+    const bandId = 'band-unknown-export-error';
+    const showId = 'show-unknown-export-error';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-unknown-export-error',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show com falha' })],
+    });
+    jest.mocked(createShowExportPdf).mockRejectedValueOnce('falha');
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    await view.findByText('1 página · A4');
+    await fireEvent.press(view.getByText('Gerar PDF'));
+
+    expect(await view.findByText('Falha ao gerar o arquivo.')).toBeTruthy();
+  });
+
+  it('mostra o motivo quando as fontes não podem ser carregadas', async () => {
+    const bandId = 'band-font-error-export';
+    const showId = 'show-font-error-export';
+    const scenario = createBandScenario({
+      bandId,
+      userId: 'user-font-error-export',
+      role: 'member',
+      shows: [createShow({ id: showId, bandId, name: 'Show sem fonte' })],
+    });
+    jest
+      .mocked(loadDocumentFontResources)
+      .mockRejectedValueOnce(new Error('Fonte indisponível'));
+    const view = await render(
+      <TestAppProviders
+        currentUserId={scenario.currentUserId}
+        repositories={scenario.repositories}
+      >
+        <ShowExportScreen bandId={bandId} showId={showId} />
+      </TestAppProviders>,
+    );
+
+    expect(await view.findByText('Fonte indisponível')).toBeTruthy();
+  });
+
   it('mantém a cópia revisada estável até a atualização explícita', async () => {
     const bandId = 'band-refresh-export';
     const showId = 'show-refresh-export';
@@ -307,11 +877,9 @@ describe('<ShowExportScreen />', () => {
       queryKey: queryKeys.shows.byId(bandId, showId),
     });
 
-    await view.findByText('Atualizar visualização com os dados atuais');
+    await view.findByText('Atualizar visualização');
     expect(view.getByText('Nome salvo inicialmente')).toBeTruthy();
-    await fireEvent.press(
-      view.getByText('Atualizar visualização com os dados atuais'),
-    );
+    await fireEvent.press(view.getByText('Atualizar visualização'));
     expect(await view.findByText('Nome salvo atualizado')).toBeTruthy();
     expect(view.queryByText('Nome salvo inicialmente')).toBeNull();
   });

@@ -7,10 +7,9 @@ import type { Font as FontkitFont } from '@pdf-lib/fontkit';
 
 type FontkitApi = typeof fontkitModule;
 
-export const documentFontkit = (
-  (fontkitModule as unknown as { default?: FontkitApi }).default ??
-  fontkitModule
-) as FontkitApi;
+export const documentFontkit = ((
+  fontkitModule as unknown as { default?: FontkitApi }
+).default ?? fontkitModule) as FontkitApi;
 
 const regularFontModule =
   require('../../../../assets/fonts/Roboto-Regular.ttf') as number;

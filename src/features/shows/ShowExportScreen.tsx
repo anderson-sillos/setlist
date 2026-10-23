@@ -277,12 +277,12 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
   const hasPreparedFile = Object.values(files).some(Boolean);
   const canUpdatePreview = Boolean(
     snapshot &&
-      (hasPreparedFile ||
-        previewRefreshAvailable ||
-        (ready &&
-          hasExportSourceData &&
-          !sourceDataError &&
-          sourceUpdatedAt > snapshot.sourceUpdatedAt)),
+    (hasPreparedFile ||
+      previewRefreshAvailable ||
+      (ready &&
+        hasExportSourceData &&
+        !sourceDataError &&
+        sourceUpdatedAt > snapshot.sourceUpdatedAt)),
   );
   const fileFormat: ExportFormat =
     destination === 'print' ? 'pdf' : destination;
@@ -294,9 +294,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
   const fitPreviewScale = currentPage
     ? Math.min(
         1,
-        previewViewportWidth > 0
-          ? previewViewportWidth / currentPage.width
-          : 1,
+        previewViewportWidth > 0 ? previewViewportWidth / currentPage.width : 1,
       )
     : 1;
   const currentPreviewScale = previewScale ?? fitPreviewScale;
@@ -401,8 +399,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
         completionMessage =
           'Compartilhamento cancelado. O arquivo continua preparado.';
       } else if (result.status === 'unsupported') {
-        completionMessage =
-          `O compartilhamento está indisponível neste dispositivo. O arquivo ${file.name} continua preparado.`;
+        completionMessage = `O compartilhamento está indisponível neste dispositivo. O arquivo ${file.name} continua preparado.`;
       } else {
         completionMessage =
           'O seletor do sistema foi aberto. O Setlist não consegue confirmar que o destino salvou ou recebeu o arquivo.';
@@ -572,10 +569,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
           }}
         />
       ) : null}
-      {!snapshot &&
-      ready &&
-      !sourceDataError &&
-      !showQuery.data ? (
+      {!snapshot && ready && !sourceDataError && !showQuery.data ? (
         <UnavailableFeedback title="Show indisponível" />
       ) : null}
       {!snapshot && ready && !bandQuery.isError && !bandQuery.data?.role ? (
