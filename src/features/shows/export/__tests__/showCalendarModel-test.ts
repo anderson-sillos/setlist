@@ -3,7 +3,6 @@ import { createShow } from '@/testing/factories';
 import {
   createCalendarDraft,
   createShowCalendarIcs,
-  parseZonedDateTime,
   validateCalendarDraft,
 } from '../showCalendarModel';
 
@@ -13,54 +12,46 @@ jest.mock('expo-crypto', () => ({
 }));
 
 describe('cópia do show para calendário', () => {
-  it('interpreta o término no fuso de referência e permite cruzar a meia-noite', () => {
+  it('estima o término no fuso de referência e permite cruzar a meia-noite', () => {
     const show = createShow({
       id: 'private-show-id',
       startsAt: '2026-10-22T23:30:00-03:00',
     });
     const draft = createCalendarDraft(show, 'Banda exemplo', null);
-    const validation = validateCalendarDraft(
-      draft,
-      '2026-10-23',
-      '00:30',
-      false,
-    );
+    const validation = validateCalendarDraft(draft, false);
 
-    expect(draft.endDate).toBe('');
+    expect(draft.usesDefaultDurationEstimate).toBe(true);
+    expect(draft.endLabel).toBe('23/10/2026, 01:30');
     expect(validation.valid).toBe(true);
     if (validation.valid) {
       expect(validation.event.startDate.toISOString()).toBe(
         '2026-10-23T02:30:00.000Z',
       );
       expect(validation.event.endDate.toISOString()).toBe(
-        '2026-10-23T03:30:00.000Z',
+        '2026-10-23T04:30:00.000Z',
       );
     }
   });
 
-  it('sugere término apenas para duração positiva e bloqueia término inválido', () => {
+  it('usa a duração positiva do setlist ou a estimativa padrão de duas horas', () => {
     const show = createShow({ startsAt: '2026-10-22T22:00:00-03:00' });
     const suggested = createCalendarDraft(show, 'Banda exemplo', 90 * 60_000);
-    const invalid = validateCalendarDraft(
-      suggested,
-      '2026-10-22',
-      '21:00',
-      false,
-    );
+    const validation = validateCalendarDraft(suggested, false);
 
-    expect(suggested.suggestedEnd).toBe(true);
-    expect(suggested.endDate).toBe('2026-10-22');
-    expect(invalid.valid).toBe(false);
-    expect(parseZonedDateTime('2026-02-31', '12:00')).toBeNull();
-    expect(parseZonedDateTime('2026-10-22', '24:00')).toBeNull();
-    expect(
-      parseZonedDateTime('2026-01-10', '12:00', 'Asia/Tokyo')?.toISOString(),
-    ).toBe('2026-01-10T03:00:00.000Z');
-    expect(
-      parseZonedDateTime('2026-03-08', '02:30', 'America/New_York'),
-    ).toBeNull();
-    expect(createCalendarDraft(show, 'Banda exemplo', 0).endDate).toBe('');
-    expect(createCalendarDraft(show, 'Banda exemplo', null).endTime).toBe('');
+    expect(suggested.usesDefaultDurationEstimate).toBe(false);
+    expect(suggested.endLabel).toBe('22/10/2026, 23:30');
+    expect(validation.valid).toBe(true);
+    if (validation.valid) {
+      expect(validation.event.endDate.toISOString()).toBe(
+        '2026-10-23T02:30:00.000Z',
+      );
+    }
+    const zeroDuration = createCalendarDraft(show, 'Banda exemplo', 0);
+    const unknownDuration = createCalendarDraft(show, 'Banda exemplo', null);
+    expect(zeroDuration.usesDefaultDurationEstimate).toBe(true);
+    expect(zeroDuration.endAt).toBe('2026-10-23T03:00:00.000Z');
+    expect(unknownDuration.usesDefaultDurationEstimate).toBe(true);
+    expect(unknownDuration.endAt).toBe('2026-10-23T03:00:00.000Z');
   });
 
   it('faz uma cópia mínima e só inclui observações quando selecionadas', () => {
@@ -72,13 +63,8 @@ describe('cópia do show para calendário', () => {
       startsAt: '2026-10-22T22:00:00-03:00',
     });
     const draft = createCalendarDraft(show, 'Banda exemplo', null);
-    const withoutNotes = validateCalendarDraft(
-      draft,
-      '2026-10-22',
-      '23:00',
-      false,
-    );
-    const withNotes = validateCalendarDraft(draft, '2026-10-22', '23:00', true);
+    const withoutNotes = validateCalendarDraft(draft, false);
+    const withNotes = validateCalendarDraft(draft, true);
 
     expect(draft.statusLabel).toBe('Rascunho');
     expect(withoutNotes.valid).toBe(true);
@@ -112,7 +98,7 @@ describe('cópia do show para calendário', () => {
         'Banda exemplo',
         null,
       );
-      const result = validateCalendarDraft(draft, '2020-01-01', '22:00', false);
+      const result = validateCalendarDraft(draft, false);
 
       expect(draft.statusLabel).toBe(label);
       expect(draft.startLabel).toMatch(/2020/);
@@ -127,7 +113,7 @@ describe('cópia do show para calendário', () => {
           'title',
         ]);
         expect(result.event.description).toContain(
-          `Estado no Setlist: ${label}`,
+          `Status no Setlist: ${label}`,
         );
         expect(result.event.description).not.toMatch(
           /música indisponível|letra|integrante|convidado|credential/i,
@@ -145,12 +131,7 @@ describe('cópia do show para calendário', () => {
       notes: 'Observação\\com vírgula, ponto; e\nquebra',
     });
     const draft = createCalendarDraft(show, 'Banda exemplo', 60 * 60_000);
-    const validation = validateCalendarDraft(
-      draft,
-      draft.endDate,
-      draft.endTime,
-      true,
-    );
+    const validation = validateCalendarDraft(draft, true);
     expect(validation.valid).toBe(true);
     if (!validation.valid) return;
 

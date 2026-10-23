@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import {
   ErrorFeedback,
@@ -15,6 +14,7 @@ import type { EntityId } from '@/domain';
 import { getShowDurationBreakdown } from '@/domain/setlistDuration';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getShowHref } from '@/features/navigation/routes';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { openNativeCalendarForm } from './export/calendarAction';
 import {
@@ -47,10 +47,10 @@ export function ShowCalendarScreen({
   bandId,
   showId,
 }: ShowCalendarScreenProps) {
-  const queryClient = useQueryClient();
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongSummaries(bandId, true);
   const bandQuery = useBandContext(bandId);
+  useScreenDataRefresh([showQuery, songsQuery, bandQuery]);
   const songsById = useMemo(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
@@ -59,17 +59,11 @@ export function ShowCalendarScreen({
     ? getShowDurationBreakdown(showQuery.data, songsById).totalMs
     : null;
   const [draft, setDraft] = useState<CalendarDraft | null>(null);
-  const [endDate, setEndDate] = useState('');
-  const [endTime, setEndTime] = useState('');
   const [includeNotes, setIncludeNotes] = useState(false);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [file, setFile] = useState<PreparedDocumentFile | null>(null);
-  const [shareAvailability, setShareAvailability] = useState<{
-    readonly uri: string;
-    readonly available: boolean;
-  } | null>(null);
   const fileRef = useRef<PreparedDocumentFile | null>(file);
   const draftInitialized = useRef(false);
 
@@ -93,8 +87,6 @@ export function ShowCalendarScreen({
       duration,
     );
     setDraft(nextDraft);
-    setEndDate(nextDraft.endDate);
-    setEndTime(nextDraft.endTime);
   }, [
     bandQuery.data,
     bandQuery.isError,
@@ -110,21 +102,6 @@ export function ShowCalendarScreen({
   }, [file]);
 
   useEffect(() => {
-    let active = true;
-    if (!file) return;
-    void canShareDocumentFile(file)
-      .then((available) => {
-        if (active) setShareAvailability({ uri: file.uri, available });
-      })
-      .catch(() => {
-        if (active) setShareAvailability({ uri: file.uri, available: false });
-      });
-    return () => {
-      active = false;
-    };
-  }, [file]);
-
-  useEffect(() => {
     void cleanupExpiredDocumentFiles().catch(() => undefined);
     return () => {
       if (fileRef.current) releaseDocumentFile(fileRef.current);
@@ -132,30 +109,22 @@ export function ShowCalendarScreen({
   }, []);
 
   const validation = draft
-    ? validateCalendarDraft(draft, endDate, endTime, includeNotes)
+    ? validateCalendarDraft(draft, includeNotes)
     : { valid: false as const, message: 'Carregando os dados do show.' };
-  const shareSupported = Boolean(
-    file && shareAvailability?.uri === file.uri && shareAvailability.available,
-  );
+  const queryError =
+    showQuery.isError || songsQuery.isError || bandQuery.isError;
   const isLoading =
     showQuery.isPending || songsQuery.isPending || bandQuery.isPending;
   const canPrepare =
-    !isLoading &&
-    !showQuery.isError &&
-    !songsQuery.isError &&
-    !bandQuery.isError &&
+    !queryError &&
     Boolean(showQuery.data && songsQuery.data && bandQuery.data?.role);
-
-  const updateEndField = (field: 'date' | 'time', value: string) => {
-    if (field === 'date') setEndDate(value);
-    else setEndTime(value);
-    setError(null);
-    setMessage(null);
-    if (file) {
-      releaseDocumentFile(file);
-      setFile(null);
-    }
-  };
+  const accessConfirmedLost =
+    (bandQuery.isSuccess && !bandQuery.data?.role) ||
+    (showQuery.isSuccess && !showQuery.data);
+  const showCancelled =
+    showQuery.isSuccess && showQuery.data?.status === 'cancelled';
+  const canShowDraft = Boolean(draft && !accessConfirmedLost && !showCancelled);
+  const canDeliver = canShowDraft && canPrepare && !isLoading && !working;
 
   const createIcsFile = async () => {
     if (!draft || !validation.valid || working) return;
@@ -176,10 +145,58 @@ export function ShowCalendarScreen({
         encodeUtf8(content),
       );
       if (file) releaseDocumentFile(file);
+      fileRef.current = nextFile;
       setFile(nextFile);
-      setMessage(
-        `Arquivo preparado: ${nextFile.name}. Confirme o download ou compartilhamento.`,
-      );
+      if (Platform.OS === 'web') {
+        let shareFailed = false;
+        try {
+          if (await canShareDocumentFile(nextFile)) {
+            const result = await shareDocumentFile(nextFile);
+            if (result.status === 'opened') {
+              setMessage(
+                'O seletor de compartilhamento foi aberto. O Setlist não consegue confirmar o recebimento pelo destino escolhido.',
+              );
+              return;
+            }
+            if (result.status === 'cancelled') {
+              setMessage(
+                'Compartilhamento cancelado. Você pode tentar compartilhar novamente.',
+              );
+              return;
+            }
+          }
+        } catch {
+          // A ativação do navegador pode expirar durante a geração do arquivo.
+          shareFailed = true;
+        }
+        const result = await downloadDocumentFile(nextFile);
+        if (result.status !== 'opened') {
+          throw new Error(
+            'O navegador não iniciou o download do arquivo .ics.',
+          );
+        }
+        setMessage(
+          shareFailed
+            ? 'O navegador não abriu o seletor automaticamente; o download do arquivo .ics foi iniciado.'
+            : 'O compartilhamento não está disponível neste navegador; o download do arquivo .ics foi iniciado.',
+        );
+        return;
+      }
+
+      const result = await shareDocumentFile(nextFile);
+      if (result.status === 'unsupported') {
+        setMessage(
+          'O seletor do sistema não está disponível. Tente novamente para gerar e compartilhar o arquivo .ics.',
+        );
+      } else if (result.status === 'cancelled') {
+        setMessage(
+          'Compartilhamento cancelado. Você pode tentar compartilhar novamente.',
+        );
+      } else {
+        setMessage(
+          'O seletor foi aberto. O Setlist não consegue confirmar o recebimento pelo destino escolhido.',
+        );
+      }
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -191,49 +208,12 @@ export function ShowCalendarScreen({
     }
   };
 
-  const deliverIcsFile = async (action: 'download' | 'share') => {
-    if (!file || working) return;
-    setWorking(true);
-    setError(null);
-    setMessage(null);
-    try {
-      const result =
-        action === 'share'
-          ? await shareDocumentFile(file)
-          : await downloadDocumentFile(file);
-      if (result.status === 'unsupported') {
-        setMessage(
-          'Compartilhamento indisponível. O arquivo .ics continua preparado para download.',
-        );
-      } else if (result.status === 'cancelled') {
-        setMessage(
-          'Compartilhamento cancelado. O arquivo .ics continua preparado.',
-        );
-      } else {
-        setMessage(
-          action === 'download'
-            ? Platform.OS === 'web'
-              ? 'Download do arquivo de calendário iniciado.'
-              : 'O seletor do sistema foi aberto para salvar ou compartilhar o arquivo.'
-            : 'O seletor foi aberto. O Setlist não consegue confirmar o recebimento pelo destino escolhido.',
-        );
-      }
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Não foi possível entregar o arquivo .ics.',
-      );
-    } finally {
-      setWorking(false);
-    }
-  };
-
   const toggleNotes = () => {
     setIncludeNotes((value) => !value);
     setMessage(null);
     if (file) {
       releaseDocumentFile(file);
+      fileRef.current = null;
       setFile(null);
     }
   };
@@ -284,17 +264,21 @@ export function ShowCalendarScreen({
       {showQuery.isError || songsQuery.isError || bandQuery.isError ? (
         <ErrorFeedback
           onRetry={() => {
-            void queryClient.invalidateQueries({ queryKey: ['bands', bandId] });
+            void Promise.all([
+              showQuery.refetch(),
+              songsQuery.refetch(),
+              bandQuery.refetch(),
+            ]);
           }}
         />
       ) : null}
-      {canPrepare && !showQuery.data ? (
+      {showQuery.isSuccess && !showQuery.data ? (
         <UnavailableFeedback title="Show indisponível" />
       ) : null}
-      {canPrepare && !bandQuery.data?.role ? (
+      {bandQuery.isSuccess && !bandQuery.data?.role ? (
         <UnavailableFeedback title="Acesso à banda indisponível" />
       ) : null}
-      {showQuery.data?.status === 'cancelled' ? (
+      {showCancelled ? (
         <View style={styles.content}>
           <UnavailableFeedback title="Show cancelado" />
           <AppText accessibilityRole="alert" tone="muted">
@@ -302,7 +286,7 @@ export function ShowCalendarScreen({
           </AppText>
         </View>
       ) : null}
-      {canPrepare && showQuery.data?.status !== 'cancelled' && draft ? (
+      {canShowDraft && draft ? (
         <View style={styles.content}>
           <AppText>
             Revise os dados e confirme a cópia no calendário. Ela não será
@@ -313,54 +297,39 @@ export function ShowCalendarScreen({
               {draft.title}
             </AppText>
             <AppText tone="muted">Início: {draft.startLabel}</AppText>
+            <AppText tone="muted">Término estimado: {draft.endLabel}</AppText>
             <AppText tone="muted">Fuso: {draft.timeZone}</AppText>
             <AppText>Local: {draft.venue || 'Não informado'}</AppText>
             <AppText>Status no Setlist: {draft.statusLabel}</AppText>
           </Card>
 
           <Card style={styles.form}>
-            <AppText variant="heading">Término do evento</AppText>
-            {draft.suggestedEnd ? (
-              <AppText tone="muted" variant="caption">
-                Sugerido pela duração estimada do setlist. Você pode ajustar
-                antes de confirmar.
+            <AppText variant="heading">Horário estimado</AppText>
+            {draft.usesDefaultDurationEstimate ? (
+              <AppText tone="warning" variant="caption">
+                Como o setlist não tem durações positivas cadastradas, usamos
+                uma estimativa padrão de 2 horas. Você pode ajustar o término no
+                aplicativo de calendário.
               </AppText>
             ) : (
-              <AppText tone="warning" variant="caption">
-                A duração não permite sugerir um término. Informe a data e o
-                horário para continuar.
+              <AppText tone="muted" variant="caption">
+                A estimativa usa as durações cadastradas no setlist e pode
+                diferir do término real. Ajuste-a no aplicativo de calendário,
+                se necessário.
               </AppText>
             )}
-            <CalendarTextField
-              accessibilityLabel="Data de término no formato ano, mês e dia"
-              label="Data (AAAA-MM-DD)"
-              onChangeText={(value) => updateEndField('date', value)}
-              placeholder="2026-10-22"
-              value={endDate}
-            />
-            <CalendarTextField
-              accessibilityLabel="Horário de término no formato horas e minutos"
-              label="Horário (HH:MM)"
-              onChangeText={(value) => updateEndField('time', value)}
-              placeholder="23:30"
-              value={endTime}
-            />
             <AppText tone="muted" variant="caption">
-              O término é interpretado em {draft.timeZone}. Ele não altera o
-              show salvo.
+              A estimativa usa o fuso {draft.timeZone} e não altera o show
+              salvo.
             </AppText>
-            {validation.valid ? null : (
-              <AppText accessibilityRole="alert" tone="danger">
-                {validation.message}
-              </AppText>
-            )}
           </Card>
 
           {draft.showNotes?.trim() ? (
             <Pressable
               accessibilityLabel="Incluir observações gerais do show"
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: includeNotes }}
+              accessibilityState={{ checked: includeNotes, disabled: working }}
+              disabled={working}
               onPress={toggleNotes}
               style={styles.notesToggle}
             >
@@ -372,57 +341,36 @@ export function ShowCalendarScreen({
           ) : null}
 
           <AppText tone="muted" variant="caption">
-            A descrição pode incluir apenas banda, estado, fuso e as observações
-            gerais que você selecionar. A setlist, letras e dados de integrantes
-            ficam fora da cópia.
+            A descrição pode incluir banda, status, fuso, o horário estimado de
+            término e as observações gerais que você selecionar. A setlist,
+            letras e dados de integrantes ficam fora da cópia.
           </AppText>
           <AppText tone="warning" variant="caption">
             Adicionar o mesmo show novamente pode criar uma duplicata no
             calendário.
           </AppText>
 
-          {Platform.OS !== 'web' ? (
-            <AppButton
-              disabled={!validation.valid || working}
-              label={
-                working
-                  ? 'Abrindo calendário…'
-                  : 'Abrir formulário do calendário'
-              }
-              onPress={() => void openCalendar()}
-            />
-          ) : null}
-          <AppButton
-            disabled={!validation.valid || working}
-            label={working ? 'Preparando arquivo…' : 'Preparar arquivo .ics'}
-            onPress={() => void createIcsFile()}
-            variant={Platform.OS === 'web' ? 'primary' : 'secondary'}
-          />
-          {file ? (
-            <View style={styles.fileActions}>
-              <AppText tone="muted" variant="caption">
-                Arquivo pronto: {file.name}
-              </AppText>
+          <View style={styles.actionGroup}>
+            {Platform.OS !== 'web' ? (
               <AppButton
-                disabled={working}
+                disabled={!validation.valid || !canDeliver}
+                icon="showAdd"
                 label={
-                  Platform.OS === 'web'
-                    ? 'Baixar arquivo .ics'
-                    : 'Abrir seletor para salvar ou compartilhar .ics'
+                  working ? 'Abrindo calendário…' : 'Adicionar ao calendário'
                 }
-                onPress={() => void deliverIcsFile('download')}
-                variant="secondary"
+                onPress={() => void openCalendar()}
+                style={styles.actionButton}
               />
-              {Platform.OS === 'web' && shareSupported ? (
-                <AppButton
-                  disabled={working}
-                  label="Compartilhar arquivo .ics"
-                  onPress={() => void deliverIcsFile('share')}
-                  variant="secondary"
-                />
-              ) : null}
-            </View>
-          ) : null}
+            ) : null}
+            <AppButton
+              disabled={!validation.valid || !canDeliver}
+              icon="share"
+              label={working ? 'Preparando…' : 'Compartilhar'}
+              onPress={() => void createIcsFile()}
+              style={styles.actionButton}
+              variant={Platform.OS === 'web' ? 'primary' : 'secondary'}
+            />
+          </View>
           {message ? (
             <AppText accessibilityLiveRegion="polite" tone="success">
               {message}
@@ -439,36 +387,6 @@ export function ShowCalendarScreen({
   );
 }
 
-function CalendarTextField({
-  accessibilityLabel,
-  label,
-  onChangeText,
-  placeholder,
-  value,
-}: {
-  readonly accessibilityLabel: string;
-  readonly label: string;
-  readonly onChangeText: (value: string) => void;
-  readonly placeholder: string;
-  readonly value: string;
-}) {
-  return (
-    <View style={styles.field}>
-      <AppText variant="caption">{label}</AppText>
-      <TextInput
-        accessibilityLabel={accessibilityLabel}
-        autoCapitalize="none"
-        autoCorrect={false}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.text.muted}
-        style={styles.input}
-        value={value}
-      />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   content: {
     gap: spacing.md,
@@ -480,21 +398,14 @@ const styles = StyleSheet.create({
   form: {
     gap: spacing.sm,
   },
-  fileActions: {
+  actionGroup: {
+    alignSelf: 'center',
     gap: spacing.sm,
+    maxWidth: 480,
+    width: '100%',
   },
-  field: {
-    gap: spacing.xs,
-  },
-  input: {
-    backgroundColor: colors.background.raised,
-    borderColor: colors.border.control,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    color: colors.text.primary,
-    fontSize: 16,
-    minHeight: 48,
-    paddingHorizontal: spacing.md,
+  actionButton: {
+    width: '100%',
   },
   notesToggle: {
     alignItems: 'center',

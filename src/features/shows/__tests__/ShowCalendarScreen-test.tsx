@@ -3,6 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import {
   downloadDocumentFile,
   prepareDocumentFile,
+  shareDocumentFile,
 } from '@/features/shows/export/documentDelivery';
 import { ShowCalendarScreen } from '@/features/shows/ShowCalendarScreen';
 import {
@@ -57,7 +58,7 @@ describe('<ShowCalendarScreen />', () => {
     jest.mocked(downloadDocumentFile).mockResolvedValue({ status: 'opened' });
   });
 
-  it('prepara uma cópia editável sem observações e não altera o show salvo', async () => {
+  it('prepara uma cópia com término estimado sem observações e não altera o show salvo', async () => {
     const bandId = 'band-show-calendar';
     const showId = 'show-calendar';
     const userId = 'user-show-calendar';
@@ -101,11 +102,13 @@ describe('<ShowCalendarScreen />', () => {
       view.getByLabelText('Incluir observações gerais do show').props
         .accessibilityState.checked,
     ).toBe(false);
-    expect(view.getByDisplayValue('2026-10-24')).toBeTruthy();
-    expect(view.getByDisplayValue('23:30')).toBeTruthy();
+    expect(view.getByText('Término estimado: 24/10/2026, 23:30')).toBeTruthy();
+    expect(view.getByText(/Ajuste-a no aplicativo de calendário/)).toBeTruthy();
     expect(view.queryByText('Música que não deve ir ao calendário')).toBeNull();
 
-    await fireEvent.press(view.getByText('Abrir formulário do calendário'));
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Adicionar ao calendário' }),
+    );
     await waitFor(() => expect(mockOpenNativeCalendarForm).toHaveBeenCalled());
 
     const event = mockOpenNativeCalendarForm.mock.calls[0]?.[0];
@@ -126,7 +129,9 @@ describe('<ShowCalendarScreen />', () => {
     expect(prepareDocumentFile).not.toHaveBeenCalled();
 
     mockOpenNativeCalendarForm.mockResolvedValueOnce({ status: 'cancelled' });
-    await fireEvent.press(view.getByText('Abrir formulário do calendário'));
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Adicionar ao calendário' }),
+    );
     expect(
       await view.findByText(
         'Criação cancelada. Nenhuma outra cópia foi criada.',
@@ -135,7 +140,9 @@ describe('<ShowCalendarScreen />', () => {
     expect(prepareDocumentFile).not.toHaveBeenCalled();
 
     mockOpenNativeCalendarForm.mockResolvedValueOnce({ status: 'saved' });
-    await fireEvent.press(view.getByText('Abrir formulário do calendário'));
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Adicionar ao calendário' }),
+    );
     expect(
       await view.findByText(
         'O calendário confirmou que o evento foi salvo. Esta é uma cópia pontual.',
@@ -146,9 +153,11 @@ describe('<ShowCalendarScreen />', () => {
     mockOpenNativeCalendarForm.mockRejectedValueOnce(
       new Error('calendar unavailable'),
     );
-    await fireEvent.press(view.getByText('Abrir formulário do calendário'));
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Adicionar ao calendário' }),
+    );
     expect(await view.findByText('calendar unavailable')).toBeTruthy();
-    expect(view.getByDisplayValue('2026-10-24')).toBeTruthy();
+    expect(view.getByText('Término estimado: 24/10/2026, 23:30')).toBeTruthy();
     expect(prepareDocumentFile).not.toHaveBeenCalled();
   });
 
@@ -182,12 +191,14 @@ describe('<ShowCalendarScreen />', () => {
         'Um show Cancelado não pode ser adicionado como novo evento ativo.',
       ),
     ).toBeTruthy();
-    expect(view.queryByText('Preparar arquivo .ics')).toBeNull();
-    expect(view.queryByText('Abrir formulário do calendário')).toBeNull();
+    expect(view.queryByText('Compartilhar')).toBeNull();
+    expect(
+      view.queryByRole('button', { name: 'Adicionar ao calendário' }),
+    ).toBeNull();
     expect(mockOpenNativeCalendarForm).not.toHaveBeenCalled();
   });
 
-  it('gera e entrega .ics somente após a ação explícita, mesmo sem compartilhamento', async () => {
+  it('gera .ics e abre automaticamente o compartilhamento', async () => {
     const bandId = 'band-ics-calendar';
     const showId = 'show-ics-calendar';
     const userId = 'user-ics-calendar';
@@ -225,10 +236,8 @@ describe('<ShowCalendarScreen />', () => {
 
     await view.findByText(/Show de teste/);
     expect(prepareDocumentFile).not.toHaveBeenCalled();
-    await fireEvent.press(view.getByText('Preparar arquivo .ics'));
-    expect(
-      await view.findByText(/Arquivo preparado: show-2026-10-24\.ics/),
-    ).toBeTruthy();
+    await fireEvent.press(view.getByText('Compartilhar'));
+    expect(await view.findByText(/O seletor foi aberto/)).toBeTruthy();
     expect(prepareDocumentFile).toHaveBeenCalledWith(
       'banda-de-teste-show-de-teste-2026-10-24.ics',
       'text/calendar;charset=utf-8',
@@ -236,39 +245,31 @@ describe('<ShowCalendarScreen />', () => {
     );
 
     jest
-      .mocked(downloadDocumentFile)
+      .mocked(shareDocumentFile)
       .mockResolvedValueOnce({ status: 'cancelled' });
-    await fireEvent.press(
-      view.getByText('Abrir seletor para salvar ou compartilhar .ics'),
-    );
+    await fireEvent.press(view.getByText('Compartilhar'));
     expect(await view.findByText(/Compartilhamento cancelado/)).toBeTruthy();
 
     jest
-      .mocked(downloadDocumentFile)
+      .mocked(shareDocumentFile)
       .mockResolvedValueOnce({ status: 'unsupported' });
-    await fireEvent.press(
-      view.getByText('Abrir seletor para salvar ou compartilhar .ics'),
-    );
-    expect(await view.findByText(/Compartilhamento indisponível/)).toBeTruthy();
-
-    jest
-      .mocked(downloadDocumentFile)
-      .mockRejectedValueOnce(new Error('download offline'));
-    await fireEvent.press(
-      view.getByText('Abrir seletor para salvar ou compartilhar .ics'),
-    );
-    expect(await view.findByText('download offline')).toBeTruthy();
+    await fireEvent.press(view.getByText('Compartilhar'));
     expect(
-      view.getByText('Abrir seletor para salvar ou compartilhar .ics'),
+      await view.findByText(/seletor do sistema não está disponível/),
     ).toBeTruthy();
 
-    await fireEvent.press(
-      view.getByText('Abrir seletor para salvar ou compartilhar .ics'),
-    );
-    await waitFor(() => expect(downloadDocumentFile).toHaveBeenCalledTimes(4));
+    jest
+      .mocked(shareDocumentFile)
+      .mockRejectedValueOnce(new Error('share offline'));
+    await fireEvent.press(view.getByText('Compartilhar'));
+    expect(await view.findByText('share offline')).toBeTruthy();
+    expect(view.getByText('Compartilhar')).toBeTruthy();
+
+    await fireEvent.press(view.getByText('Compartilhar'));
+    await waitFor(() => expect(shareDocumentFile).toHaveBeenCalledTimes(5));
     expect(
       view.getByText(
-        'O seletor do sistema foi aberto para salvar ou compartilhar o arquivo.',
+        'O seletor foi aberto. O Setlist não consegue confirmar o recebimento pelo destino escolhido.',
       ),
     ).toBeTruthy();
   });

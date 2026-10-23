@@ -32,7 +32,7 @@ A motivação está em [proposal.md](proposal.md). O comportamento proposto est�
 
 Foram confirmados na exploração: PDF, TXT e PNG na primeira entrega; ausência de letras; cópia pontual para a agenda com confirmação do usuário.
 
-Os demais comportamentos abaixo são defaults propostos neste planejamento, sujeitos à revisão dos artefatos: acesso para todos os papéis que consultam o show; campos inicialmente selecionados; A4 e PNG paginado; bloqueio de nova cópia de show Cancelado; término local ajustável. Não são tratados como confirmações adicionais dadas pelo usuário.
+Os demais comportamentos abaixo são defaults propostos neste planejamento, sujeitos à revisão dos artefatos: acesso para todos os papéis que consultam o show; campos inicialmente selecionados; A4 e PNG paginado; bloqueio de nova cópia de show Cancelado; término estimado sem edição nesta tela, ajustável no formulário do calendário e com estimativa padrão de duas horas quando não houver duração positiva. Não são tratados como confirmações adicionais dadas pelo usuário.
 
 ### 2. Usar uma cópia imutável dos dados autorizados
 
@@ -53,6 +53,8 @@ Adicionar rotas de preparação sob `src/app/bands/[bandId]/shows/[showId]/`, co
 O cabeçalho dos detalhes passa a disponibilizar `Mais opções` também a Member. Dentro dele, as ações existentes de edição mantêm seus testes de papel e estado; os novos comandos dependem do acesso de consulta. Encerrar o menu antes da navegação, respeitando o ciclo de fechamento da plataforma. Não sobrepor dois `Modal` para passar do menu à preparação.
 
 As telas preservam o tema atual nos controles e usam uma região clara apenas para a representação do documento. O retorno por botão, gesto, navegador ou hardware volta ao show de origem, e o fechamento de camadas mantém a ordem prevista em `screen-navigation`. Abrir a criação de evento do sistema a partir de uma tela evita acrescentar um formulário nativo sobre outro modal do Setlist.
+
+A tela de calendário mantém a cópia preparada enquanto o seletor do sistema está aberto e ao retornar dele. Revalida os dados ao recuperar foco; erros temporários exibem a opção de tentar novamente sem remover a prévia da tela. Se uma consulta confirmar que o acesso foi perdido ou que o show está Cancelado, encerra a preparação.
 
 Na exportação, organizar a leitura e o foco em `Informações incluídas` → `Pré-visualização` → `Destino`. Agrupar a escolha de destino e o botão de geração no mesmo cartão, depois da revisão do conteúdo. Apresentar os destinos como `PDF`, `Texto`, `Imagem` e `Imprimir`, com ícones distintos; `Imagem` continua produzindo arquivos PNG, um por página. O agrupamento segue a orientação de [controles relacionados do W3C WAI](https://www.w3.org/WAI/tutorials/forms/grouping/).
 
@@ -113,15 +115,15 @@ URLs de objeto são liberadas quando deixam de ser usadas. Temporários nativos 
 
 ### 7. Preparar um evento temporário com datas explícitas
 
-Reutilizar os dados já autorizados, mas construir um contrato de evento menor que o documento da setlist. Título proposto: `<banda> — <show>`; local copiado de `venue`; descrição com banda, estado de preparação, fuso de referência e observações gerais somente se selecionadas. Não acrescentar setlist, letras, integrantes, convites ou lembretes próprios.
+Reutilizar os dados já autorizados, mas construir um contrato de evento menor que o documento da setlist. Título proposto: `<banda> — <show>`; local copiado de `venue`; descrição com banda, status de preparação, fuso de referência e observações gerais somente se selecionadas. Não acrescentar setlist, letras, integrantes, convites ou lembretes próprios.
 
-O início vem do instante de `startsAt`. A prévia usa o fuso atual do produto, obtido de `APP_TIME_ZONE`, sem introduzir outra constante ou armazenar um fuso por show. O término é editável com data e hora explícitas; sua conversão para instante usa esse mesmo fuso, sem `Date` de texto local ambíguo nem offset fixo codificado.
+O início vem do instante de `startsAt`. A prévia usa o fuso atual do produto, obtido de `APP_TIME_ZONE`, sem introduzir outra constante ou armazenar um fuso por show. O término não é editável nesta tela: quando há duração estimada positiva, somá-la ao início; quando não há, usar duas horas como estimativa padrão. A interface deixa claro de onde veio o valor e que ele pode ser ajustado no formulário do calendário. O formulário nativo recebe o término calculado para que a pessoa faça ajustes antes de confirmar. A estimativa não altera `shows`.
 
-Quando `totalMs > 0`, sugerir início mais o total conhecido e mostrar que o fim é estimado e ajustável. Para duração ausente ou zero, deixar o término pendente e exigir preenchimento. Validar `fim > início`, incluindo virada do dia. Alterar o término da cópia não grava nada em `shows`. O formulário nativo pode permitir outros ajustes pessoais sem retorno desses valores ao Setlist.
+Validar `fim > início`, incluindo virada do dia. O formulário nativo permite outros ajustes pessoais sem retorno desses valores ao Setlist. O arquivo `.ics` usa a estimativa exibida e, após sua geração, abre o seletor automaticamente; na Web, se o compartilhamento não estiver disponível ou a ativação do navegador expirar, iniciar o download.
 
 Shows Cancelados não iniciam nova cópia ativa. Rascunhos são permitidos com o estado descrito; não mapear `ready` do Setlist para confirmação de contratação ou convite do calendário. Não impedir cópia de evento passado apenas por sua data.
 
-**Alternativas consideradas:** inferir um término definitivo da soma parcial seria impreciso; adotar uma duração arbitrária quando nada foi informado esconderia uma decisão; acrescentar término ao banco ampliaria o cadastro do show para uma necessidade da cópia pessoal.
+**Alternativas consideradas:** exigir a digitação do término interromperia o fluxo e duplicaria um ajuste que pode ser feito no calendário de destino; acrescentar término ao banco ampliaria o cadastro do show para uma necessidade da cópia pessoal. A estimativa padrão de duas horas é informada explicitamente quando as durações do setlist não permitem cálculo.
 
 ### 8. Usar formulário nativo e arquivo ICS para entrega pontual
 
@@ -140,7 +142,7 @@ Derivar `UID` estável do identificador do show por hash com namespace do Setlis
 - **Texto extenso ou muitos itens:** paginação, continuação explícita, PNG por página e geração sequencial; falhas não podem deixar arquivos parciais apresentados como completos.
 - **Acentos, glifos e métricas diferentes:** mesma fonte incorporável, quebra de linhas explícita e validação de caracteres reais em PDF e PNG; falha de fonte deve ser comunicada, sem substituir texto silenciosamente.
 - **Calendário SDK 57 em transição de APIs:** adaptação isolada para o formulário documentado, versões compatíveis fixadas e testes em development build. A migração futura da API preservará o contrato externo.
-- **Fusos dos formulários existentes:** partir do instante salvo e converter somente o término com fuso explícito. Corrigir cadastros antigos ou reformular os editores atuais não faz parte desta change.
+- **Fusos dos formulários existentes:** partir do instante salvo e somar a duração como instante, exibindo o horário no fuso do produto. Corrigir cadastros antigos ou reformular os editores atuais não faz parte desta change.
 - **Cancelamento ou salvamento não observável:** feedback limitado ao resultado retornado; nunca gravar um segundo evento para compensar uma confirmação desconhecida.
 - **Observações escolhidas podem conter conteúdo que a pessoa não deseja enviar:** campos inicialmente desmarcados e prévia fiel antes da entrega.
 - **Arquivo temporário ainda usado por outro aplicativo:** manter a referência enquanto a entrega está ativa e limpar somente depois da janela de consumo; arquivos de destino já salvos ficam sob controle do usuário.

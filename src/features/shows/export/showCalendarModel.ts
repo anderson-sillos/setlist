@@ -12,9 +12,9 @@ export interface CalendarDraft {
   readonly timeZone: string;
   readonly venue: string;
   readonly showNotes: string | null;
-  readonly endDate: string;
-  readonly endTime: string;
-  readonly suggestedEnd: boolean;
+  readonly endAt: string;
+  readonly endLabel: string;
+  readonly usesDefaultDurationEstimate: boolean;
 }
 
 export interface CalendarEventCopy {
@@ -35,6 +35,8 @@ const statusLabels: Record<Show['status'], string> = {
   draft: 'Rascunho',
   ready: 'Pronto',
 };
+
+const DEFAULT_ESTIMATED_DURATION_MS = 2 * 60 * 60 * 1000;
 
 interface ZonedParts {
   readonly year: number;
@@ -81,67 +83,6 @@ export function getZonedDateTimeFields(
   };
 }
 
-/** Interpreta o horário digitado no fuso indicado, sem usar o fuso do aparelho. */
-export function parseZonedDateTime(
-  dateValue: string,
-  timeValue: string,
-  timeZone = APP_TIME_ZONE,
-): Date | null {
-  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue.trim());
-  const timeMatch = /^(\d{2}):(\d{2})$/.exec(timeValue.trim());
-  if (!dateMatch || !timeMatch) return null;
-  const [, yearText, monthText, dayText] = dateMatch;
-  const [, hourText, minuteText] = timeMatch;
-  const target: ZonedParts = {
-    year: Number(yearText),
-    month: Number(monthText),
-    day: Number(dayText),
-    hour: Number(hourText),
-    minute: Number(minuteText),
-    second: 0,
-  };
-  if (
-    target.month < 1 ||
-    target.month > 12 ||
-    target.day < 1 ||
-    target.day > 31 ||
-    target.hour > 23 ||
-    target.minute > 59
-  ) {
-    return null;
-  }
-
-  const targetUtc = Date.UTC(
-    target.year,
-    target.month - 1,
-    target.day,
-    target.hour,
-    target.minute,
-  );
-  let candidate = targetUtc;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const actual = getZonedParts(new Date(candidate), timeZone);
-    const actualAsUtc = Date.UTC(
-      actual.year,
-      actual.month - 1,
-      actual.day,
-      actual.hour,
-      actual.minute,
-      actual.second,
-    );
-    candidate += targetUtc - actualAsUtc;
-  }
-
-  const result = new Date(candidate);
-  const resolved = getZonedParts(result, timeZone);
-  return Object.keys(target).every(
-    (key) =>
-      resolved[key as keyof ZonedParts] === target[key as keyof ZonedParts],
-  )
-    ? result
-    : null;
-}
-
 function formatStart(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Data e horário indisponíveis';
@@ -152,20 +93,33 @@ function formatStart(value: string): string {
   }).format(date);
 }
 
+function formatEventTime(value: Date): string {
+  return new Intl.DateTimeFormat(APP_LOCALE, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: APP_TIME_ZONE,
+  }).format(value);
+}
+
 export function createCalendarDraft(
   show: Show,
   bandName: string,
   estimatedDurationMs: number | null,
 ): CalendarDraft {
   const startsAt = new Date(show.startsAt);
-  const hasSuggestedEnd =
-    !Number.isNaN(startsAt.getTime()) &&
+  const hasValidStart = !Number.isNaN(startsAt.getTime());
+  const positiveDurationEstimate =
     estimatedDurationMs !== null &&
-    estimatedDurationMs > 0;
-  const end = hasSuggestedEnd
-    ? new Date(startsAt.getTime() + estimatedDurationMs)
-    : startsAt;
-  const endFields = getZonedDateTimeFields(end);
+    Number.isFinite(estimatedDurationMs) &&
+    estimatedDurationMs > 0
+      ? estimatedDurationMs
+      : null;
+  const usesDefaultDurationEstimate = positiveDurationEstimate === null;
+  const effectiveDuration =
+    positiveDurationEstimate ?? DEFAULT_ESTIMATED_DURATION_MS;
+  const end = hasValidStart
+    ? new Date(startsAt.getTime() + effectiveDuration)
+    : new Date(Number.NaN);
   return {
     showId: show.id,
     title: `${bandName} — ${show.name}`,
@@ -175,28 +129,27 @@ export function createCalendarDraft(
     timeZone: APP_TIME_ZONE,
     venue: show.venue,
     showNotes: show.notes,
-    endDate: hasSuggestedEnd ? endFields.date : '',
-    endTime: hasSuggestedEnd ? endFields.time : '',
-    suggestedEnd: hasSuggestedEnd,
+    endAt: Number.isNaN(end.getTime()) ? '' : end.toISOString(),
+    endLabel: Number.isNaN(end.getTime())
+      ? 'Horário indisponível'
+      : formatEventTime(end),
+    usesDefaultDurationEstimate,
   };
 }
 
 export function validateCalendarDraft(
   draft: CalendarDraft,
-  endDate: string,
-  endTime: string,
   includeNotes: boolean,
 ): CalendarDraftValidation {
   const startDate = new Date(draft.startsAt);
   if (Number.isNaN(startDate.getTime())) {
     return { valid: false, message: 'O início salvo do show é inválido.' };
   }
-  const end = parseZonedDateTime(endDate, endTime, draft.timeZone);
-  if (!end) {
+  const end = new Date(draft.endAt);
+  if (Number.isNaN(end.getTime())) {
     return {
       valid: false,
-      message:
-        'Informe uma data e horário de término válidos no fuso indicado.',
+      message: 'O horário de término estimado é inválido.',
     };
   }
   if (end.getTime() <= startDate.getTime()) {
@@ -208,8 +161,12 @@ export function validateCalendarDraft(
 
   const description = [
     `Banda e show: ${draft.title}`,
-    `Estado no Setlist: ${draft.statusLabel}`,
+    `Status no Setlist: ${draft.statusLabel}`,
     `Fuso de referência: ${draft.timeZone}`,
+    `Término estimado: ${draft.endLabel}`,
+    draft.usesDefaultDurationEstimate
+      ? 'A estimativa padrão de duas horas foi usada porque o setlist não tem durações positivas cadastradas.'
+      : 'A estimativa considera as durações cadastradas no setlist e pode diferir do término real.',
     ...(includeNotes && draft.showNotes?.trim()
       ? [`Observações: ${draft.showNotes.trim()}`]
       : []),
@@ -276,11 +233,12 @@ function formatIcsDate(value: Date): string {
 /**
  * Serializa uma cópia RFC 5545 com início e término em UTC (`Z`), preservando
  * os instantes interpretados no fuso explícito do show. SUMMARY recebe banda e
- * show; LOCATION recebe o local; DESCRIPTION recebe estado, fuso e somente as
- * observações escolhidas. O UID é um SHA-256 estável do ID do show, então novas
- * exportações do mesmo show mantêm a identidade e calendários externos podem
- * tratá-las como duplicatas. Não há `TZID`/`VTIMEZONE`: os horários são UTC.
- * Cada linha é dobrada no limite de 75 octetos UTF-8.
+ * show; LOCATION recebe o local; DESCRIPTION recebe status, fuso, a estimativa
+ * do término e somente as observações escolhidas. O UID é um SHA-256 estável do
+ * ID do show, então novas exportações do mesmo show mantêm a identidade e
+ * calendários externos podem tratá-las como duplicatas. Não há
+ * `TZID`/`VTIMEZONE`: os horários são UTC. Cada linha é dobrada no limite de 75
+ * octetos UTF-8.
  */
 export async function createShowCalendarIcs(
   draft: CalendarDraft,

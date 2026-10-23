@@ -52,34 +52,39 @@ calendário**. Shows Cancelados não podem ser adicionados como novos eventos
 ativos. Rascunhos, shows Prontos e shows passados podem ser preparados.
 
 O início vem do instante salvo no show e é apresentado no fuso
-`America/Sao_Paulo`. Se a duração estimada total for positiva, o Setlist sugere
-um término editável. Se não houver duração ou ela for zero, informe data e
-horário de término. A validação compara os instantes, permite a virada da
-meia-noite e não grava um término no show.
+`America/Sao_Paulo`. O término é calculado a partir das durações registradas no
+setlist. Se não houver duração positiva, o Setlist usa uma estimativa padrão de
+duas horas. A prévia identifica a estimativa; o término pode ser ajustado no
+formulário do calendário e não é gravado no show. A duração cadastrada pode ser
+parcial, então o término real pode ser diferente.
 
-O evento usa o título `<banda> — <show>`, local e estado do show. Observações
-gerais só são incluídas se forem selecionadas. A cópia não contém setlist,
-letras, integrantes, convidados ou lembretes do Setlist. No iOS e Android, a
-ação abre o formulário de criação do calendário do sistema para revisão e
-confirmação. O Android pode retornar sem informar se o evento foi salvo; nesse
-caso, confira o calendário pessoal.
+O evento usa o título `<banda> — <show>`, local e status do show. Observações
+gerais só são incluídas se forem selecionadas. A descrição identifica o
+**status** do show, o fuso de referência e que o término é estimado. A cópia não
+contém setlist, letras, integrantes, convidados ou lembretes do Setlist. No iOS
+e Android, **Adicionar ao calendário** abre o formulário de criação do sistema
+para revisão e confirmação. O Android pode retornar sem informar se o evento
+foi salvo; nesse caso, confira o calendário pessoal.
 
-Também é possível preparar um arquivo `.ics` para baixar, salvar ou compartilhar
-e importá-lo no calendário desejado. O arquivo contém um único evento. Uma
-adição posterior é uma nova cópia; mudanças no Setlist não atualizam eventos já
+**Compartilhar** gera um arquivo `.ics` e abre automaticamente o seletor do
+sistema. Na Web, se o navegador não aceitar compartilhamento de arquivos, o
+download começa automaticamente. O arquivo contém um único evento. Uma adição
+posterior é uma nova cópia; mudanças no Setlist não atualizam eventos já
 criados, e o Setlist não consegue garantir que calendários externos evitarão
-duplicatas.
+duplicatas. Ao voltar do seletor, a prévia permanece na tela enquanto os dados
+do show podem ser atualizados.
 
 ## Validação da entrega
 
-Os development builds já foram gerados e instalados para validação:
+Os development builds usados na validação foram:
 
 - [iOS Simulator, versão 1.0.0 (7)](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/37c4713b-a895-412d-9fa2-71062e75b91c)
 - [Android, versão 1.0.0 (9)](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/c530cb70-af90-4fd3-91e9-9fd160ff8af5)
 
-A instalação confirma que os builds nativos foram produzidos, mas não valida os
-fluxos do produto. Ainda precisam ser conferidos a abertura dos arquivos,
-compartilhamento e impressão, a geração nativa de PNG e o formulário do
-calendário nos aparelhos, além da exportação e impressão Web e da importação de
-`.ics` em calendários reais. A matriz de validação está em
+Em 23/10/2026, o responsável confirmou a conclusão das validações funcionais,
+de acessibilidade e de calendários reais nas plataformas previstas. O registro
+detalhado de dispositivos, navegadores e calendários usados não foi fornecido
+nesta atualização. Os builds de produção e a exportação Web da versão candidata
+devem ser gerados do mesmo commit final identificado pela tag; os development
+builds acima não substituem esses artefatos. O andamento está em
 `openspec/changes/exportar-setlist-e-adicionar-show-calendario/tasks.md`.
