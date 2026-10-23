@@ -122,12 +122,12 @@ export async function printShowDocument(
           return `<div style="position:absolute;left:${line.x}pt;top:${line.top}pt;font-size:${line.fontSize}pt;line-height:${line.lineHeight}pt;font-weight:${isPageLineBold(line.style) ? 700 : 400};color:${getPageLineColor(line.style)};white-space:pre-wrap;overflow-wrap:anywhere">${escapeHtml(line.text)}</div>`;
         })
         .join('');
-      return `<section class="page">${lines}<footer>Página ${page.pageNumber} de ${page.pageCount}</footer></section>`;
+      return `<section class="page">${lines}<footer><span>Página ${page.pageNumber} de ${page.pageCount}</span><span>${escapeHtml(page.generatedAtLabel)}</span></footer></section>`;
     })
     .join('');
   printWindow.document.open();
   printWindow.document.write(
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Setlist</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}@font-face{font-family:SetlistRobotoRegular;src:url("${fontUrl(fonts.regularUri)}") format("truetype")}@font-face{font-family:SetlistRobotoBold;src:url("${fontUrl(fonts.boldUri)}") format("truetype")}body{margin:0;background:#fff;color:#111827;font-family:SetlistRobotoRegular,Arial,sans-serif}.page{width:${PAGE_WIDTH_PT}pt;height:${PAGE_HEIGHT_PT}pt;page-break-after:always;position:relative;background:#fff}.page:last-child{page-break-after:auto}.brand,.title,.section,.song,.total{font-family:SetlistRobotoBold,Arial,sans-serif}footer{position:absolute;bottom:16pt;left:42pt;right:42pt;border-top:.5pt solid #d1d6de;padding-top:4pt;font-size:8pt;color:#596373}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body>${content}<script>window.addEventListener('load',()=>document.fonts.ready.then(()=>setTimeout(()=>window.print(),150)))</script></body></html>`,
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Setlist</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}@font-face{font-family:SetlistRobotoRegular;src:url("${fontUrl(fonts.regularUri)}") format("truetype")}@font-face{font-family:SetlistRobotoBold;src:url("${fontUrl(fonts.boldUri)}") format("truetype")}body{margin:0;background:#fff;color:#111827;font-family:SetlistRobotoRegular,Arial,sans-serif}.page{width:${PAGE_WIDTH_PT}pt;height:${PAGE_HEIGHT_PT}pt;page-break-after:always;position:relative;background:#fff}.page:last-child{page-break-after:auto}.brand,.title,.section,.song,.total{font-family:SetlistRobotoBold,Arial,sans-serif}footer{position:absolute;bottom:16pt;left:42pt;right:42pt;border-top:.5pt solid #d1d6de;padding-top:4pt;font-size:8pt;color:#596373;display:flex;justify-content:space-between}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body>${content}<script>window.addEventListener('load',()=>document.fonts.ready.then(()=>setTimeout(()=>window.print(),150)))</script></body></html>`,
   );
   printWindow.document.close();
 }

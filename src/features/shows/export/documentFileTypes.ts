@@ -23,6 +23,10 @@ export function sanitizeFilePart(value: string): string {
   return result || 'show';
 }
 
+/**
+ * Cria nomes sem acentos e seguros para compartilhamento. Imagens recebem um
+ * sufixo `pagina-NN`, mantendo a ordem dos arquivos de um roteiro multipágina.
+ */
 export function createShowExportFilename(
   showName: string,
   dateKey: string,

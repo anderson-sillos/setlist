@@ -11,7 +11,7 @@ Integrantes precisam levar o roteiro de um show para impressão ou compartilhar 
 - Apresentar prévia e seleção de metadados, durações, planejamento e observações antes de gerar os arquivos; usar apresentação própria para impressão e paginação legível em PDF e PNG.
 - Gerar os arquivos localmente e oferecer compartilhamento, download/salvamento e impressão conforme a plataforma, com recuperação quando o compartilhamento não estiver disponível.
 - Criar uma cópia pontual do show para a agenda, com prévia, término ajustável e confirmação do usuário. Usar o formulário de evento do sistema nos aplicativos móveis e oferecer arquivo iCalendar (`.ics`) para importação ou compartilhamento.
-- Preservar o instante de início salvo e informar o fuso usado na prévia. Usar a duração estimada somente como sugestão de término, sujeita à confirmação.
+- Preservar o instante de início salvo e formatar datas conforme a apresentação do Setlist; a exportação não imprime um campo de fuso, enquanto a preparação do calendário informa o fuso usado. Usar a duração estimada somente como sugestão de término, sujeita à confirmação.
 - Registrar o que foi efetivamente gerado ou aberto, distinguindo esses resultados da confirmação de gravação no calendário.
 
 ## Capabilities

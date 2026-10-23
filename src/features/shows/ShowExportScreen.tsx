@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -75,6 +76,10 @@ interface ShowExportScreenProps {
 type ExportFormat = 'pdf' | 'txt' | 'png';
 type ExportDestination = ExportFormat | 'print';
 
+const PREVIEW_ZOOM_STEP = 0.25;
+const MIN_PREVIEW_ZOOM = 0.25;
+const MAX_PREVIEW_ZOOM = 2;
+
 interface ExportSnapshot {
   readonly document: ReturnType<typeof prepareShowExportDocument>;
   readonly sourceUpdatedAt: number;
@@ -136,6 +141,8 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
+  const [previewViewportWidth, setPreviewViewportWidth] = useState(0);
+  const [previewScale, setPreviewScale] = useState<number | null>(null);
   const [renderRequestId, setRenderRequestId] = useState(0);
   const [files, setFiles] = useState<
     Partial<Record<ExportFormat | `png-${number}`, PreparedDocumentFile>>
@@ -284,6 +291,29 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
       ? files[`png-${pageIndexForLayout + 1}`]
       : files[fileFormat];
   const currentPage = pages[pageIndexForLayout] ?? null;
+  const fitPreviewScale = currentPage
+    ? Math.min(
+        1,
+        previewViewportWidth > 0
+          ? previewViewportWidth / currentPage.width
+          : 1,
+      )
+    : 1;
+  const currentPreviewScale = previewScale ?? fitPreviewScale;
+  const scaledPageWidth = currentPage
+    ? currentPage.width * currentPreviewScale
+    : 0;
+  const adjustPreviewScale = (amount: number) => {
+    setPreviewScale(
+      Math.min(
+        MAX_PREVIEW_ZOOM,
+        Math.max(
+          MIN_PREVIEW_ZOOM,
+          Math.round((currentPreviewScale + amount) * 100) / 100,
+        ),
+      ),
+    );
+  };
   const destinationIcon = destinationOptions.find(
     ({ value }) => value === destination,
   )?.icon;
@@ -625,7 +655,64 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
             <ActivityIndicator color={colors.action.primary} />
           ) : currentPage ? (
             <>
-              <DocumentPagePreview page={currentPage} />
+              <View style={styles.zoomControls}>
+                <ZoomControlButton
+                  accessibilityLabel="Reduzir pré-visualização"
+                  disabled={currentPreviewScale <= MIN_PREVIEW_ZOOM}
+                  icon="minus"
+                  onPress={() => adjustPreviewScale(-PREVIEW_ZOOM_STEP)}
+                />
+                <AppText
+                  accessibilityLiveRegion="polite"
+                  accessibilityLabel={`Zoom da pré-visualização: ${Math.round(currentPreviewScale * 100)} por cento`}
+                  style={styles.zoomValue}
+                >
+                  {Math.round(currentPreviewScale * 100)}%
+                </AppText>
+                <ZoomControlButton
+                  accessibilityLabel="Ampliar pré-visualização"
+                  disabled={currentPreviewScale >= MAX_PREVIEW_ZOOM}
+                  icon="add"
+                  onPress={() => adjustPreviewScale(PREVIEW_ZOOM_STEP)}
+                />
+                <AppButton
+                  disabled={previewScale === null}
+                  icon="expand"
+                  label="Ajustar à largura"
+                  onPress={() => setPreviewScale(null)}
+                  style={styles.fitPreviewButton}
+                  variant="secondary"
+                />
+              </View>
+              <View
+                onLayout={({ nativeEvent }) => {
+                  const width = nativeEvent.layout.width;
+                  setPreviewViewportWidth((current) =>
+                    Math.abs(current - width) > 1 ? width : current,
+                  );
+                }}
+                style={styles.previewViewport}
+              >
+                <ScrollView
+                  contentContainerStyle={[
+                    styles.previewScrollContent,
+                    {
+                      justifyContent:
+                        scaledPageWidth < previewViewportWidth
+                          ? 'center'
+                          : 'flex-start',
+                      width: Math.max(previewViewportWidth, scaledPageWidth),
+                    },
+                  ]}
+                  horizontal
+                  style={styles.previewScroll}
+                >
+                  <DocumentPagePreview
+                    page={currentPage}
+                    scale={currentPreviewScale}
+                  />
+                </ScrollView>
+              </View>
               {pages.length > 1 ? (
                 <View style={styles.pagination}>
                   <AppButton
@@ -798,35 +885,137 @@ function ExportFieldToggle({
   );
 }
 
-function DocumentPagePreview({ page }: { readonly page: ShowExportPage }) {
+function ZoomControlButton({
+  accessibilityLabel,
+  disabled,
+  icon,
+  onPress,
+}: {
+  readonly accessibilityLabel: string;
+  readonly disabled: boolean;
+  readonly icon: AppIconName;
+  readonly onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.zoomButton,
+        disabled && styles.zoomButtonDisabled,
+        pressed && !disabled && styles.pressed,
+      ]}
+    >
+      <AppIcon
+        color={disabled ? colors.text.disabled : colors.text.primary}
+        name={icon}
+        size={18}
+      />
+    </Pressable>
+  );
+}
+
+function DocumentPagePreview({
+  page,
+  scale,
+}: {
+  readonly page: ShowExportPage;
+  readonly scale: number;
+}) {
   return (
     <View
       accessibilityLabel={`Pré-visualização da página ${page.pageNumber} de ${page.pageCount}`}
-      style={styles.pagePreview}
+      style={[
+        styles.pagePreview,
+        {
+          borderRadius: radii.sm * scale,
+          borderWidth: scale,
+          height: page.height * scale,
+          width: page.width * scale,
+        },
+      ]}
     >
       {[...page.header, ...page.lines].map((line, index) =>
         line.style === 'separator' ? (
-          <View key={`preview-${index}`} style={styles.previewSeparator} />
+          <View
+            key={`preview-${index}`}
+            style={[
+              styles.previewSeparator,
+              {
+                borderTopWidth: 0.7 * scale,
+                left: line.x * scale,
+                right: 42 * scale,
+                top: (line.top + 6) * scale,
+              },
+            ]}
+          />
         ) : (
           <AppText
+            allowFontScaling={false}
             key={`preview-${index}`}
+            numberOfLines={1}
             style={{
               color: getPageLineColor(line.style),
               fontFamily: isPageLineBold(line.style)
                 ? 'SetlistRobotoBold'
                 : 'SetlistRobotoRegular',
-              fontSize: line.fontSize,
-              lineHeight: line.lineHeight,
-              marginLeft: Math.max(0, line.x - 42),
-              marginTop: 1,
+              fontSize: line.fontSize * scale,
+              height: line.lineHeight * scale,
+              left: line.x * scale,
+              lineHeight: line.lineHeight * scale,
+              position: 'absolute',
+              top: line.top * scale,
+              width: Math.max(0, page.width - 42 - line.x) * scale,
             }}
           >
             {line.text || ' '}
           </AppText>
         ),
       )}
-      <AppText style={styles.pageNumber} tone="muted" variant="caption">
+      <AppText
+        allowFontScaling={false}
+        style={[
+          styles.pageNumber,
+          {
+            borderTopWidth: 0.5 * scale,
+            top: 814 * scale,
+            fontSize: 8 * scale,
+            height: 24 * scale,
+            left: 42 * scale,
+            lineHeight: 10 * scale,
+            paddingTop: 4 * scale,
+            right: 42 * scale,
+          },
+        ]}
+        tone="muted"
+        variant="caption"
+      >
         Página {page.pageNumber} de {page.pageCount}
+      </AppText>
+      <AppText
+        accessibilityLabel={`Gerado em ${page.generatedAtLabel}`}
+        allowFontScaling={false}
+        style={[
+          styles.pageNumber,
+          {
+            borderTopWidth: 0,
+            fontSize: 8 * scale,
+            height: 24 * scale,
+            left: 42 * scale,
+            lineHeight: 10 * scale,
+            paddingTop: 4 * scale,
+            right: 42 * scale,
+            textAlign: 'right',
+            top: 814 * scale,
+          },
+        ]}
+        tone="muted"
+        variant="caption"
+      >
+        {page.generatedAtLabel}
       </AppText>
     </View>
   );
@@ -906,29 +1095,65 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  pagePreview: {
+  zoomControls: {
+    alignItems: 'center',
     alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    maxWidth: 595,
+    width: '100%',
+  },
+  zoomButton: {
+    alignItems: 'center',
+    borderColor: colors.border.control,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  zoomButtonDisabled: {
+    opacity: 0.45,
+  },
+  zoomValue: {
+    minWidth: 52,
+    textAlign: 'center',
+  },
+  fitPreviewButton: {
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  previewViewport: {
+    alignSelf: 'stretch',
+    overflow: 'hidden',
+    width: '100%',
+  },
+  previewScroll: {
+    width: '100%',
+  },
+  previewScrollContent: {
+    alignItems: 'flex-start',
+    flexGrow: 1,
+  },
+  pagePreview: {
     backgroundColor: '#ffffff',
     borderColor: colors.border.subtle,
     borderRadius: radii.sm,
     borderWidth: 1,
-    gap: 1,
-    maxWidth: 595,
-    minHeight: 220,
     overflow: 'hidden',
-    padding: spacing.lg,
-    width: '100%',
+    position: 'relative',
   },
   previewSeparator: {
+    position: 'absolute',
     borderTopColor: '#94a3b8',
-    borderTopWidth: 1,
-    marginVertical: spacing.xs,
   },
   pageNumber: {
+    position: 'absolute',
     borderTopColor: '#d1d6de',
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: spacing.sm,
-    paddingTop: spacing.xs,
   },
   pagination: {
     alignItems: 'center',

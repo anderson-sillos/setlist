@@ -7,8 +7,10 @@ import {
   type ShowExportOptions,
 } from './showExportModel';
 
+/** Geometria A4 em pontos, compartilhada pela prévia, PDF, PNG e impressão. */
 export const PAGE_WIDTH_PT = 595.28;
 export const PAGE_HEIGHT_PT = 841.89;
+/** Resolução fixa das imagens exportadas; independe do zoom da prévia. */
 export const PAGE_SCALE = 150 / 72;
 export const PAGE_PNG_WIDTH = Math.round(PAGE_WIDTH_PT * PAGE_SCALE);
 export const PAGE_PNG_HEIGHT = Math.round(PAGE_HEIGHT_PT * PAGE_SCALE);
@@ -27,6 +29,7 @@ export interface ShowExportPage {
   readonly height: number;
   readonly header: readonly LaidOutTextLine[];
   readonly lines: readonly LaidOutTextLine[];
+  readonly generatedAtLabel: string;
   readonly pageNumber: number;
   readonly pageCount: number;
 }
@@ -188,10 +191,8 @@ function makeHeader(
         { style: 'brand', text: document.bandName },
         { style: 'title', text: document.showName },
         { style: 'meta', text: `Início: ${document.startLabel}` },
-        { style: 'meta', text: `Fuso: ${document.timeZone}` },
         { style: 'meta', text: `Local: ${document.venue || 'Não informado'}` },
-        { style: 'meta', text: `Estado: ${document.statusLabel}` },
-        { style: 'meta', text: `Preparado em: ${document.generatedLabel}` },
+        { style: 'meta', text: `Situação: ${document.statusLabel}` },
       ];
   let top = 30;
   const result: LaidOutTextLine[] = [];
@@ -229,13 +230,19 @@ function createPage(
   return { header: header.lines, y: header.bottom, lines: [] };
 }
 
+/**
+ * Quebra as linhas do documento em páginas A4 e conserva coordenadas em pontos.
+ * Textos longos continuam em páginas seguintes com o cabeçalho de continuação;
+ * os renderizadores devem usar `pageNumber`, `pageCount` e `generatedAtLabel`
+ * no rodapé.
+ */
 export function buildShowExportPages(
   document: ShowExportDocument,
   options: ShowExportOptions,
   measure: TextMeasure,
 ): ShowExportPage[] {
   const allLines = getShowExportLines(document, options);
-  const headerLines = allLines.slice(0, 7);
+  const headerLines = allLines.slice(0, 5);
   const contentLines = allLines.slice(headerLines.length);
   const rows = createRows(contentLines, measure);
   const pages: ReturnType<typeof createPage>[] = [];
@@ -301,6 +308,7 @@ export function buildShowExportPages(
     height: PAGE_HEIGHT_PT,
     header: page.header,
     lines: page.lines,
+    generatedAtLabel: document.generatedAtLabel,
     pageNumber: index + 1,
     pageCount: pages.length,
   }));

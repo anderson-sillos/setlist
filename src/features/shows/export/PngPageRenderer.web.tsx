@@ -65,6 +65,9 @@ export function PngPageRenderer({
         42,
         829,
       );
+      context.textAlign = 'right';
+      context.fillText(page.generatedAtLabel, page.width - 42, 829);
+      context.textAlign = 'left';
       if (!cancelled) {
         const base64 = canvas.toDataURL('image/png').split(',')[1] ?? '';
         onRendered(requestId, base64);

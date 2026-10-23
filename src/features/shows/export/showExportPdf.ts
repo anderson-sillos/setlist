@@ -81,6 +81,17 @@ export async function createShowExportPdf(
       font: regular,
       color: rgb(0.35, 0.39, 0.45),
     });
+    const generatedAtWidth = regular.widthOfTextAtSize(
+      layout.generatedAtLabel,
+      8,
+    );
+    page.drawText(layout.generatedAtLabel, {
+      x: layout.width - 42 - generatedAtWidth,
+      y: layout.height - 829,
+      size: 8,
+      font: regular,
+      color: rgb(0.35, 0.39, 0.45),
+    });
   });
 
   return pdf.save();

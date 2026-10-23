@@ -36,15 +36,23 @@ O sistema SHALL oferecer PDF, TXT em UTF-8 e PNG na primeira entrega em Web, iOS
 
 ### Requirement: Identificação do roteiro exportado
 
-O documento SHALL apresentar nome da banda, nome do show, data e horário de início, fuso de referência, local, estado do show e data de geração. Esses dados SHALL permanecer identificáveis em documentos de várias páginas.
+O documento SHALL apresentar nome da banda, nome do show, data e horário de início no formato usado pelo Setlist, local e situação do show. MUST NOT exibir um campo de fuso horário. A data e hora de geração SHALL aparecer sem rótulo, alinhadas à direita no rodapé de cada página, no formato `dd/mm/yyyy HH:MM`; no TXT, SHALL aparecer como última linha. A numeração e a data de geração SHALL permanecer identificáveis em documentos de várias páginas.
 
 #### Scenario: Exportar um rascunho ou show cancelado
 - **WHEN** a pessoa exporta um show em Rascunho ou Cancelado
-- **THEN** o documento identifica explicitamente esse estado sem apresentá-lo como um show Pronto
+- **THEN** o documento identifica explicitamente a situação sem apresentá-la como um show Pronto
 
 #### Scenario: Aparelho usa outro fuso
 - **WHEN** o fuso do aparelho difere do fuso de apresentação do Setlist
-- **THEN** o documento mantém a data e o horário de referência apresentados pelo Setlist e identifica esse fuso
+- **THEN** o documento mantém a data e o horário de referência apresentados pelo Setlist, sem imprimir um campo que identifique o fuso
+
+#### Scenario: Data de geração no rodapé
+- **WHEN** o roteiro é gerado em PDF, Imagem ou enviado à impressão
+- **THEN** cada página mostra a data e hora de geração alinhadas à direita no rodapé, sem o texto `Preparado em` e no formato `dd/mm/yyyy HH:MM`
+
+#### Scenario: Data de geração no TXT
+- **WHEN** o roteiro é gerado como Texto
+- **THEN** a data e hora no formato `dd/mm/yyyy HH:MM` aparecem como última linha, sem rótulo
 
 ### Requirement: Preservação de blocos e ocorrências
 
@@ -68,7 +76,7 @@ A exportação SHALL preservar blocos, ordem salva, ocorrências repetidas e sep
 
 ### Requirement: Prévia e escolha de campos
 
-O sistema SHALL apresentar prévia antes da entrega e controles para artista, tom, BPM, durações, planejamento, observações gerais do show e observações de cada ocorrência de música. A seleção SHALL ser aplicada igualmente aos três formatos.
+O sistema SHALL apresentar prévia antes da entrega e controles para artista, tom, BPM, durações, planejamento, observações gerais do show e observações de cada ocorrência de música. A seleção SHALL ser aplicada igualmente aos três formatos. A prévia SHALL começar ajustada à largura disponível e oferecer controles para reduzir, ampliar e ajustar à largura; ampliar a prévia SHALL alterar apenas sua visualização, sem modificar o tamanho A4 nem os arquivos gerados.
 
 #### Scenario: Abrir a prévia inicial
 - **WHEN** a pessoa abre a preparação de uma exportação
@@ -78,6 +86,20 @@ O sistema SHALL apresentar prévia antes da entrega e controles para artista, to
 #### Scenario: Alterar uma seleção
 - **WHEN** a pessoa inclui observações ou retira um campo opcional
 - **THEN** a prévia e os arquivos gerados refletem a mesma escolha, incluindo cabeçalhos, totais ou anotações relacionados ao campo
+
+#### Scenario: Ajustar a escala da prévia
+- **WHEN** a pessoa usa os controles de reduzir ou ampliar
+- **THEN** a página inteira muda de escala em incrementos de 25 pontos percentuais, incluindo texto, margens e espaçamento
+- **AND** o controle de ajuste à largura retorna a página à maior escala que cabe na área disponível
+- **AND** uma página ampliada pode ser percorrida horizontalmente sem cortar o conteúdo
+
+#### Scenario: Paginar com escala personalizada
+- **WHEN** a pessoa navega para a página anterior ou seguinte
+- **THEN** a nova página mantém a escala de prévia selecionada
+
+#### Scenario: Gerar arquivo após ampliar a prévia
+- **WHEN** a pessoa amplia ou reduz a prévia e gera um arquivo
+- **THEN** PDF e Imagem mantêm o layout físico A4 e o conteúdo definido pelas opções, independentemente da escala de visualização
 
 ### Requirement: Durações coerentes com o show
 

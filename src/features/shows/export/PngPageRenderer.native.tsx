@@ -100,6 +100,16 @@ export function PngPageRenderer({
       >
         {`Página ${page.pageNumber} de ${page.pageCount}`}
       </Text>
+      <Text
+        fill="#596373"
+        fontFamily="SetlistRobotoRegular"
+        fontSize={8}
+        textAnchor="end"
+        x={page.width - 42}
+        y={829}
+      >
+        {page.generatedAtLabel}
+      </Text>
     </Svg>
   );
 }
@@ -107,7 +117,7 @@ export function PngPageRenderer({
 const styles = StyleSheet.create({
   surface: {
     left: -10000,
-    opacity: 0,
+    // `opacity` também é herdada pelo grupo SVG e deixaria a captura transparente.
     position: 'absolute',
     top: 0,
   },

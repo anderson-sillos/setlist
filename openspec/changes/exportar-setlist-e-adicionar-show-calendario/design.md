@@ -38,7 +38,7 @@ Os demais comportamentos abaixo são defaults propostos neste planejamento, suje
 
 Criar uma preparação de documento com o contexto da banda, o show completo e somente os `SongSummary` referenciados. Reutilizar as leituras em cache da tela; se o fluxo for aberto diretamente por rota, usar as mesmas chaves de consulta e carregar as dependências ausentes. Não iniciar buscas de letras nem consultas individuais por música.
 
-O contrato interno de preparação deve conter apenas os campos necessários: identificação pública da banda/show, instante inicial, fuso de apresentação, estado, local, observações selecionáveis, blocos e ocorrências com metadados. Letras, documentos completos de músicas, dados de integrantes e credenciais não pertencem a esse contrato. Identificadores usados para associação interna não são impressos.
+O contrato interno de preparação deve conter apenas os campos necessários: identificação pública da banda/show, instante inicial, estado, local, observações selecionáveis, blocos e ocorrências com metadados. A data de início é formatada conforme o fuso de apresentação do Setlist, sem imprimir um campo de fuso no documento. Letras, documentos completos de músicas, dados de integrantes e credenciais não pertencem a esse contrato. Identificadores usados para associação interna não são impressos.
 
 Ao abrir a prévia, criar uma cópia estável. Mudanças conhecidas nas consultas disponibilizam `Atualizar prévia`; essa ação reconstrói a cópia e invalida arquivos gerados anteriormente. Os três formatos leem a mesma cópia e as mesmas opções. A geração não usa valores parcialmente carregados ou rascunhos de outro editor.
 
@@ -60,7 +60,7 @@ Na exportação, organizar a leitura e o foco em `Informações incluídas` → 
 
 ### 4. Definir conteúdo selecionável e um modelo de página comum
 
-O cabeçalho sempre contém banda, show, início com fuso, local, estado e geração. A ordem dos blocos e itens é a ordem salva; músicas recebem numeração contínua, inclusive repetições, e planejamento/separadores não consomem números.
+O cabeçalho sempre contém banda, show, início formatado pelo Setlist, local e situação. Não imprimir campo de fuso horário. A data e hora de geração aparecem sem rótulo, alinhadas à direita no rodapé de cada página, em `dd/mm/yyyy HH:MM`. Como o TXT não possui páginas, essa data aparece como última linha. A ordem dos blocos e itens é a ordem salva; músicas recebem numeração contínua, inclusive repetições, e planejamento/separadores não consomem números.
 
 Defaults de abertura:
 
@@ -80,7 +80,9 @@ Se durações estiverem ligadas, o total usa exatamente a regra atual do show. R
 
 Criar um modelo de páginas com linhas de texto já quebradas, caixas e separadores, medido por uma fonte local distribuível com licença incluída no futuro asset. Usar a mesma fonte e suas métricas na paginação e nos renderizadores. Cabeçalhos de bloco acompanham ao menos o primeiro item; itens normalmente ficam juntos; texto maior que uma página continua com identificação. Não reduzir a fonte para fazer o show caber em uma única página.
 
-O TXT apresenta a mesma seleção de conteúdo em sequência, usando títulos de bloco e divisórias textuais, sem inserir números de página artificiais. PDF e PNG seguem o mesmo conjunto de páginas A4, com cabeçalho de continuação e `Página n de N`. PNG usa resolução fixa própria para leitura e impressão, inicialmente equivalente a aproximadamente 150 dpi, independente da largura da tela.
+A escala da prévia é independente do modelo físico. A tela começa ajustada à largura disponível e oferece `−`, percentual atual, `+` e `Ajustar à largura`, com passos de 25 pontos percentuais. Reduzir e ampliar escalam a página inteira e reservam a área correspondente no layout; quando a página ultrapassar a largura do contêiner, a pessoa pode percorrê-la horizontalmente. A navegação entre páginas preserva a escala selecionada. A escala afeta somente a prévia na Web, iOS e Android; PDF e PNG continuam usando as dimensões e métricas A4 definidas pelo modelo, sem alterar o resultado exportado.
+
+O TXT apresenta a mesma seleção de conteúdo em sequência, usando títulos de bloco e divisórias textuais, sem inserir números de página artificiais, e encerra com a data e hora de geração sem rótulo. PDF e PNG seguem o mesmo conjunto de páginas A4, com cabeçalho de continuação, `Página n de N` à esquerda e data de geração à direita no rodapé. PNG usa resolução fixa própria para leitura e impressão, inicialmente equivalente a aproximadamente 150 dpi, independente da largura da tela.
 
 **Alternativas consideradas:** fotografar a tela atual incluiria o tema escuro, poderia omitir conteúdo fora da rolagem e vincularia a qualidade ao aparelho; uma única imagem de altura ilimitada aumentaria o consumo de memória e poderia ficar ilegível nos destinos.
 

@@ -49,13 +49,11 @@ export interface ShowExportDocument {
   readonly bandName: string;
   readonly showName: string;
   readonly startsAt: string;
-  readonly timeZone: string;
   readonly startLabel: string;
   readonly venue: string;
   readonly status: Show['status'];
   readonly statusLabel: string;
-  readonly generatedAt: string;
-  readonly generatedLabel: string;
+  readonly generatedAtLabel: string;
   readonly notes: string | null;
   readonly songCount: number;
   readonly duration: {
@@ -104,6 +102,25 @@ function formatDateTime(value: string, timeZone: string): string {
   }).format(date);
 }
 
+function formatCompactDateTime(value: string, timeZone: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '00/00/0000 00:00';
+
+  const parts = new Intl.DateTimeFormat(APP_LOCALE, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone,
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map(({ type, value: partValue }) => [type, partValue]),
+  );
+  return `${values.day}/${values.month}/${values.year} ${values.hour}:${values.minute}`;
+}
+
 function countSongs(show: Show): number {
   return show.blocks.reduce(
     (count, block) =>
@@ -125,13 +142,11 @@ export function prepareShowExportDocument(
     bandName: band.bandName,
     showName: show.name,
     startsAt: show.startsAt,
-    timeZone: APP_TIME_ZONE,
     startLabel: formatDateTime(show.startsAt, APP_TIME_ZONE),
     venue: show.venue,
     status: show.status,
     statusLabel: statusLabels[show.status],
-    generatedAt,
-    generatedLabel: formatDateTime(generatedAt, APP_TIME_ZONE),
+    generatedAtLabel: formatCompactDateTime(generatedAt, APP_TIME_ZONE),
     notes: show.notes,
     songCount: countSongs(show),
     duration,
@@ -171,10 +186,8 @@ export function getShowExportLines(
     { style: 'brand', text: document.bandName },
     { style: 'title', text: document.showName },
     { style: 'meta', text: `Início: ${document.startLabel}` },
-    { style: 'meta', text: `Fuso: ${document.timeZone}` },
     { style: 'meta', text: `Local: ${document.venue || 'Não informado'}` },
-    { style: 'meta', text: `Estado: ${document.statusLabel}` },
-    { style: 'meta', text: `Preparado em: ${document.generatedLabel}` },
+    { style: 'meta', text: `Situação: ${document.statusLabel}` },
   ];
 
   if (options.includeShowNotes && document.notes?.trim()) {

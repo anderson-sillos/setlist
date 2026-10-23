@@ -25,5 +25,5 @@ export function createShowExportText(
     })
     .filter((line) => line.length > 0)
     .join('\n')
-    .concat('\n');
+    .concat(`\n${document.generatedAtLabel}\n`);
 }

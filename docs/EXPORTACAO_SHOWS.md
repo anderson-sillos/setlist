@@ -10,10 +10,21 @@ A prévia reúne os dados do show e os resumos de músicas já usados pelo app. 
 permanece estável enquanto é revisada. Se os dados mudarem, use **Atualizar
 prévia com os dados atuais** antes de gerar outro arquivo.
 
-Escolha PDF, Texto ou PNG e revise as informações incluídas. Artista, tom,
-durações e planejamento começam selecionados. BPM e observações do show ou de
-cada ocorrência começam desmarcados. Nenhum formato inclui letras. O arquivo
-apresenta a data e o horário do show no fuso do Setlist, `America/Sao_Paulo`.
+Escolha PDF, Texto, Imagem ou Imprimir e revise as informações incluídas. Imagem
+gera um arquivo PNG por página; Imprimir prepara o roteiro sem criar um arquivo
+para compartilhar. Artista, tom, durações e planejamento começam selecionados.
+BPM e observações do show ou de cada ocorrência começam desmarcados. Nenhum
+formato inclui letras. A data e o horário do show seguem a apresentação do
+Setlist, sem um campo separado de fuso. A situação do show aparece identificada
+como **Situação**. PDF, Imagem e impressão mostram a data e hora de geração no
+rodapé, alinhadas à direita e sem rótulo, no formato `dd/mm/yyyy HH:MM`. No
+Texto, essa data fica como última linha.
+
+A pré-visualização começa ajustada à largura disponível. Use `−` e `+` para
+reduzir ou ampliar em passos de 25 pontos percentuais, ou selecione **Ajustar à
+largura** para voltar ao tamanho que cabe na área. Quando ampliada, a página
+pode ser percorrida horizontalmente. A escala escolhida permanece ao mudar de
+página e afeta somente a pré-visualização; PDF e Imagem mantêm o layout A4.
 
 PDF e PNG usam páginas A4. O PDF contém texto selecionável e pode ser impresso.
 Cada página PNG é gerada separadamente, em aproximadamente 150 dpi, e recebe

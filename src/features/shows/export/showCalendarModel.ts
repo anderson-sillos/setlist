@@ -273,6 +273,15 @@ function formatIcsDate(value: Date): string {
     .replace(/\.\d{3}Z$/, 'Z');
 }
 
+/**
+ * Serializa uma cópia RFC 5545 com início e término em UTC (`Z`), preservando
+ * os instantes interpretados no fuso explícito do show. SUMMARY recebe banda e
+ * show; LOCATION recebe o local; DESCRIPTION recebe estado, fuso e somente as
+ * observações escolhidas. O UID é um SHA-256 estável do ID do show, então novas
+ * exportações do mesmo show mantêm a identidade e calendários externos podem
+ * tratá-las como duplicatas. Não há `TZID`/`VTIMEZONE`: os horários são UTC.
+ * Cada linha é dobrada no limite de 75 octetos UTF-8.
+ */
 export async function createShowCalendarIcs(
   draft: CalendarDraft,
   event: CalendarEventCopy,
