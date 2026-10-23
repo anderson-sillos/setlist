@@ -12,24 +12,26 @@
 - O primeiro envio Android continua aguardando o processo do Google Play; esta
   candidata não inclui um novo build Android.
 
-## Próxima candidata — versão e tag pendentes
+## 1.1.0 — candidata `v1.1.0-rc.1` em preparação
 
 ### Exportação de shows e calendário pessoal
 
-- Exportação do setlist em PDF A4 com texto selecionável, TXT UTF-8 e PNG A4
-  paginado. A pessoa escolhe os metadados e observações que deseja incluir; as
-  letras nunca são exportadas.
-- Prévia estável, atualização explícita a partir dos dados atuais, paginação
-  comum e entrega por download/compartilhamento ou impressão conforme o suporte
-  da plataforma.
-- Criação pontual de uma cópia do show no formulário de calendário do iOS e
-  Android, com horário final editável e fuso `America/Sao_Paulo`; `.ics` fica
-  disponível como alternativa para importar ou compartilhar.
-- O término não altera o show salvo. Alterações futuras não sincronizam eventos
-  pessoais; uma nova adição pode criar duplicatas. O Android não confirma se o
-  evento foi salvo.
-- Requer nova validação de Web e development builds iOS/Android antes de
-  atribuir a candidata, tag e commit de release.
+- Exportação do setlist em PDF A4 com texto selecionável, TXT UTF-8 e PNG por
+  página; a pessoa escolhe os metadados e observações que deseja incluir. Letras
+  nunca são exportadas.
+- Prévia estável, atualização explícita dos dados, paginação e zoom; a escala da
+  prévia não altera os arquivos gerados.
+- Entrega por compartilhamento, download ou impressão conforme a plataforma;
+  zoom e paginação afetam somente a prévia, não o layout dos arquivos.
+- Cópia pontual do show no formulário de calendário do iOS e Android, com
+  término estimado pelas durações do setlist (duas horas quando ausentes) e
+  ajustável no calendário. O arquivo `.ics` pode ser importado ou compartilhado.
+- A cópia não sincroniza alterações posteriores e pode gerar duplicatas. O
+  término é uma estimativa; no Android, o Setlist não recebe confirmação de que
+  o evento foi salvo.
+- A validação funcional, de acessibilidade e de calendários reais foi concluída
+  conforme confirmação do responsável. Os builds de produção e a exportação
+  Web devem ser gerados do mesmo commit final da candidata, após a integração.
 
 ## 1.0.0 — candidata `v1.0.0-rc.5` em preparação
 

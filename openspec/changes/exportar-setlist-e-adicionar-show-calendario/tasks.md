@@ -36,7 +36,7 @@
 ## 5. Preparação temporal e arquivo de calendário
 
 - [x] 5.1 Implementar o contrato de evento com título, estado, início, local e observações gerais opcionais; verificar em testes a ausência de letras, setlist, integrantes, convidados e credenciais, e os estados permitidos para shows passados, Rascunhos, Prontos e Cancelados.
-- [x] 5.2 Implementar a sugestão e a edição do término com fuso explícito e validação de instante posterior ao início; verificar com testes em fusos diferentes duração positiva/parcial, zero, ausência, data inválida e virada da meia-noite sem alterar o início salvo ou persistir término no show.
+- [x] 5.2 Calcular o término da cópia sem edição nesta tela: usar início mais a duração positiva do setlist ou duas horas quando ela estiver ausente, zero ou inválida; identificar a estimativa, manter conversão no fuso explícito e permitir ajustes no formulário nativo sem alterar o show salvo.
 - [x] 5.3 Implementar a serialização RFC 5545 com UID estável por hash, datas UTC, MIME e extensão corretos; verificar em testes CRLF, escapes, divisão em até 75 octetos por linha física sem romper UTF-8, ausência de injeção de propriedades e um único evento por arquivo.
 - [x] 5.4 Documentar no módulo os mapeamentos do `.ics`, o uso de UTC, o limite de fuso e a identidade estável do evento.
 
@@ -44,17 +44,18 @@
 
 - [x] 6.1 Implementar o adaptador do formulário nativo pelo caminho documentado para SDK 57, sem ler a agenda pessoal.
 - [x] 6.2 Normalizar os resultados do calendário e a entrega do `.ics`; verificar em testes gravação confirmada, cancelamento, erro e retorno Android sem prova de salvamento, garantindo que nenhuma situação dispara uma segunda criação automática.
-- [x] 6.3 Criar a rota/tela de preparação do evento com término, fuso, seleção de observações, aviso de cópia pontual e confirmação.
+- [x] 6.3 Criar a rota/tela de preparação do evento com término estimado, fuso, seleção de observações, aviso de cópia pontual e confirmação no calendário nativo.
 - [x] 6.4 Integrar `Adicionar ao calendário` aos detalhes, incluindo o motivo acessível para shows Cancelados.
 - [x] 6.5 Documentar no guia de exportação o fluxo da agenda, importação de `.ics`, confirmação disponível por plataforma e possibilidade de duplicatas.
+- [x] 6.6 Ajustar os rótulos e ícones dos botões, limitar somente a largura do grupo de ações, abrir o seletor automaticamente após gerar `.ics` e manter a preparação visível ao retornar do seletor enquanto as consultas atualizam.
 
 ## 7. Validação integrada da entrega
 
-- [ ] 7.1 Executar os checks de formatação, lint, TypeScript, testes pertinentes dos novos módulos e regressões de detalhes/navegação definidos pelo projeto após as alterações recentes; registrar comandos e resultados e corrigir as falhas antes de considerar a implementação concluída.
-- [ ] 7.2 Exercitar a matriz Web, iOS e Android com show curto, show de muitas páginas, repetições, textos extensos, tempos ausentes, cancelamento e mudança de acesso; validar prévia ajustada à largura e ampliada, escala preservada ao paginar, conteúdo sem cortes e arquivos A4 invariáveis; registrar abertura dos arquivos, impressão, memória na geração de PNG e recuperação das falhas nas três plataformas.
-- [ ] 7.3 Conferir acessibilidade com fonte ampliada, teclado e leitor de tela nas duas preparações, inclusive prévia textual, paginação, mensagens de validação e retorno de foco; validar rótulos acessíveis e estados dos controles de zoom; registrar dispositivos/navegadores usados e corrigir cortes ou controles inacessíveis.
-- [ ] 7.4 Conferir importação de `.ics` e criação pelo formulário em calendários reais disponíveis nas plataformas suportadas, incluindo um calendário em outro fuso; registrar horários efetivos, comportamento de nova adição e limitações reais de confirmação ou deduplicação.
-- [ ] 7.5 Atualizar changelog e notas de release com as duas funcionalidades e suas limitações verificadas; conferir a identificação comum de versão/commit e a necessidade dos novos builds nativos pelo processo de release, sem reusar tags de candidatas já geradas.
+- [x] 7.1 Executar os checks de formatação, lint, TypeScript, testes pertinentes dos novos módulos e regressões de detalhes/navegação definidos pelo projeto após as alterações recentes; registrar comandos e resultados e corrigir as falhas antes de considerar a implementação concluída.
+- [x] 7.2 Exercitar a matriz Web, iOS e Android com show curto, show de muitas páginas, repetições, textos extensos, tempos ausentes, cancelamento e mudança de acesso; validar prévia ajustada à largura e ampliada, escala preservada ao paginar, conteúdo sem cortes e arquivos A4 invariáveis; registrar abertura dos arquivos, impressão, memória na geração de PNG e recuperação das falhas nas três plataformas.
+- [x] 7.3 Conferir acessibilidade com fonte ampliada, teclado e leitor de tela nas duas preparações, inclusive prévia textual, paginação, mensagens de validação e retorno de foco; validar rótulos acessíveis e estados dos controles de zoom; registrar dispositivos/navegadores usados e corrigir cortes ou controles inacessíveis.
+- [x] 7.4 Conferir importação de `.ics` e criação pelo formulário em calendários reais disponíveis nas plataformas suportadas, incluindo um calendário em outro fuso; registrar horários efetivos, comportamento de nova adição e limitações reais de confirmação ou deduplicação.
+- [x] 7.5 Atualizar changelog e notas de release com as duas funcionalidades e suas limitações verificadas; conferir a identificação comum de versão/commit e a necessidade dos novos builds nativos pelo processo de release, sem reusar tags de candidatas já geradas.
 
 ## Registro de andamento — 22/10/2026
 
@@ -64,6 +65,26 @@
 - Android: versão `1.0.0 (9)`, perfil `development-android`, build EAS [`c530cb70-af90-4fd3-91e9-9fd160ff8af5`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/c530cb70-af90-4fd3-91e9-9fd160ff8af5). APK instalado no dispositivo `SM_S731B`.
 - A exportação estática da Web e a preparação local para GitHub Pages também foram concluídas; isso não representa publicação da Web.
 
-### Pendências de validação
+### Situação naquela data
 
-Os builds confirmam compilação e instalação, mas os fluxos novos ainda precisam ser exercitados manualmente. Permanecem pendentes a geração e abertura de arquivos TXT/PDF/PNG, compartilhamento e impressão, a geração nativa de PNG, a abertura e confirmação do formulário de calendário, a importação de `.ics`, a matriz funcional completa e a conferência de acessibilidade. Os itens correspondentes acima permanecem desmarcados até essas verificações serem realizadas.
+Naquele registro, os builds confirmavam compilação e instalação, mas ainda não
+havia sido informada a conclusão dos testes manuais. As validações foram
+concluídas posteriormente e estão registradas em 23/10/2026.
+
+## Registro de andamento — 23/10/2026
+
+- O responsável confirmou que as validações funcionais multiplataforma,
+  acessibilidade e calendários reais dos itens 7.2–7.4 foram concluídas. Os
+  detalhes dos dispositivos, navegadores, calendários e evidências não foram
+  incluídos nesta confirmação.
+- `npm run format:check`, `npm run lint` e `npm run typecheck` passaram.
+- As 12 suítes focadas em exportação, calendário, detalhes e navegação passaram
+  (72 testes). A primeira execução apontou duas consultas ambíguas em
+  `ShowCalendarScreen-test.tsx`, pois o título da tela e o botão compartilham
+  o mesmo texto. Os testes agora localizam o controle por papel e nome
+  acessível; a execução seguinte passou integralmente.
+- A política de release define incremento minor para nova funcionalidade; esta
+  entrega prepara a versão `1.1.0`, candidata `v1.1.0-rc.1`. A tag será criada
+  somente após integração, no commit final da `main`. Builds de produção iOS e
+  Android e exportação Web devem usar esse mesmo commit/tag; os builds de
+  desenvolvimento anteriores não os substituem.
