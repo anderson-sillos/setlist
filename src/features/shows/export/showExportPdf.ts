@@ -1,12 +1,14 @@
 import { PDFDocument, rgb } from 'pdf-lib';
-import * as fontkit from '@pdf-lib/fontkit';
 
 import {
   isPageLineBold,
   buildShowExportPages,
   getPageLineColor,
 } from './showExportLayout';
-import { loadDocumentFontResources } from './documentFonts';
+import {
+  documentFontkit,
+  loadDocumentFontResources,
+} from './documentFonts';
 import type { ShowExportDocument, ShowExportOptions } from './showExportModel';
 
 function parseColor(value: string) {
@@ -22,7 +24,7 @@ export async function createShowExportPdf(
 ): Promise<Uint8Array> {
   const resources = await loadDocumentFontResources();
   const pdf = await PDFDocument.create();
-  pdf.registerFontkit(fontkit);
+  pdf.registerFontkit(documentFontkit);
   const [regular, bold] = await Promise.all([
     pdf.embedFont(resources.regularBytes, { subset: true }),
     pdf.embedFont(resources.boldBytes, { subset: true }),

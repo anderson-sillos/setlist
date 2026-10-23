@@ -54,6 +54,8 @@ O cabeçalho dos detalhes passa a disponibilizar `Mais opções` também a Membe
 
 As telas preservam o tema atual nos controles e usam uma região clara apenas para a representação do documento. O retorno por botão, gesto, navegador ou hardware volta ao show de origem, e o fechamento de camadas mantém a ordem prevista em `screen-navigation`. Abrir a criação de evento do sistema a partir de uma tela evita acrescentar um formulário nativo sobre outro modal do Setlist.
 
+Na exportação, organizar a leitura e o foco em `Informações incluídas` → `Pré-visualização` → `Destino`. Agrupar a escolha de destino e o botão de geração no mesmo cartão, depois da revisão do conteúdo. Apresentar os destinos como `PDF`, `Texto`, `Imagem` e `Imprimir`, com ícones distintos; `Imagem` continua produzindo arquivos PNG, um por página. O agrupamento segue a orientação de [controles relacionados do W3C WAI](https://www.w3.org/WAI/tutorials/forms/grouping/).
+
 **Alternativa considerada:** empilhar o seletor de formato, a prévia e o calendário em modais economizaria rotas, mas aumentaria o risco de conflitos de apresentação e dificultaria retorno, foco e teclado.
 
 ### 4. Definir conteúdo selecionável e um modelo de página comum
@@ -90,7 +92,7 @@ Renderizar o modelo de página em SVG no nativo, reutilizando `react-native-svg`
 
 Gerar uma página por vez e liberar a superfície antes de produzir a próxima. O resultado é uma lista de arquivos numerados; a interface mostra todas as páginas e oferece salvar/compartilhar cada imagem. Compartilhamento em lote só aparece se o adaptador suportar todos os arquivos; a primeira entrega não depende dele para acessar cada página.
 
-Para impressão móvel, usar `expo-print` com o PDF gerado. Para a Web, preparar documento de impressão isolado com o mesmo conteúdo e fonte, sem a navegação do app. A ação de imprimir parte de um novo gesto do usuário quando a preparação estiver pronta. O PDF direto continua disponível mesmo quando o navegador ou visualizador não abre a impressão automaticamente.
+Para impressão móvel, usar `expo-print` com o PDF gerado. Para a Web, preparar documento de impressão isolado com o mesmo conteúdo e fonte, sem a navegação do app. Abrir uma janela vazia no clique de geração e preenchê-la quando o documento estiver pronto, para que o navegador permita a impressão. O destino PDF continua disponível para compartilhamento ou download.
 
 **Alternativas consideradas:** somente `expo-print` resolveria PDF móvel, mas na Web seu caminho abre o diálogo de impressão e não entrega o arquivo PDF direto; rasterizar o PDF para obter PNG exigiria outro motor de PDF no aparelho/navegador; acrescentar captura da tela inteira ou conversão HTML genérica traria dependências e diferenças de layout desnecessárias para este documento textual.
 
@@ -98,8 +100,8 @@ Para impressão móvel, usar `expo-print` com o PDF gerado. Para a Web, preparar
 
 Um contrato de entrega recebe nome, tipo MIME e bytes/arquivo local e devolve somente o resultado conhecido: preparado, interface externa aberta, salvamento confirmado quando disponível, cancelamento informado ou falha. O retorno de uma API que apenas fecha o seletor não prova recebimento por destinatário.
 
-- Nativo: `expo-file-system` para arquivos em cache e `expo-sharing` para entrega ao seletor do sistema; usar salvamento por seletor de arquivos quando suportado. A indisponibilidade de uma opção mantém o arquivo preparado e permite a alternativa disponível ou nova tentativa, com mensagem específica.
-- Web: `Blob`/`File`, download por URL de objeto e `navigator.canShare({ files })` antes de mostrar compartilhamento. A ação de compartilhar é um clique separado após a geração, preservando a ativação exigida pelo navegador. APIs do navegador ficam em adaptadores `.web`, sem execução durante a exportação estática.
+- Nativo: `expo-file-system` para arquivos em cache e `expo-sharing` para abrir automaticamente o seletor do sistema após a geração. A indisponibilidade do seletor mantém o arquivo preparado e apresenta uma mensagem específica.
+- Web: `Blob`/`File`, download por URL de objeto e `navigator.canShare({ files })` antes de tentar abrir automaticamente o compartilhamento após a geração. Como o navegador pode expirar a ativação do clique durante a geração assíncrona, indisponibilidade ou bloqueio inicia o download automaticamente. Para impressão, abrir uma janela vazia durante o clique em “Gerar e imprimir” e preenchê-la depois que o PDF estiver pronto, evitando o bloqueio de pop-ups. APIs do navegador ficam em adaptadores `.web`, sem execução durante a exportação estática.
 - Nomes sanitizados incluem show, data e formato; PNG acrescenta número de página. O conteúdo do documento permanece intacto; a sanitização afeta o nome de arquivo e caracteres de controle incompatíveis com o formato.
 - Textos de usuário são tratados como texto, com escapes no renderizador/serializador. Não interpolar observações como HTML, SVG ativo ou propriedades iCalendar.
 

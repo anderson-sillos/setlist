@@ -100,8 +100,10 @@ function escapeHtml(value: string): string {
 export async function printShowDocument(
   _file: PreparedDocumentFile,
   pages: readonly ShowExportPage[],
+  preparedTarget?: unknown,
 ): Promise<void> {
-  const printWindow = window.open('', '_blank');
+  const printWindow =
+    (preparedTarget as Window | null | undefined) ?? window.open('', '_blank');
   if (!printWindow) {
     throw new Error(
       'O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.',
@@ -128,6 +130,22 @@ export async function printShowDocument(
     `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Setlist</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}@font-face{font-family:SetlistRobotoRegular;src:url("${fontUrl(fonts.regularUri)}") format("truetype")}@font-face{font-family:SetlistRobotoBold;src:url("${fontUrl(fonts.boldUri)}") format("truetype")}body{margin:0;background:#fff;color:#111827;font-family:SetlistRobotoRegular,Arial,sans-serif}.page{width:${PAGE_WIDTH_PT}pt;height:${PAGE_HEIGHT_PT}pt;page-break-after:always;position:relative;background:#fff}.page:last-child{page-break-after:auto}.brand,.title,.section,.song,.total{font-family:SetlistRobotoBold,Arial,sans-serif}footer{position:absolute;bottom:16pt;left:42pt;right:42pt;border-top:.5pt solid #d1d6de;padding-top:4pt;font-size:8pt;color:#596373}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body>${content}<script>window.addEventListener('load',()=>document.fonts.ready.then(()=>setTimeout(()=>window.print(),150)))</script></body></html>`,
   );
   printWindow.document.close();
+}
+
+export function preparePrintTarget(): Window {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    throw new Error(
+      'O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.',
+    );
+  }
+  printWindow.opener = null;
+  return printWindow;
+}
+
+export function closePrintTarget(target: unknown): void {
+  const printWindow = target as Window | null;
+  if (printWindow && !printWindow.closed) printWindow.close();
 }
 
 export function releaseDocumentFile(file: PreparedDocumentFile): void {

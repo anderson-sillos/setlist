@@ -26,6 +26,7 @@ import {
   FileX2,
   Flag,
   GripVertical,
+  Image as ImageIcon,
   Info,
   Layers,
   LayoutGrid,
@@ -41,6 +42,7 @@ import {
   Music2,
   Pencil,
   Plus,
+  Printer,
   RefreshCw,
   RotateCcw,
   Search,
@@ -57,6 +59,7 @@ import {
 } from 'lucide-react-native';
 
 import { colors } from '@/theme/tokens';
+import { FilePdf } from './icons/FilePdf';
 
 const iconComponents = {
   add: Plus,
@@ -82,6 +85,7 @@ const iconComponents = {
   event: CalendarDays,
   externalLink: ExternalLink,
   expand: Maximize2,
+  filePdf: FilePdf,
   fileText: FileText,
   fileMissing: FileX2,
   filter: ListFilter,
@@ -89,6 +93,7 @@ const iconComponents = {
   forward: ChevronRight,
   login: LogIn,
   info: Info,
+  image: ImageIcon,
   logout: LogOut,
   menu: Menu,
   minus: Minus,
@@ -97,6 +102,7 @@ const iconComponents = {
   music: Music2,
   musicAdd: ListPlus,
   planning: ClipboardList,
+  print: Printer,
   repertoire: ListMusic,
   search: Search,
   shows: CalendarDays,

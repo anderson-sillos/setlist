@@ -5,7 +5,10 @@ import { useEffect } from 'react';
 import { ShowExportScreen } from '@/features/shows/ShowExportScreen';
 import { queryKeys } from '@/data/queryKeys';
 import type { Show } from '@/domain';
-import { prepareDocumentFile } from '@/features/shows/export/documentDelivery';
+import {
+  prepareDocumentFile,
+  shareDocumentFile,
+} from '@/features/shows/export/documentDelivery';
 import { createShowExportPdf } from '@/features/shows/export/showExportPdf';
 import {
   createShow,
@@ -62,8 +65,10 @@ jest.mock('@/features/shows/export/documentFonts', () => {
 jest.mock('@/features/shows/export/documentDelivery', () => ({
   canShareDocumentFile: jest.fn().mockResolvedValue(true),
   cleanupExpiredDocumentFiles: jest.fn().mockResolvedValue(undefined),
+  closePrintTarget: jest.fn(),
   downloadDocumentFile: jest.fn().mockResolvedValue({ status: 'opened' }),
   prepareDocumentFile: jest.fn(),
+  preparePrintTarget: jest.fn().mockReturnValue(null),
   printShowDocument: jest.fn().mockResolvedValue(undefined),
   releaseDocumentFile: jest.fn(),
   shareDocumentFile: jest.fn().mockResolvedValue({ status: 'opened' }),
@@ -89,7 +94,7 @@ describe('<ShowExportScreen />', () => {
     });
   });
 
-  it('apresenta a prévia, defaults sem observações e troca de formato', async () => {
+  it('apresenta a pré-visualização, defaults sem observações e troca de destino', async () => {
     const bandId = 'band-show-export';
     const showId = 'show-export';
     const userId = 'user-show-export';
@@ -132,7 +137,7 @@ describe('<ShowExportScreen />', () => {
 
     expect(
       await view.findByText(
-        'Revise a prévia antes de gerar. Letras, áudio e vídeo não são incluídos.',
+        'Confira a pré-visualização antes de gerar. Letras, áudio e vídeo não são incluídos.',
       ),
     ).toBeTruthy();
     await waitFor(() =>
@@ -158,7 +163,7 @@ describe('<ShowExportScreen />', () => {
     expect(view.getByText('Gerar TXT')).toBeTruthy();
   });
 
-  it('permite percorrer todas as páginas da prévia antes de gerar', async () => {
+  it('permite percorrer todas as páginas da pré-visualização antes de gerar', async () => {
     const bandId = 'band-long-export';
     const showId = 'show-long-export';
     const scenario = createBandScenario({
@@ -189,9 +194,9 @@ describe('<ShowExportScreen />', () => {
       expect(view.getByText(/\d+ páginas · A4/)).toBeTruthy(),
     );
 
-    let pagePreview = view.getByLabelText(/^Prévia da página/);
+    let pagePreview = view.getByLabelText(/^Pré-visualização da página/);
     let [, currentPage, pageCount] =
-      /^Prévia da página (\d+) de (\d+)$/.exec(
+      /^Pré-visualização da página (\d+) de (\d+)$/.exec(
         pagePreview.props.accessibilityLabel as string,
       ) ?? [];
     expect(Number(pageCount)).toBeGreaterThan(1);
@@ -201,8 +206,8 @@ describe('<ShowExportScreen />', () => {
         view.getByRole('button', { name: 'Próxima página' }),
       );
       await waitFor(() => {
-        pagePreview = view.getByLabelText(/^Prévia da página/);
-        const match = /^Prévia da página (\d+) de (\d+)$/.exec(
+        pagePreview = view.getByLabelText(/^Pré-visualização da página/);
+        const match = /^Pré-visualização da página (\d+) de (\d+)$/.exec(
           pagePreview.props.accessibilityLabel as string,
         );
         currentPage = match?.[1] ?? currentPage;
@@ -222,7 +227,7 @@ describe('<ShowExportScreen />', () => {
     ).toBe(false);
   });
 
-  it('preserva a prévia após falha e permite repetir a geração', async () => {
+  it('preserva a pré-visualização após falha e permite repetir a geração', async () => {
     const bandId = 'band-retry-export';
     const showId = 'show-retry-export';
     const scenario = createBandScenario({
@@ -258,11 +263,9 @@ describe('<ShowExportScreen />', () => {
     expect(view.getByText('Este show ainda não tem músicas.')).toBeTruthy();
 
     await fireEvent.press(view.getByText('Gerar PDF'));
-    expect(await view.findByText(/PDF preparado/)).toBeTruthy();
+    expect(await view.findByText(/O seletor .* foi aberto/)).toBeTruthy();
     expect(createShowExportPdf).toHaveBeenCalledTimes(2);
-    expect(
-      view.getByText('Abrir seletor para salvar ou compartilhar'),
-    ).toBeTruthy();
+    expect(jest.mocked(shareDocumentFile)).toHaveBeenCalledTimes(1);
   });
 
   it('mantém a cópia revisada estável até a atualização explícita', async () => {
@@ -304,10 +307,10 @@ describe('<ShowExportScreen />', () => {
       queryKey: queryKeys.shows.byId(bandId, showId),
     });
 
-    await view.findByText('Atualizar prévia com os dados atuais');
+    await view.findByText('Atualizar visualização com os dados atuais');
     expect(view.getByText('Nome salvo inicialmente')).toBeTruthy();
     await fireEvent.press(
-      view.getByText('Atualizar prévia com os dados atuais'),
+      view.getByText('Atualizar visualização com os dados atuais'),
     );
     expect(await view.findByText('Nome salvo atualizado')).toBeTruthy();
     expect(view.queryByText('Nome salvo inicialmente')).toBeNull();

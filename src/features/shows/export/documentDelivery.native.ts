@@ -94,6 +94,7 @@ export async function downloadDocumentFile(
 export async function printShowDocument(
   file: PreparedDocumentFile,
   _pages: readonly ShowExportPage[],
+  _printTarget?: unknown,
 ): Promise<void> {
   if (!file.nativeUri) throw new Error('O PDF preparado não está disponível.');
   activeFiles.add(file.nativeUri);
@@ -102,6 +103,14 @@ export async function printShowDocument(
   } finally {
     activeFiles.delete(file.nativeUri);
   }
+}
+
+export function preparePrintTarget(): null {
+  return null;
+}
+
+export function closePrintTarget(_printTarget: unknown): void {
+  // O sistema nativo abre o diálogo de impressão depois que o PDF fica pronto.
 }
 
 export function releaseDocumentFile(_file: PreparedDocumentFile): void {

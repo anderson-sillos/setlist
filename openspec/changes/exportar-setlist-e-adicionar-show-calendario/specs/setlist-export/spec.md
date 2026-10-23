@@ -24,7 +24,7 @@ O sistema SHALL oferecer PDF, TXT em UTF-8 e PNG na primeira entrega em Web, iOS
 
 #### Scenario: Escolher o formato
 - **WHEN** a pessoa inicia uma exportação
-- **THEN** PDF aparece como formato inicialmente selecionado e TXT e PNG estão disponíveis
+- **THEN** PDF aparece como destino inicialmente selecionado e Texto (TXT) e Imagem (PNG) estão disponíveis
 
 #### Scenario: Música possui letra cadastrada
 - **WHEN** uma música da setlist possui letra estática ou sincronizada
@@ -112,21 +112,30 @@ PDF e PNG SHALL usar fundo branco, texto contrastante, cabeçalho de continuaç�
 - **WHEN** são geradas várias imagens
 - **THEN** a interface apresenta a quantidade e a ordem das páginas e permite acessar e entregar cada imagem, sem afirmar que uma página isolada representa o conjunto completo
 
-### Requirement: Entrega dos arquivos conforme a plataforma
+### Requirement: Escolher destino e entregar o roteiro
 
-O sistema SHALL oferecer compartilhamento de arquivos nos aplicativos compatíveis, download na Web e impressão do roteiro. Na Web, compartilhar SHALL depender da disponibilidade real para aquele arquivo; download SHALL continuar acessível quando o compartilhamento não for suportado.
+O sistema SHALL oferecer PDF, Texto, Imagem e Imprimir como destinos da preparação, com ícones distintos para PDF e Texto. A escolha de destino SHALL aparecer depois da pré-visualização, agrupada com o botão de geração; Imagem SHALL produzir arquivos PNG. Depois da geração, SHALL iniciar automaticamente o seletor de compartilhamento nos aplicativos móveis compatíveis, o compartilhamento ou download na Web, ou a impressão quando esse destino for escolhido. Na Web, compartilhar SHALL depender da disponibilidade real daquele arquivo; quando não estiver disponível ou o navegador bloquear a abertura automática, SHALL iniciar o download automaticamente.
 
 #### Scenario: Compartilhar no aplicativo móvel
-- **WHEN** a pessoa escolhe compartilhar um arquivo gerado
-- **THEN** o sistema abre o seletor de destino com o arquivo e seu tipo corretos
+- **WHEN** a pessoa gera um arquivo com destino PDF, Texto ou Imagem
+- **THEN** o sistema abre automaticamente o seletor de destino com o arquivo e seu tipo corretos
 
-#### Scenario: Navegador não compartilha arquivos
-- **WHEN** a pessoa usa um navegador sem suporte ao compartilhamento do arquivo escolhido
-- **THEN** pode baixá-lo e recebe uma explicação junto à ação de compartilhamento indisponível
+#### Scenario: Navegador compartilha o arquivo
+- **WHEN** a pessoa gera um arquivo em um navegador que permite compartilhar aquele arquivo
+- **THEN** o sistema abre o seletor de compartilhamento após a geração
+
+#### Scenario: Navegador não compartilha ou bloqueia a abertura
+- **WHEN** a pessoa gera um arquivo em um navegador sem suporte ao compartilhamento ou que bloqueia a abertura automática do seletor
+- **THEN** o sistema inicia o download do arquivo e informa qual ação ocorreu
 
 #### Scenario: Imprimir ou baixar PDF na Web
-- **WHEN** a pessoa escolhe PDF ou impressão
-- **THEN** pode baixar um arquivo PDF diretamente e a ação de impressão apresenta somente o roteiro preparado, sem imprimir a navegação do aplicativo
+- **WHEN** a pessoa escolhe Imprimir e gera o documento
+- **THEN** o sistema apresenta somente o roteiro preparado na janela de impressão, sem imprimir a navegação do aplicativo
+- **AND** a janela é preparada durante o clique de geração para evitar bloqueio de pop-ups
+
+#### Scenario: Cancelar compartilhamento
+- **WHEN** a pessoa fecha o seletor sem concluir e a plataforma informa cancelamento
+- **THEN** o fluxo retorna à preparação sem apresentar falha ou afirmar que o destinatário recebeu o arquivo
 
 ### Requirement: Cópia consistente dos dados carregados
 

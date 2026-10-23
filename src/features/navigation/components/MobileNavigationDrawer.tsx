@@ -91,7 +91,7 @@ export function MobileNavigationDrawer({
       collapsable={false}
       style={[styles.frame, { transform: [{ translateX }] }]}
     >
-      <View pointerEvents="none" style={styles.drawerSurface} />
+      <View style={styles.drawerSurface} />
       <SafeAreaView
         accessibilityViewIsModal
         edges={['top', 'bottom']}
@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.canvas,
     bottom: 0,
     left: 0,
+    pointerEvents: 'none',
     position: 'absolute',
     right: 0,
     top: 0,

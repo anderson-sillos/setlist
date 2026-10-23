@@ -2,10 +2,15 @@ import { Asset } from 'expo-asset';
 import * as Font from 'expo-font';
 import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
-import {
-  create as createFont,
-  type Font as FontkitFont,
-} from '@pdf-lib/fontkit';
+import * as fontkitModule from '@pdf-lib/fontkit';
+import type { Font as FontkitFont } from '@pdf-lib/fontkit';
+
+type FontkitApi = typeof fontkitModule;
+
+export const documentFontkit = (
+  (fontkitModule as unknown as { default?: FontkitApi }).default ??
+  fontkitModule
+) as FontkitApi;
 
 const regularFontModule =
   require('../../../../assets/fonts/Roboto-Regular.ttf') as number;
@@ -56,11 +61,13 @@ export function loadDocumentFontResources(): Promise<DocumentFontResources> {
         readAssetBytes(regularAsset),
         readAssetBytes(boldAsset),
       ]);
+      const regularFont = documentFontkit.create(regularBytes);
+      const boldFont = documentFontkit.create(boldBytes);
       return {
         regularBytes,
         boldBytes,
-        regularFont: createFont(regularBytes),
-        boldFont: createFont(boldBytes),
+        regularFont,
+        boldFont,
         regularUri: regularAsset.localUri ?? regularAsset.uri,
         boldUri: boldAsset.localUri ?? boldAsset.uri,
       };

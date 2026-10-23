@@ -14,20 +14,28 @@ import {
   UnavailableFeedback,
 } from '@/components/feedback';
 import { AppButton } from '@/components/ui/AppButton';
+import { AppIcon } from '@/components/ui/AppIcon';
+import type { AppIconName } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { Card } from '@/components/ui/Card';
-import { ChoiceChips } from '@/components/ui/list-controls/ChoiceChips';
+import {
+  refetchScreenQueries,
+  uniqueRefreshQueries,
+} from '@/data/screenQueryRegistry';
 import { useBandContext, useShow, useSongSummaries } from '@/data/queries';
 import type { EntityId } from '@/domain';
 import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { getShowHref } from '@/features/navigation/routes';
+import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { getZonedDateTimeFields } from './export/showCalendarModel';
 import {
   canShareDocumentFile,
   cleanupExpiredDocumentFiles,
+  closePrintTarget,
   downloadDocumentFile,
   prepareDocumentFile,
+  preparePrintTarget,
   releaseDocumentFile,
   shareDocumentFile,
   printShowDocument,
@@ -65,16 +73,22 @@ interface ShowExportScreenProps {
 }
 
 type ExportFormat = 'pdf' | 'txt' | 'png';
+type ExportDestination = ExportFormat | 'print';
 
 interface ExportSnapshot {
   readonly document: ReturnType<typeof prepareShowExportDocument>;
   readonly sourceUpdatedAt: number;
 }
 
-const formatOptions = [
-  { label: 'PDF', value: 'pdf' },
-  { label: 'Texto', value: 'txt' },
-  { label: 'PNG', value: 'png' },
+const destinationOptions: readonly {
+  readonly icon: AppIconName;
+  readonly label: string;
+  readonly value: ExportDestination;
+}[] = [
+  { icon: 'filePdf', label: 'PDF', value: 'pdf' },
+  { icon: 'fileText', label: 'Texto', value: 'txt' },
+  { icon: 'image', label: 'Imagem', value: 'png' },
+  { icon: 'print', label: 'Imprimir', value: 'print' },
 ] as const;
 
 const exportFields: readonly {
@@ -95,6 +109,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
   const showQuery = useShow(bandId, showId);
   const songsQuery = useSongSummaries(bandId, true);
   const bandQuery = useBandContext(bandId);
+  useScreenDataRefresh([showQuery, songsQuery, bandQuery]);
   const songsById = useMemo(
     () => new Map((songsQuery.data ?? []).map((song) => [song.id, song])),
     [songsQuery.data],
@@ -108,13 +123,15 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
   const [options, setOptions] = useState<ShowExportOptions>(
     DEFAULT_SHOW_EXPORT_OPTIONS,
   );
-  const [format, setFormat] = useState<ExportFormat>('pdf');
+  const [destination, setDestination] = useState<ExportDestination>('pdf');
   const [layout, setLayout] = useState<{
     readonly snapshot: ExportSnapshot;
     readonly options: ShowExportOptions;
     readonly pages: readonly ShowExportPage[];
     readonly error: string | null;
   } | null>(null);
+  const [updatingPreview, setUpdatingPreview] = useState(false);
+  const [previewRefreshAvailable, setPreviewRefreshAvailable] = useState(false);
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,10 +141,6 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
     Partial<Record<ExportFormat | `png-${number}`, PreparedDocumentFile>>
   >({});
   const filesRef = useRef(files);
-  const [shareAvailability, setShareAvailability] = useState<{
-    readonly uri: string;
-    readonly available: boolean;
-  } | null>(null);
   const pendingPngRequest = useRef<{
     readonly id: number;
     readonly page: number;
@@ -135,12 +148,10 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
 
   const ready =
     !showQuery.isPending && !songsQuery.isPending && !bandQuery.isPending;
-  const canPrepare =
-    ready &&
-    !showQuery.isError &&
-    !songsQuery.isError &&
-    !bandQuery.isError &&
-    Boolean(showQuery.data && songsQuery.data && bandQuery.data?.role);
+  const loadingSourceData =
+    showQuery.isPending || songsQuery.isPending || bandQuery.isPending;
+  const sourceDataError =
+    showQuery.isError || songsQuery.isError || bandQuery.isError;
 
   useEffect(() => {
     if (
@@ -238,47 +249,58 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
   const pages = layoutMatches ? layout.pages : [];
   const layoutError = layoutMatches ? layout.error : null;
   const layoutLoading = Boolean(snapshot && !layoutMatches);
+  useEffect(() => {
+    if (!updatingPreview || !layoutMatches) return;
+
+    // Keep progress feedback visible even when the new layout is cached and
+    // finishes in the same frame as the update action.
+    const timeout = setTimeout(() => setUpdatingPreview(false), 600);
+    return () => clearTimeout(timeout);
+  }, [layoutMatches, updatingPreview]);
+
   const pageIndexForLayout = pages.length
     ? Math.max(0, Math.min(pageIndex, pages.length - 1))
     : 0;
 
-  const hasNewData = Boolean(
-    snapshot && sourceUpdatedAt > snapshot.sourceUpdatedAt,
+  const hasExportSourceData = Boolean(
+    showQuery.data && songsQuery.data && bandQuery.data?.role,
   );
+  const sourceQueriesFetching =
+    showQuery.isFetching || songsQuery.isFetching || bandQuery.isFetching;
+  const hasPreparedFile = Object.values(files).some(Boolean);
+  const canUpdatePreview = Boolean(
+    snapshot &&
+      (hasPreparedFile ||
+        previewRefreshAvailable ||
+        (ready &&
+          hasExportSourceData &&
+          !sourceDataError &&
+          sourceUpdatedAt > snapshot.sourceUpdatedAt)),
+  );
+  const fileFormat: ExportFormat =
+    destination === 'print' ? 'pdf' : destination;
   const currentFile =
-    format === 'png' ? files[`png-${pageIndexForLayout + 1}`] : files[format];
+    fileFormat === 'png'
+      ? files[`png-${pageIndexForLayout + 1}`]
+      : files[fileFormat];
   const currentPage = pages[pageIndexForLayout] ?? null;
-  const shareSupported = Boolean(
-    currentFile &&
-    shareAvailability?.uri === currentFile.uri &&
-    shareAvailability.available,
-  );
-
-  useEffect(() => {
-    let active = true;
-    if (!currentFile) return;
-    void canShareDocumentFile(currentFile)
-      .then((available) => {
-        if (active) {
-          setShareAvailability({ uri: currentFile.uri, available });
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setShareAvailability({ uri: currentFile.uri, available: false });
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [currentFile]);
+  const destinationIcon = destinationOptions.find(
+    ({ value }) => value === destination,
+  )?.icon;
 
   const releaseFiles = (items: typeof files) => {
     Object.values(items).forEach((file) => file && releaseDocumentFile(file));
   };
 
   const updatePreview = () => {
-    if (!showQuery.data || !songsQuery.data || !bandQuery.data) return;
+    if (!showQuery.data || !songsQuery.data || !bandQuery.data?.role) {
+      setError(
+        'Os dados do show e da banda ainda estão sendo atualizados. Tente novamente em instantes.',
+      );
+      return;
+    }
+    setUpdatingPreview(true);
+    setPreviewRefreshAvailable(false);
     releaseFiles(files);
     setFiles({});
     setError(null);
@@ -294,12 +316,133 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
     });
   };
 
+  const refreshAfterSystemPicker = async (completionMessage: string) => {
+    setMessage('Atualizando os dados do show e da banda…');
+    const sourceQueries = uniqueRefreshQueries([
+      showQuery,
+      songsQuery,
+      bandQuery,
+    ]);
+    const queriesToRefresh = sourceQueries.filter(
+      ({ isFetching }) => !isFetching,
+    );
+    let refreshFailed = false;
+    try {
+      await refetchScreenQueries(queryClient, queriesToRefresh);
+      refreshFailed = sourceQueries.some(({ refreshKeys }) =>
+        refreshKeys?.some(
+          (queryKey) => queryClient.getQueryState(queryKey)?.status === 'error',
+        ),
+      );
+    } catch {
+      refreshFailed = true;
+    }
+    setPreviewRefreshAvailable(true);
+    setMessage(
+      refreshFailed
+        ? `${completionMessage} Não foi possível atualizar os dados online; a pré-visualização pode usar os últimos dados carregados.`
+        : completionMessage,
+    );
+  };
+
+  const deliverPreparedFile = async (
+    file: PreparedDocumentFile,
+    target: ExportDestination,
+    printTarget?: unknown,
+  ) => {
+    if (target === 'print') {
+      if (Platform.OS !== 'web') {
+        setPreviewRefreshAvailable(true);
+      }
+      await printShowDocument(file, pages, printTarget);
+      if (Platform.OS !== 'web') {
+        await refreshAfterSystemPicker('A janela de impressão foi aberta.');
+      } else {
+        setMessage('A janela de impressão foi aberta.');
+      }
+      return;
+    }
+
+    if (Platform.OS !== 'web') {
+      setPreviewRefreshAvailable(true);
+      const result = await shareDocumentFile(file);
+      let completionMessage: string;
+      if (result.status === 'cancelled') {
+        completionMessage =
+          'Compartilhamento cancelado. O arquivo continua preparado.';
+      } else if (result.status === 'unsupported') {
+        completionMessage =
+          `O compartilhamento está indisponível neste dispositivo. O arquivo ${file.name} continua preparado.`;
+      } else {
+        completionMessage =
+          'O seletor do sistema foi aberto. O Setlist não consegue confirmar que o destino salvou ou recebeu o arquivo.';
+      }
+
+      if (result.status !== 'unsupported') {
+        await refreshAfterSystemPicker(completionMessage);
+        return;
+      }
+      setMessage(completionMessage);
+      return;
+    }
+
+    let sharingFailed = false;
+    try {
+      if (await canShareDocumentFile(file)) {
+        const result = await shareDocumentFile(file);
+        if (result.status === 'opened') {
+          setMessage(
+            'O seletor de compartilhamento foi aberto. O Setlist não consegue confirmar que o destino salvou ou recebeu o arquivo.',
+          );
+          return;
+        }
+        if (result.status === 'cancelled') {
+          setMessage(
+            'Compartilhamento cancelado. O arquivo continua preparado.',
+          );
+          return;
+        }
+      }
+    } catch {
+      // A ativação do navegador pode expirar durante a geração assíncrona.
+      sharingFailed = true;
+    }
+
+    const download = await downloadDocumentFile(file);
+    if (download.status !== 'opened') {
+      throw new Error(
+        'O navegador não conseguiu iniciar o download do arquivo.',
+      );
+    }
+    setMessage(
+      sharingFailed
+        ? 'O navegador não abriu o compartilhamento automaticamente; o download foi iniciado.'
+        : 'O compartilhamento não está disponível para este arquivo; o download foi iniciado.',
+    );
+  };
+
   const handleGenerate = async () => {
     if (!snapshot || !currentPage || working) return;
     setError(null);
     setMessage(null);
+
+    let printTarget: unknown = null;
+    if (destination === 'print') {
+      try {
+        // Na Web, abre a janela enquanto o clique do usuário ainda está ativo.
+        printTarget = preparePrintTarget();
+      } catch (cause) {
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : 'Não foi possível preparar a janela de impressão.',
+        );
+        return;
+      }
+    }
+
     setWorking(true);
-    if (format === 'png') {
+    if (destination === 'png') {
       const requestId = renderRequestId + 1;
       pendingPngRequest.current = {
         id: requestId,
@@ -309,13 +452,14 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
       return;
     }
     try {
+      const outputFormat = fileFormat;
       const bytes =
-        format === 'pdf'
+        outputFormat === 'pdf'
           ? await createShowExportPdf(snapshot.document, options)
           : encodeUtf8(createShowExportText(snapshot.document, options));
-      const extension = format === 'pdf' ? 'pdf' : 'txt';
+      const extension = outputFormat === 'pdf' ? 'pdf' : 'txt';
       const mimeType =
-        format === 'pdf' ? 'application/pdf' : 'text/plain;charset=utf-8';
+        outputFormat === 'pdf' ? 'application/pdf' : 'text/plain;charset=utf-8';
       const dateKey = getZonedDateTimeFields(snapshot.document.startsAt).date;
       const file = await prepareDocumentFile(
         createShowExportFilename(
@@ -327,14 +471,13 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
         bytes,
       );
       setFiles((current) => {
-        const previous = current[format];
+        const previous = current[outputFormat];
         if (previous) releaseDocumentFile(previous);
-        return { ...current, [format]: file };
+        return { ...current, [outputFormat]: file };
       });
-      setMessage(
-        `${extension.toUpperCase()} preparado. Escolha como deseja entregá-lo.`,
-      );
+      await deliverPreparedFile(file, destination, printTarget);
     } catch (cause) {
+      closePrintTarget(printTarget);
       setError(
         cause instanceof Error ? cause.message : 'Falha ao gerar o arquivo.',
       );
@@ -349,7 +492,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
     try {
       const base64 = rawBase64.replace(/^data:image\/png;base64,/, '');
       const bytes = decodeBase64(base64);
-      if (bytes.length === 0) throw new Error('A imagem PNG ficou vazia.');
+      if (bytes.length === 0) throw new Error('A imagem gerada ficou vazia.');
       const document = snapshot?.document;
       if (!document) return;
       const dateKey = getZonedDateTimeFields(document.startsAt).date;
@@ -369,64 +512,13 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
         if (previous) releaseDocumentFile(previous);
         return { ...current, [key]: file };
       });
-      setMessage(`Imagem PNG da página ${pending.page + 1} preparada.`);
+      await deliverPreparedFile(file, 'png');
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : 'Falha ao gerar a imagem PNG.',
+        cause instanceof Error ? cause.message : 'Falha ao gerar a imagem.',
       );
     } finally {
       pendingPngRequest.current = null;
-      setWorking(false);
-    }
-  };
-
-  const handleDelivery = async (action: 'share' | 'download') => {
-    if (!currentFile || working) return;
-    setWorking(true);
-    setError(null);
-    try {
-      const result =
-        action === 'share'
-          ? await shareDocumentFile(currentFile)
-          : await downloadDocumentFile(currentFile);
-      if (result.status === 'cancelled') {
-        setMessage('Compartilhamento cancelado. O arquivo continua preparado.');
-      } else if (result.status === 'unsupported') {
-        setMessage(
-          'Compartilhamento indisponível para este arquivo. Use o download ou outra ação disponível.',
-        );
-      } else {
-        setMessage(
-          action === 'download' && Platform.OS === 'web'
-            ? 'O download do arquivo foi iniciado.'
-            : 'O seletor do sistema foi aberto. O Setlist não consegue confirmar que o destino salvou ou recebeu o arquivo.',
-        );
-      }
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Não foi possível entregar o arquivo.',
-      );
-    } finally {
-      setWorking(false);
-    }
-  };
-
-  const handlePrint = async () => {
-    if (!currentFile || !pages.length || working) return;
-    setWorking(true);
-    setError(null);
-    try {
-      await printShowDocument(currentFile, pages);
-      setMessage('A preparação para impressão foi aberta.');
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Não foi possível abrir a impressão.',
-      );
-    } finally {
       setWorking(false);
     }
   };
@@ -440,58 +532,71 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
       screenKind="detail"
       title="Exportar setlist"
     >
-      {showQuery.isPending || songsQuery.isPending || bandQuery.isPending ? (
+      {!snapshot && loadingSourceData ? (
         <LoadingFeedback variation={1} />
       ) : null}
-      {showQuery.isError || songsQuery.isError || bandQuery.isError ? (
+      {!snapshot && sourceDataError ? (
         <ErrorFeedback
           onRetry={() => {
             void queryClient.invalidateQueries({ queryKey: ['bands', bandId] });
           }}
         />
       ) : null}
-      {ready &&
-      !showQuery.isError &&
-      !songsQuery.isError &&
-      !bandQuery.isError &&
+      {!snapshot &&
+      ready &&
+      !sourceDataError &&
       !showQuery.data ? (
         <UnavailableFeedback title="Show indisponível" />
       ) : null}
-      {ready && !bandQuery.isError && !bandQuery.data?.role ? (
+      {!snapshot && ready && !bandQuery.isError && !bandQuery.data?.role ? (
         <UnavailableFeedback title="Acesso à banda indisponível" />
       ) : null}
-      {canPrepare && snapshot ? (
+      {/* Keep the captured document visible while app-resume refetches reset queries. */}
+      {snapshot ? (
         <View style={styles.content}>
           <AppText>
-            Revise a prévia antes de gerar. Letras, áudio e vídeo não são
-            incluídos.
-          </AppText>
-          <AppText tone="muted" variant="caption">
-            A cópia preparada fica estável durante esta revisão. Atualize a
-            prévia para usar mudanças recentes do show ou do repertório.
+            Confira a pré-visualização antes de gerar. Letras, áudio e vídeo não
+            são incluídos.
           </AppText>
 
-          {hasNewData ? (
-            <AppButton
-              icon="refresh"
-              label="Atualizar prévia com os dados atuais"
-              onPress={updatePreview}
-              variant="secondary"
-            />
+          {canUpdatePreview || updatingPreview ? (
+            <>
+              {!updatingPreview ? (
+                <AppText tone="muted" variant="caption">
+                  A pré-visualização atual é uma cópia estável. Atualizar usa os
+                  dados carregados agora e descarta os arquivos já gerados.
+                </AppText>
+              ) : null}
+              <AppButton
+                disabled={updatingPreview || sourceQueriesFetching}
+                icon={
+                  updatingPreview || sourceQueriesFetching
+                    ? undefined
+                    : 'refresh'
+                }
+                leading={
+                  updatingPreview || sourceQueriesFetching ? (
+                    <ActivityIndicator
+                      color={colors.action.primary}
+                      size="small"
+                    />
+                  ) : undefined
+                }
+                label={
+                  updatingPreview
+                    ? 'Atualizando visualização…'
+                    : sourceQueriesFetching
+                      ? 'Atualizando dados…'
+                      : 'Atualizar visualização'
+                }
+                onPress={updatePreview}
+                style={styles.actionButton}
+                variant="secondary"
+              />
+            </>
           ) : null}
 
           <Card style={styles.settingsCard}>
-            <AppText variant="heading">Formato</AppText>
-            <ChoiceChips
-              accessibilityLabel="Formato de exportação"
-              onChange={(value) => {
-                setFormat(value);
-                setMessage(null);
-                setError(null);
-              }}
-              options={formatOptions}
-              value={format}
-            />
             <AppText variant="heading">Informações incluídas</AppText>
             <View style={styles.fields}>
               {exportFields.map(({ key, label }) => (
@@ -511,7 +616,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
           </Card>
 
           <View style={styles.previewHeading}>
-            <AppText variant="heading">Prévia</AppText>
+            <AppText variant="heading">Pré-visualização</AppText>
             <AppText tone="muted" variant="caption">
               {pages.length} {pages.length === 1 ? 'página' : 'páginas'} · A4
             </AppText>
@@ -525,17 +630,28 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
                 <View style={styles.pagination}>
                   <AppButton
                     disabled={pageIndexForLayout === 0}
-                    label="Página anterior"
+                    accessibilityLabel="Página anterior"
+                    icon="back"
+                    label="Anterior"
                     onPress={() => setPageIndex(pageIndexForLayout - 1)}
+                    style={styles.paginationButton}
                     variant="secondary"
                   />
-                  <AppText accessibilityLiveRegion="polite" variant="caption">
-                    Página {pageIndexForLayout + 1} de {pages.length}
+                  <AppText
+                    accessibilityLabel={`Página ${pageIndexForLayout + 1} de ${pages.length}`}
+                    accessibilityLiveRegion="polite"
+                    style={styles.paginationLabel}
+                    variant="caption"
+                  >
+                    {pageIndexForLayout + 1} / {pages.length}
                   </AppText>
                   <AppButton
                     disabled={pageIndexForLayout >= pages.length - 1}
-                    label="Próxima página"
+                    accessibilityLabel="Próxima página"
+                    icon="forward"
+                    label="Próxima"
                     onPress={() => setPageIndex(pageIndexForLayout + 1)}
+                    style={styles.paginationButton}
                     variant="secondary"
                   />
                 </View>
@@ -543,69 +659,91 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
             </>
           ) : null}
 
-          {format === 'png' ? (
+          <Card style={styles.settingsCard}>
+            <AppText variant="heading">Destino</AppText>
+            <View
+              accessibilityLabel="Destino da exportação"
+              accessibilityRole="radiogroup"
+              style={styles.destinationOptions}
+            >
+              {destinationOptions.map(({ icon, label, value }) => {
+                const selected = destination === value;
+                return (
+                  <Pressable
+                    disabled={working}
+                    key={value}
+                    accessibilityLabel={label}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                      checked: selected,
+                      disabled: working,
+                    }}
+                    onPress={() => {
+                      releaseFiles(files);
+                      setFiles({});
+                      setDestination(value);
+                      setMessage(null);
+                      setError(null);
+                    }}
+                    style={({ pressed }) => [
+                      styles.destinationOption,
+                      selected && styles.destinationOptionSelected,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <AppIcon
+                      color={
+                        selected ? colors.action.primary : colors.text.secondary
+                      }
+                      name={icon}
+                      size={22}
+                    />
+                    <AppText
+                      style={[
+                        styles.destinationLabel,
+                        selected && styles.destinationLabelSelected,
+                      ]}
+                      variant="body"
+                    >
+                      {label}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
             <AppText tone="muted" variant="caption">
-              Cada página é gerada e entregue como um PNG independente (
-              {PAGE_PNG_WIDTH} × {PAGE_PNG_HEIGHT} px).
+              Depois de gerar, o compartilhamento, download ou impressão será
+              iniciado automaticamente.
             </AppText>
-          ) : null}
-          <AppButton
-            disabled={working || layoutLoading || pages.length === 0}
-            icon={working ? undefined : 'fileText'}
-            label={
-              working
-                ? format === 'png'
-                  ? `Gerando página ${pageIndexForLayout + 1}…`
-                  : 'Gerando arquivo…'
-                : format === 'png'
-                  ? `Gerar PNG da página ${pageIndexForLayout + 1}`
-                  : `Gerar ${format.toUpperCase()}`
-            }
-            onPress={() => void handleGenerate()}
-          />
+            {destination === 'png' && currentPage ? (
+              <AppText tone="muted" variant="caption">
+                Será gerada uma imagem da página {pageIndexForLayout + 1} de{' '}
+                {pages.length} ({PAGE_PNG_WIDTH} × {PAGE_PNG_HEIGHT} px).
+              </AppText>
+            ) : null}
+            <AppButton
+              disabled={working || layoutLoading || pages.length === 0}
+              icon={working ? undefined : destinationIcon}
+              label={
+                working
+                  ? destination === 'png'
+                    ? `Gerando página ${pageIndexForLayout + 1}…`
+                    : 'Gerando arquivo…'
+                  : destination === 'png'
+                    ? `Gerar imagem da página ${pageIndexForLayout + 1}`
+                    : destination === 'print'
+                      ? 'Gerar e imprimir'
+                      : `Gerar ${destination.toUpperCase()}`
+              }
+              onPress={() => void handleGenerate()}
+              style={styles.actionButton}
+            />
+          </Card>
 
           {currentFile ? (
-            <View style={styles.deliveryActions}>
-              {Platform.OS === 'web' && shareSupported ? (
-                <AppButton
-                  disabled={working}
-                  icon="share"
-                  label="Compartilhar arquivo"
-                  onPress={() => void handleDelivery('share')}
-                  variant="secondary"
-                />
-              ) : Platform.OS === 'web' ? (
-                <AppText tone="muted" variant="caption">
-                  Compartilhamento indisponível para este arquivo neste
-                  dispositivo. Use salvar ou baixar.
-                </AppText>
-              ) : null}
-              <AppButton
-                disabled={working}
-                icon="fileText"
-                label={
-                  Platform.OS === 'web'
-                    ? 'Salvar ou baixar arquivo'
-                    : 'Abrir seletor para salvar ou compartilhar'
-                }
-                onPress={() => void handleDelivery('download')}
-                variant="secondary"
-              />
-              {format === 'pdf' ? (
-                <AppButton
-                  disabled={working}
-                  icon="fileText"
-                  label="Imprimir roteiro"
-                  onPress={() => void handlePrint()}
-                  variant="secondary"
-                />
-              ) : null}
-              {format === 'png' ? (
-                <AppText tone="muted" variant="caption">
-                  Arquivo preparado: {currentFile.name}
-                </AppText>
-              ) : null}
-            </View>
+            <AppText tone="muted" variant="caption">
+              Arquivo gerado: {currentFile.name}
+            </AppText>
           ) : null}
           {message ? (
             <AppText accessibilityLiveRegion="polite" tone="success">
@@ -626,7 +764,7 @@ export function ShowExportScreen({ bandId, showId }: ShowExportScreenProps) {
             onRendered={(requestId, base64) =>
               void handlePngRendered(requestId, base64)
             }
-            page={format === 'png' ? currentPage : null}
+            page={destination === 'png' ? currentPage : null}
             requestId={renderRequestId}
           />
         </View>
@@ -663,7 +801,7 @@ function ExportFieldToggle({
 function DocumentPagePreview({ page }: { readonly page: ShowExportPage }) {
   return (
     <View
-      accessibilityLabel={`Prévia da página ${page.pageNumber} de ${page.pageCount}`}
+      accessibilityLabel={`Pré-visualização da página ${page.pageNumber} de ${page.pageCount}`}
       style={styles.pagePreview}
     >
       {[...page.header, ...page.lines].map((line, index) =>
@@ -699,8 +837,46 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing.xl,
   },
+  actionButton: {
+    alignSelf: 'center',
+    maxWidth: 360,
+    width: '100%',
+  },
   settingsCard: {
     gap: spacing.md,
+  },
+  destinationOptions: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    maxWidth: 595,
+    width: '100%',
+  },
+  destinationOption: {
+    alignItems: 'center',
+    backgroundColor: colors.background.raised,
+    borderColor: colors.border.control,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flexBasis: '47%',
+    flexGrow: 1,
+    gap: spacing.xs,
+    justifyContent: 'center',
+    minHeight: 76,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  destinationOptionSelected: {
+    borderColor: colors.action.primary,
+    borderWidth: 2,
+  },
+  destinationLabel: {
+    textAlign: 'center',
+  },
+  destinationLabelSelected: {
+    color: colors.action.primary,
+    fontWeight: '700',
   },
   fields: {
     gap: spacing.xs,
@@ -756,12 +932,21 @@ const styles = StyleSheet.create({
   },
   pagination: {
     alignItems: 'center',
+    alignSelf: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: spacing.sm,
     justifyContent: 'space-between',
+    maxWidth: 595,
+    width: '100%',
   },
-  deliveryActions: {
-    gap: spacing.sm,
+  paginationButton: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: spacing.sm,
+  },
+  paginationLabel: {
+    flexShrink: 0,
+    textAlign: 'center',
   },
 });
