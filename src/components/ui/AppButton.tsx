@@ -123,11 +123,8 @@ export const AppButton = forwardRef<
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      <AnimatedSurface
-        pointerEvents="none"
-        style={[styles.pressOverlay, animatedSurface]}
-      />
-      <View pointerEvents="box-none" style={styles.content}>
+      <AnimatedSurface style={[styles.pressOverlay, animatedSurface]} />
+      <View style={styles.content}>
         {leading ??
           (icon ? (
             <AppIcon color={contentColor} name={icon} size={18} />
@@ -161,6 +158,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: 'center',
     minWidth: 0,
+    pointerEvents: 'box-none',
     position: 'relative',
     zIndex: 1,
   },
@@ -168,6 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.md - 1,
     bottom: 1,
     left: 1,
+    pointerEvents: 'none',
     position: 'absolute',
     right: 1,
     top: 1,

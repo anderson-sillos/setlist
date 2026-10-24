@@ -1,6 +1,6 @@
 # Histórico de versões
 
-## 1.0.1 — candidata `v1.0.1-rc.1` em preparação
+## 1.0.1 — candidata `v1.0.1-rc.2` em preparação
 
 ### Links das lojas
 
@@ -9,8 +9,26 @@
 - A versão iOS `1.0.1` será enviada à revisão usando um build de produção do
   mesmo commit da candidata. A publicação Web será feita pelo workflow de
   GitHub Pages depois da integração e da publicação da Release candidata.
-- O primeiro envio Android continua aguardando o processo do Google Play; esta
-  candidata não inclui um novo build Android.
+- O primeiro envio Android continua aguardando o processo do Google Play; os
+  builds de produção desta candidata usarão o mesmo commit final.
+
+### Exportação de shows e calendário pessoal
+
+- Exportação do setlist em PDF A4 com texto selecionável, TXT UTF-8 e PNG por
+  página; a pessoa escolhe os metadados e observações que deseja incluir. Letras
+  nunca são exportadas.
+- Prévia estável, atualização explícita dos dados, paginação e zoom; a escala da
+  prévia não altera os arquivos gerados.
+- Entrega por compartilhamento, download ou impressão conforme a plataforma.
+- Cópia pontual do show no formulário de calendário do iOS e Android, com
+  término estimado pelas durações do setlist (duas horas quando ausentes) e
+  ajustável no calendário. O arquivo `.ics` pode ser importado ou compartilhado.
+- A cópia não sincroniza alterações posteriores e pode gerar duplicatas. O
+  término é uma estimativa; no Android, o Setlist não recebe confirmação de que
+  o evento foi salvo.
+- A validação funcional, de acessibilidade e de calendários reais foi concluída
+  conforme confirmação do responsável. Builds de produção iOS e Android e a
+  exportação Web devem usar o mesmo commit final desta candidata.
 
 ## 1.0.0 — candidata `v1.0.0-rc.5` em preparação
 

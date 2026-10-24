@@ -899,7 +899,6 @@ function RepertoireScreenContent({
       <SongCollectionMembershipDialog {...collectionMembership.dialogProps} />
       {appendFeedbackMessage ? (
         <View
-          pointerEvents="box-none"
           style={[
             styles.appendFeedbackOverlay,
             { top: controlsOverlayHeight + spacing.sm },
@@ -1103,7 +1102,6 @@ function RepertoireScreenContent({
         </ListControlsOverlay>
         {state.collection === 'removed' ? (
           <View
-            pointerEvents="box-none"
             style={[
               styles.collectionFilterNotice,
               { top: controlsOverlayHeight + spacing.sm },
@@ -1425,6 +1423,7 @@ const styles = StyleSheet.create({
   },
   collectionFilterNotice: {
     left: 0,
+    pointerEvents: 'box-none',
     position: 'absolute',
     right: 0,
     zIndex: 3,

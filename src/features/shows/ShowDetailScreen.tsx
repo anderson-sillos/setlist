@@ -1,6 +1,6 @@
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import {
@@ -42,7 +42,9 @@ import { BandAreaLayout } from '@/features/navigation/BandAreaLayout';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import {
   getBandSectionHref,
+  getShowCalendarHref,
   getShowEditHref,
+  getShowExportHref,
   getShowHref,
 } from '@/features/navigation/routes';
 import { getLayoutMode } from '@/theme/responsive';
@@ -162,6 +164,10 @@ export function ShowDetailScreen({
   const [duplicateSubmitting, setDuplicateSubmitting] = useState(false);
   const [duplicateInstance, setDuplicateInstance] = useState(0);
   const [actionsSheetVisible, setActionsSheetVisible] = useState(false);
+  const pendingShowActionHref = useRef<Href | null>(null);
+  const pendingShowActionTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [statusSheetVisible, setStatusSheetVisible] = useState(false);
   const [statusAction, setStatusAction] = useState<ShowStatus | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -169,6 +175,14 @@ export function ShowDetailScreen({
   const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  useEffect(
+    () => () => {
+      if (pendingShowActionTimer.current) {
+        clearTimeout(pendingShowActionTimer.current);
+      }
+    },
+    [],
+  );
   const refreshEnabled =
     !editVisible &&
     !duplicateVisible &&
@@ -208,6 +222,7 @@ export function ShowDetailScreen({
     [songsQuery.data],
   );
   const membership = bandContextQuery.data;
+  const canView = Boolean(membership?.role);
   const canEdit = membership?.role === 'owner' || membership?.role === 'editor';
   const duration = show ? getShowDurationBreakdown(show, songsById) : null;
   const songCount =
@@ -323,6 +338,26 @@ export function ShowDetailScreen({
     setDeleteSheetVisible(true);
   };
 
+  const finishPendingShowAction = () => {
+    if (pendingShowActionTimer.current) {
+      clearTimeout(pendingShowActionTimer.current);
+      pendingShowActionTimer.current = null;
+    }
+    const href = pendingShowActionHref.current;
+    pendingShowActionHref.current = null;
+    if (href) router.push(href);
+  };
+
+  const openShowActionRoute = (href: Href) => {
+    pendingShowActionHref.current = href;
+    setActionsSheetVisible(false);
+    if (pendingShowActionTimer.current) {
+      clearTimeout(pendingShowActionTimer.current);
+    }
+    // Modal.onDismiss fires on iOS. The fallback covers Android and Web.
+    pendingShowActionTimer.current = setTimeout(finishPendingShowAction, 400);
+  };
+
   const handleDeleteShow = async () => {
     if (!show) return;
     setDeleteError(null);
@@ -384,7 +419,7 @@ export function ShowDetailScreen({
       bandId={bandId}
       currentRoute={getShowHref(bandId, showId) as string}
       headerAction={
-        canEdit && show
+        canView && show
           ? {
               accessibilityLabel: 'Mais opções do show',
               icon: 'more',
@@ -447,12 +482,44 @@ export function ShowDetailScreen({
         closeAccessibilityLabel="Fechar mais opções do show"
         label="Mais opções"
         onClose={() => setActionsSheetVisible(false)}
+        onDismiss={finishPendingShowAction}
         showCloseButton
         testID="show-detail-actions-sheet"
         visible={actionsSheetVisible}
       >
         {show ? (
           <View style={styles.statusOptions}>
+            {canView ? (
+              <AppButton
+                accessibilityLabel="Exportar setlist do show"
+                icon="fileText"
+                label="Exportar setlist"
+                onPress={() =>
+                  openShowActionRoute(getShowExportHref(bandId, show.id))
+                }
+                variant="secondary"
+              />
+            ) : null}
+            {canView ? (
+              <AppButton
+                accessibilityLabel={
+                  show.status === 'cancelled'
+                    ? 'Indisponível: shows cancelados não podem ser adicionados como eventos ativos'
+                    : 'Adicionar cópia do show ao calendário'
+                }
+                disabled={show.status === 'cancelled'}
+                icon="event"
+                label={
+                  show.status === 'cancelled'
+                    ? 'Adicionar ao calendário (show cancelado)'
+                    : 'Adicionar ao calendário'
+                }
+                onPress={() =>
+                  openShowActionRoute(getShowCalendarHref(bandId, show.id))
+                }
+                variant="secondary"
+              />
+            ) : null}
             {canEdit && show.status === 'draft' ? (
               <AppButton
                 accessibilityLabel="Editar show"
