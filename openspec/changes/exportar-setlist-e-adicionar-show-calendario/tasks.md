@@ -83,8 +83,8 @@ concluídas posteriormente e estão registradas em 23/10/2026.
   `ShowCalendarScreen-test.tsx`, pois o título da tela e o botão compartilham
   o mesmo texto. Os testes agora localizam o controle por papel e nome
   acessível; a execução seguinte passou integralmente.
-- A política de release define incremento minor para nova funcionalidade; esta
-  entrega prepara a versão `1.1.0`, candidata `v1.1.0-rc.1`. A tag será criada
+- Por correção solicitada pelo responsável, esta entrega compõe a versão
+  `1.0.1`, candidata `v1.0.1-rc.2`, sucedendo `v1.0.1-rc.1`. A tag será criada
   somente após integração, no commit final da `main`. Builds de produção iOS e
   Android e exportação Web devem usar esse mesmo commit/tag; os builds de
   desenvolvimento anteriores não os substituem.
