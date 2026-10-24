@@ -1,12 +1,16 @@
 # Histórico de versões
 
-## 1.0.1 — candidata `v1.0.1-rc.2` em preparação
+## 1.0.2 — candidata `v1.0.2-rc.1` em preparação
+
+Esta candidata substitui `v1.0.1-rc.2` após a falha reportada no envio do build
+iOS `1.0.1 (9)`. A versão do aplicativo será `1.0.2`; a tag anterior permanece
+imutável e não será reutilizada. Esta candidata inclui as PRs #77, #76 e #78.
 
 ### Links das lojas
 
 - A página Web de download agora aponta diretamente para Setlist na App Store
   e no Google Play, sem depender da busca pelo nome do app.
-- A versão iOS `1.0.1` será enviada à revisão usando um build de produção do
+- A versão iOS `1.0.2` será enviada à revisão usando um build de produção do
   mesmo commit da candidata. A publicação Web será feita pelo workflow de
   GitHub Pages depois da integração e da publicação da Release candidata.
 - O primeiro envio Android continua aguardando o processo do Google Play; os
