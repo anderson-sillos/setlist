@@ -2,6 +2,35 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 25 de outubro de 2026 — preparação de `v1.1.0-rc.1`
+
+- A última candidata publicada é `v1.0.2-rc.1`, no commit `40c3d221`:
+  iOS `1.0.2 (10)` enviado ao App Store Connect, Android `1.0.2 (11)` enviado
+  à faixa Alpha e Web publicada conforme as notas dessa Release. Não foi
+  conferida nesta etapa a disponibilidade pública das lojas.
+- A próxima versão do produto foi preparada como `1.1.0`, com tag planejada
+  `v1.1.0-rc.1`, seguindo o incremento de funcionalidade definido em
+  `docs/RELEASE_PROCESS.md`. `app.json`, `package.json` e as duas versões do
+  lockfile foram atualizados pelo script do projeto, preservando dependências.
+- A branch `fix/song-editor-resume-refresh` reúne as correções nos commits
+  `584bfc9` (revalidação sem apagar a tela ativa), `3595595` (botão mágico ao
+  lado do título, flutuante na rolagem e com driver nativo) e `1bc3b99` (ajuda
+  de formatação recolhida, remoção da moldura redundante e campo de 420 pontos).
+  O placeholder editado pelo responsável foi preservado.
+- O changelog e `docs/releases/v1.1.0-rc.1.md` registram essas correções e as
+  PRs #80, #81, #82, #83 e #84, integradas após a candidata anterior. A API do
+  GitHub confirmou #33 e #34 como `fixed`; #9 segue aberto, sem patch indicado.
+- A tag e os builds oficiais devem usar o commit integrado à `main`, depois
+  dos checks da PR de preparação. Não foram criados tag, builds ou submissões
+  nesta etapa. As sequências Android/iOS devem ser preenchidas nas notas com
+  os números efetivamente atribuídos pelo EAS, sem reutilizar os anteriores.
+- Antes da distribuição, conferir em produção as migrações sequenciais
+  `20261024100000` e `20261024100100`; o estado do banco de produção não foi
+  consultado nesta preparação. A tarefa 6.3 da busca assistida continua
+  pendente no arquivo da change, e as últimas correções do editor precisam de
+  conferência manual. A validação já confirmada do cronômetro não encerra esses
+  itens nem valida os novos artefatos de produção.
+
 ## Atualização de 25 de outubro de 2026 — acompanhamento da letra sincronizada
 
 - A change OpenSpec `acompanhar-letra-sincronizada` foi arquivada em
@@ -16,8 +45,9 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   suítes, 1.039 testes e 80,43% de cobertura de branches; também passaram
   `openspec validate acompanhar-letra-sincronizada --strict` e os três checks
   remotos da PR #84 (qualidade, banco/pgTAP e smoke Web Playwright). A PR #84
-  segue aberta; a sincronização e o arquivamento OpenSpec foram adicionados
-  depois desse commit.
+  foi integrada à `main` por squash em `626602ce`, com os três checks aprovados
+  no head final `1d47ad3e`; a sincronização e o arquivamento OpenSpec estão
+  incluídos na integração.
 - A pessoa responsável confirmou a validação manual completa na Web, no Android
   físico com o build de desenvolvimento atual, no iPad e no iPhone 16 Pro com o
   build de desenvolvimento atual. O modelo do Android, o modelo/build usado no

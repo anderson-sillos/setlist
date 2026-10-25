@@ -1,5 +1,18 @@
 # Acompanhamento de segurança das dependências
 
+## Situação confirmada em 25 de outubro de 2026
+
+A API do GitHub confirmou os alertas #33 (`undici`) e #34 (`zod`) como
+`fixed`, após a integração das PRs #80, #82 e #83 à `main`. O lockfile da
+aplicação contém Zod `4.6.7` na raiz e no Expo CLI, e o scheduler usa o
+override de Undici `7.30.1`.
+
+O alerta #9 (`node-forge`) continua `open`, sem versão corrigida indicada
+pelo alerta. Esta conferência atualiza o estado dos alertas para a preparação
+de `v1.1.0-rc.1`; não representa nova auditoria npm, inspeção dos bundles
+dessa candidata ou aceite de risco para publicação estável. A adaptação de
+`vendor/decode-uri-component` permanece inalterada.
+
 ## Revisão de 24 de outubro de 2026
 
 Esta revisão substitui as listas de alertas ativos registradas abaixo em 7 de

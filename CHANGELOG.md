@@ -1,20 +1,81 @@
 # Histórico de versões
 
-## 1.0.2 — candidata `v1.0.2-rc.1` em preparação
+## 1.1.0 — candidata `v1.1.0-rc.1` em preparação
+
+Entrega posterior a `v1.0.2-rc.1`, reunindo as PRs #80, #81, #82, #83 e #84
+e as correções do editor da branch `fix/song-editor-resume-refresh`. A versão
+comum de Android, iOS e Web passa a `1.1.0`, conforme a regra de incremento para
+novas funcionalidades em `docs/RELEASE_PROCESS.md`.
+
+### Cadastro e edição de músicas
+
+- Busca assistida pelo botão mágico para completar o rascunho com título,
+  artista, duração e letra, priorizando os tempos sincronizados quando válidos.
+  Resultados diferentes podem ser escolhidos em uma lista compacta; divergências
+  de duração exigem a decisão da pessoa antes de assumir os tempos.
+- Feedback por etapas, frases variadas, cancelamento e até três tentativas
+  para indisponibilidade temporária, sem salvar automaticamente a música.
+- Capitalização conservadora dos nomes e organização dos blocos da letra,
+  preservando o conteúdo já preenchido e as edições do rascunho.
+- Músicas instrumentais possuem estado próprio e deixam de aparecer como
+  pendentes de letra nos filtros e avisos de prontidão.
+- O botão mágico fica ao lado do título e acompanha a rolagem até o limite
+  seguro do cabeçalho, mantendo-se acessível com o teclado aberto. A animação
+  usa o driver nativo no iOS e Android.
+- Guia de formatação recolhido em um botão de ajuda, campo de letra com altura
+  de 420 pontos e remoção da borda externa redundante.
+- O retorno ao app revalida os dados sem apagar o conteúdo da tela ativa.
+
+### Acompanhamento da letra sincronizada
+
+- Cronômetro manual na letra em tela cheia, com início, pausa, retomada,
+  reinício e ajustes de cinco segundos, sem reprodução de áudio.
+- Barra de progresso com arraste, seleção na trilha e teclado; tocar em um
+  verso inativo posiciona o cronômetro no horário desse trecho.
+- Linha atual destacada em negrito e opacidade total, com centralização e
+  rolagem suave. A rolagem manual suspende o acompanhamento; o botão
+  Acompanhar permite retomá-lo.
+- Cabeçalho compacto e controles translúcidos, respeitando as áreas seguras
+  do iOS e Android e a largura de leitura em tablets e na Web.
+
+### Dependências e documentos
+
+- Zod `4.6.7` na aplicação e no Expo CLI, com os ajustes das PRs #80 e #83.
+- Undici `7.30.1` nas ferramentas do scheduler, pela PR #82.
+- O GitHub confirmou os alertas #33 e #34 como corrigidos. O alerta #9
+  (`node-forge`) continua aberto, conforme `docs/DEPENDENCY_SECURITY.md`.
+- A candidata inclui a revisão dos Termos de Uso sobre a busca assistida,
+  preservando a responsabilidade sobre os direitos do conteúdo sugerido.
+
+### Preparação da distribuição
+
+- Notas completas e roteiro da candidata em
+  [docs/releases/v1.1.0-rc.1.md](docs/releases/v1.1.0-rc.1.md).
+- Antes de salvar músicas instrumentais em produção, conferir as migrações
+  `20261024100000` e `20261024100100` e aplicá-las, nessa ordem, se pendentes.
+- A tag deve apontar para o commit integrado à `main`. Os novos builds AAB/IPA
+  e o export Web deverão usar esse mesmo commit; os contadores serão
+  registrados após sua atribuição real pelo EAS.
+- A validação manual do cronômetro foi confirmada em Web, Android, iPad e
+  iPhone. A tarefa 6.3 da busca assistida permanece pendente no arquivo da
+  change; as últimas correções do editor e os artefatos de produção ainda
+  precisam de conferência. Não foram gerados novos builds nesta preparação.
+
+## 1.0.2 — pré-release `v1.0.2-rc.1`
 
 Esta candidata substitui `v1.0.1-rc.2` após a falha reportada no envio do build
-iOS `1.0.1 (9)`. A versão do aplicativo será `1.0.2`; a tag anterior permanece
-imutável e não será reutilizada. Esta candidata inclui as PRs #77, #76 e #78.
+iOS `1.0.1 (9)`. A versão do aplicativo é `1.0.2`; a tag anterior permanece
+imutável e não será reutilizada. Esta candidata inclui as PRs #77, #76, #78 e #79.
 
 ### Links das lojas
 
 - A página Web de download agora aponta diretamente para Setlist na App Store
   e no Google Play, sem depender da busca pelo nome do app.
-- A versão iOS `1.0.2` será enviada à revisão usando um build de produção do
-  mesmo commit da candidata. A publicação Web será feita pelo workflow de
-  GitHub Pages depois da integração e da publicação da Release candidata.
-- O primeiro envio Android continua aguardando o processo do Google Play; os
-  builds de produção desta candidata usarão o mesmo commit final.
+- O iOS `1.0.2 (10)` foi enviado ao App Store Connect e o Android `1.0.2 (11)`
+  à faixa Alpha do Google Play. Os uploads não confirmam aprovação ou
+  disponibilidade pública nas lojas.
+- A candidata Web foi publicada pelo GitHub Pages no mesmo commit
+  `40c3d22153e3fbe217e268cbbd3641c9cd93895f` da tag e dos builds nativos.
 
 ### Exportação de shows e calendário pessoal
 
