@@ -106,5 +106,4 @@ describe('<LyricDocumentEditor />', () => {
 
     expect(input.props.value).toBe('Primeira linha\n');
   });
-
 });
