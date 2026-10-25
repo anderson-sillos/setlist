@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as ExpoCrypto from 'expo-crypto';
 import { useEffect, type PropsWithChildren } from 'react';
 
+import { LrclibRequestError, searchLrclibTracks } from '@/data/lrclib/client';
 import type { AppRepositories, BandRole, Song } from '@/domain';
 import { queryKeys } from '@/data/queryKeys';
 import {
@@ -55,6 +56,11 @@ jest.mock('@/data/supabase/songMutations', () => {
   };
 });
 
+jest.mock('@/data/lrclib/client', () => ({
+  ...jest.requireActual('@/data/lrclib/client'),
+  searchLrclibTracks: jest.fn(),
+}));
+
 jest.mock('@/data/supabase/legalTermMutations', () => ({
   acceptCurrentBandTerm: jest.fn(),
   getCurrentBandTermAcceptance: jest.fn(),
@@ -84,6 +90,7 @@ const mockRestoreSong = (
 
 const mockCreateSong = jest.mocked(createSong);
 const mockUpdateSong = jest.mocked(updateSong);
+const mockSearchTracks = jest.mocked(searchLrclibTracks);
 const mockAcceptCurrentBandTerm = jest.mocked(acceptCurrentBandTerm);
 const mockGetCurrentBandTermAcceptance = jest.mocked(
   getCurrentBandTermAcceptance,
@@ -150,7 +157,484 @@ describe('<SongEditorScreen />', () => {
     jest.clearAllMocks();
     mockRouter.canGoBack.mockReturnValue(true);
     mockRandomUUID.mockReset();
+    mockSearchTracks.mockReset();
     mockGetCurrentBandTermAcceptance.mockResolvedValue(true);
+  });
+
+  it('dispara a busca pelo rodapé, mostra um popup e completa o rascunho sem salvar', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    mockSearchTracks.mockResolvedValue([
+      {
+        recordId: 412,
+        trackName: 'Tempo Perdido',
+        artistName: 'Legião Urbana',
+        albumName: 'Dois',
+        durationMs: 180_000,
+        plainLyrics: 'Primeiro verso',
+        syncedLyrics: '[00:01.00]Primeiro verso',
+      },
+    ]);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+
+    const titleInput = await view.findByLabelText('Título da música *');
+    expect(
+      view.getByTestId('song-enrichment-trigger').props.accessibilityState
+        .disabled,
+    ).toBe(true);
+    await fireEvent.changeText(titleInput, 'Tempo Perdido');
+    expect(
+      view.getByTestId('song-enrichment-trigger').props.accessibilityState
+        .disabled,
+    ).toBe(false);
+    expect(view.getByLabelText('Completar música')).toBeTruthy();
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+
+    expect(await view.findByTestId('song-enrichment-popup')).toBeTruthy();
+    expect(mockSearchTracks).toHaveBeenCalledWith(
+      { title: 'Tempo Perdido', artist: '' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    await fireEvent.press(
+      await view.findByTestId('song-enrichment-candidate-412'),
+    );
+
+    await waitFor(() =>
+      expect(view.getByLabelText('Artista/Banda').props.value).toBe(
+        'Legião Urbana',
+      ),
+    );
+    expect(view.getByLabelText('Minutos da duração').props.value).toBe('3');
+    expect(view.getByLabelText('Segundos da duração').props.value).toBe('00');
+    expect(view.getByLabelText('Letra completa').props.value).toContain(
+      'Primeiro verso',
+    );
+    expect(
+      view.getByText(/Preenchidos: artista, duração e letra/),
+    ).toBeTruthy();
+    expect(view.getByText('OK')).toBeTruthy();
+    expect(view.getByTestId('song-enrichment-close')).toBeTruthy();
+    expect(mockCreateSong).not.toHaveBeenCalled();
+    expect(mockUpdateSong).not.toHaveBeenCalled();
+
+    await fireEvent.press(view.getByTestId('song-enrichment-close'));
+    await waitFor(() =>
+      expect(view.queryByTestId('song-enrichment-popup')).toBeNull(),
+    );
+  });
+
+  it('permite pesquisar novamente com o rascunho editado e aplica título e artista formatados', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    mockSearchTracks
+      .mockResolvedValueOnce([
+        {
+          recordId: 701,
+          trackName: 'MÚSICA INICIAL',
+          artistName: 'BANDA INICIAL',
+          albumName: null,
+          durationMs: 180_000,
+          plainLyrics: 'Letra do primeiro resultado',
+          syncedLyrics: '[00:01.00]Letra do primeiro resultado',
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          recordId: 702,
+          trackName: 'NOVA CANÇÃO',
+          artistName: 'BANDA NOVA',
+          albumName: null,
+          durationMs: 180_000,
+          plainLyrics: 'Letra do segundo resultado',
+          syncedLyrics: '[00:01.00]Letra do segundo resultado',
+        },
+      ]);
+
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+    const titleInput = await view.findByLabelText('Título da música *');
+    await fireEvent.changeText(titleInput, 'musica inicial');
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+    expect(await view.findByText('Música Inicial')).toBeTruthy();
+    await fireEvent.press(
+      await view.findByTestId('song-enrichment-candidate-701'),
+    );
+
+    await waitFor(() =>
+      expect(view.getByLabelText('Título da música *').props.value).toBe(
+        'Música Inicial',
+      ),
+    );
+    expect(view.getByLabelText('Artista/Banda').props.value).toBe(
+      'Banda Inicial',
+    );
+
+    await fireEvent.press(
+      view.getByLabelText('Fechar popup de completar música'),
+    );
+    await fireEvent.changeText(
+      view.getByLabelText('Título da música *'),
+      'nova consulta',
+    );
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+
+    await waitFor(() => expect(mockSearchTracks).toHaveBeenCalledTimes(2));
+    expect(mockSearchTracks.mock.calls[1]?.[0]).toEqual({
+      title: 'nova consulta',
+      artist: 'Banda Inicial',
+    });
+    await fireEvent.press(
+      await view.findByTestId('song-enrichment-candidate-702'),
+    );
+
+    await waitFor(() =>
+      expect(view.getByLabelText('Título da música *').props.value).toBe(
+        'Nova Canção',
+      ),
+    );
+    expect(view.getByLabelText('Artista/Banda').props.value).toBe('Banda Nova');
+    expect(view.getByLabelText('Letra completa').props.value).toContain(
+      'Letra do primeiro resultado',
+    );
+  });
+
+  it('cancela a busca ao fechar o popup e ignora uma resposta tardia', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    let resolveSearch:
+      | ((
+          value: readonly {
+            recordId: number;
+            trackName: string;
+            artistName: string;
+            albumName: string | null;
+            durationMs: number | null;
+            plainLyrics: string | null;
+            syncedLyrics: string | null;
+          }[],
+        ) => void)
+      | undefined;
+    mockSearchTracks.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
+    );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+
+    await fireEvent.changeText(
+      await view.findByLabelText('Título da música *'),
+      'Tempo Perdido',
+    );
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+    await view.findByTestId('song-enrichment-progress');
+    expect(
+      view.getByTestId('song-enrichment-trigger').props.accessibilityState
+        .disabled,
+    ).toBe(true);
+    expect(
+      view.getByTestId('song-editor-save').props.accessibilityState.disabled,
+    ).toBe(true);
+    await fireEvent.press(
+      view.getByLabelText('Fechar popup de completar música'),
+    );
+
+    await act(async () => {
+      resolveSearch?.([
+        {
+          recordId: 413,
+          trackName: 'Tempo Perdido',
+          artistName: 'Legião Urbana',
+          albumName: 'Dois',
+          durationMs: 180_000,
+          plainLyrics: 'Resposta tardia',
+          syncedLyrics: '[00:01.00]Resposta tardia',
+        },
+      ]);
+      await Promise.resolve();
+    });
+
+    expect(view.queryByTestId('song-enrichment-popup')).toBeNull();
+    expect(view.getByLabelText('Artista/Banda').props.value).toBe('');
+    expect(view.getByLabelText('Letra completa').props.value).toBe('');
+    expect(mockSearchTracks.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+    expect(mockCreateSong).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['título', 'Título da música *', 'Título corrigido'],
+    ['artista', 'Artista/Banda', 'Artista corrigido'],
+    ['duração', 'Minutos da duração', '4'],
+  ] as const)(
+    'invalida o resultado atrasado quando o rascunho muda no campo %s',
+    async (_field, label, nextValue) => {
+      const { bandId, repositories } = createRepositories('owner');
+      let resolveSearch:
+        | ((
+            value: readonly {
+              recordId: number;
+              trackName: string;
+              artistName: string;
+              albumName: string | null;
+              durationMs: number | null;
+              plainLyrics: string | null;
+              syncedLyrics: string | null;
+            }[],
+          ) => void)
+        | undefined;
+      mockSearchTracks.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSearch = resolve;
+          }),
+      );
+      const view = await render(
+        <AppProviders repositories={repositories}>
+          <SongEditorScreen bandId={bandId} />
+        </AppProviders>,
+      );
+      await fireEvent.changeText(
+        await view.findByLabelText('Título da música *'),
+        'Título inicial',
+      );
+      await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+      const signal = mockSearchTracks.mock.calls[0]?.[1]?.signal;
+
+      await fireEvent.changeText(view.getByLabelText(label), nextValue);
+      expect(signal?.aborted).toBe(true);
+
+      await act(async () => {
+        resolveSearch?.([
+          {
+            recordId: 416,
+            trackName: 'Título inicial',
+            artistName: 'Artista antigo',
+            albumName: null,
+            durationMs: 180_000,
+            plainLyrics: 'Não aplicar',
+            syncedLyrics: '[00:01.00]Não aplicar',
+          },
+        ]);
+        await Promise.resolve();
+      });
+
+      expect(view.queryByTestId('song-enrichment-popup')).toBeNull();
+      expect(view.getByLabelText(label).props.value).toBe(nextValue);
+      expect(view.getByLabelText('Artista/Banda').props.value).not.toBe(
+        'Artista antigo',
+      );
+      expect(view.getByLabelText('Letra completa').props.value).toBe('');
+    },
+  );
+
+  it('preserva a letra digitada enquanto a pesquisa está em andamento', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    let resolveSearch:
+      | ((
+          value: readonly {
+            recordId: number;
+            trackName: string;
+            artistName: string;
+            albumName: string | null;
+            durationMs: number | null;
+            plainLyrics: string | null;
+            syncedLyrics: string | null;
+          }[],
+        ) => void)
+      | undefined;
+    mockSearchTracks.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
+    );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+    await fireEvent.changeText(
+      await view.findByLabelText('Título da música *'),
+      'Título inicial',
+    );
+    await fireEvent.changeText(
+      view.getByLabelText('Artista/Banda'),
+      'Artista inicial',
+    );
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+    await fireEvent.changeText(
+      view.getByLabelText('Letra completa'),
+      'Letra escrita pela banda',
+    );
+
+    await act(async () => {
+      resolveSearch?.([
+        {
+          recordId: 417,
+          trackName: 'Título inicial',
+          artistName: 'Artista inicial',
+          albumName: null,
+          durationMs: 180_000,
+          plainLyrics: 'Letra da busca',
+          syncedLyrics: '[00:01.00]Letra da busca',
+        },
+      ]);
+      await Promise.resolve();
+    });
+
+    expect(view.getByLabelText('Letra completa').props.value).toContain(
+      'Letra escrita pela banda',
+    );
+    expect(view.getByLabelText('Minutos da duração').props.value).toBe('3');
+    expect(mockCreateSong).not.toHaveBeenCalled();
+  });
+
+  it('permite uma nova tentativa manual sem exibir detalhes técnicos', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    mockSearchTracks
+      .mockRejectedValueOnce(
+        new LrclibRequestError({ reason: 'unavailable', attemptCount: 3 }),
+      )
+      .mockResolvedValueOnce([
+        {
+          recordId: 414,
+          trackName: 'Tempo Perdido',
+          artistName: 'Legião Urbana',
+          albumName: 'Dois',
+          durationMs: 180_000,
+          plainLyrics: 'Verso',
+          syncedLyrics: '[00:01.00]Verso',
+        },
+      ]);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+    await fireEvent.changeText(
+      await view.findByLabelText('Título da música *'),
+      'Tempo Perdido',
+    );
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+    await view.findByTestId('song-enrichment-retry');
+    expect(view.queryByText(/lrclib|https?:|HTTP 5\d\d/i)).toBeNull();
+
+    await fireEvent.press(view.getByTestId('song-enrichment-retry'));
+    expect(
+      await view.findByTestId('song-enrichment-candidate-414'),
+    ).toBeTruthy();
+    expect(mockSearchTracks).toHaveBeenCalledTimes(2);
+  });
+
+  it('respeita Retry-After mesmo se a popup for fechada e reaberta', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    mockSearchTracks.mockRejectedValueOnce(
+      new LrclibRequestError({
+        reason: 'rate-limited',
+        httpStatus: 429,
+        retryAfterMs: 60_000,
+        attemptCount: 1,
+      }),
+    );
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+    await fireEvent.changeText(
+      await view.findByLabelText('Título da música *'),
+      'Título inicial',
+    );
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+    const retryButton = await view.findByTestId('song-enrichment-retry');
+    expect(retryButton.props.accessibilityState.disabled).toBe(true);
+    await fireEvent.press(
+      view.getByLabelText('Fechar popup de completar música'),
+    );
+
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+
+    expect(await view.findByTestId('song-enrichment-retry')).toBeTruthy();
+    expect(mockSearchTracks).toHaveBeenCalledTimes(1);
+  });
+
+  it('mantém tudo no mesmo popup quando a pessoa escolhe importar a letra estática', async () => {
+    const { bandId, repositories } = createRepositories('owner');
+    mockCreateSong.mockResolvedValue('song-created');
+    mockSearchTracks.mockResolvedValue([
+      {
+        recordId: 415,
+        trackName: 'Tempo Perdido',
+        artistName: 'Legião Urbana',
+        albumName: 'Dois',
+        durationMs: 241_000,
+        plainLyrics: 'Verso importado',
+        syncedLyrics: '[00:01.00]Verso importado',
+      },
+    ]);
+    const view = await render(
+      <AppProviders repositories={repositories}>
+        <SongEditorScreen bandId={bandId} />
+      </AppProviders>,
+    );
+    await fireEvent.changeText(
+      await view.findByLabelText('Título da música *'),
+      'Tempo Perdido',
+    );
+    await fireEvent.changeText(
+      view.getByLabelText('Artista/Banda'),
+      'Legião Urbana',
+    );
+    await fireEvent.changeText(view.getByLabelText('Minutos da duração'), '3');
+    await fireEvent.changeText(
+      view.getByLabelText('Segundos da duração'),
+      '58',
+    );
+    await fireEvent.press(view.getByTestId('song-enrichment-trigger'));
+    await fireEvent.press(
+      await view.findByTestId('song-enrichment-candidate-415'),
+    );
+
+    expect(
+      await view.findByText(/a diferença passa de dois segundos/i),
+    ).toBeTruthy();
+    expect(view.getByTestId('song-enrichment-popup')).toBeTruthy();
+    await fireEvent.press(view.getByText('Manter 3:58 e importar texto'));
+    expect(view.getByLabelText('Segundos da duração').props.value).toBe('58');
+    expect(view.getByLabelText('Letra completa').props.value).toContain(
+      'Verso importado',
+    );
+
+    await fireEvent.press(
+      view.getByLabelText('Fechar popup de completar música'),
+    );
+    await fireEvent.press(view.getByText('Salvar música'));
+    await waitFor(() => expect(mockCreateSong).toHaveBeenCalled());
+    expect(mockCreateSong).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lyrics: {
+          blocks: [
+            expect.objectContaining({
+              lines: [
+                expect.objectContaining({
+                  text: 'Verso importado',
+                  startTimeMs: null,
+                }),
+              ],
+            }),
+          ],
+          source: expect.objectContaining({ format: 'plain' }),
+        },
+      }),
+    );
   });
 
   it.each([true, false])(

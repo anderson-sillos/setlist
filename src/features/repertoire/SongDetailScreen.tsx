@@ -49,6 +49,7 @@ import { useSongCollectionMembership } from './useSongCollectionMembership';
 import { SongLyricsContent } from './SongLyricsContent';
 import {
   lyricStatusIcons,
+  lyricStatusIconColors,
   lyricStatusLabels,
   lyricStatusTones,
 } from './songPresentation';
@@ -216,6 +217,7 @@ export function SongDetailScreen({
             <View style={styles.summaryLine}>
               <StatusPill
                 accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                iconColor={lyricStatusIconColors[song.lyricStatus]}
                 icon={lyricStatusIcons[song.lyricStatus]}
                 tone={lyricStatusTones[song.lyricStatus]}
               />

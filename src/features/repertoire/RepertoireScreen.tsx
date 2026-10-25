@@ -85,6 +85,7 @@ import {
 } from './repertoireQuery';
 import {
   lyricStatusIcons,
+  lyricStatusIconColors,
   lyricStatusLabels,
   lyricStatusTones,
 } from './songPresentation';
@@ -295,6 +296,7 @@ function SongRow({
               <StatusPill
                 accessible={false}
                 accessibilityLabel={`Status da letra: ${lyricStatusLabels[song.lyricStatus]}`}
+                iconColor={lyricStatusIconColors[song.lyricStatus]}
                 icon={lyricStatusIcons[song.lyricStatus]}
                 tone={lyricStatusTones[song.lyricStatus]}
               />

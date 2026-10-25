@@ -79,7 +79,7 @@ O sistema MUST armazenar somente a referência do vídeo, sua duração quando n
 - **THEN** o sistema não mantém a reprodução do YouTube em segundo plano
 
 ### Requirement: Fontes de letras no piloto
-O sistema SHALL permitir entrada manual de letras declaradas como autorais, em domínio público ou autorizadas e MUST NOT oferecer busca ou importação automática de sites de letras.
+O sistema SHALL permitir entrada manual de letras declaradas como autorais, em domínio público ou autorizadas. O sistema MAY oferecer preenchimento por uma busca externa iniciada explicitamente pela pessoa usuária; essa ação MUST NOT ser apresentada como verificação de autoria, licença ou autorização para armazenar o conteúdo, que continuam sob responsabilidade de quem o adiciona.
 
 #### Scenario: Adicionar letra manualmente
 - **WHEN** um Owner ou Editor com termo vigente aceito digita ou cola uma letra pela qual declara responsabilidade

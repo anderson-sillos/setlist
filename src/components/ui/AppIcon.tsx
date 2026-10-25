@@ -54,6 +54,7 @@ import {
   UserPlus,
   UserRound,
   Users,
+  WandSparkles,
   X,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -122,6 +123,7 @@ const iconComponents = {
   revoke: Ban,
   share: Share2,
   timer: Timer,
+  wand: WandSparkles,
 } satisfies Record<string, LucideIcon>;
 
 export type AppIconName = keyof typeof iconComponents;

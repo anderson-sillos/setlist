@@ -17,12 +17,18 @@ function createLine(
   parsedLine: ParsedLyricLine,
   previousLine: LyricLine | undefined,
 ): LyricLine {
+  const unchanged =
+    previousLine?.text === parsedLine.text &&
+    previousLine?.kind === parsedLine.kind;
+
   return {
-    id: previousLine?.id ?? ExpoCrypto.randomUUID(),
+    id: unchanged ? previousLine.id : ExpoCrypto.randomUUID(),
     startTimeMs:
       parsedLine.kind === 'separator'
         ? null
-        : (previousLine?.startTimeMs ?? null),
+        : unchanged
+          ? (previousLine.startTimeMs ?? null)
+          : null,
     text: parsedLine.text,
     ...(parsedLine.bold ? { bold: true } : {}),
     ...(parsedLine.kind === 'separator' ? { kind: 'separator' as const } : {}),
@@ -116,9 +122,16 @@ export function parseLyricText(
   }
   pushCurrent();
 
+  const parsedBlocks = blocks.map((block, blockIndex) =>
+    createBlock(block.name, block.lines, previousDocument.blocks[blockIndex]),
+  );
+  const hasText = parsedBlocks.some((block) =>
+    block.lines.some((line) => line.text.trim().length > 0),
+  );
+
   return {
-    blocks: blocks.map((block, blockIndex) =>
-      createBlock(block.name, block.lines, previousDocument.blocks[blockIndex]),
-    ),
+    ...previousDocument,
+    blocks: parsedBlocks,
+    ...(hasText ? { isInstrumental: false } : {}),
   };
 }

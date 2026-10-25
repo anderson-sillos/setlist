@@ -183,32 +183,40 @@ export function StageScreen({
 
             <Card style={styles.lyricCard} tone="dark">
               <AppText tone="inverse" variant="eyebrow">
-                Letra estática · leitura manual
+                {currentItem.song?.lyricStatus === 'instrumental'
+                  ? 'Música instrumental'
+                  : 'Letra estática · leitura manual'}
               </AppText>
               <AppText tone="inverse" variant="title">
                 {currentItem.song?.title ?? 'Música indisponível'}
               </AppText>
               {currentItem.song?.lyrics.blocks.length ? (
-                currentItem.song.lyrics.blocks.map((block) => (
-                  <View key={block.id} style={styles.lyricBlock}>
-                    {block.name ? (
-                      <AppText tone="inverse" variant="caption">
-                        {block.name}
-                      </AppText>
-                    ) : null}
-                    {block.lines.map((line) => (
-                      <AppText
-                        key={line.id}
-                        style={styles.lyricLine}
-                        tone="inverse"
-                      >
-                        {line.text}
-                      </AppText>
-                    ))}
-                  </View>
-                ))
+                <View style={styles.lyricBlocks}>
+                  {currentItem.song.lyrics.blocks.map((block) => (
+                    <View key={block.id} style={styles.lyricBlock}>
+                      {block.name ? (
+                        <AppText tone="inverse" variant="caption">
+                          {block.name}
+                        </AppText>
+                      ) : null}
+                      {block.lines.map((line) => (
+                        <AppText
+                          key={line.id}
+                          style={styles.lyricLine}
+                          tone="inverse"
+                        >
+                          {line.text}
+                        </AppText>
+                      ))}
+                    </View>
+                  ))}
+                </View>
               ) : (
-                <AppText tone="inverse">Sem letra cadastrada</AppText>
+                <AppText tone="inverse">
+                  {currentItem.song?.lyricStatus === 'instrumental'
+                    ? 'Música instrumental'
+                    : 'Sem letra cadastrada'}
+                </AppText>
               )}
             </Card>
           </View>
@@ -237,6 +245,9 @@ export function StageScreen({
                     </AppText>
                     <AppText tone="muted" variant="caption">
                       {stageItem.blockName}
+                      {stageItem.song?.lyricStatus === 'instrumental'
+                        ? ' · Instrumental'
+                        : ''}
                       {isCurrent ? ' · atual' : ''}
                     </AppText>
                     {stageItem.item.notes ? (
@@ -309,6 +320,9 @@ const styles = StyleSheet.create({
   },
   lyricCard: {
     gap: spacing.xl,
+  },
+  lyricBlocks: {
+    gap: spacing.xxl,
   },
   lyricBlock: {
     gap: spacing.sm,

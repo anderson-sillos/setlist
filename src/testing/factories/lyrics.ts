@@ -40,6 +40,8 @@ export function createLyricsForStatus(status: LyricStatus): LyricDocument {
   switch (status) {
     case 'missing':
       return createLyricDocument();
+    case 'instrumental':
+      return createLyricDocument({ isInstrumental: true });
     case 'static':
       return createLyricDocument({
         blocks: [

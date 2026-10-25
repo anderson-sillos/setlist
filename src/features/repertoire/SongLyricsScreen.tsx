@@ -139,7 +139,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   lyrics: {
-    gap: spacing.lg,
     paddingBottom: spacing.xxxl,
   },
   pressed: {

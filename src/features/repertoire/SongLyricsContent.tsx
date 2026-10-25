@@ -15,12 +15,29 @@ export function SongLyricsContent({
 }: SongLyricsContentProps) {
   const isFullscreen = variant === 'fullscreen';
 
-  if (lyrics.blocks.length === 0) {
-    return <AppText tone="inverse">Sem letra cadastrada</AppText>;
+  const hasDisplayableContent = lyrics.blocks.some((block) =>
+    block.lines.some(
+      (line) => line.kind === 'separator' || line.text.trim().length > 0,
+    ),
+  );
+
+  if (!hasDisplayableContent) {
+    return (
+      <AppText tone="inverse">
+        {lyrics.isInstrumental === true
+          ? 'Música instrumental'
+          : 'Sem letra cadastrada'}
+      </AppText>
+    );
   }
 
   return (
-    <>
+    <View style={[styles.document, isFullscreen && styles.fullscreenDocument]}>
+      {lyrics.isInstrumental === true ? (
+        <AppText tone="inverse" variant="caption">
+          Música instrumental
+        </AppText>
+      ) : null}
       {lyrics.blocks.map((block) => (
         <View key={block.id} style={styles.block}>
           {block.name ? (
@@ -67,11 +84,17 @@ export function SongLyricsContent({
           )}
         </View>
       ))}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  document: {
+    gap: spacing.xxl,
+  },
+  fullscreenDocument: {
+    gap: spacing.xxxl,
+  },
   block: {
     gap: spacing.sm,
   },

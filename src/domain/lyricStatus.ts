@@ -1,9 +1,13 @@
 import type { LyricDocument } from '@/domain/entities';
 
 export type DerivedLyricStatus =
-  'missing' | 'static' | 'incomplete' | 'synchronized';
+  'missing' | 'static' | 'incomplete' | 'synchronized' | 'instrumental';
 
 export function deriveLyricStatus(document: LyricDocument): DerivedLyricStatus {
+  if (document.isInstrumental === true) {
+    return 'instrumental';
+  }
+
   const textLines = document.blocks.flatMap((block) =>
     block.lines.filter((line) => line.text.trim().length > 0),
   );
