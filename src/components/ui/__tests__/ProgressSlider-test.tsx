@@ -285,7 +285,7 @@ describe('<ProgressSlider />', () => {
     expect(onCommit).toHaveBeenCalledWith(10_000);
   });
 
-  it('expõe ajustes acessíveis, foco visível e ações de teclado esperadas', async () => {
+  it('expõe ajustes acessíveis sem contornar a barra ao receber foco', async () => {
     const onCommit = jest.fn();
     const view = await render(
       <ProgressSlider
@@ -305,7 +305,14 @@ describe('<ProgressSlider />', () => {
     ]);
 
     await act(() => slider.props.onFocus());
-    expect(StyleSheet.flatten(slider.props.style).borderWidth).toBe(2);
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('progress-slider-hit-area').props.style,
+      ).borderWidth,
+    ).toBeUndefined();
+    expect(
+      StyleSheet.flatten(view.getByTestId('progress-thumb').props.style),
+    ).toMatchObject({ borderWidth: 3, height: 20 });
     await act(() =>
       slider.props.onAccessibilityAction({
         nativeEvent: { actionName: 'increment' },

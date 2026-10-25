@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   fullscreenBlockName: {
     fontSize: 16,
     lineHeight: 24,
-    opacity: 0.7,
+    opacity: 0.65,
   },
   line: {
     minHeight: 24,

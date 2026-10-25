@@ -16,7 +16,11 @@ import type {
 } from '@/domain';
 import { RepertoireCollectionError } from '@/domain';
 import { SongDetailScreen } from '@/features/repertoire/SongDetailScreen';
-import { SongLyricsScreen } from '@/features/repertoire/SongLyricsScreen';
+import {
+  getWebContentTop,
+  getWebScrollNode,
+  SongLyricsScreen,
+} from '@/features/repertoire/SongLyricsScreen';
 import {
   createLyricBlock,
   createLyricDocument,
@@ -55,6 +59,64 @@ jest.mock('@/data/supabase/contentReports', () => ({
 const mockSendContentReport = jest.mocked(sendContentReport);
 const mockUseFocusEffect = jest.mocked(useFocusEffect);
 let capturedQueryClient: QueryClient | null = null;
+
+describe('geometria de rolagem no navegador', () => {
+  const originalHTMLElement = globalThis.HTMLElement;
+
+  class TestHTMLElement {
+    readonly clientTop = 2;
+    scrollTop = 100;
+
+    constructor(private readonly top: number) {}
+
+    getBoundingClientRect() {
+      return { top: this.top } as DOMRect;
+    }
+  }
+
+  afterEach(() => {
+    if (originalHTMLElement === undefined) {
+      Reflect.deleteProperty(globalThis, 'HTMLElement');
+    } else {
+      globalThis.HTMLElement = originalHTMLElement;
+    }
+  });
+
+  it('calcula o deslocamento e ignora referências sem elemento DOM', () => {
+    Object.defineProperty(globalThis, 'HTMLElement', {
+      configurable: true,
+      value: TestHTMLElement,
+    });
+
+    const scrollNode = new TestHTMLElement(30);
+    const target = new TestHTMLElement(200);
+    const scrollView = {
+      getScrollableNode: () => scrollNode,
+    } as unknown as Parameters<typeof getWebScrollNode>[0];
+
+    expect(getWebScrollNode(null)).toBeNull();
+    expect(getWebScrollNode(scrollView)).toBe(scrollNode);
+    expect(getWebScrollNode(scrollNode as unknown as typeof scrollView)).toBe(
+      scrollNode,
+    );
+    expect(
+      getWebScrollNode({ getScrollableNode: () => ({}) } as typeof scrollView),
+    ).toBeNull();
+    expect(getWebContentTop(null, target)).toBeNull();
+    expect(getWebContentTop(scrollView, {})).toBeNull();
+    expect(getWebContentTop(scrollView, target)).toBe(268);
+    expect(
+      getWebContentTop(
+        scrollView,
+        new TestHTMLElement(Number.POSITIVE_INFINITY),
+      ),
+    ).toBeNull();
+
+    Reflect.deleteProperty(globalThis, 'HTMLElement');
+    expect(getWebScrollNode(scrollView)).toBeNull();
+    expect(getWebContentTop(scrollView, target)).toBeNull();
+  });
+});
 
 function CaptureTestQueryClient({
   onCapture,
@@ -780,9 +842,8 @@ describe('<SongDetailScreen />', () => {
         .flex,
     ).toBe(1);
     expect(
-      StyleSheet.flatten(view.getByTestId('timed-controls-row').props.style)
-        .paddingVertical,
-    ).toBe(4);
+      StyleSheet.flatten(view.getByTestId('timed-controls-row').props.style),
+    ).toMatchObject({ paddingBottom: 4, paddingTop: 0 });
     expect(view.getByLabelText('Reiniciar')).toBeTruthy();
     expect(view.getByLabelText('Iniciar')).toBeTruthy();
     expect(view.getByLabelText('Voltar 5 segundos')).toBeTruthy();
@@ -793,6 +854,35 @@ describe('<SongDetailScreen />', () => {
       StyleSheet.flatten(view.getByText('−5 s').props.style),
     ).toMatchObject({ fontSize: 10, lineHeight: 14 });
     expect(view.getByLabelText('Posição na música')).toBeTruthy();
+
+    const lineLayout = {
+      nativeEvent: { layout: { height: 24, width: 320, x: 0, y: 68 } },
+    };
+    const documentLayout = {
+      nativeEvent: { layout: { height: 120, width: 320, x: 0, y: 12 } },
+    };
+    const blockLayout = {
+      nativeEvent: { layout: { height: 80, width: 320, x: 0, y: 28 } },
+    };
+    const lyricsLayout = {
+      nativeEvent: { layout: { height: 800, width: 390, x: 0, y: 8 } },
+    };
+    const firstLine = view.getByTestId(
+      'lyric-line-line-luzes-synchronized-first',
+    );
+    const lyricsBlock = view.getByTestId(
+      'lyrics-block-block-luzes-synchronized',
+    );
+    const lyricsDocument = view.getByTestId('lyrics-document');
+    const lyricsContainer = view.getByTestId('timed-lyrics-session');
+    await fireEvent(firstLine, 'layout', lineLayout);
+    await fireEvent(lyricsDocument, 'layout', documentLayout);
+    await fireEvent(lyricsBlock, 'layout', blockLayout);
+    await fireEvent(lyricsContainer, 'layout', lyricsLayout);
+    await fireEvent(firstLine, 'layout', lineLayout);
+    await fireEvent(lyricsDocument, 'layout', documentLayout);
+    await fireEvent(lyricsBlock, 'layout', blockLayout);
+    await fireEvent(lyricsContainer, 'layout', lyricsLayout);
 
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-10-25T12:00:00.000Z'));

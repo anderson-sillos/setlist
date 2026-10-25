@@ -62,7 +62,9 @@ interface SongLyricsScreenProps {
 const EMPTY_LINE_BOUNDS: ReadonlyMap<string, LyricLineBounds> = new Map();
 const FOLLOW_LAYOUT_SETTLE_MS = 80;
 
-function getWebScrollNode(scrollView: ScrollView | null): HTMLElement | null {
+export function getWebScrollNode(
+  scrollView: ScrollView | null,
+): HTMLElement | null {
   if (typeof HTMLElement === 'undefined' || scrollView === null) {
     return null;
   }
@@ -74,7 +76,7 @@ function getWebScrollNode(scrollView: ScrollView | null): HTMLElement | null {
   return node instanceof HTMLElement ? node : null;
 }
 
-function getWebContentTop(
+export function getWebContentTop(
   scrollView: ScrollView | null,
   target: unknown,
 ): number | null {
@@ -109,12 +111,29 @@ function SongLyricsScreenSession({ bandId, songId }: SongLyricsScreenProps) {
   const footerBottomInset = insets.bottom;
   const songQuery = useSong(bandId, songId);
   const { onRefresh, refreshing } = useScreenDataRefresh([songQuery]);
-  const [retainedSong, setRetainedSong] = useState(songQuery.data);
-  if (songQuery.data !== undefined && retainedSong !== songQuery.data) {
-    setRetainedSong(songQuery.data);
-  } else if (songQuery.isError && retainedSong !== undefined) {
-    setRetainedSong(undefined);
+  const [retainedSongSnapshot, setRetainedSongSnapshot] = useState(() => ({
+    data: songQuery.data,
+    dataUpdatedAt: songQuery.dataUpdatedAt,
+  }));
+  if (
+    songQuery.data !== undefined &&
+    retainedSongSnapshot.dataUpdatedAt !== songQuery.dataUpdatedAt
+  ) {
+    setRetainedSongSnapshot({
+      data: songQuery.data,
+      dataUpdatedAt: songQuery.dataUpdatedAt,
+    });
+  } else if (
+    songQuery.isError &&
+    songQuery.data === undefined &&
+    retainedSongSnapshot.data !== undefined
+  ) {
+    setRetainedSongSnapshot({
+      data: undefined,
+      dataUpdatedAt: songQuery.dataUpdatedAt,
+    });
   }
+  const retainedSong = retainedSongSnapshot.data;
   const song =
     songQuery.data !== undefined
       ? songQuery.data

@@ -47,6 +47,9 @@ describe('<SongLyricsContent />', () => {
     expect(activeStyle.backgroundColor).toBeUndefined();
     expect(activeStyle.color).toBe(colors.text.primary);
     expect(
+      StyleSheet.flatten(view.getByText('Verso').props.style).opacity,
+    ).toBe(0.65);
+    expect(
       StyleSheet.flatten(view.getByTestId('lyric-line-second-line').props.style)
         .opacity,
     ).toBe(0.65);
@@ -144,6 +147,7 @@ describe('<SongLyricsContent />', () => {
       'lyrics-block',
       28,
       62,
+      undefined,
     );
   });
 
