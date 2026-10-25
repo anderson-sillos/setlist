@@ -60,8 +60,11 @@ function SongCacheProbe({
   const queryClient = useQueryClient();
 
   useEffect(
-    () => registerActiveScreenQueries(queryClient, () => [query]),
-    [query, queryClient],
+    () =>
+      registerActiveScreenQueries(queryClient, () => [
+        { ...query, refreshKeys: [queryKey] },
+      ]),
+    [query, queryClient, queryKey],
   );
 
   return <AppText>{query.data?.join(',') ?? 'sem dados'}</AppText>;
@@ -224,6 +227,40 @@ describe('<AppProviders />', () => {
 
     await waitFor(() => expect(view.queryByText('SETLIST_ANTIGA')).toBeNull());
     expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('mantém a tela ativa visível enquanto revalida os dados ao voltar ao app', async () => {
+    let finishRefresh!: (value: string[]) => void;
+    const pendingRefresh = new Promise<string[]>((resolve) => {
+      finishRefresh = resolve;
+    });
+    const queryFn = jest
+      .fn<Promise<string[]>, []>()
+      .mockResolvedValueOnce(['CONTEUDO_VISIVEL'])
+      .mockReturnValueOnce(pendingRefresh);
+    const view = await render(
+      <AppProviders>
+        <SongCacheProbe
+          queryFn={queryFn}
+          queryKey={['bands', 'resume-editor-test', 'songs']}
+        />
+      </AppProviders>,
+    );
+
+    expect(await view.findByText('CONTEUDO_VISIVEL')).toBeTruthy();
+    await act(async () => {
+      mockAppStateListener?.('background');
+      mockAppStateListener?.('active');
+    });
+
+    await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(2));
+    expect(view.getByText('CONTEUDO_VISIVEL')).toBeTruthy();
+    expect(view.queryByText('sem dados')).toBeNull();
+
+    await act(async () => {
+      finishRefresh(['CONTEUDO_ATUALIZADO']);
+    });
+    expect(await view.findByText('CONTEUDO_ATUALIZADO')).toBeTruthy();
   });
 
   it('limpa o conteúdo protegido das rotas inativas sem recarregá-las', async () => {

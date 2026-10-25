@@ -17,7 +17,10 @@ import {
 } from '@/data/supabase';
 import { createSupabaseShowRepository } from '@/data/supabase/showRepository';
 import { createSupabaseRepertoireCollectionRepository } from '@/data/supabase/repertoireCollectionRepository';
-import { refreshActiveScreenQueries } from '@/data/screenQueryRegistry';
+import {
+  getActiveScreenQueryKeys,
+  refreshActiveScreenQueries,
+} from '@/data/screenQueryRegistry';
 import type { AppRepositories, EntityId } from '@/domain';
 import { LastBandSelectionProvider } from '@/features/bands/LastBandSelection';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -74,17 +77,25 @@ function SessionQueryProvider({
       reconcilingContentRef.current = true;
       void (async () => {
         try {
+          const activeQueryKeys = new Set(
+            getActiveScreenQueryKeys(queryClient).map((queryKey) =>
+              JSON.stringify(queryKey),
+            ),
+          );
           const isProtectedQuery = ({
             queryKey,
           }: {
             queryKey: readonly unknown[];
           }) => queryKey[0] === 'bands' || queryKey[0] === 'songs';
+          const shouldClearQuery = (query: { queryKey: readonly unknown[] }) =>
+            isProtectedQuery(query) &&
+            !activeQueryKeys.has(JSON.stringify(query.queryKey));
 
-          // Apaga dados protegidos de todas as rotas sem buscar as rotas inativas.
-          await queryClient.cancelQueries({ predicate: isProtectedQuery });
+          // Mantém a tela ativa visível durante a revalidação; limpa as inativas.
+          await queryClient.cancelQueries({ predicate: shouldClearQuery });
           queryClient
             .getQueryCache()
-            .findAll({ predicate: isProtectedQuery })
+            .findAll({ predicate: shouldClearQuery })
             .forEach((query) => query.reset());
           await refreshActiveScreenQueries(queryClient);
         } finally {
