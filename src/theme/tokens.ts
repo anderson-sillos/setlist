@@ -5,8 +5,11 @@ export const colors = {
     raised: '#1c1c1f',
     hover: '#28282d',
     pressed: '#34343b',
+    controlSurface: 'rgba(28, 28, 31, 0.88)',
     selected: '#2b203d',
+    selectedSubtle: 'rgba(182, 146, 255, 0.06)',
     overlay: 'rgba(0, 0, 0, 0.72)',
+    lyricsFooter: 'rgba(11, 11, 13, 0.58)',
   },
   text: {
     primary: '#f4f4f5',

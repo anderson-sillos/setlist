@@ -11,6 +11,7 @@ export interface ManualTimerState {
 export interface ManualTimer extends ManualTimerState {
   readonly pause: () => void;
   readonly reset: () => void;
+  readonly seekTo: (elapsedMs: number) => void;
   readonly start: () => void;
 }
 
@@ -97,7 +98,22 @@ export function useManualTimer(): ManualTimer {
     setState({ elapsedMs: 0, status: 'idle' });
   }, []);
 
-  return { ...state, pause, reset, start };
+  const seekTo = useCallback((elapsedMs: number) => {
+    if (!Number.isFinite(elapsedMs)) {
+      return;
+    }
+
+    const nextElapsedMs = Math.max(0, elapsedMs);
+
+    setState((current) => {
+      startedAtRef.current =
+        current.status === 'running' ? Date.now() - nextElapsedMs : null;
+
+      return { ...current, elapsedMs: nextElapsedMs };
+    });
+  }, []);
+
+  return { ...state, pause, reset, seekTo, start };
 }
 
 export function formatElapsedTime(elapsedMs: number): string {

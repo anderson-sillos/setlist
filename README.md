@@ -57,6 +57,31 @@ O aplicativo também deverá oferecer controle de acesso por banda, login social
 6. No palco, o músico inicia seu cronômetro e acompanha a letra destacada.
 7. A passagem para a próxima música acontece manualmente.
 
+### Acompanhar letra sincronizada
+
+Na tela de detalhes de uma música elegível, abra **Letra em tela cheia** e
+toque em **Iniciar**. A letra destaca e centraliza as linhas conforme o tempo
+registrado; **Pausar**, **Retomar**, **Reiniciar** e os ajustes de −5 s/+5 s
+controlam o relógio local.
+
+Quando a música tem duração cadastrada maior que a última marcação, a barra
+permite consultar e escolher uma posição. Arraste para pré-visualizar e solte
+para confirmar. Também é possível tocar ou ativar pelo teclado uma linha com
+horário para saltar até ela. Esses saltos mantêm o estado atual do relógio: não
+iniciam a contagem se ela estiver parada.
+
+A rolagem acompanha a linha atual até que você mova a letra manualmente; use
+**Acompanhar** para centralizá-la de novo. Se não houver uma duração final
+válida, a barra é omitida, mas o relógio e a navegação pelos versos continuam
+disponíveis. Na tela sincronizada, os versos inativos ficam com 65% de opacidade;
+a linha atual fica totalmente visível, em negrito e na cor normal, sem fundo de
+destaque, com mais respiro acima e abaixo e sem aumentar a fonte ou a altura de
+linha; Play/Pause é circular, maior que os demais e sem fundo colorido, e o acompanhamento automático
+reúne ajustes de layout antes de rolar suavemente. O cabeçalho e rodapé são
+compactos; o rodapé translúcido se sobrepõe ao fim da área rolável, deixando a
+letra visível por baixo, e o slider compartilha a linha com os tempos. O tempo
+é local ao aparelho e não controla a reprodução de áudio.
+
 ## Arquitetura proposta
 
 ```mermaid

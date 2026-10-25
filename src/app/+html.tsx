@@ -22,6 +22,10 @@ export default function Root({ children }: { children: ReactNode }) {
                 outline-offset: 2px;
               }
 
+              [data-testid="progress-slider-hit-area"]:focus-visible {
+                outline: none !important;
+              }
+
               input:focus-visible,
               textarea:focus-visible {
                 outline: 3px solid #5b21b6 !important;

@@ -1,8 +1,12 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { useFocusEffect } from 'expo-router';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { sendContentReport } from '@/data/supabase/contentReports';
+import { queryKeys } from '@/data/queryKeys';
 import type {
   AppRepositories,
   BandRole,
@@ -49,6 +53,18 @@ jest.mock('@/data/supabase/contentReports', () => ({
 }));
 
 const mockSendContentReport = jest.mocked(sendContentReport);
+const mockUseFocusEffect = jest.mocked(useFocusEffect);
+let capturedQueryClient: QueryClient | null = null;
+
+function CaptureTestQueryClient({
+  onCapture,
+}: {
+  readonly onCapture: (queryClient: QueryClient) => void;
+}) {
+  const queryClient = useQueryClient();
+  useEffect(() => onCapture(queryClient), [onCapture, queryClient]);
+  return null;
+}
 let mockBeforeRemove:
   | ((event: {
       preventDefault: () => void;
@@ -97,6 +113,31 @@ const LIGHTS_SONG = createSong({
   title: 'Luzes da Cidade',
   updatedAt: '2026-09-06T12:00:00.000Z',
   youtubeReference: 'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+});
+const SYNCED_LYRICS_SONG = createSong({
+  ...LIGHTS_SONG,
+  estimatedDurationMs: 218_000,
+  id: 'song-luzes-synchronized',
+  lyricStatus: 'synchronized',
+  lyrics: createLyricDocument({
+    blocks: [
+      createLyricBlock({
+        id: 'block-luzes-synchronized',
+        lines: [
+          createLyricLine({
+            id: 'line-luzes-synchronized-first',
+            startTimeMs: 1_000,
+            text: 'A rua acende devagar',
+          }),
+          createLyricLine({
+            id: 'line-luzes-synchronized-second',
+            startTimeMs: 5_000,
+            text: 'Nosso caminho ganha cor',
+          }),
+        ],
+      }),
+    ],
+  }),
 });
 const INSTRUMENTAL_SONG = createSong({
   bandId: BAND_ID,
@@ -201,8 +242,13 @@ function AppProviders({
 describe('<SongDetailScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedQueryClient = null;
     mockSendContentReport.mockResolvedValue();
     mockBeforeRemove = undefined;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it.each([
@@ -696,9 +742,221 @@ describe('<SongDetailScreen />', () => {
     );
 
     expect(await view.findByTestId('song-lyrics-screen')).toBeTruthy();
-    expect(view.getByText('Letra em tela cheia')).toBeTruthy();
+    expect(view.queryByText('Letra em tela cheia')).toBeNull();
+    expect(view.getByText(LIGHTS_SONG.title)).toBeTruthy();
     expect(await view.findByText('A rua acende devagar')).toBeTruthy();
     expect(view.getByLabelText('Voltar para detalhes da música')).toBeTruthy();
+    expect(view.queryByTestId('timed-lyrics-session')).toBeNull();
+  });
+
+  it('integra a sessão local quando a letra está sincronizada', async () => {
+    const repositories = createRepositories({ songs: [SYNCED_LYRICS_SONG] });
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongLyricsScreen bandId={BAND_ID} songId={SYNCED_LYRICS_SONG.id} />
+      </AppProviders>,
+    );
+
+    expect(await view.findByTestId('timed-lyrics-session')).toBeTruthy();
+    expect(await view.findByText('A rua acende devagar')).toBeTruthy();
+    expect(view.getByTestId('timed-lyrics-controls')).toBeTruthy();
+    expect(
+      StyleSheet.flatten(view.getByTestId('timed-lyrics-footer').props.style)
+        .backgroundColor,
+    ).toBe('rgba(11, 11, 13, 0.58)');
+    expect(view.queryByText('Acompanhar')).toBeNull();
+    const controlsRow = view.getByTestId('timed-controls-row');
+    expect(controlsRow.children[0]).toBe(
+      view.getByTestId('timer-reset-container'),
+    );
+    expect(controlsRow.children[1]).toBe(
+      view.getByTestId('timer-main-controls'),
+    );
+    expect(controlsRow.children[2]).toBe(
+      view.getByTestId('resume-follow-container'),
+    );
+    expect(
+      StyleSheet.flatten(view.getByTestId('timer-main-controls').props.style)
+        .flex,
+    ).toBe(1);
+    expect(
+      StyleSheet.flatten(view.getByTestId('timed-controls-row').props.style)
+        .paddingVertical,
+    ).toBe(4);
+    expect(view.getByLabelText('Reiniciar')).toBeTruthy();
+    expect(view.getByLabelText('Iniciar')).toBeTruthy();
+    expect(view.getByLabelText('Voltar 5 segundos')).toBeTruthy();
+    expect(view.getByLabelText('Avançar 5 segundos')).toBeTruthy();
+    expect(view.getByText('−5 s').props.numberOfLines).toBe(1);
+    expect(view.getByText('+5 s').props.numberOfLines).toBe(1);
+    expect(
+      StyleSheet.flatten(view.getByText('−5 s').props.style),
+    ).toMatchObject({ fontSize: 10, lineHeight: 14 });
+    expect(view.getByLabelText('Posição na música')).toBeTruthy();
+
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-10-25T12:00:00.000Z'));
+    await fireEvent.press(view.getByLabelText('Avançar 5 segundos'));
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:05',
+    );
+    expect(
+      view.getByTestId('lyric-line-active-line-luzes-synchronized-second'),
+    ).toBeTruthy();
+
+    await fireEvent.press(view.getByLabelText('Iniciar'));
+    expect(view.getByLabelText('Pausar')).toBeTruthy();
+    await act(async () => jest.advanceTimersByTime(1_000));
+
+    await fireEvent(view.getByTestId('lyrics-scroll-view'), 'scroll', {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 120 },
+        contentSize: { height: 1_000, width: 400 },
+        layoutMeasurement: { height: 600, width: 400 },
+      },
+    });
+    expect(view.queryByLabelText('Acompanhar')).toBeNull();
+    await fireEvent(view.getByTestId('lyrics-scroll-view'), 'scrollBeginDrag');
+    expect(view.getByLabelText('Acompanhar')).toBeTruthy();
+    expect(view.queryByText('Acompanhar')).toBeNull();
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:06',
+    );
+    await act(async () => jest.advanceTimersByTime(1_000));
+    expect(view.getByLabelText('Acompanhar')).toBeTruthy();
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:07',
+    );
+
+    await fireEvent.press(view.getByLabelText('Acompanhar'));
+    expect(view.queryByLabelText('Acompanhar')).toBeNull();
+    expect(view.getByLabelText('Pausar')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Ir para A rua acende devagar'));
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:01',
+    );
+    expect(view.getByLabelText('Pausar')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('Pausar'));
+    expect(view.getByLabelText('Retomar')).toBeTruthy();
+  });
+
+  it('não oferece salto temporal para uma letra não sincronizada', async () => {
+    const staticTimedSong = {
+      ...SYNCED_LYRICS_SONG,
+      lyricStatus: 'static' as const,
+    };
+    const repositories = createRepositories({ songs: [staticTimedSong] });
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongLyricsScreen bandId={BAND_ID} songId={staticTimedSong.id} />
+      </AppProviders>,
+    );
+
+    const firstLine = await view.findByTestId(
+      'lyric-line-line-luzes-synchronized-first',
+    );
+    expect(firstLine.props.onPress).toBeUndefined();
+    expect(view.queryByLabelText('Ir para A rua acende devagar')).toBeNull();
+    expect(view.queryByTestId('timed-lyrics-controls')).toBeNull();
+  });
+
+  it('revalida a letra sem zerar o relógio ou o modo manual, mesmo se a consulta falhar', async () => {
+    const repositories = createRepositories({ songs: [SYNCED_LYRICS_SONG] });
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <CaptureTestQueryClient
+          onCapture={(queryClient) => {
+            capturedQueryClient = queryClient;
+          }}
+        />
+        <SongLyricsScreen bandId={BAND_ID} songId={SYNCED_LYRICS_SONG.id} />
+      </AppProviders>,
+    );
+
+    expect(await view.findByTestId('timed-lyrics-session')).toBeTruthy();
+    const queryClient = capturedQueryClient;
+    expect(queryClient).not.toBeNull();
+    await fireEvent.press(view.getByLabelText('Avançar 5 segundos'));
+    await fireEvent(view.getByTestId('lyrics-scroll-view'), 'scrollBeginDrag');
+    expect(view.getByLabelText('Acompanhar')).toBeTruthy();
+
+    const updatedSong = {
+      ...SYNCED_LYRICS_SONG,
+      lyrics: createLyricDocument({
+        blocks: [
+          createLyricBlock({
+            id: 'revalidated-block',
+            lines: [
+              createLyricLine({
+                id: 'revalidated-first-line',
+                startTimeMs: 0,
+                text: 'Verso revalidado',
+              }),
+              createLyricLine({
+                id: 'revalidated-second-line',
+                startTimeMs: 4_000,
+                text: 'Nova marcação',
+              }),
+            ],
+          }),
+        ],
+      }),
+    };
+    const queryKey = queryKeys.songs.documentById(BAND_ID, updatedSong.id);
+    await act(async () => {
+      queryClient?.setQueryData(queryKey, updatedSong);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(await view.findByText('Verso revalidado')).toBeTruthy();
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:05',
+    );
+    expect(view.getByLabelText('Acompanhar')).toBeTruthy();
+
+    jest
+      .spyOn(repositories.songs, 'findById')
+      .mockRejectedValueOnce(new Error('falha simulada de consulta'));
+    await act(async () => {
+      await queryClient?.invalidateQueries({ queryKey });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(await view.findByText('Verso revalidado')).toBeTruthy();
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:05',
+    );
+    expect(view.getByLabelText('Acompanhar')).toBeTruthy();
+  });
+
+  it('encerra a sessão e restaura o modo automático ao sair da rota', async () => {
+    const repositories = createRepositories({ songs: [SYNCED_LYRICS_SONG] });
+    const view = await render(
+      <AppProviders currentUserId={OWNER_USER_ID} repositories={repositories}>
+        <SongLyricsScreen bandId={BAND_ID} songId={SYNCED_LYRICS_SONG.id} />
+      </AppProviders>,
+    );
+
+    expect(await view.findByTestId('timed-lyrics-session')).toBeTruthy();
+    const focusCallback = mockUseFocusEffect.mock.calls.at(-1)?.[0];
+    expect(focusCallback).toBeDefined();
+    const cleanup = focusCallback?.();
+    await fireEvent.press(view.getByLabelText('Avançar 5 segundos'));
+    await fireEvent.press(view.getByLabelText('Iniciar'));
+    await fireEvent(view.getByTestId('lyrics-scroll-view'), 'scrollBeginDrag');
+    expect(view.getByLabelText('Acompanhar')).toBeTruthy();
+
+    await act(async () => {
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
+    });
+
+    expect(view.getByTestId('progress-current-time').props.children).toBe(
+      '00:00',
+    );
+    expect(view.getByLabelText('Iniciar')).toBeTruthy();
+    expect(view.queryByLabelText('Acompanhar')).toBeNull();
   });
 
   it('informa quando a música não possui letra em tela cheia', async () => {

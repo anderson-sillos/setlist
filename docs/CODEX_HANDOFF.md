@@ -2,6 +2,57 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 25 de outubro de 2026 — acompanhamento da letra sincronizada
+
+- A change `acompanhar-letra-sincronizada` está na branch local
+  `feat/acompanhar-letra-sincronizada`. O cronômetro foi reutilizado de
+  `useManualTimer`, validado na atividade 3.3; a projeção temporal, o destaque,
+  a centralização, a prioridade da rolagem manual, o controle de progresso e os
+  saltos por verso permanecem locais à sessão, sem migração ou gravação no banco.
+- A validação automatizada passou: `npm run validate` (formatação, lint,
+  TypeScript, 136 suítes e 1.037 testes; cobertura global de branches 80,03%),
+  `openspec validate acompanhar-letra-sincronizada --strict` e smoke Web pelo
+  Metro (HTTP 200, tela Setlist visível e nenhum erro de página). A cobertura
+  inicial ficou em 79,94%; testes de borda foram acrescentados antes da execução
+  final, que ficou acima do mínimo de 80%.
+- O smoke Web não substitui a validação manual completa de mouse, teclado,
+  arraste/cancelamento, rolagem, troca de aba, redimensionamento e redução de
+  movimento. A navegação funcional completa na Web permanece pendente, assim
+  como a validação Android e os fluxos no iPhone/iPad. O simulador iPad Pro
+  13-inch (M4), iOS 18.3, está bootado. O ADB existe no Android SDK, mas seu
+  daemon não iniciou nesta sessão devido a `Operation not permitted`.
+- Para permitir testes manuais em paralelo, há uma única instância do Metro em
+  modo LAN, na porta 8081; o endereço LAN deste Mac nesta sessão é
+  `192.168.0.222`. Manter esse processo aberto enquanto o responsável testa; ao
+  reiniciar, conferir antes a porta para não criar instâncias duplicadas.
+- `docker ps` não conseguiu conectar ao daemon Docker (`docker.sock` ausente),
+  portanto nenhum container do CI local ficou ativo para encerrar.
+- As tarefas OpenSpec 6.1 e 6.5 estão concluídas. Permanecem abertas 6.2
+  (fluxo Web completo), 6.3 (Android) e 6.4 (iPhone e iPad), aguardando evidência
+  funcional nos aparelhos/navegador. O estado da change principal do modo palco
+  não foi alterado.
+- No ajuste visual mais recente, a linha ativa passou a ficar em 100% de
+  opacidade, negrito (`700`) e cor normal, sem fundo de destaque; versos e nomes
+  de bloco inativos ficam em 65%. A variante de leitura sem sincronização e os
+  estilos de cartão permanecem inalterados. As tarefas OpenSpec 2.2 e 4.6 foram
+  reabertas para validar esse tratamento nas plataformas.
+- Refinamento solicitado em seguida: fundo ativo translúcido mais discreto,
+  margem vertical adicional, Play/Pause circular e maior, e rolagem que reúne
+  medições de layout antes de iniciar a transição. A validação automatizada e
+  visual desse refinamento permanece pendente.
+- Refinamento seguinte: cabeçalho menor e rodapé compacto sobreposto à área
+  rolável, translúcido para a letra aparecer por baixo. Tempo atual e duração
+  agora dividem a linha do slider; a rolagem e o cálculo de centralização
+  descontam a altura do rodapé e preservam respiro no final do conteúdo.
+- Play/Pause ficou circular, com 72 px, ícone maior e sem fundo colorido, maior
+  que os outros controles.
+- O rodapé da letra sincronizada agora considera o inset inferior no iOS e no
+  Android. A raiz deixa a área de conteúdo chegar à borda e o rodapé aplica o
+  inset uma única vez. A validação manual em iPhone/iPad permanece pendente.
+- O cálculo Web de acompanhamento normaliza as posições de `onLayout` em relação
+  ao conteúdo do `ScrollView` antes de centralizar cada verso. A validação manual
+  do fluxo Web ainda está pendente.
+
 ## Atualização de 20 de outubro de 2026 — autenticação persistente do GitHub CLI
 
 - Foi encontrada uma única instalação do `gh`, em
