@@ -3,18 +3,22 @@ import { useRouter } from 'expo-router';
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ComponentRef,
+  type ReactNode,
 } from 'react';
 import {
+  Animated,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   TextInput,
   View,
+  type LayoutChangeEvent,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -70,6 +74,7 @@ import {
 import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { useScreenDataRefresh } from '@/hooks/useScreenDataRefresh';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
+import { blurWebFocus } from '@/utils/focus';
 import { LyricDocumentEditor } from './LyricDocumentEditor';
 import { SongLifecycleDialog } from './SongLifecycleDialog';
 import {
@@ -178,6 +183,30 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     Date.now(),
   );
   const enrichmentTrigger = useRef<ComponentRef<typeof Pressable>>(null);
+  const [enrichmentFocused, setEnrichmentFocused] = useState(false);
+  const [enrichmentScrollY] = useState(() => new Animated.Value(0));
+  const [formViewportWidth, setFormViewportWidth] = useState(0);
+  const [formContentRight, setFormContentRight] = useState<number | null>(null);
+  const [titleFieldTop, setTitleFieldTop] = useState<number | null>(null);
+  const [titleInputCenter, setTitleInputCenter] = useState<number | null>(null);
+  const [headerActionBottom, setHeaderActionBottom] = useState<number | null>(
+    null,
+  );
+  const enrichmentAnchor = useMemo(() => {
+    if (
+      formViewportWidth === 0 ||
+      formContentRight === null ||
+      titleFieldTop === null ||
+      titleInputCenter === null
+    ) {
+      return null;
+    }
+
+    return {
+      top: titleFieldTop + titleInputCenter - layout.minimumTouchTarget / 2,
+      right: formViewportWidth - formContentRight + spacing.xl,
+    };
+  }, [formContentRight, formViewportWidth, titleFieldTop, titleInputCenter]);
   const enrichmentController = useRef<AbortController | null>(null);
   const enrichmentSequence = useRef(0);
   const nextAllowedEnrichmentSearchAt = useRef<number | null>(null);
@@ -792,6 +821,47 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
     }
   };
 
+  const enrichmentDisabled =
+    !values.title.trim() || isSubmitting || operationIsActive;
+  const enrichmentButton = (
+    <Pressable
+      accessibilityHint="Busca sugestões para completar artista, duração ou letra no rascunho."
+      accessibilityLabel="Completar música"
+      accessibilityRole="button"
+      accessibilityState={{ disabled: enrichmentDisabled }}
+      disabled={enrichmentDisabled}
+      ref={enrichmentTrigger}
+      onBlur={() => setEnrichmentFocused(false)}
+      onFocus={() => setEnrichmentFocused(true)}
+      onPress={() => {
+        Keyboard.dismiss();
+        blurWebFocus();
+        startEnrichmentSearch();
+      }}
+      style={({ pressed }) => [
+        styles.enrichmentButton,
+        pressed && styles.enrichmentButtonPressed,
+        enrichmentDisabled && styles.enrichmentButtonDisabled,
+        enrichmentFocused && styles.enrichmentButtonFocused,
+      ]}
+      testID="song-enrichment-trigger"
+    >
+      <AppIcon
+        color={enrichmentDisabled ? colors.text.disabled : colors.text.onAccent}
+        name="wand"
+        size={24}
+      />
+    </Pressable>
+  );
+  const showEditor =
+    !isLoading &&
+    !bandContextQuery.isError &&
+    !hasSongLoadError &&
+    !termAcceptanceQuery.isError &&
+    termAcceptanceQuery.data === true &&
+    canEdit &&
+    (!songId || song);
+
   return (
     <BandAreaLayout
       activeSection="repertoire"
@@ -807,10 +877,55 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
               accessibilityLabel: 'Mais opções da música',
               icon: 'more',
               label: 'Mais opções',
+              hitSlop: { top: 8, bottom: 0, left: 8, right: 8 },
+              onLayout: ({ nativeEvent }) => {
+                const { y, height } = nativeEvent.layout;
+                setHeaderActionBottom(y + height);
+              },
               onPress: openLifecycleOptions,
             }
           : undefined
       }
+      renderContentOverlay={(contentTop) => {
+        if (!showEditor || !enrichmentAnchor) return null;
+        // The header action keeps its full 48-point target; its extra bottom
+        // hit slop is removed so the floating button can meet that boundary.
+        const pinnedTop = songId
+          ? (headerActionBottom ?? contentTop) - contentTop
+          : -layout.minimumTouchTarget / 2;
+        const pinOffset = Math.max(1, enrichmentAnchor.top - pinnedTop);
+        return (
+          <Animated.View
+            style={[
+              styles.enrichmentPosition,
+              {
+                top: contentTop + enrichmentAnchor.top,
+                right: enrichmentAnchor.right,
+                transform: [
+                  {
+                    translateY: enrichmentScrollY.interpolate({
+                      inputRange: [0, pinOffset],
+                      outputRange: [0, pinnedTop - enrichmentAnchor.top],
+                      extrapolateLeft: 'extend',
+                      extrapolateRight: 'clamp',
+                    }),
+                  },
+                  {
+                    translateX: enrichmentScrollY.interpolate({
+                      inputRange: [0, pinOffset],
+                      outputRange: [0, enrichmentAnchor.right - spacing.sm],
+                      extrapolate: 'clamp',
+                    }),
+                  },
+                ],
+              },
+            ]}
+            testID="song-enrichment-position"
+          >
+            {enrichmentButton}
+          </Animated.View>
+        );
+      }}
       screenKind="edit"
       scrollable={false}
       title={title}
@@ -876,133 +991,131 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
         song={song ?? null}
         visible={lifecycleDialogVisible}
       />
-      {!isLoading &&
-      !bandContextQuery.isError &&
-      !hasSongLoadError &&
-      !termAcceptanceQuery.isError &&
-      termAcceptanceQuery.data === true &&
-      canEdit &&
-      (!songId || song) ? (
+      {showEditor ? (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.editor}
           testID="song-editor-keyboard-layout"
         >
-          <ScrollView
-            contentContainerStyle={styles.formContent}
-            keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          <View
+            onLayout={({ nativeEvent }) =>
+              setFormViewportWidth(nativeEvent.layout.width)
             }
-            keyboardShouldPersistTaps="handled"
-            testID="song-editor-scroll"
+            style={styles.formViewport}
+            testID="song-editor-form-viewport"
           >
-            <SongEditorFieldView
-              error={fieldErrors.title}
-              label="Título da música *"
-              onChangeText={(value) => setField('title', value)}
-              placeholder="Ex.: A rua acende devagar"
-              value={values.title}
-            />
-            <AutocompleteField
-              accessibilityLabel="Artista/Banda"
-              error={fieldErrors.originalArtist}
-              label="Artista/Banda"
-              onChangeText={(value) => setField('originalArtist', value)}
-              options={originalArtistOptions}
-              placeholder="Ex.: Artista original"
-              value={values.originalArtist}
-            />
+            <Animated.ScrollView
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
+              keyboardShouldPersistTaps="handled"
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: enrichmentScrollY } } }],
+                { useNativeDriver: Platform.OS !== 'web' },
+              )}
+              scrollEventThrottle={16}
+              style={styles.formScroll}
+              testID="song-editor-scroll"
+            >
+              <View
+                onLayout={({ nativeEvent }) => {
+                  const { x, width } = nativeEvent.layout;
+                  setFormContentRight(x + width);
+                }}
+                style={styles.formContent}
+                testID="song-editor-form-content"
+              >
+                <SongEditorFieldView
+                  error={fieldErrors.title}
+                  inputAccessory={
+                    <View style={styles.enrichmentSlot}>
+                      {enrichmentAnchor ? null : enrichmentButton}
+                    </View>
+                  }
+                  label="Título da música *"
+                  onChangeText={(value) => setField('title', value)}
+                  onInputLayout={({ nativeEvent }) => {
+                    const { y, height } = nativeEvent.layout;
+                    setTitleInputCenter(y + height / 2);
+                  }}
+                  onLayout={({ nativeEvent }) =>
+                    setTitleFieldTop(nativeEvent.layout.y)
+                  }
+                  placeholder="Ex.: A rua acende devagar"
+                  testID="song-editor-title-field"
+                  value={values.title}
+                />
+                <AutocompleteField
+                  accessibilityLabel="Artista/Banda"
+                  error={fieldErrors.originalArtist}
+                  label="Artista/Banda"
+                  onChangeText={(value) => setField('originalArtist', value)}
+                  options={originalArtistOptions}
+                  placeholder="Ex.: Artista original"
+                  value={values.originalArtist}
+                />
 
-            <SongDurationFieldView
-              containerStyle={styles.durationField}
-              error={fieldErrors.duration}
-              onChangeText={(value) => setField('duration', value)}
-              value={values.duration}
-            />
+                <SongDurationFieldView
+                  containerStyle={styles.durationField}
+                  error={fieldErrors.duration}
+                  onChangeText={(value) => setField('duration', value)}
+                  value={values.duration}
+                />
 
-            <View style={styles.inlineFields}>
-              <SongEditorFieldView
-                containerStyle={styles.smallField}
-                error={fieldErrors.musicalKey}
-                label="Tom"
-                onChangeText={(value) => setField('musicalKey', value)}
-                placeholder="Ex.: G"
-                value={values.musicalKey}
-              />
-              <SongEditorFieldView
-                containerStyle={styles.smallField}
-                error={fieldErrors.bpm}
-                keyboardType="number-pad"
-                label="BPM"
-                onChangeText={(value) => setField('bpm', value)}
-                placeholder="Ex.: 120"
-                value={values.bpm}
-              />
-            </View>
+                <View style={styles.inlineFields}>
+                  <SongEditorFieldView
+                    containerStyle={styles.smallField}
+                    error={fieldErrors.musicalKey}
+                    label="Tom"
+                    onChangeText={(value) => setField('musicalKey', value)}
+                    placeholder="Ex.: G"
+                    value={values.musicalKey}
+                  />
+                  <SongEditorFieldView
+                    containerStyle={styles.smallField}
+                    error={fieldErrors.bpm}
+                    keyboardType="number-pad"
+                    label="BPM"
+                    onChangeText={(value) => setField('bpm', value)}
+                    placeholder="Ex.: 120"
+                    value={values.bpm}
+                  />
+                </View>
 
-            <SongEditorFieldView
-              error={fieldErrors.youtubeReference}
-              keyboardType="url"
-              label="Link de referência do YouTube"
-              onChangeText={(value) => setField('youtubeReference', value)}
-              placeholder="https://youtu.be/..."
-              value={values.youtubeReference}
-            />
-            <SongEditorFieldView
-              error={fieldErrors.notes}
-              label="Observações"
-              multiline
-              onChangeText={(value) => setField('notes', value)}
-              placeholder="Informações úteis para a banda"
-              value={values.notes}
-            />
+                <SongEditorFieldView
+                  error={fieldErrors.youtubeReference}
+                  keyboardType="url"
+                  label="Link de referência do YouTube"
+                  onChangeText={(value) => setField('youtubeReference', value)}
+                  placeholder="https://youtu.be/..."
+                  value={values.youtubeReference}
+                />
+                <SongEditorFieldView
+                  error={fieldErrors.notes}
+                  label="Observações"
+                  multiline
+                  onChangeText={(value) => setField('notes', value)}
+                  placeholder="Informações úteis para a banda"
+                  value={values.notes}
+                />
 
-            <LyricDocumentEditor
-              document={lyrics}
-              onChange={(document) => {
-                currentDraft.current = {
-                  ...currentDraft.current,
-                  lyrics: document,
-                };
-                setEditedLyrics({ songId: songId ?? null, document });
-                setSubmitError(null);
-              }}
-            />
-          </ScrollView>
+                <LyricDocumentEditor
+                  document={lyrics}
+                  onChange={(document) => {
+                    currentDraft.current = {
+                      ...currentDraft.current,
+                      lyrics: document,
+                    };
+                    setEditedLyrics({ songId: songId ?? null, document });
+                    setSubmitError(null);
+                  }}
+                />
+              </View>
+            </Animated.ScrollView>
+          </View>
 
           <KeyboardDismissRegion>
             <View style={styles.footer}>
-              <Pressable
-                accessibilityHint="Busca sugestões para completar artista, duração ou letra no rascunho."
-                accessibilityLabel="Completar música"
-                accessibilityRole="button"
-                accessibilityState={{
-                  disabled:
-                    !values.title.trim() || isSubmitting || operationIsActive,
-                }}
-                disabled={
-                  !values.title.trim() || isSubmitting || operationIsActive
-                }
-                ref={enrichmentTrigger}
-                onPress={startEnrichmentSearch}
-                style={({ pressed }) => [
-                  styles.enrichmentButton,
-                  pressed && styles.enrichmentButtonPressed,
-                  (!values.title.trim() || isSubmitting || operationIsActive) &&
-                    styles.enrichmentButtonDisabled,
-                ]}
-                testID="song-enrichment-trigger"
-              >
-                <AppIcon
-                  color={
-                    !values.title.trim() || isSubmitting || operationIsActive
-                      ? colors.text.disabled
-                      : colors.action.primary
-                  }
-                  name="wand"
-                  size={20}
-                />
-              </Pressable>
               <View style={styles.footerActions}>
                 <AppButton
                   disabled={isSubmitting || operationIsActive || popupVisible}
@@ -1045,47 +1158,75 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
 interface SongEditorFieldViewProps {
   readonly containerStyle?: StyleProp<ViewStyle>;
   readonly error?: string;
+  readonly inputAccessory?: ReactNode;
   readonly keyboardType?: 'default' | 'number-pad' | 'url';
   readonly label: string;
   readonly multiline?: boolean;
   readonly onChangeText: (value: string) => void;
+  readonly onInputLayout?: (event: LayoutChangeEvent) => void;
+  readonly onLayout?: (event: LayoutChangeEvent) => void;
   readonly placeholder: string;
+  readonly testID?: string;
   readonly value: string;
 }
 
 function SongEditorFieldView({
   containerStyle,
   error,
+  inputAccessory,
   keyboardType = 'default',
   label,
   multiline = false,
   onChangeText,
+  onInputLayout,
+  onLayout,
   placeholder,
+  testID,
   value,
 }: SongEditorFieldViewProps) {
+  const input = (
+    <TextInput
+      accessibilityLabel={label}
+      accessibilityHint={error ? `Erro: ${error}` : undefined}
+      autoCapitalize={keyboardType === 'url' ? 'none' : 'sentences'}
+      keyboardType={keyboardType}
+      multiline={multiline}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={colors.text.muted}
+      style={[
+        styles.input,
+        inputAccessory != null && styles.inputWithAccessory,
+        multiline && styles.multilineInput,
+        multiline && Platform.OS === 'web' && styles.multilineInputWeb,
+      ]}
+      value={value}
+    />
+  );
+
   return (
-    <View style={[styles.field, containerStyle]}>
+    <View
+      onLayout={onLayout}
+      style={[styles.field, containerStyle]}
+      testID={testID}
+    >
       <KeyboardDismissRegion>
         <View>
           <AppText variant="caption">{label}</AppText>
         </View>
       </KeyboardDismissRegion>
-      <TextInput
-        accessibilityLabel={label}
-        accessibilityHint={error ? `Erro: ${error}` : undefined}
-        autoCapitalize={keyboardType === 'url' ? 'none' : 'sentences'}
-        keyboardType={keyboardType}
-        multiline={multiline}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.text.muted}
-        style={[
-          styles.input,
-          multiline && styles.multilineInput,
-          multiline && Platform.OS === 'web' && styles.multilineInputWeb,
-        ]}
-        value={value}
-      />
+      {inputAccessory != null ? (
+        <View
+          onLayout={onInputLayout}
+          style={styles.inputRow}
+          testID={testID ? `${testID}-input-row` : undefined}
+        >
+          {input}
+          {inputAccessory}
+        </View>
+      ) : (
+        input
+      )}
       {error ? (
         <AppText accessibilityRole="alert" style={styles.fieldError}>
           {error}
@@ -1191,6 +1332,13 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
   },
+  formViewport: {
+    flex: 1,
+    minHeight: 0,
+  },
+  formScroll: {
+    flex: 1,
+  },
   formContent: {
     alignItems: 'stretch',
     alignSelf: 'center',
@@ -1223,19 +1371,34 @@ const styles = StyleSheet.create({
   },
   enrichmentButton: {
     alignItems: 'center',
-    backgroundColor: colors.background.base,
-    borderColor: colors.border.control,
-    borderRadius: radii.md,
+    backgroundColor: colors.action.primary,
+    borderColor: colors.action.primary,
+    borderRadius: radii.pill,
     borderWidth: 1,
     height: layout.minimumTouchTarget,
     justifyContent: 'center',
     width: layout.minimumTouchTarget,
   },
+  enrichmentPosition: {
+    position: 'absolute',
+    zIndex: 2,
+  },
+  enrichmentSlot: {
+    flexShrink: 0,
+    height: layout.minimumTouchTarget,
+    width: layout.minimumTouchTarget,
+  },
   enrichmentButtonPressed: {
-    backgroundColor: colors.background.pressed,
+    backgroundColor: colors.action.pressed,
+    borderColor: colors.action.pressed,
   },
   enrichmentButtonDisabled: {
-    opacity: 0.55,
+    backgroundColor: colors.background.pressed,
+    borderColor: colors.border.subtle,
+  },
+  enrichmentButtonFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 2,
   },
   field: {
     flexGrow: 0,
@@ -1255,6 +1418,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: layout.minimumTouchTarget,
     paddingHorizontal: spacing.md,
+  },
+  inputRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  inputWithAccessory: {
+    flex: 1,
+    minWidth: 0,
   },
   inlineFields: {
     alignItems: 'flex-start',

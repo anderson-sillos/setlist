@@ -1,6 +1,6 @@
 import type { Href } from 'expo-router';
 import type { PropsWithChildren, ReactNode } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { PressableProps, StyleProp, ViewStyle } from 'react-native';
 
 import type { ConnectionStatus } from '@/components/feedback';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -13,6 +13,8 @@ export interface HeaderAction {
   readonly accessibilityLabel: string;
   readonly icon?: AppIconName;
   readonly label: string;
+  readonly hitSlop?: PressableProps['hitSlop'];
+  readonly onLayout?: PressableProps['onLayout'];
   readonly onPress: () => void;
 }
 
@@ -47,6 +49,7 @@ export interface AppNavigationShellProps extends PropsWithChildren {
   readonly onConnectionRetry?: () => void;
   readonly onRefresh?: () => void | Promise<void>;
   readonly refreshing?: boolean;
+  readonly renderContentOverlay?: (contentTop: number) => ReactNode;
   readonly scrollable?: boolean;
   readonly screenKind?: NavigationScreenKind;
   readonly subtitle?: string;

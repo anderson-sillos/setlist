@@ -57,6 +57,7 @@ export function AppNavigationShell({
   onConnectionRetry,
   onRefresh,
   refreshing = false,
+  renderContentOverlay,
   screenKind = 'main',
   scrollable = true,
   subtitle,
@@ -67,6 +68,7 @@ export function AppNavigationShell({
 }: AppNavigationShellProps) {
   const { clearLastBand, lastBandId, setLastBand } = useLastBandSelection();
   const [stageDialogVisible, setStageDialogVisible] = useState(false);
+  const [contentTop, setContentTop] = useState<number | null>(null);
   const stageDialogPending = useRef(false);
   const logoutInProgressRef = useRef(false);
   const logoutAttemptIdRef = useRef<string | null>(null);
@@ -241,6 +243,11 @@ export function AppNavigationShell({
 
           {scrollable ? (
             <ScrollView
+              onLayout={
+                renderContentOverlay
+                  ? ({ nativeEvent }) => setContentTop(nativeEvent.layout.y)
+                  : undefined
+              }
               contentContainerStyle={[styles.scrollContent, contentStyle]}
               contentOffset={{ x: 0, y: initialScrollOffset }}
               keyboardShouldPersistTaps="handled"
@@ -269,6 +276,11 @@ export function AppNavigationShell({
             </ScrollView>
           ) : (
             <View
+              onLayout={
+                renderContentOverlay
+                  ? ({ nativeEvent }) => setContentTop(nativeEvent.layout.y)
+                  : undefined
+              }
               style={[styles.unscrolledContent, contentStyle]}
               testID="screen-static-area"
             >
@@ -282,6 +294,12 @@ export function AppNavigationShell({
               getSectionHref={getSectionHref}
               onStagePress={handleStagePress}
             />
+          ) : null}
+
+          {renderContentOverlay && contentTop !== null ? (
+            <View style={styles.contentOverlay} testID="screen-content-overlay">
+              {renderContentOverlay(contentTop)}
+            </View>
           ) : null}
 
           {!persistentSidebar && screenKind === 'main' ? (
@@ -369,6 +387,15 @@ const styles = StyleSheet.create({
   unscrolledContent: {
     flex: 1,
     minHeight: 0,
+  },
+  contentOverlay: {
+    bottom: 0,
+    left: 0,
+    pointerEvents: 'box-none',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 5,
   },
   edgeGesture: {
     bottom: 68,
