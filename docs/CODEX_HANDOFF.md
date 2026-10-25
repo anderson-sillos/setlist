@@ -2449,7 +2449,8 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      contém somente `zod@4.6.7`; `npm audit` não reporta vulnerabilidade do Zod,
      `expo --version` funciona e os dois módulos do CLI que importam Zod passaram
      uma verificação com esquemas representativos. Prettier e `git diff --check`
-     também passaram. A PR #83 foi publicada e aguarda checks remotos; não
-     integrar antes dos checks passarem e da exigência de revisão da `main` ser
-     atendida. O alerta #9 (`node-forge`) segue aberto e sem versão corrigida
-     indicada.
+     também passaram. No head `3bd51c6`, os checks remotos de qualidade, pgTAP e
+     smoke test Web passaram. A PR #83 segue bloqueada por `REVIEW_REQUIRED`; o
+     alerta #34 permanece aberto até a integração e nova análise do GitHub. Não
+     marcar o alerta como resolvido antes de o GitHub registrar `fixed`. O
+     alerta #9 (`node-forge`) segue aberto e sem versão corrigida indicada.
