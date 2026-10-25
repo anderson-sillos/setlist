@@ -2,6 +2,42 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 25 de outubro de 2026 — acompanhamento da letra sincronizada
+
+- A change OpenSpec `acompanhar-letra-sincronizada` foi arquivada em
+  `openspec/changes/archive/2026-10-25-acompanhar-letra-sincronizada/`, e sua
+  capacidade nova está sincronizada em
+  `openspec/specs/timed-lyrics-display/spec.md`. O código reutiliza
+  `useManualTimer`, validado na atividade 3.3; projeção temporal, destaque,
+  centralização, rolagem manual, controle de progresso e saltos por verso ficam
+  na sessão, sem migração ou gravação no banco.
+- Na revisão de código do commit
+  `e82faa3c551ca45cce3c88640708bd2a0a4b8603`, `npm run validate` passou com 136
+  suítes, 1.039 testes e 80,43% de cobertura de branches; também passaram
+  `openspec validate acompanhar-letra-sincronizada --strict` e os três checks
+  remotos da PR #84 (qualidade, banco/pgTAP e smoke Web Playwright). A PR #84
+  segue aberta; a sincronização e o arquivamento OpenSpec foram adicionados
+  depois desse commit.
+- A pessoa responsável confirmou a validação manual completa na Web, no Android
+  físico com o build de desenvolvimento atual, no iPad e no iPhone 16 Pro com o
+  build de desenvolvimento atual. O modelo do Android, o modelo/build usado no
+  iPad e o navegador/versão Web não foram informados. O simulador iPad Pro
+  13-inch (M4), iOS 18.3, está bootado.
+- As tarefas OpenSpec 1.1 a 6.6 estão concluídas conforme as validações
+  confirmadas. O estado da change principal do modo palco não foi alterado.
+- A linha ativa fica em 100% de opacidade, negrito (`700`) e cor normal, sem
+  fundo de destaque; versos e nomes de bloco inativos ficam em 65%. O rodapé é
+  translúcido, sobrepõe a área rolável e considera o inset inferior do sistema
+  uma única vez. Play/Pause é circular, de 72 px, e o layout centraliza a letra
+  em telas amplas. A Web normaliza as medições DOM em relação ao conteúdo rolável.
+- A falha inicial do CI da PR #84 foi corrigida: expectativas de teste do foco
+  do slider e do callback de medição foram atualizadas, o harness inclui
+  `SafeAreaProvider`, e o estado retido da música usa `dataUpdatedAt` para evitar
+  atualizações de estado a cada render.
+- O Metro está ativo na porta 8081. Conferir o processo e o endereço de conexão
+  antes de reiniciá-lo, para evitar instâncias duplicadas. `docker ps` não
+  encontrou daemon Docker acessível; nenhum container local ficou ativo.
+
 ## Atualização de 20 de outubro de 2026 — autenticação persistente do GitHub CLI
 
 - Foi encontrada uma única instalação do `gh`, em
