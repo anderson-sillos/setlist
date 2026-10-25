@@ -5,16 +5,24 @@
 Esta revisão substitui as listas de alertas ativos registradas abaixo em 7 de
 outubro. O estado foi conferido na página de alertas do GitHub em 24/10/2026.
 
-| Alerta                                                                                                                               | Dependência e versão observada                                               | Correção disponível               | Situação nesta revisão                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#34](https://github.com/anderson-sillos/setlist/security/dependabot/34) ([GHSA](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)) | `zod@4.6.7` no `package-lock.json` da `main`                                 | `4.6.6` ou posterior              | Atualizado pela PR #80, já integrada; o alerta ainda aguarda reavaliação do GitHub.                                                                   |
-| [#33](https://github.com/anderson-sillos/setlist/security/dependabot/33) ([GHSA](https://github.com/advisories/GHSA-xjj6-f33q-929c)) | `undici@7.29.1` no scheduler, trazido por `miniflare` via Wrangler `4.151.3` | `7.30.1`                          | Este change aplica um override local no scheduler para `7.30.1`; o alerta só deve encerrar após a atualização ser integrada e reavaliada pelo GitHub. |
-| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9)                                                               | `node-forge@1.4.0`, dependência transitiva do Expo                           | Nenhuma versão corrigida indicada | Continua aberto. Manter monitoramento e reavaliar quando houver release corrigida ou for possível remover a dependência.                              |
+| Alerta                                                                                                                               | Dependência e versão observada                                               | Correção disponível               | Situação nesta revisão                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [#34](https://github.com/anderson-sillos/setlist/security/dependabot/34) ([GHSA](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)) | `zod@4.6.7` na raiz e no Expo CLI (antes: `3.25.76` transitivo)              | `4.6.6` ou posterior              | A PR #80 corrigiu a versão da raiz. Esta correção elimina a cópia vulnerável do Expo CLI; aguarda integração e nova análise do GitHub. |
+| [#33](https://github.com/anderson-sillos/setlist/security/dependabot/33) ([GHSA](https://github.com/advisories/GHSA-xjj6-f33q-929c)) | `undici@7.30.1` no scheduler, trazido por `miniflare` via Wrangler `4.151.3` | `7.30.1`                          | Corrigido pelo override integrado na PR #82; o GitHub marcou o alerta como `fixed` em 24/10/2026.                                      |
+| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9)                                                               | `node-forge@1.4.0`, dependência transitiva do Expo                           | Nenhuma versão corrigida indicada | Continua aberto. Manter monitoramento e reavaliar quando houver release corrigida ou for possível remover a dependência.               |
 
 O scheduler usa `undici` apenas pela cadeia de ferramentas do Wrangler. Com o
 override para `7.30.1`, `npm audit` no pacote `cloudflare/cron-scheduler`
 retornou zero vulnerabilidades. A mudança não altera o runtime publicado do
 Worker.
+
+O Expo CLI `57.0.27` ainda declara `zod@^3.25.76`; essa cópia permaneceu
+vulnerável mesmo depois da atualização da dependência da aplicação na PR #80.
+Como o primeiro patch indicado pelo alerta é `4.6.6`, esta correção direciona
+somente a dependência do Expo CLI para o `zod@4.6.7` já usado na raiz. Os dois
+módulos do CLI que importam Zod foram exercitados com esquemas representativos,
+o comando `expo --version` continua funcionando, e `npm audit` não reporta
+vulnerabilidade para Zod no lockfile atualizado.
 
 O alerta antigo #10 (`braces`) aparece como corrigido pelo GitHub. O alerta #11
 (`sprintf-js`) foi retirado pelo GitHub, não corrigido por uma atualização local.

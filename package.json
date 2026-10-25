@@ -120,6 +120,9 @@
     "typescript": "~6.0.3"
   },
   "overrides": {
+    "@expo/cli": {
+      "zod": "$zod"
+    },
     "query-string": {
       "decode-uri-component": "$decode-uri-component"
     },
