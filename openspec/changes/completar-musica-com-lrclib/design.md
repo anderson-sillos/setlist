@@ -162,7 +162,7 @@ Registrar somente metadados técnicos necessários, como etapa, status, duraçã
 - **Respostas limitadas e indisponibilidade:** declarar internamente a seleção como melhor entre candidatos retornados, manter edição manual e aplicar recuperação limitada.
 - **Humor obscurecer a ação:** catálogo por estado, informação objetiva de recuperação e contagem real; não apresentar metáforas de escuta ou salvamento como operações executadas.
 - **Perder origem em serialização ou edição:** atualizar leitura, escrita e helpers conjuntamente, com round-trip de documentos antigos e importados.
-- **Confundir importação com licença:** manter termo, moderação e responsabilidade existentes; o fornecedor autoriza acesso à API, não concede direitos gerais sobre letras.
+- **Confundir importação com licença:** os Termos de Uso esclarecem que a busca externa fornece apenas sugestões e não confirma autoria, exatidão, domínio público, licença ou autorização; a pessoa continua responsável por confirmar os direitos antes de salvar ou compartilhar. Manter moderação e isolamento existentes.
 - **Regra antiga do piloto:** `Fontes de letras no piloto` em `definir-mvp-setlist/specs/lyric-timing/spec.md` e a nota correspondente do design excluem importação automática. Esta change é evolução explícita desse escopo; a conciliação documental é uma tarefa anterior à integração, sem reabrir sincronização manual ou modo palco.
 
 ## Migration Plan

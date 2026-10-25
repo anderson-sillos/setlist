@@ -2,7 +2,7 @@
 
 ## 1. Escopo e contratos
 
-- [x] 1.1 Conciliar a exceção de importação na regra Fontes de letras no piloto e na nota correspondente do design de `definir-mvp-setlist`, ou na spec canônica se já sincronizada, mantendo responsabilidades autorais e conferindo que os artefatos não proíbem a ação aprovada nem antecipam o modo palco.
+- [x] 1.1 Conciliar a exceção de importação na regra Fontes de letras no piloto e na nota correspondente do design de `definir-mvp-setlist`, ou na spec canônica se já sincronizada; revisar os Termos de Uso para deixar claro que a busca assistida só sugere conteúdo externo, não confirma direitos nem concede licença, e que a pessoa deve confirmar autorização antes de salvar ou compartilhar. Manter as responsabilidades autorais e conferir que os artefatos não proíbem a ação aprovada nem antecipam o modo palco.
 - [x] 1.2 Definir os tipos de candidato, decisão de duração, estados da operação e origem opcional da letra; conferir compatibilidade com `SongEditorValues`, `LyricDocument`, status existentes e dados anteriores à integração.
 - [x] 1.3 Configurar `EXPO_PUBLIC_LRCLIB_APP_ID` como variável opcional no ambiente local, modelos de ambiente, EAS development/production e `.github/workflows/pages.yml` por variável pública de repositório; conferir a disponibilidade quando preenchida e a busca sem cabeçalho quando ausente, sem valor fixo no adaptador, documentar o rebuild necessário para mudanças e manter a autorização pública como referência técnica.
 
