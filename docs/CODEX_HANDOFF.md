@@ -2436,3 +2436,21 @@ O incremento 2 deve gerar a primeira versão revisável. Cada incremento funcion
      explicitamente suporte a retenção personalizada; essa limitação e a
      compatibilidade observada estão descritas no runbook e no inventário
      jurídico preliminar.
+
+165. Em 24/10/2026, as PRs #80 e #82 foram integradas por squash na `main`:
+     Zod da aplicação passou para `4.6.7` (`05c5809`) e o override do Undici do
+     scheduler passou para `7.30.1` (`b438d62`). O alerta Dependabot #33 foi
+     marcado como `fixed` pelo GitHub. O alerta #34 continuou aberto porque o
+     Expo CLI `57.0.27` ainda instalava uma cópia transitiva `zod@3.25.76`,
+     apesar da atualização da raiz feita pela #80. Para removê-la, foi aberta a
+     PR #83 (`fix/zod-expo-cli-alert-34`, head
+     `4e0f1d1ff89433907fcbeecb6dbea88c4ad05570`) com override do Zod do Expo CLI
+     para `4.6.7` e atualização deste registro de segurança. A árvore npm agora
+     contém somente `zod@4.6.7`; `npm audit` não reporta vulnerabilidade do Zod,
+     `expo --version` funciona e os dois módulos do CLI que importam Zod passaram
+     uma verificação com esquemas representativos. Prettier e `git diff --check`
+     também passaram. No head `3bd51c6`, os checks remotos de qualidade, pgTAP e
+     smoke test Web passaram. A PR #83 segue bloqueada por `REVIEW_REQUIRED`; o
+     alerta #34 permanece aberto até a integração e nova análise do GitHub. Não
+     marcar o alerta como resolvido antes de o GitHub registrar `fixed`. O
+     alerta #9 (`node-forge`) segue aberto e sem versão corrigida indicada.
