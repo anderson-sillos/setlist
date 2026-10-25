@@ -20,8 +20,8 @@ fechado e o App Store Connect solicitou informações adicionais sob a diretriz
 `docs/termos.html` contém uma proposta de versão 1.1.0 que explica que a busca
 assistida pode sugerir dados e letras de fontes externas, sem confirmar direitos
 ou conceder licença. A versão 1.0.0 continua sendo a versão pública vigente até
-que a proposta seja aprovada e publicada. A data de vigência da 1.1.0 ainda deve
-ser definida antes do workflow de publicação. A Política de Privacidade pública
+que a proposta seja aprovada e publicada. A vigência da candidata foi definida
+como 24/10/2026. A Política de Privacidade pública
 permanece na versão 1.0.0; antes de atualizar as páginas públicas em conjunto,
 revisar sua divulgação da consulta iniciada pela pessoa usuária, que envia o
 título e, quando informado, o nome do artista à fonte externa.
