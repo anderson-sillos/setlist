@@ -128,10 +128,12 @@ export function parseLyricText(
   const hasText = parsedBlocks.some((block) =>
     block.lines.some((line) => line.text.trim().length > 0),
   );
+  const clearInstrumentalStatus =
+    hasText && previousDocument.isInstrumental === true;
 
   return {
     ...previousDocument,
     blocks: parsedBlocks,
-    ...(hasText ? { isInstrumental: false } : {}),
+    ...(clearInstrumentalStatus ? { isInstrumental: false } : {}),
   };
 }
