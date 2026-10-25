@@ -178,6 +178,55 @@ describe('mutations de músicas no Supabase', () => {
     expect(query.eq).toHaveBeenNthCalledWith(2, 'id', 'song-real');
   });
 
+  it('preserva origem válida da letra e ignora origem malformada', async () => {
+    const query = createMutationQuery({
+      data: { id: 'song-real', updated_at: '2026-09-24T12:00:00.000Z' },
+      error: null,
+    });
+    from.mockReturnValue(query);
+    const source = {
+      provider: 'lrclib' as const,
+      recordId: 42,
+      title: 'Canção',
+      artist: 'Artista',
+      album: null,
+      recordingDurationMs: 180_000,
+      importedAt: '2026-10-24T12:00:00.000Z',
+      format: 'lrc' as const,
+    };
+
+    await updateSong({
+      bandId: 'band-real',
+      lyrics: { ...validLyrics, source },
+      song: validSong,
+      songId: 'song-real',
+    });
+
+    expect(query.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lyrics: { ...validLyrics, source },
+      }),
+    );
+
+    const malformedQuery = createMutationQuery({
+      data: { id: 'song-real', updated_at: '2026-09-24T12:00:00.000Z' },
+      error: null,
+    });
+    from.mockReturnValueOnce(malformedQuery);
+    await updateSong({
+      bandId: 'band-real',
+      lyrics: {
+        ...validLyrics,
+        source: { provider: 'unknown' } as never,
+      },
+      song: validSong,
+      songId: 'song-real',
+    });
+    expect(malformedQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ lyrics: validLyrics }),
+    );
+  });
+
   it('inclui a letra e seu estado derivado ao criar a música', async () => {
     const query = createMutationQuery({
       data: { id: 'song-new', updated_at: '2026-09-24T12:00:00.000Z' },

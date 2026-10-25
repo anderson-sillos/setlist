@@ -5,6 +5,7 @@ import {
   type LyricBlock,
   type LyricDocument,
   type LyricLine,
+  parseLyricSourceMetadata,
 } from '@/domain';
 import { normalizeYoutubeReference } from '@/utils/youtubeReference';
 
@@ -94,9 +95,30 @@ function toDatabaseLyrics(document: LyricDocument) {
 
     return { ...block, name: block.name?.trim() || null, lines };
   });
-  const lyrics = { blocks };
+  const source = parseLyricSourceMetadata(document.source);
+  if (
+    document.isInstrumental !== undefined &&
+    typeof document.isInstrumental !== 'boolean'
+  ) {
+    throw new SongMutationError(
+      'invalid_song',
+      'A indicação de música instrumental é inválida.',
+    );
+  }
+  const lyrics: LyricDocument = {
+    blocks,
+    ...(source ? { source } : {}),
+  };
 
-  return { lyrics, lyric_status: deriveLyricStatus(lyrics) };
+  const derivedStatus = deriveLyricStatus({
+    ...lyrics,
+    ...(document.isInstrumental === true ? { isInstrumental: true } : {}),
+  });
+  return {
+    lyrics,
+    // Instrumental is explicitly stored in the dedicated lyric_status enum.
+    lyric_status: derivedStatus,
+  };
 }
 
 function toDatabaseInput(input: SongWriteInput) {

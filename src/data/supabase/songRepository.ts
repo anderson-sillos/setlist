@@ -10,12 +10,14 @@ import type {
   SongSummary,
 } from '@/domain';
 import { getSupabaseClient } from '@/data/supabase/client';
+import { parseLyricSourceMetadata } from '@/domain/lyricSource';
 
 const lyricStatuses: readonly LyricStatus[] = [
   'missing',
   'static',
   'incomplete',
   'synchronized',
+  'instrumental',
 ];
 
 const songSummaryColumns =
@@ -137,7 +139,11 @@ function parseLyrics(value: unknown): LyricDocument {
     throw new Error('Resposta inválida do Supabase: lyrics.');
   }
 
-  return { blocks: value.blocks.map(parseLyricBlock) };
+  const source = parseLyricSourceMetadata(value.source);
+  return {
+    blocks: value.blocks.map(parseLyricBlock),
+    ...(source ? { source } : {}),
+  };
 }
 
 function parseSong(value: unknown): Song {
@@ -145,14 +151,21 @@ function parseSong(value: unknown): Song {
     throw new Error('Resposta inválida do Supabase: música.');
   }
 
-  const lyricStatus = value.lyric_status;
+  const storedLyricStatus = value.lyric_status;
 
   if (
-    typeof lyricStatus !== 'string' ||
-    !lyricStatuses.includes(lyricStatus as LyricStatus)
+    typeof storedLyricStatus !== 'string' ||
+    !lyricStatuses.includes(storedLyricStatus as LyricStatus)
   ) {
     throw new Error('Resposta inválida do Supabase: lyric_status.');
   }
+
+  const storedStatus = storedLyricStatus as LyricStatus;
+  const parsedLyrics = parseLyrics(value.lyrics);
+  const lyrics =
+    storedStatus === 'instrumental'
+      ? { ...parsedLyrics, isInstrumental: true }
+      : parsedLyrics;
 
   return {
     archivedAt: readNullableDateTime(value, 'archived_at'),
@@ -161,8 +174,8 @@ function parseSong(value: unknown): Song {
     createdAt: readString(value, 'created_at'),
     estimatedDurationMs: readNullableNumber(value, 'estimated_duration_ms'),
     id: readString(value, 'id'),
-    lyricStatus: lyricStatus as LyricStatus,
-    lyrics: parseLyrics(value.lyrics),
+    lyricStatus: storedStatus,
+    lyrics,
     musicalKey: readNullableString(value, 'musical_key'),
     notes: readNullableString(value, 'notes'),
     originalArtist: readNullableString(value, 'original_artist'),
@@ -177,14 +190,13 @@ function parseSongSummary(value: unknown): SongSummary {
     throw new Error('Resposta inválida do Supabase: resumo da música.');
   }
 
-  const lyricStatus = value.lyric_status;
+  const storedLyricStatus = value.lyric_status;
   if (
-    typeof lyricStatus !== 'string' ||
-    !lyricStatuses.includes(lyricStatus as LyricStatus)
+    typeof storedLyricStatus !== 'string' ||
+    !lyricStatuses.includes(storedLyricStatus as LyricStatus)
   ) {
     throw new Error('Resposta inválida do Supabase: lyric_status.');
   }
-
   return {
     archivedAt: readNullableDateTime(value, 'archived_at'),
     bandId: readString(value, 'band_id'),
@@ -192,7 +204,7 @@ function parseSongSummary(value: unknown): SongSummary {
     createdAt: readString(value, 'created_at'),
     estimatedDurationMs: readNullableNumber(value, 'estimated_duration_ms'),
     id: readString(value, 'id'),
-    lyricStatus: lyricStatus as LyricStatus,
+    lyricStatus: storedLyricStatus as LyricStatus,
     musicalKey: readNullableString(value, 'musical_key'),
     originalArtist: readNullableString(value, 'original_artist'),
     title: readString(value, 'title'),

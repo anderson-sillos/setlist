@@ -58,8 +58,10 @@ select is(
    join pg_type t on t.oid = e.enumtypid
    where t.typnamespace = 'public'::regnamespace
      and t.typname = 'lyric_status'
-     and e.enumlabel in ('missing', 'static', 'incomplete', 'synchronized')),
-  4,
+     and e.enumlabel in (
+       'missing', 'static', 'incomplete', 'synchronized', 'instrumental'
+     )),
+  5,
   'lyric status enum has all allowed values'
 );
 

@@ -15,9 +15,21 @@ em distribuição pública nas duas lojas. O Google Play mantém o AAB em teste
 fechado e o App Store Connect solicitou informações adicionais sob a diretriz
 2.1.
 
-As páginas públicas aprovadas estão em `docs/termos.html` e
+### Candidata de atualização dos Termos preparada em 24/10/2026
+
+`docs/termos.html` contém uma proposta de versão 1.1.0 que explica que a busca
+assistida pode sugerir dados e letras de fontes externas, sem confirmar direitos
+ou conceder licença. A versão 1.0.0 continua sendo a versão pública vigente até
+que a proposta seja aprovada e publicada. A vigência da candidata foi definida
+como 24/10/2026. A Política de Privacidade pública
+permanece na versão 1.0.0; antes de atualizar as páginas públicas em conjunto,
+revisar sua divulgação da consulta iniciada pela pessoa usuária, que envia o
+título e, quando informado, o nome do artista à fonte externa.
+
+Os arquivos-fonte das páginas públicas são `docs/termos.html` e
 `docs/privacidade.html`. O workflow de GitHub Pages copia esses arquivos para
-`/termos/` e `/privacidade/`. O aplicativo aponta para os endereços canônicos
+`/termos/` e `/privacidade/`. A versão pública dos Termos permanece 1.0.0 até a
+publicação da candidata 1.1.0. O aplicativo aponta para os endereços canônicos
 `https://setlistbr.app.br/termos/` e
 `https://setlistbr.app.br/privacidade/` no login e no menu lateral.
 

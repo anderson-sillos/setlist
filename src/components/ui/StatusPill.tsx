@@ -11,6 +11,7 @@ export type StatusPillTone =
 interface StatusPillProps extends PropsWithChildren {
   readonly accessible?: boolean;
   readonly accessibilityLabel?: string;
+  readonly iconColor?: string;
   readonly icon?: AppIconName;
   readonly tone?: StatusPillTone;
 }
@@ -19,6 +20,7 @@ export function StatusPill({
   accessible,
   accessibilityLabel,
   children,
+  iconColor,
   icon,
   tone = 'default',
 }: StatusPillProps) {
@@ -42,7 +44,9 @@ export function StatusPill({
         tone === 'info' && styles.info,
       ]}
     >
-      {icon ? <AppIcon color={iconTones[tone]} name={icon} size={16} /> : null}
+      {icon ? (
+        <AppIcon color={iconColor ?? iconTones[tone]} name={icon} size={16} />
+      ) : null}
       {children ? (
         <AppText tone={textTones[tone]} variant="caption">
           {children}

@@ -37,8 +37,10 @@ export function filterAndSortRepertoireSongs(
         : song.archivedAt === null &&
           (filter === 'all' ||
             (filter === 'synchronized'
-              ? song.lyricStatus === 'synchronized'
-              : song.lyricStatus !== 'synchronized'));
+              ? song.lyricStatus === 'synchronized' ||
+                song.lyricStatus === 'instrumental'
+              : song.lyricStatus !== 'synchronized' &&
+                song.lyricStatus !== 'instrumental'));
     const matchesCollection =
       collectionSongIds === undefined ||
       collectionSongIds === null ||

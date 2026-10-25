@@ -70,12 +70,23 @@ export function WebRefreshButton({
         ]}
       >
         {refreshing ? (
-          <ActivityIndicator color={colors.text.secondary} size="small" />
+          <ScreenRefreshIndicator />
         ) : (
           <AppIcon color={colors.text.secondary} name="refresh" size={18} />
         )}
       </Pressable>
     </View>
+  );
+}
+
+export function ScreenRefreshIndicator() {
+  return (
+    <ActivityIndicator
+      color={
+        Platform.OS === 'web' ? colors.text.secondary : colors.action.primary
+      }
+      size="small"
+    />
   );
 }
 

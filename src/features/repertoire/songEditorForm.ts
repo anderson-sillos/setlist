@@ -121,7 +121,7 @@ export function songToEditorValues(song: Song): SongEditorValues {
   };
 }
 
-function parseDuration(value: string): number | null | undefined {
+export function parseDurationInput(value: string): number | null | undefined {
   const normalized = value.trim();
 
   if (!normalized) {
@@ -156,7 +156,7 @@ export function parseSongEditorValues(
 ): SongEditorParseResult {
   const title = values.title.trim();
   const bpmText = values.bpm.trim();
-  const durationMs = parseDuration(values.duration);
+  const durationMs = parseDurationInput(values.duration);
   const youtubeText = values.youtubeReference.trim();
   const youtubeReference = normalizeYoutubeReference(youtubeText);
   const errors: SongEditorErrors = {};

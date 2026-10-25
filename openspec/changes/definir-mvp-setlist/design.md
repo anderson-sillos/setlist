@@ -185,7 +185,7 @@ O backend será o Supabase hospedado, usando Auth, PostgreSQL e Row Level Securi
 - Cada Owner ou Editor deverá aceitar o termo vigente antes da primeira criação ou edição de conteúdo.
 - O aceite registrará usuário, banda, versão do termo e data/hora gerada pelo servidor.
 - Uma mudança material no termo exigirá novo aceite antes de editar, sem bloquear leitura ou modo palco.
-- O piloto aceitará somente letras autorais da própria banda, em domínio público ou com autorização. Não haverá busca ou importação automática de sites de letras.
+- O piloto aceitará letras autorais da própria banda, em domínio público ou com autorização. Um preenchimento externo só pode ocorrer por ação explícita de quem edita a música; essa integração não verifica autoria, licença ou autorização, que continuam sob responsabilidade de quem adiciona o conteúdo.
 
 ### Repertório e estrutura da letra
 

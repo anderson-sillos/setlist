@@ -89,4 +89,42 @@ describe('texto da letra estruturada', () => {
       ],
     });
   });
+
+  it('preserva a origem, mas remove o tempo quando o texto da linha mudou', () => {
+    const imported: LyricDocument = {
+      blocks: [
+        {
+          id: 'imported-block',
+          name: null,
+          lines: [
+            { id: 'timed-line', text: 'Texto original', startTimeMs: 12_000 },
+          ],
+        },
+      ],
+      source: {
+        provider: 'lrclib',
+        recordId: 42,
+        title: 'Canção',
+        artist: 'Artista',
+        album: null,
+        recordingDurationMs: 180_000,
+        importedAt: '2026-10-24T12:00:00.000Z',
+        format: 'lrc',
+      },
+    };
+
+    const unchanged = parseLyricText(lyricDocumentToText(imported), imported);
+    expect(unchanged.blocks[0]?.lines[0]).toEqual({
+      id: 'timed-line',
+      text: 'Texto original',
+      startTimeMs: 12_000,
+    });
+    expect(unchanged.source).toEqual(imported.source);
+
+    const changed = parseLyricText('#\nOutro texto', imported);
+    expect(changed.blocks[0]?.lines[0]?.text).toBe('Outro texto');
+    expect(changed.blocks[0]?.lines[0]?.startTimeMs).toBeNull();
+    expect(changed.blocks[0]?.lines[0]?.id).not.toBe('timed-line');
+    expect(changed.source).toEqual(imported.source);
+  });
 });

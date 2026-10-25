@@ -170,6 +170,47 @@ describe('repositório de músicas do Supabase', () => {
     ]);
   });
 
+  it('preserva origem válida e ignora metadados opcionais malformados', async () => {
+    const validSource = {
+      provider: 'lrclib',
+      recordId: 42,
+      title: 'Canção',
+      artist: 'Artista',
+      album: null,
+      recordingDurationMs: 180000,
+      importedAt: '2026-10-24T12:00:00.000Z',
+      format: 'lrc',
+    };
+    const rowWithSource = {
+      ...songRow,
+      lyrics: { ...songRow.lyrics, source: validSource },
+    };
+    const query = createQuery({ data: [rowWithSource], error: null });
+    from.mockReturnValue(query);
+
+    const [song] = await new SupabaseSongRepository().listByBandId('band-real');
+    expect(song?.lyrics.source).toEqual(validSource);
+
+    from.mockReturnValueOnce(
+      createQuery({
+        data: [
+          {
+            ...songRow,
+            lyrics: {
+              ...songRow.lyrics,
+              source: { provider: 'unknown', privateData: 'ignored' },
+            },
+          },
+        ],
+        error: null,
+      }),
+    );
+    const [olderSong] = await new SupabaseSongRepository().listByBandId(
+      'band-real',
+    );
+    expect(olderSong?.lyrics).toEqual({ blocks: songRow.lyrics.blocks });
+  });
+
   it('não envia uma consulta em lote quando a lista de IDs está vazia', async () => {
     await expect(
       new SupabaseSongRepository().listDocumentsByIds('band-real', []),

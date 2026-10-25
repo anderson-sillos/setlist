@@ -33,6 +33,7 @@ function updateBlock(
   update: (block: LyricBlock) => LyricBlock,
 ): LyricDocument {
   return {
+    ...document,
     blocks: document.blocks.map((block) =>
       block.id === blockId ? update(block) : block,
     ),
@@ -44,6 +45,7 @@ export function addLyricBlock(
   blockId: string,
 ): LyricDocument {
   return {
+    ...document,
     blocks: [...document.blocks, { id: blockId, name: null, lines: [] }],
   };
 }
@@ -53,6 +55,7 @@ export function removeLyricBlock(
   blockId: string,
 ): LyricDocument {
   return {
+    ...document,
     blocks: document.blocks.filter((block) => block.id !== blockId),
   };
 }
@@ -77,7 +80,10 @@ export function moveLyricBlock(
 ): LyricDocument {
   const itemIndex = document.blocks.findIndex((block) => block.id === blockId);
 
-  return { blocks: moveItem(document.blocks, itemIndex, direction) };
+  return {
+    ...document,
+    blocks: moveItem(document.blocks, itemIndex, direction),
+  };
 }
 
 export function addLyricLine(
@@ -102,7 +108,13 @@ export function updateLyricLine(
   return updateBlock(document, blockId, (block) => ({
     ...block,
     lines: block.lines.map((line) =>
-      line.id === lineId ? { ...line, text } : line,
+      line.id === lineId
+        ? {
+            ...line,
+            text,
+            startTimeMs: text === line.text ? line.startTimeMs : null,
+          }
+        : line,
     ),
   }));
 }

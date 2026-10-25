@@ -1,6 +1,9 @@
 import type { EntityId, LyricStatus, Show, Song } from '@/domain/entities';
 
-export type ShowLyricIssueStatus = Exclude<LyricStatus, 'synchronized'>;
+export type ShowLyricIssueStatus = Exclude<
+  LyricStatus,
+  'synchronized' | 'instrumental'
+>;
 
 export interface ShowLyricIssue {
   readonly songId: EntityId;
@@ -30,7 +33,7 @@ export function getShowLyricIssues(
       const song = songsById.get(item.songId);
       const status = song?.lyricStatus ?? 'missing';
 
-      if (status !== 'synchronized') {
+      if (status !== 'synchronized' && status !== 'instrumental') {
         issues.push({
           songId: item.songId,
           status,

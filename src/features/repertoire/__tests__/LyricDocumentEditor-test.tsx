@@ -58,7 +58,7 @@ describe('<LyricDocumentEditor />', () => {
     });
   });
 
-  it('reutiliza identificadores e tempos ao editar o texto de uma música existente', async () => {
+  it('reutiliza tempos apenas quando o texto continua igual', async () => {
     const document: LyricDocument = {
       blocks: [
         {
@@ -84,7 +84,11 @@ describe('<LyricDocumentEditor />', () => {
           id: 'verse',
           name: 'Verso',
           lines: [
-            { id: 'line-1', text: 'Primeira revisada', startTimeMs: 1000 },
+            {
+              id: 'generated-id',
+              text: 'Primeira revisada',
+              startTimeMs: null,
+            },
           ],
         },
       ],

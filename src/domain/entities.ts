@@ -53,11 +53,27 @@ export interface LyricBlock {
   readonly lines: readonly LyricLine[];
 }
 
-export interface LyricDocument {
-  readonly blocks: readonly LyricBlock[];
+/** Origem técnica interna; não deve ser apresentada como informação da letra. */
+export interface LyricSourceMetadata {
+  readonly provider: 'lrclib';
+  readonly recordId: number;
+  readonly title: string;
+  readonly artist: string;
+  readonly album: string | null;
+  readonly recordingDurationMs: number | null;
+  readonly importedAt: IsoDateTime;
+  readonly format: 'lrc' | 'plain';
 }
 
-export type LyricStatus = 'missing' | 'static' | 'incomplete' | 'synchronized';
+export interface LyricDocument {
+  readonly blocks: readonly LyricBlock[];
+  readonly source?: LyricSourceMetadata;
+  /** Editor state mapped from the persisted `songs.lyric_status` value. */
+  readonly isInstrumental?: boolean;
+}
+
+export type LyricStatus =
+  'missing' | 'static' | 'incomplete' | 'synchronized' | 'instrumental';
 
 export interface Song {
   readonly id: EntityId;

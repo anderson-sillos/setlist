@@ -11,6 +11,16 @@ import {
 } from '@/features/repertoire/lyricEditor';
 
 const initialDocument: LyricDocument = {
+  source: {
+    provider: 'lrclib',
+    recordId: 42,
+    title: 'Canção',
+    artist: 'Artista',
+    album: null,
+    recordingDurationMs: 180_000,
+    importedAt: '2026-10-24T12:00:00.000Z',
+    format: 'lrc',
+  },
   blocks: [
     {
       id: 'verse',
@@ -73,5 +83,36 @@ describe('edição estrutural da letra', () => {
     expect(moveLyricBlock(initialDocument, 'chorus', 'down')).toEqual(
       initialDocument,
     );
+  });
+
+  it('preserva a origem ao adicionar, remover ou mover conteúdo', () => {
+    expect(addLyricBlock(initialDocument, 'bridge').source).toEqual(
+      initialDocument.source,
+    );
+    expect(removeLyricBlock(initialDocument, 'verse').source).toEqual(
+      initialDocument.source,
+    );
+    expect(moveLyricBlock(initialDocument, 'chorus', 'up').source).toEqual(
+      initialDocument.source,
+    );
+    expect(addLyricLine(initialDocument, 'verse', 'line-4').source).toEqual(
+      initialDocument.source,
+    );
+  });
+
+  it('remove o tempo de uma linha sincronizada quando seu texto é alterado', () => {
+    const edited = updateLyricLine(
+      initialDocument,
+      'verse',
+      'line-1',
+      'Texto novo',
+    );
+
+    expect(edited.blocks[0]?.lines[0]).toEqual({
+      id: 'line-1',
+      text: 'Texto novo',
+      startTimeMs: null,
+    });
+    expect(edited.source).toEqual(initialDocument.source);
   });
 });
