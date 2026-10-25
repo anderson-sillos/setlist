@@ -2,34 +2,60 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
-## Atualização de 25 de outubro de 2026 — preparação de `v1.1.0-rc.1`
+## Atualização de 25 de outubro de 2026 — publicação de `v1.1.0-rc.1`
 
-- A última candidata publicada é `v1.0.2-rc.1`, no commit `40c3d221`:
-  iOS `1.0.2 (10)` enviado ao App Store Connect, Android `1.0.2 (11)` enviado
-  à faixa Alpha e Web publicada conforme as notas dessa Release. Não foi
-  conferida nesta etapa a disponibilidade pública das lojas.
-- A próxima versão do produto foi preparada como `1.1.0`, com tag planejada
-  `v1.1.0-rc.1`, seguindo o incremento de funcionalidade definido em
-  `docs/RELEASE_PROCESS.md`. `app.json`, `package.json` e as duas versões do
-  lockfile foram atualizados pelo script do projeto, preservando dependências.
-- A branch `fix/song-editor-resume-refresh` reúne as correções nos commits
-  `584bfc9` (revalidação sem apagar a tela ativa), `3595595` (botão mágico ao
-  lado do título, flutuante na rolagem e com driver nativo) e `1bc3b99` (ajuda
-  de formatação recolhida, remoção da moldura redundante e campo de 420 pontos).
-  O placeholder editado pelo responsável foi preservado.
-- O changelog e `docs/releases/v1.1.0-rc.1.md` registram essas correções e as
-  PRs #80, #81, #82, #83 e #84, integradas após a candidata anterior. A API do
-  GitHub confirmou #33 e #34 como `fixed`; #9 segue aberto, sem patch indicado.
-- A tag e os builds oficiais devem usar o commit integrado à `main`, depois
-  dos checks da PR de preparação. Não foram criados tag, builds ou submissões
-  nesta etapa. As sequências Android/iOS devem ser preenchidas nas notas com
-  os números efetivamente atribuídos pelo EAS, sem reutilizar os anteriores.
-- Antes da distribuição, conferir em produção as migrações sequenciais
-  `20261024100000` e `20261024100100`; o estado do banco de produção não foi
-  consultado nesta preparação. A tarefa 6.3 da busca assistida continua
-  pendente no arquivo da change, e as últimas correções do editor precisam de
-  conferência manual. A validação já confirmada do cronômetro não encerra esses
-  itens nem valida os novos artefatos de produção.
+- A PR #85 foi integrada por squash com bypass administrativo autorizado,
+  no commit `0862ce6d549c70ac76f901a3bd0eabdda31ade3b`. Os três checks
+  (qualidade, banco/pgTAP e smoke Web) passaram na PR e no commit integrado.
+  A tag imutável `v1.1.0-rc.1` e os dois builds usam esse mesmo commit.
+- A versão do produto é `1.1.0`, com as novidades das PRs #80 a #85. A
+  [Release](https://github.com/anderson-sillos/setlist/releases/tag/v1.1.0-rc.1)
+  está publicada como pré-release, com notas completas, sequências reais e
+  somente o ativo seguro `release-manifest.json` schema 2. Não mover a tag.
+- Android `1.1.0 (12)`: build EAS `b3d3ae80-bb69-4d2a-b10b-3211ae82ec4b`,
+  perfil `production-android`, AAB/STORE. Submissão
+  `e49c8350-255f-4b76-aa2b-100d95f8d1df` concluída (`FINISHED`) na faixa
+  Alpha; não foi promovido à produção. O manifesto binário confirmou SDK
+  mínimo 24 e mapa R8 incorporado; os hashes estão nas notas da entrega.
+- iOS `1.1.0 (11)`: build EAS `b3fb9a01-2001-41ec-9405-84911c96b6d4`,
+  perfil `production`, IPA/STORE. Submissão
+  `bf8a8010-f74e-451f-ba63-ff8beb340e8c` concluída (`FINISHED`). A consulta
+  ao App Store Connect confirmou processamento `VALID`, TestFlight interno
+  `IN_BETA_TESTING` e externo `READY_FOR_BETA_SUBMISSION`. O iOS mínimo
+  confirmado no IPA é 16.4. A versão pública consultada continua `1.0.0 (8)`;
+  ainda falta enviar a versão `1.1.0` para revisão/distribuição na loja.
+- O primeiro agendamento iOS recusou apenas o campo opcional de notas de teste
+  por exigir plano Enterprise. A repetição sem esse campo concluiu o upload
+  do mesmo build; não foi necessário gerar outro artefato. O changelog está
+  nas notas públicas da Release.
+- Web publicada pelo workflow Pages
+  [40210153328](https://github.com/anderson-sillos/setlist/actions/runs/40210153328),
+  disparado da `main` com `release_tag=v1.1.0-rc.1` e
+  `publish_current_legal_docs=false`. Os dois jobs passaram. Os manifestos
+  públicos da raiz e de `/app` são idênticos ao ativo da Release, com SHA-256
+  `e4b544edb3d16144ad01ace92e04884246ecf57334b646f5ff0df168eac94950`.
+  Raiz, `/app/`, `/termos/` e `/privacidade/` retornaram HTTP 200; os Termos
+  publicados são `1.1.0`. A conferência de publicação não valida o fluxo
+  funcional autenticado.
+- Com autorização do responsável, foram aplicadas em `setlist-prod`
+  (`tqijocmmiwistinrjpwl`) somente as migrações `20261024100000` e
+  `20261024100100`, em ordem, sem seeds, roles ou Vault. O dry-run posterior
+  confirmou banco atualizado; uma consulta de metadados conferiu o histórico,
+  o enum `instrumental` e a constraint. O vínculo do checkout original com
+  desenvolvimento (`zncaahgaoqwksdidunza`) foi preservado.
+- O responsável confirmou em 25/10/2026 a validação manual completa da busca
+  assistida e das últimas correções do editor em Web, iPhone/iPad e Android
+  com o build de desenvolvimento atual. A tarefa arquivada 6.3 foi concluída
+  com essa evidência, sem tratá-la como validação dos novos binários instalados.
+  As validações funcionais dos artefatos de produção e da Web continuam
+  `pending` no manifesto; não promover a candidata a estável sem conferi-las.
+- O alerta Dependabot #9 (`node-forge`) permanece aberto, sem patch indicado
+  na conferência desta entrega; #33 e #34 foram confirmados como `fixed`.
+  Não foi registrado aceite de risco para uma versão estável.
+- Os registros finais são complementares ao código da tag: não exigem novos
+  builds ou alteração da tag. Binários, mapa R8, credenciais e JSON brutos EAS
+  permanecem privados e fora do Git. O checkout original permanece na `main`;
+  a atualização documental foi preparada em worktree separado.
 
 ## Atualização de 25 de outubro de 2026 — acompanhamento da letra sincronizada
 
