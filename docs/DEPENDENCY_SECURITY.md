@@ -1,5 +1,31 @@
 # Acompanhamento de segurança das dependências
 
+## Revisão de 24 de outubro de 2026
+
+Esta revisão substitui as listas de alertas ativos registradas abaixo em 7 de
+outubro. O estado foi conferido na página de alertas do GitHub em 24/10/2026.
+
+| Alerta | Dependência e versão observada | Correção disponível | Situação nesta revisão |
+| --- | --- | --- | --- |
+| [#34](https://github.com/anderson-sillos/setlist/security/dependabot/34) ([GHSA](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)) | `zod@4.5.4` no `package-lock.json` da `main` | `4.6.6` ou posterior | A PR #80 foi atualizada para `4.6.7`; permanece aberta até revisão e merge. |
+| [#33](https://github.com/anderson-sillos/setlist/security/dependabot/33) ([GHSA](https://github.com/advisories/GHSA-xjj6-f33q-929c)) | `undici@7.29.1` no scheduler, trazido por `miniflare` via Wrangler `4.151.3` | `7.30.1` | Este change aplica um override local no scheduler para `7.30.1`; o alerta só deve encerrar após a atualização ser integrada e reavaliada pelo GitHub. |
+| [#9](https://github.com/anderson-sillos/setlist/security/dependabot/9) | `node-forge@1.4.0`, dependência transitiva do Expo | Nenhuma versão corrigida indicada | Continua aberto. Manter monitoramento e reavaliar quando houver release corrigida ou for possível remover a dependência. |
+
+O scheduler usa `undici` apenas pela cadeia de ferramentas do Wrangler. Com o
+override para `7.30.1`, `npm audit` no pacote `cloudflare/cron-scheduler`
+retornou zero vulnerabilidades. A mudança não altera o runtime publicado do
+Worker.
+
+O alerta antigo #10 (`braces`) aparece como corrigido pelo GitHub. O alerta #11
+(`sprintf-js`) foi retirado pelo GitHub, não corrigido por uma atualização local.
+Esses estados substituem a informação histórica da revisão de 7 de outubro.
+
+O componente vendorizado `vendor/decode-uri-component` continua em `0.5.0`, a
+versão corrigida para `GHSA-vcc3-ghjq-m6fr`. Ele não aparece entre os alertas
+abertos. A adaptação CommonJS permanece necessária para compatibilidade com a
+cadeia atual do Expo Router; remover quando o upstream aceitar a versão corrigida
+sem a adaptação local.
+
 ## Revisão de 7 de outubro de 2026
 
 A revisão parte da `main` após a integração da PR #30, no commit
