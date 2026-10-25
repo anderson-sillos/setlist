@@ -32,6 +32,7 @@ interface BandAreaLayoutProps extends PropsWithChildren {
   readonly leadingHeaderAction?: HeaderAction;
   readonly onRefresh?: () => void | Promise<void>;
   readonly refreshing?: boolean;
+  readonly renderContentOverlay?: (contentTop: number) => ReactNode;
   readonly screenKind?: NavigationScreenKind;
   readonly scrollable?: boolean;
   readonly subtitle?: string;
@@ -53,6 +54,7 @@ export function BandAreaLayout({
   leadingHeaderAction,
   onRefresh,
   refreshing,
+  renderContentOverlay,
   screenKind,
   scrollable,
   subtitle,
@@ -78,6 +80,7 @@ export function BandAreaLayout({
       leadingHeaderAction={leadingHeaderAction}
       onRefresh={onRefresh}
       refreshing={refreshing}
+      renderContentOverlay={renderContentOverlay}
       screenKind={screenKind}
       scrollable={scrollable}
       subtitle={subtitle ?? sectionLabels[activeSection]}

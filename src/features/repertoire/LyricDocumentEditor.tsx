@@ -5,7 +5,7 @@ import type { LyricDocument } from '@/domain';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { AppText } from '@/components/ui/AppText';
 import { KeyboardDismissRegion } from '@/components/ui/KeyboardDismissRegion';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, layout, radii, spacing } from '@/theme/tokens';
 import { lyricDocumentToText, parseLyricText } from './lyricEditorText';
 
 interface LyricDocumentEditorProps {
@@ -20,6 +20,8 @@ export function LyricDocumentEditor({
   const [draftText, setDraftText] = useState(() =>
     lyricDocumentToText(document),
   );
+  const [guideVisible, setGuideVisible] = useState(false);
+  const [helpFocused, setHelpFocused] = useState(false);
   const lastParsedDocument = useRef(document);
 
   useEffect(() => {
@@ -76,36 +78,60 @@ export function LyricDocumentEditor({
         </View>
       </Pressable>
 
-      <KeyboardDismissRegion>
-        <View style={styles.sectionHeading}>
-          <View style={styles.headingRow}>
+      <View style={styles.headingRow}>
+        <View style={styles.headingLabel}>
+          <KeyboardDismissRegion>
             <AppText accessibilityRole="header" variant="heading">
               Letra
             </AppText>
-            {draftText.length > 0 ? (
-              <Pressable
-                accessibilityHint="Remove todo o conteúdo do campo da letra."
-                accessibilityLabel="Limpar letra"
-                accessibilityRole="button"
-                hitSlop={14}
-                onPress={() => handleTextChange('')}
-                style={({ pressed }) => [
-                  styles.clearButton,
-                  pressed && styles.clearButtonPressed,
-                ]}
-                testID="lyric-clear-button"
-              >
-                <AppIcon color={colors.action.primary} name="close" size={10} />
-              </Pressable>
-            ) : null}
-          </View>
-          <AppText tone="muted">
-            Cole ou digite a letra completa abaixo.
-          </AppText>
+          </KeyboardDismissRegion>
+          <Pressable
+            accessibilityLabel="Ajuda de formatação"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: guideVisible }}
+            onBlur={() => setHelpFocused(false)}
+            onFocus={() => setHelpFocused(true)}
+            onPress={() => setGuideVisible((visible) => !visible)}
+            // Keep the textarea focus and cursor when using the help button.
+            onPointerDown={
+              Platform.OS === 'web'
+                ? (event) => event.preventDefault()
+                : undefined
+            }
+            style={({ pressed }) => [
+              styles.helpButton,
+              (guideVisible || pressed) && styles.helpButtonActive,
+              helpFocused && styles.helpButtonFocused,
+            ]}
+          >
+            <AppIcon
+              color={
+                guideVisible ? colors.action.primary : colors.text.secondary
+              }
+              name="info"
+              size={18}
+            />
+          </Pressable>
         </View>
-      </KeyboardDismissRegion>
+        {draftText.length > 0 ? (
+          <Pressable
+            accessibilityHint="Remove todo o conteúdo do campo da letra."
+            accessibilityLabel="Limpar letra"
+            accessibilityRole="button"
+            hitSlop={14}
+            onPress={() => handleTextChange('')}
+            style={({ pressed }) => [
+              styles.clearButton,
+              pressed && styles.clearButtonPressed,
+            ]}
+            testID="lyric-clear-button"
+          >
+            <AppIcon color={colors.action.primary} name="close" size={10} />
+          </Pressable>
+        ) : null}
+      </View>
 
-      <KeyboardDismissRegion>
+      {guideVisible ? (
         <View style={styles.guide}>
           <AppText style={styles.guideTitle} variant="caption">
             Formato rápido
@@ -114,7 +140,11 @@ export function LyricDocumentEditor({
             <AppText style={styles.marker} variant="caption">
               # Refrão
             </AppText>
-            <AppText tone="muted" variant="caption">
+            <AppText
+              style={styles.guideDescription}
+              tone="muted"
+              variant="caption"
+            >
               cria um novo bloco da música
             </AppText>
           </View>
@@ -122,7 +152,11 @@ export function LyricDocumentEditor({
             <AppText style={styles.marker} variant="caption">
               ---
             </AppText>
-            <AppText tone="muted" variant="caption">
+            <AppText
+              style={styles.guideDescription}
+              tone="muted"
+              variant="caption"
+            >
               mantém uma linha em branco
             </AppText>
           </View>
@@ -130,7 +164,11 @@ export function LyricDocumentEditor({
             <AppText style={styles.marker} variant="caption">
               **Texto**
             </AppText>
-            <AppText tone="muted" variant="caption">
+            <AppText
+              style={styles.guideDescription}
+              tone="muted"
+              variant="caption"
+            >
               destaca a linha em negrito
             </AppText>
           </View>
@@ -138,38 +176,33 @@ export function LyricDocumentEditor({
             <AppText style={styles.marker} variant="caption">
               ***
             </AppText>
-            <AppText tone="muted" variant="caption">
+            <AppText
+              style={styles.guideDescription}
+              tone="muted"
+              variant="caption"
+            >
               insere uma linha de separação
             </AppText>
           </View>
+          <AppText tone="muted" variant="caption">
+            Os marcadores são removidos na apresentação da letra.
+          </AppText>
         </View>
-      </KeyboardDismissRegion>
+      ) : null}
 
-      <View style={styles.inputFrame}>
-        <TextInput
-          accessibilityLabel="Letra completa"
-          autoCapitalize="sentences"
-          multiline
-          onChangeText={handleTextChange}
-          placeholder={
-            '# Verso\nDigite ou cole a letra completa aqui…\n**Linha em destaque**\n---\n***\n# Refrão'
-          }
-          placeholderTextColor={colors.text.muted}
-          scrollEnabled
-          style={styles.input}
-          textAlignVertical="top"
-          testID="lyric-full-text"
-          value={draftText}
-        />
-        <KeyboardDismissRegion>
-          <View style={styles.inputHint}>
-            <AppIcon color={colors.text.secondary} name="music" size={16} />
-            <AppText tone="muted" variant="caption">
-              Os marcadores são removidos na apresentação da letra.
-            </AppText>
-          </View>
-        </KeyboardDismissRegion>
-      </View>
+      <TextInput
+        accessibilityLabel="Letra completa"
+        autoCapitalize="sentences"
+        multiline
+        onChangeText={handleTextChange}
+        placeholder="Digite ou cole a letra completa aqui"
+        placeholderTextColor={colors.text.muted}
+        scrollEnabled
+        style={styles.input}
+        textAlignVertical="top"
+        testID="lyric-full-text"
+        value={draftText}
+      />
     </View>
   );
 }
@@ -208,13 +241,30 @@ const styles = StyleSheet.create({
   instrumentalLabel: {
     fontWeight: '600',
   },
-  sectionHeading: {
-    gap: spacing.xs,
-  },
   headingRow: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  headingLabel: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  helpButton: {
+    alignItems: 'center',
+    borderColor: 'transparent',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    height: layout.minimumTouchTarget,
+    justifyContent: 'center',
+    width: layout.minimumTouchTarget,
+  },
+  helpButtonActive: {
+    backgroundColor: colors.background.hover,
+  },
+  helpButtonFocused: {
+    borderColor: colors.border.focus,
   },
   clearButton: {
     alignItems: 'center',
@@ -228,42 +278,27 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   guide: {
-    backgroundColor: colors.background.selected,
-    borderColor: colors.border.subtle,
-    borderRadius: radii.sm,
-    borderWidth: 1,
-    gap: spacing.xs,
-    padding: spacing.sm,
-  },
-  guideRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  guideTitle: {
-    color: colors.action.primary,
-    fontWeight: '700',
-  },
-  marker: {
-    backgroundColor: colors.background.raised,
-    borderColor: colors.border.subtle,
-    borderRadius: radii.sm,
-    borderWidth: 1,
-    color: colors.action.primary,
-    fontWeight: '700',
-    overflow: 'hidden',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  inputFrame: {
-    alignSelf: 'stretch',
     backgroundColor: colors.background.canvas,
     borderColor: colors.border.subtle,
-    borderRadius: radii.md,
+    borderRadius: radii.sm,
     borderWidth: 1,
     gap: spacing.sm,
-    padding: spacing.sm,
+    padding: spacing.md,
+  },
+  guideRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  guideDescription: {
+    flex: 1,
+  },
+  guideTitle: {
+    fontWeight: '600',
+  },
+  marker: {
+    fontWeight: '600',
+    width: 80,
   },
   input: {
     backgroundColor: colors.background.raised,
@@ -272,16 +307,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     color: colors.text.primary,
     fontSize: 16,
-    height: 280,
+    height: 420,
     lineHeight: 24,
     padding: spacing.md,
     width: '100%',
-    ...(Platform.OS === 'web' ? { maxHeight: 280, minHeight: 280 } : {}),
-  },
-  inputHint: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.xs,
+    ...(Platform.OS === 'web' ? { maxHeight: 420, minHeight: 420 } : {}),
   },
 });

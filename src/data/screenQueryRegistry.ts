@@ -62,6 +62,20 @@ export function uniqueRefreshQueries(
     .map(({ query }) => query);
 }
 
+/** Returns cache keys that belong to the currently focused screens. */
+export function getActiveScreenQueryKeys(
+  queryClient: QueryClient,
+): readonly QueryKey[] {
+  const sources = activeScreenQuerySources.get(queryClient);
+  if (!sources) {
+    return [];
+  }
+
+  return uniqueRefreshQueries(
+    [...sources].flatMap((getQueries) => getQueries()),
+  ).flatMap(({ refreshKeys }) => refreshKeys ?? []);
+}
+
 /** Refetches selected screen queries without restarting an equivalent request. */
 export async function refetchScreenQueries(
   queryClient: QueryClient,

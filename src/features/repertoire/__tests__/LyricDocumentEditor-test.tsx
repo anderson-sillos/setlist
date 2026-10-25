@@ -15,6 +15,10 @@ describe('<LyricDocumentEditor />', () => {
     );
 
     expect(view.getByLabelText('Letra completa')).toBeTruthy();
+    expect(view.queryByText('Formato rápido')).toBeNull();
+    await fireEvent.press(
+      view.getByRole('button', { name: 'Ajuda de formatação' }),
+    );
     expect(view.getByText('Formato rápido')).toBeTruthy();
 
     await fireEvent.changeText(

@@ -1,7 +1,14 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import * as ExpoCrypto from 'expo-crypto';
 import { useEffect, type PropsWithChildren } from 'react';
+import { Animated, Keyboard, Platform, StyleSheet } from 'react-native';
 
 import { LrclibRequestError, searchLrclibTracks } from '@/data/lrclib/client';
 import type { AppRepositories, BandRole, Song } from '@/domain';
@@ -161,7 +168,247 @@ describe('<SongEditorScreen />', () => {
     mockGetCurrentBandTermAcceptance.mockResolvedValue(true);
   });
 
-  it('dispara a busca pelo rodapé, mostra um popup e completa o rascunho sem salvar', async () => {
+  it.each(['ios', 'android'] as const)(
+    'conecta a rolagem diretamente ao driver nativo no %s',
+    async (platform) => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: platform,
+      });
+      const configureScroll = jest.spyOn(Animated, 'event');
+      try {
+        const { bandId, repositories } = createRepositories();
+        const view = await render(
+          <AppProviders repositories={repositories}>
+            <SongEditorScreen bandId={bandId} />
+          </AppProviders>,
+        );
+        await view.findByLabelText('Título da música *');
+        expect(configureScroll).toHaveBeenCalledWith(expect.any(Array), {
+          useNativeDriver: true,
+        });
+        await view.unmount();
+      } finally {
+        configureScroll.mockRestore();
+        Object.defineProperty(Platform, 'OS', {
+          configurable: true,
+          value: originalPlatform,
+        });
+      }
+    },
+  );
+
+  it.each([
+    ['celular', 390, 0, 390, 24, true, 64],
+    ['tela ampla', 1366, 123, 1120, 147, true, 64],
+    ['navegador com barra de rolagem', 390, 0, 375, 39, true, 64],
+    ['edição com header ampliado', 390, 0, 390, 24, true, 80],
+    ['criação com header ampliado', 390, 0, 390, 24, false, 80],
+  ] as const)(
+    'fixa a varinha no limite seguro do header sem desvio à esquerda em %s',
+    async (
+      _screen,
+      viewportWidth,
+      contentX,
+      contentWidth,
+      titleRight,
+      editing,
+      headerHeight,
+    ) => {
+      const { bandId, repositories, songId, song } = createRepositories();
+      mockSearchTracks.mockResolvedValue([]);
+      const dismissKeyboard = jest.spyOn(Keyboard, 'dismiss');
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: 'web',
+      });
+      const configureScroll = jest.spyOn(Animated, 'event');
+      const originalAddEventListener = window.addEventListener;
+      const originalRemoveEventListener = window.removeEventListener;
+      window.addEventListener = jest.fn();
+      window.removeEventListener = jest.fn();
+      let unmount: (() => Promise<void>) | undefined;
+
+      try {
+        const view = await render(
+          <AppProviders repositories={repositories}>
+            <SongEditorScreen
+              bandId={bandId}
+              songId={editing ? songId : undefined}
+            />
+          </AppProviders>,
+        );
+        unmount = () => view.unmount();
+        await view.findByLabelText('Título da música *');
+        expect(configureScroll).toHaveBeenCalledWith(expect.any(Array), {
+          useNativeDriver: false,
+        });
+        const expectButtonPosition = (position: {
+          top: number;
+          right?: number;
+        }) => {
+          const style = StyleSheet.flatten(
+            view.getByTestId('song-enrichment-position').props.style,
+          );
+          const transforms = style.transform as readonly {
+            translateX?: number;
+            translateY?: number;
+          }[];
+          const translateX = transforms.reduce(
+            (total, transform) => total + (transform.translateX ?? 0),
+            0,
+          );
+          const translateY = transforms.reduce(
+            (total, transform) => total + (transform.translateY ?? 0),
+            0,
+          );
+          // Layout stays fixed; only native-compatible transforms follow scroll.
+          expect(style.top).toBe(headerHeight + 44);
+          expect(style.right).toBe(titleRight);
+          expect(style.top + translateY).toBeCloseTo(position.top);
+          if (position.right !== undefined) {
+            expect(style.right - translateX).toBeCloseTo(position.right);
+          }
+        };
+        if (!editing) {
+          await fireEvent.changeText(
+            view.getByLabelText('Título da música *'),
+            song.title,
+          );
+        }
+        const titleField = view.getByTestId('song-editor-title-field');
+        expect(
+          within(titleField).getByLabelText('Completar música'),
+        ).toBeTruthy();
+
+        await fireEvent(view.getByTestId('screen-static-area'), 'layout', {
+          nativeEvent: {
+            layout: {
+              x: 0,
+              y: headerHeight,
+              width: viewportWidth,
+              height: 680,
+            },
+          },
+        });
+        if (editing) {
+          const menu = view.getByLabelText('Mais opções da música');
+          await fireEvent(menu, 'layout', {
+            nativeEvent: {
+              layout: {
+                x: viewportWidth - 64,
+                y: (headerHeight - 48) / 2,
+                width: 48,
+                height: 48,
+              },
+            },
+          });
+          expect(menu).toHaveStyle({ width: 48, height: 48 });
+          expect(menu.props.hitSlop.bottom).toBe(0);
+        }
+
+        await fireEvent(
+          view.getByTestId('song-editor-form-viewport'),
+          'layout',
+          {
+            nativeEvent: {
+              layout: { x: 0, y: 0, width: viewportWidth, height: 600 },
+            },
+          },
+        );
+        await fireEvent(
+          view.getByTestId('song-editor-form-content'),
+          'layout',
+          {
+            nativeEvent: {
+              layout: { x: contentX, y: 0, width: contentWidth, height: 900 },
+            },
+          },
+        );
+        await fireEvent(titleField, 'layout', {
+          nativeEvent: { layout: { x: 24, y: 24, width: 342, height: 68 } },
+        });
+        await fireEvent(
+          view.getByTestId('song-editor-title-field-input-row'),
+          'layout',
+          {
+            nativeEvent: { layout: { x: 0, y: 20, width: 342, height: 48 } },
+          },
+        );
+
+        expectButtonPosition({
+          top: headerHeight + 44,
+          right: titleRight,
+        });
+        const trigger = view.getByTestId('song-enrichment-trigger');
+        expect(
+          within(titleField).queryByLabelText('Completar música'),
+        ).toBeNull();
+
+        await fireEvent.scroll(view.getByTestId('song-editor-scroll'), {
+          nativeEvent: { contentOffset: { x: 0, y: -12 } },
+        });
+        expectButtonPosition({ top: headerHeight + 56, right: titleRight });
+
+        // The menu's presence limits how far the button can rise.
+        await fireEvent.scroll(view.getByTestId('song-editor-scroll'), {
+          nativeEvent: { contentOffset: { x: 0, y: 44 } },
+        });
+        expectButtonPosition({
+          top: headerHeight,
+        });
+
+        await fireEvent.scroll(view.getByTestId('song-editor-scroll'), {
+          nativeEvent: { contentOffset: { x: 0, y: 160 } },
+        });
+        expectButtonPosition({
+          top: editing ? (headerHeight + 48) / 2 : headerHeight - 24,
+          right: 8,
+        });
+        expect(view.getByTestId('screen-content-overlay')).toHaveStyle({
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          pointerEvents: 'box-none',
+          zIndex: 5,
+        });
+        expect(view.getAllByLabelText('Completar música')).toHaveLength(1);
+        expect(view.getByTestId('song-enrichment-trigger')).toBe(trigger);
+
+        await fireEvent.press(trigger);
+        expect(dismissKeyboard).toHaveBeenCalled();
+        expect(await view.findByTestId('song-enrichment-popup')).toBeTruthy();
+        expect(mockSearchTracks.mock.calls[0]?.[0].title).toBe(song.title);
+        await fireEvent.press(view.getByTestId('song-enrichment-close'));
+
+        await fireEvent.scroll(view.getByTestId('song-editor-scroll'), {
+          nativeEvent: { contentOffset: { x: 0, y: 0 } },
+        });
+        expectButtonPosition({
+          top: headerHeight + 44,
+          right: titleRight,
+        });
+        expect(view.getByTestId('song-enrichment-trigger')).toBe(trigger);
+        expect(view.getByText('Cancelar')).toBeTruthy();
+        expect(view.getByText('Salvar música')).toBeTruthy();
+      } finally {
+        await unmount?.();
+        window.addEventListener = originalAddEventListener;
+        window.removeEventListener = originalRemoveEventListener;
+        configureScroll.mockRestore();
+        Object.defineProperty(Platform, 'OS', {
+          configurable: true,
+          value: originalPlatform,
+        });
+        dismissKeyboard.mockRestore();
+      }
+    },
+  );
+
+  it('dispara a busca ao lado do título, mostra um popup e completa o rascunho sem salvar', async () => {
     const { bandId, repositories } = createRepositories('owner');
     mockSearchTracks.mockResolvedValue([
       {

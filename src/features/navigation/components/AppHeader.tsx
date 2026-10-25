@@ -1,6 +1,12 @@
 import { forwardRef, type ComponentRef } from 'react';
 import { useRouter } from 'expo-router';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type PressableProps,
+} from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { AppIconName } from '@/components/ui/AppIcon';
@@ -128,6 +134,8 @@ export function AppHeader({
           accessibilityLabel={headerAction.accessibilityLabel}
           color={colors.action.primary}
           icon={headerAction.icon ?? 'more'}
+          hitSlop={headerAction.hitSlop}
+          onLayout={headerAction.onLayout}
           onPress={() => {
             blurWebFocus();
             headerAction.onPress();
@@ -147,6 +155,8 @@ interface HeaderIconButtonProps {
   readonly color?: string;
   readonly disabled?: boolean;
   readonly icon?: AppIconName;
+  readonly hitSlop?: PressableProps['hitSlop'];
+  readonly onLayout?: PressableProps['onLayout'];
   readonly onPress?: () => void;
   readonly size?: number;
 }
@@ -160,7 +170,9 @@ const HeaderIconButton = forwardRef<
     accessibilityState,
     color = colors.text.primary,
     disabled,
+    hitSlop = 8,
     icon,
+    onLayout,
     onPress,
     size = 24,
   },
@@ -173,7 +185,8 @@ const HeaderIconButton = forwardRef<
       accessibilityRole="button"
       accessibilityState={accessibilityState}
       disabled={disabled}
-      hitSlop={8}
+      hitSlop={hitSlop}
+      onLayout={onLayout}
       onPress={onPress}
       style={({ pressed }) => [
         styles.iconButton,
