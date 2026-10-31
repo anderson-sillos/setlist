@@ -74,7 +74,7 @@ function describeEnrichmentFailure(
       return `A busca pegou fila no camarim: limite temporário. Código: ${code}.`;
     case 'unavailable':
       if (httpStatus === 502) {
-        return `O mensageiro entre servidores se perdeu no backstage: erro Bad Gateway. Código: ${code}.`;
+        return `O mensageiro entre servidores se perdeu no backstage: resposta Bad Gateway. Código: ${code}.`;
       }
 
       return httpStatus
