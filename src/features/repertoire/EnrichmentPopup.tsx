@@ -50,10 +50,10 @@ const activeStatuses = new Set([
   'applying',
 ]);
 
-function describeEnrichmentFailure(
+function getEnrichmentFailureFeedback(
   reason: LrclibFailureReason,
   httpStatus?: number,
-): string {
+): { readonly message: string; readonly code: string } {
   const code =
     reason === 'timeout'
       ? 'TIMEOUT'
@@ -65,22 +65,59 @@ function describeEnrichmentFailure(
             ? `HTTP_${httpStatus}`
             : 'NETWORK_ERROR';
 
+  let message: string;
   switch (reason) {
     case 'timeout':
-      return `A busca fez um solo longo demais: tempo limite excedido. Código: ${code}.`;
+      message = 'A busca fez um solo longo demais: o tempo acabou.';
+      break;
     case 'invalid-response':
-      return `O retorno veio em partitura alienígena: resposta inválida. Código: ${code}.`;
+      message = 'O retorno veio em partitura alienígena: resposta inválida.';
+      break;
     case 'rate-limited':
-      return `A busca pegou fila no camarim: limite temporário. Código: ${code}.`;
+      message = 'A busca pegou fila no camarim: limite temporário.';
+      break;
     case 'unavailable':
       if (httpStatus === 502) {
-        return `O mensageiro entre servidores se perdeu no backstage: resposta Bad Gateway. Código: ${code}.`;
+        message =
+          'O mensageiro entre servidores se perdeu no backstage: resposta Bad Gateway.';
+      } else if (httpStatus) {
+        message = 'O serviço desafinou: resposta HTTP indisponível.';
+      } else {
+        message = 'O cabo da conexão escapou do palco: falha de rede.';
       }
-
-      return httpStatus
-        ? `O serviço desafinou: falha HTTP. Código: ${code}.`
-        : `O cabo da conexão escapou do palco: falha de rede. Código: ${code}.`;
+      break;
   }
+
+  return { message, code };
+}
+
+function EnrichmentFailureDetails({
+  reason,
+  httpStatus,
+}: {
+  readonly reason: LrclibFailureReason;
+  readonly httpStatus?: number;
+}) {
+  const feedback = getEnrichmentFailureFeedback(reason, httpStatus);
+
+  return (
+    <View style={styles.failureDetails}>
+      <AppText
+        testID="song-enrichment-retry-error"
+        tone="muted"
+        variant="caption"
+      >
+        {feedback.message}
+      </AppText>
+      <AppText
+        testID="song-enrichment-error-code"
+        tone="muted"
+        variant="caption"
+      >
+        Código: {feedback.code}
+      </AppText>
+    </View>
+  );
 }
 
 export function EnrichmentPopup({
@@ -124,18 +161,10 @@ export function EnrichmentPopup({
             <ScreenRefreshIndicator />
             {state.status === 'retry-wait' ? (
               <View style={styles.progressDetails}>
-                <View style={styles.failureDetails}>
-                  <AppText tone="muted" variant="caption">
-                    Erro:
-                  </AppText>
-                  <AppText
-                    testID="song-enrichment-retry-error"
-                    tone="muted"
-                    variant="caption"
-                  >
-                    {describeEnrichmentFailure(state.reason, state.httpStatus)}
-                  </AppText>
-                </View>
+                <EnrichmentFailureDetails
+                  httpStatus={state.httpStatus}
+                  reason={state.reason}
+                />
                 <AppText
                   testID="song-enrichment-retry-countdown"
                   tone="muted"
@@ -237,18 +266,10 @@ export function EnrichmentPopup({
 
         {state.status === 'failed' ? (
           <View style={styles.retry}>
-            <View style={styles.failureDetails}>
-              <AppText tone="muted" variant="caption">
-                Erro:
-              </AppText>
-              <AppText
-                testID="song-enrichment-retry-error"
-                tone="muted"
-                variant="caption"
-              >
-                {describeEnrichmentFailure(state.reason, state.httpStatus)}
-              </AppText>
-            </View>
+            <EnrichmentFailureDetails
+              httpStatus={state.httpStatus}
+              reason={state.reason}
+            />
             {cooldownSeconds > 0 ? (
               <AppText tone="muted" variant="caption">
                 Nova tentativa disponível em {cooldownSeconds} s.
