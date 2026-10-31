@@ -73,6 +73,10 @@ function describeEnrichmentFailure(
     case 'rate-limited':
       return `A busca pegou fila no camarim: limite temporário. Código: ${code}.`;
     case 'unavailable':
+      if (httpStatus === 502) {
+        return `O mensageiro entre servidores se perdeu no backstage: erro Bad Gateway. Código: ${code}.`;
+      }
+
       return httpStatus
         ? `O serviço desafinou: falha HTTP. Código: ${code}.`
         : `O cabo da conexão escapou do palco: falha de rede. Código: ${code}.`;
