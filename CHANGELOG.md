@@ -1,9 +1,10 @@
 # Histórico de versões
 
-## 1.1.0 — candidata `v1.1.0-rc.2` em preparação (31/10/2026)
+## 1.1.1 — candidata `v1.1.1-rc.1` em preparação (31/10/2026)
 
-Continuação da `v1.1.0-rc.1`, sem alterar a tag ou os builds já publicados.
-Esta candidata incorpora as melhorias posteriores da PR #86:
+Atualização da candidata `v1.1.0-rc.1`, sem alterar a tag ou os builds já
+publicados. A versão do aplicativo passa a `1.1.1` para o próximo envio ao
+Google Play. Esta candidata incorpora as melhorias posteriores da PR #86:
 
 - A busca assistida usa timeout de 20 segundos por tentativa e até cinco
   tentativas, com esperas padrão progressivas de 5, 10, 15 e 20 segundos.
@@ -17,11 +18,11 @@ Esta candidata incorpora as melhorias posteriores da PR #86:
   `Retry-After` ao `fetch`; o app usou o intervalo padrão. Essa observação não
   confirma os cabeçalhos brutos da conexão.
 
-A versão de produto permanece `1.1.0`; a tag candidata seguinte será criada
-somente após integrar a PR #86. O Android continuará no teste Alpha enquanto o
-Google Play analisa a solicitação de acesso à produção enviada em 31/10. Os
-novos contadores, IDs de build e submissões serão registrados após a conclusão
-do EAS. A tag `v1.1.0-rc.1` e seus artefatos permanecem imutáveis.
+A tag `v1.1.1-rc.1` será criada somente após integrar a PR #86. O Android
+continuará no teste Alpha enquanto o Google Play analisa a solicitação de
+acesso à produção enviada em 31/10. Os contadores, IDs de build e submissões
+serão registrados após a conclusão do EAS. A tag `v1.1.0-rc.1` e seus
+artefatos permanecem imutáveis.
 
 ## 1.1.0 — pré-release `v1.1.0-rc.1` (25/10/2026)
 

@@ -2,7 +2,7 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
-## Atualização de 31 de outubro de 2026 — preparação da candidata `v1.1.0-rc.2`
+## Atualização de 31 de outubro de 2026 — preparação da candidata `v1.1.1-rc.1`
 
 - A PR #86 continua aberta na branch `docs/release-v1.1.0-rc.1-publication`,
   base `main`. Seu head remoto `62a4045a` passou os três checks, mas os checks
@@ -19,10 +19,12 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   ao app; a contagem usou o fallback padrão. A captura foi feita no nível da
   API Fetch da aplicação, não no tráfego HTTP bruto. A instrumentação temporária
   foi removida após registrar a evidência.
-- O próximo candidato proposto é `v1.1.0-rc.2`, mantendo `expo.version` em
-  `1.1.0`. A `v1.1.0-rc.1` e seus builds permanecem imutáveis. Criar a nova tag
-  somente depois de integrar a PR e confirmar o SHA em `main`; então gerar os
-  builds em checkout limpo da tag e submeter os artefatos EAS.
+- A versão foi atualizada para `1.1.1` em `app.json`, `package.json` e
+  `package-lock.json`, conforme solicitado para o próximo envio ao Play Store.
+  O candidato proposto é `v1.1.1-rc.1`; a `v1.1.0-rc.1` e seus builds
+  permanecem imutáveis. Criar a nova tag somente depois de integrar a PR e
+  confirmar o SHA em `main`; então gerar os builds em checkout limpo da tag e
+  submeter os artefatos EAS.
 - O Android deve ser submetido apenas à faixa Alpha enquanto a solicitação de
   acesso à produção estiver em análise. O perfil EAS de submissão Android
   também define `track: alpha`. A submissão iOS envia o IPA ao App Store Connect
