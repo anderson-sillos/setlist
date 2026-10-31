@@ -1,5 +1,28 @@
 # Histórico de versões
 
+## 1.1.0 — candidata `v1.1.0-rc.2` em preparação (31/10/2026)
+
+Continuação da `v1.1.0-rc.1`, sem alterar a tag ou os builds já publicados.
+Esta candidata incorpora as melhorias posteriores da PR #86:
+
+- A busca assistida usa timeout de 20 segundos por tentativa e até cinco
+  tentativas, com esperas padrão progressivas de 5, 10, 15 e 20 segundos.
+  Quando o cabeçalho `Retry-After` está disponível e válido, a espera respeita
+  o intervalo indicado pelo serviço. A janela apresenta a mensagem de erro,
+  código HTTP e contagem regressiva; uma busca válida sem resultados não é
+  repetida.
+- Tocar em uma linha de letra sincronizada posiciona o cronômetro no início
+  desse trecho e inicia ou retoma a reprodução se estiver parada ou pausada.
+- No teste de desenvolvimento Android de 31/10, a resposta HTTP 502 não expôs
+  `Retry-After` ao `fetch`; o app usou o intervalo padrão. Essa observação não
+  confirma os cabeçalhos brutos da conexão.
+
+A versão de produto permanece `1.1.0`; a tag candidata seguinte será criada
+somente após integrar a PR #86. O Android continuará no teste Alpha enquanto o
+Google Play analisa a solicitação de acesso à produção enviada em 31/10. Os
+novos contadores, IDs de build e submissões serão registrados após a conclusão
+do EAS. A tag `v1.1.0-rc.1` e seus artefatos permanecem imutáveis.
+
 ## 1.1.0 — pré-release `v1.1.0-rc.1` (25/10/2026)
 
 Entrega posterior a `v1.0.2-rc.1`, reunindo as PRs #80, #81, #82, #83, #84

@@ -2,6 +2,36 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 31 de outubro de 2026 — preparação da candidata `v1.1.0-rc.2`
+
+- A PR #86 continua aberta na branch `docs/release-v1.1.0-rc.1-publication`,
+  base `main`. Seu head remoto `62a4045a` passou os três checks, mas os checks
+  são anteriores às alterações locais finais e precisam rodar novamente após
+  commit/push.
+- A PR contém as melhorias posteriores à candidata imutável `v1.1.0-rc.1`:
+  timeout de 20 s por tentativa, até cinco tentativas com esperas padrão de
+  5/10/15/20 s, respeito a `Retry-After` válido, feedback HTTP 502 com código e
+  contagem regressiva, e início/retomada do cronômetro ao tocar em um verso.
+  As alterações locais restantes também passam `retryAfterMs` à janela e
+  mostram quando o intervalo foi solicitado pelo serviço.
+- Em 31/10, durante uma busca de “A New Level”/Pantera no Android físico, a
+  resposta HTTP 502 apresentou `Response.headers.get('Retry-After') === null`
+  ao app; a contagem usou o fallback padrão. A captura foi feita no nível da
+  API Fetch da aplicação, não no tráfego HTTP bruto. A instrumentação temporária
+  foi removida após registrar a evidência.
+- O próximo candidato proposto é `v1.1.0-rc.2`, mantendo `expo.version` em
+  `1.1.0`. A `v1.1.0-rc.1` e seus builds permanecem imutáveis. Criar a nova tag
+  somente depois de integrar a PR e confirmar o SHA em `main`; então gerar os
+  builds em checkout limpo da tag e submeter os artefatos EAS.
+- O Android deve ser submetido apenas à faixa Alpha enquanto a solicitação de
+  acesso à produção estiver em análise. O perfil EAS de submissão Android
+  também define `track: alpha`. A submissão iOS envia o IPA ao App Store Connect
+  e não conclui, por si só, o envio da versão para revisão. Sequências, IDs,
+  estado de processamento e destino real devem ser conferidos após os uploads.
+- Não foi solicitado novo deploy Web nesta etapa. As validações funcionais dos
+  novos builds devem permanecer pendentes até serem executadas nos artefatos
+  instalados; as validações anteriores com development client não as substituem.
+
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
 - O responsável enviou pelo Google Play Console o formulário de solicitação de
