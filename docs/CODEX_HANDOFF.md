@@ -37,8 +37,9 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   manifesto.
 - O registro documental complementar está na PR #87, branch
   `docs/finalize-v1.1.1-rc.1`; ela permanece aberta e requer revisão. No head
-  `bb2cc29` os três checks passaram. Esta atualização do handoff fará os checks
-  rodarem novamente; não houve bypass nem merge.
+  `bb2cc29` os três checks passaram antes da última atualização documental.
+  Confira o estado do CI no head mais recente antes da integração; não houve
+  bypass nem merge.
 - O registro documental complementar não altera a tag imutável e não exige novos
   builds. O candidato `v1.1.1-rc.1` permanece inalterado.
 
