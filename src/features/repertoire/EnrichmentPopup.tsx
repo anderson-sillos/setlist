@@ -123,7 +123,7 @@ export function EnrichmentPopup({
           <View style={styles.progress} testID="song-enrichment-progress">
             <ScreenRefreshIndicator />
             {state.status === 'retry-wait' ? (
-              <>
+              <View style={styles.progressDetails}>
                 <AppText
                   testID="song-enrichment-retry-error"
                   tone="muted"
@@ -132,11 +132,15 @@ export function EnrichmentPopup({
                   Erro:{' '}
                   {describeEnrichmentFailure(state.reason, state.httpStatus)}
                 </AppText>
-                <AppText tone="muted" variant="caption">
+                <AppText
+                  testID="song-enrichment-retry-countdown"
+                  tone="muted"
+                  variant="caption"
+                >
                   Tentativa {state.attempt} de {state.total} em{' '}
                   {remainingSeconds} s…
                 </AppText>
-              </>
+              </View>
             ) : null}
           </View>
         ) : null}
@@ -291,6 +295,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: layout.minimumTouchTarget,
+  },
+  progressDetails: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
   },
   candidateScroll: {
     maxHeight: 360,

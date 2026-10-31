@@ -169,12 +169,12 @@ describe('searchLrclibTracks', () => {
       reason: 'rate-limited',
       httpStatus: 429,
       retryAfterMs: 45_000,
-      attemptCount: 3,
+      attemptCount: 5,
       message: 'Não foi possível concluir a busca de música.',
     });
 
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
-    expect(waits).toEqual([45_000, 45_000]);
+    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    expect(waits).toEqual([45_000, 45_000, 45_000, 45_000]);
   });
 
   it('não inclui corpos inválidos nas mensagens ou nos diagnósticos', async () => {
@@ -197,11 +197,11 @@ describe('searchLrclibTracks', () => {
     expect(error).toMatchObject({
       reason: 'unavailable',
       httpStatus: 500,
-      attemptCount: 3,
+      attemptCount: 5,
       message: 'Não foi possível concluir a busca de música.',
     });
     expect(JSON.stringify(error)).not.toContain(privateBody);
-    expect(waits).toEqual([5_000, 10_000]);
+    expect(waits).toEqual([5_000, 10_000, 15_000, 20_000]);
   });
 
   it('cancela sem interpretar cancelamento como indisponibilidade', async () => {
@@ -257,7 +257,7 @@ describe('searchLrclibTracks', () => {
       {
         nextAttempt: 2,
         retryAt: 11_500,
-        totalAttempts: 3,
+        totalAttempts: 5,
         reason: 'unavailable',
         httpStatus: 503,
       },
@@ -292,7 +292,7 @@ describe('searchLrclibTracks', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
-  it('limita três respostas 503 a três chamadas e esperas de cinco e dez segundos', async () => {
+  it('limita cinco respostas 503 a cinco chamadas e esperas crescentes', async () => {
     const fetchImpl = jest
       .fn()
       .mockResolvedValue(response(503, '<html>indisponível</html>'));
@@ -313,12 +313,12 @@ describe('searchLrclibTracks', () => {
     ).rejects.toMatchObject({
       reason: 'unavailable',
       httpStatus: 503,
-      attemptCount: 3,
+      attemptCount: 5,
     });
 
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
-    expect(attempts).toEqual([1, 2, 3]);
-    expect(waits).toEqual([5_000, 10_000]);
+    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    expect(attempts).toEqual([1, 2, 3, 4, 5]);
+    expect(waits).toEqual([5_000, 10_000, 15_000, 20_000]);
   });
 
   it('interrompe a espera e não inicia outra chamada após cancelamento', async () => {
@@ -346,7 +346,7 @@ describe('searchLrclibTracks', () => {
     expect(waits).toEqual([5_000]);
   });
 
-  it('repete timeout da chamada até o limite de três tentativas', async () => {
+  it('repete timeout da chamada até o limite de cinco tentativas', async () => {
     jest.useFakeTimers();
     const fetchImpl = jest.fn(() => new Promise<Response>(() => undefined));
     const waits: number[] = [];
@@ -363,15 +363,17 @@ describe('searchLrclibTracks', () => {
     );
     const rejection = expect(result).rejects.toMatchObject({
       reason: 'timeout',
-      attemptCount: 3,
+      attemptCount: 5,
     });
+    await jest.advanceTimersByTimeAsync(25);
+    await jest.advanceTimersByTimeAsync(25);
     await jest.advanceTimersByTimeAsync(25);
     await jest.advanceTimersByTimeAsync(25);
     await jest.advanceTimersByTimeAsync(25);
 
     await rejection;
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
-    expect(waits).toEqual([5_000, 10_000]);
+    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    expect(waits).toEqual([5_000, 10_000, 15_000, 20_000]);
     jest.useRealTimers();
   });
 });

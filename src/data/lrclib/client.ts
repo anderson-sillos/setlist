@@ -7,9 +7,9 @@ import type {
 } from './types';
 
 const API_BASE_URL = 'https://lrclib.net/api/search';
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS = 5;
 const DEFAULT_TIMEOUT_MS = 20_000;
-const DEFAULT_RETRY_DELAYS_MS = [5_000, 10_000] as const;
+const DEFAULT_RETRY_DELAYS_MS = [5_000, 10_000, 15_000, 20_000] as const;
 
 export class LrclibRequestError extends Error {
   readonly reason: LrclibFailureReason;
