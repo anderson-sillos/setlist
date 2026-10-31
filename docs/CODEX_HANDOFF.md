@@ -2,37 +2,41 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
-## Atualização de 31 de outubro de 2026 — preparação da candidata `v1.1.1-rc.1`
+## Atualização de 31 de outubro de 2026 — release candidata `v1.1.1-rc.1`
 
-- A PR #86 continua aberta na branch `docs/release-v1.1.0-rc.1-publication`,
-  base `main`. Seu head remoto `62a4045a` passou os três checks, mas os checks
-  são anteriores às alterações locais finais e precisam rodar novamente após
-  commit/push.
-- A PR contém as melhorias posteriores à candidata imutável `v1.1.0-rc.1`:
-  timeout de 20 s por tentativa, até cinco tentativas com esperas padrão de
-  5/10/15/20 s, respeito a `Retry-After` válido, feedback HTTP 502 com código e
-  contagem regressiva, e início/retomada do cronômetro ao tocar em um verso.
-  As alterações locais restantes também passam `retryAfterMs` à janela e
-  mostram quando o intervalo foi solicitado pelo serviço.
-- Em 31/10, durante uma busca de “A New Level”/Pantera no Android físico, a
-  resposta HTTP 502 apresentou `Response.headers.get('Retry-After') === null`
-  ao app; a contagem usou o fallback padrão. A captura foi feita no nível da
-  API Fetch da aplicação, não no tráfego HTTP bruto. A instrumentação temporária
-  foi removida após registrar a evidência.
-- A versão foi atualizada para `1.1.1` em `app.json`, `package.json` e
-  `package-lock.json`, conforme solicitado para o próximo envio ao Play Store.
-  O candidato proposto é `v1.1.1-rc.1`; a `v1.1.0-rc.1` e seus builds
-  permanecem imutáveis. Criar a nova tag somente depois de integrar a PR e
-  confirmar o SHA em `main`; então gerar os builds em checkout limpo da tag e
-  submeter os artefatos EAS.
-- O Android deve ser submetido apenas à faixa Alpha enquanto a solicitação de
-  acesso à produção estiver em análise. O perfil EAS de submissão Android
-  também define `track: alpha`. A submissão iOS envia o IPA ao App Store Connect
-  e não conclui, por si só, o envio da versão para revisão. Sequências, IDs,
-  estado de processamento e destino real devem ser conferidos após os uploads.
-- Não foi solicitado novo deploy Web nesta etapa. As validações funcionais dos
-  novos builds devem permanecer pendentes até serem executadas nos artefatos
-  instalados; as validações anteriores com development client não as substituem.
+- A PR #86 foi integrada por squash em `main` em
+  `c756139de797b045db024cd4c3270c188085b52b`; os três checks passaram no head
+  final `fa98eb66fa5c7477d017f01bed0b1fb7e449f0d6`. A tag anotada remota
+  `v1.1.1-rc.1` resolve para o mesmo commit da `main`.
+- A versão do produto é `1.1.1`. A candidata inclui busca assistida com timeout
+  de 20 s por tentativa, até cinco tentativas com esperas padrão de 5/10/15/20 s,
+  respeito a `Retry-After` válido e feedback de erro com código/contagem; tocar
+  em verso sincronizado busca seu tempo e inicia ou retoma o cronômetro.
+- Android `1.1.1 (13)`: build EAS
+  `b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`, commit `c756139`, perfil
+  `production-android`, AAB/STORE. O AAB íntegro contém o mapa R8; foi submetido
+  pelo EAS ao Google Play na faixa Alpha com status de envio concluído. O
+  processamento/visibilidade final ainda deve ser confirmado no Console. O
+  `jarsigner` local não pôde ser executado porque este Mac não tem JRE. O pedido
+  de acesso à Produção continua em análise; não enviar para essa faixa.
+- iOS `1.1.1 (12)`: build EAS
+  `623b0e92-6ba3-4090-bde0-1113ecc52448`, commit `c756139`, perfil `production`,
+  IPA/STORE. Bundle ID `com.andersonsillos.setlist`, versão `1.1.1`, build `12`
+  e mínimo iOS `16.4` foram conferidos. O upload ao App Store Connect concluiu
+  e a Apple está processando o build; ainda não foi enviado à revisão da loja.
+  O verificador local `codesign` retornou `CSSMERR_TP_NOT_TRUSTED`; a Apple
+  aceitou o upload e o resultado do processamento permanece pendente.
+- Os binários foram baixados e conferidos em `/private/tmp`; não foram incluídos
+  no Git. Os JSON brutos de build também estão somente em diretório privado.
+  O rascunho `v1.1.1-rc.1` no GitHub contém as notas atualizadas e o manifesto
+  schema 2; o manifesto mantém as validações como `pending`.
+- Não houve novo deploy Web. A validação funcional nos builds nativos de
+  produção e na Web permanece pendente; as validações anteriores com development
+  clients não substituem esses testes. Não publicar a pré-release como pronta
+  até confirmar processamento, validar os artefatos instalados e atualizar o
+  manifesto.
+- Registro documental complementar não altera a tag imutável e não exige novos
+  builds. O candidato `v1.1.0-rc.1` permanece inalterado.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 

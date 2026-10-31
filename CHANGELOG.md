@@ -1,28 +1,39 @@
 # Histórico de versões
 
-## 1.1.1 — candidata `v1.1.1-rc.1` em preparação (31/10/2026)
+## 1.1.1 — candidata `v1.1.1-rc.1` (31/10/2026)
 
-Atualização da candidata `v1.1.0-rc.1`, sem alterar a tag ou os builds já
-publicados. A versão do aplicativo passa a `1.1.1` para o próximo envio ao
-Google Play. Esta candidata incorpora as melhorias posteriores da PR #86:
+Candidata posterior a `v1.1.0-rc.1`, com as melhorias da PR #86:
 
 - A busca assistida usa timeout de 20 segundos por tentativa e até cinco
   tentativas, com esperas padrão progressivas de 5, 10, 15 e 20 segundos.
   Quando o cabeçalho `Retry-After` está disponível e válido, a espera respeita
-  o intervalo indicado pelo serviço. A janela apresenta a mensagem de erro,
-  código HTTP e contagem regressiva; uma busca válida sem resultados não é
-  repetida.
-- Tocar em uma linha de letra sincronizada posiciona o cronômetro no início
+  o intervalo indicado pelo serviço. A janela apresenta mensagem contextual,
+  código HTTP e contagem regressiva; uma busca válida sem resultados não se
+  repete.
+- Tocar em uma linha da letra sincronizada posiciona o cronômetro no início
   desse trecho e inicia ou retoma a reprodução se estiver parada ou pausada.
-- No teste de desenvolvimento Android de 31/10, a resposta HTTP 502 não expôs
-  `Retry-After` ao `fetch`; o app usou o intervalo padrão. Essa observação não
-  confirma os cabeçalhos brutos da conexão.
 
-A tag `v1.1.1-rc.1` será criada somente após integrar a PR #86. O Android
-continuará no teste Alpha enquanto o Google Play analisa a solicitação de
-acesso à produção enviada em 31/10. Os contadores, IDs de build e submissões
-serão registrados após a conclusão do EAS. A tag `v1.1.0-rc.1` e seus
-artefatos permanecem imutáveis.
+A PR #86 foi integrada em `main` com o commit
+`c756139de797b045db024cd4c3270c188085b52b`. A tag imutável
+`v1.1.1-rc.1` aponta para esse mesmo commit; a candidata anterior
+`v1.1.0-rc.1` e seus artefatos permanecem inalterados.
+
+### Builds e distribuição
+
+- Android `1.1.1 (13)`: EAS `b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`, perfil
+  `production-android`, AAB/STORE. Enviado ao Google Play na faixa Alpha; o
+  processamento e a disponibilidade no Console ainda precisam ser conferidos.
+  A faixa Produção segue indisponível enquanto o pedido de acesso é analisado.
+- iOS `1.1.1 (12)`: EAS `623b0e92-6ba3-4090-bde0-1113ecc52448`, perfil
+  `production`, IPA/STORE. Enviado ao App Store Connect e em processamento pela
+  Apple. A versão ainda não foi enviada à revisão da App Store.
+- Web `1.1.1`: não publicada nesta etapa; validação pendente.
+
+Os artefatos nativos e as validações funcionais permanecem pendentes. Upload à
+loja não confirma disponibilidade pública nem aprovação em revisão. O manifesto
+e o estado detalhado estão em
+[docs/releases/v1.1.1-rc.1.md](docs/releases/v1.1.1-rc.1.md) e no rascunho da
+pré-release no GitHub.
 
 ## 1.1.0 — pré-release `v1.1.0-rc.1` (25/10/2026)
 
