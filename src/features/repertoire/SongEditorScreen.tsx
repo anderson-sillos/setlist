@@ -519,6 +519,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
               retryAt,
               reason,
               httpStatus,
+              retryAfterMs,
             }) => {
               if (operationId !== enrichmentSequence.current) return;
               setEnrichmentClockNow(Date.now());
@@ -530,6 +531,7 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
                   retryAt,
                   reason,
                   ...(httpStatus !== undefined ? { httpStatus } : {}),
+                  ...(retryAfterMs !== undefined ? { retryAfterMs } : {}),
                 },
                 'retry-wait',
               );

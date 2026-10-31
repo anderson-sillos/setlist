@@ -358,6 +358,9 @@ export async function searchLrclibTracks(
       ...(attemptFailure.httpStatus !== undefined
         ? { httpStatus: attemptFailure.httpStatus }
         : {}),
+      ...(attemptFailure.retryAfterMs !== undefined
+        ? { retryAfterMs: attemptFailure.retryAfterMs }
+        : {}),
     });
     try {
       await sleep(waitMs, options.signal);

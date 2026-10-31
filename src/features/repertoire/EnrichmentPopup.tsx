@@ -165,6 +165,17 @@ export function EnrichmentPopup({
                   httpStatus={state.httpStatus}
                   reason={state.reason}
                 />
+                {state.retryAfterMs !== undefined && state.retryAfterMs > 0 ? (
+                  <AppText
+                    testID="song-enrichment-server-wait"
+                    tone="muted"
+                    variant="caption"
+                  >
+                    O serviço pediu um intervalo de{' '}
+                    {Math.ceil(state.retryAfterMs / 1_000)} s antes do próximo
+                    bis.
+                  </AppText>
+                ) : null}
                 <AppText
                   testID="song-enrichment-retry-countdown"
                   tone="muted"

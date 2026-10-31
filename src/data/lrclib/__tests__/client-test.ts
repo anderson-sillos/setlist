@@ -260,6 +260,7 @@ describe('searchLrclibTracks', () => {
         totalAttempts: 5,
         reason: 'unavailable',
         httpStatus: 503,
+        retryAfterMs: 1_500,
       },
     ]);
   });

@@ -30,6 +30,7 @@ export type EnrichmentOperationState =
       readonly retryAt: number;
       readonly reason: LrclibFailureReason;
       readonly httpStatus?: number;
+      readonly retryAfterMs?: number;
     }
   | { readonly status: 'ranking' }
   | {
