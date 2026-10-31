@@ -8,8 +8,8 @@ import type {
 
 const API_BASE_URL = 'https://lrclib.net/api/search';
 const MAX_ATTEMPTS = 3;
-const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_RETRY_DELAYS_MS = [2_000, 4_000] as const;
+const DEFAULT_TIMEOUT_MS = 20_000;
+const DEFAULT_RETRY_DELAYS_MS = [5_000, 10_000] as const;
 
 export class LrclibRequestError extends Error {
   readonly reason: LrclibFailureReason;
@@ -153,13 +153,22 @@ function abortableSleep(
   });
 }
 
+type TimedResponse =
+  | { readonly response: Response; readonly bodyState: 'not-read' }
+  | {
+      readonly response: Response;
+      readonly bodyState: 'valid';
+      readonly payload: unknown;
+    }
+  | { readonly response: Response; readonly bodyState: 'invalid' };
+
 async function fetchWithTimeout(
   fetchImpl: typeof fetch,
   url: string,
   headers: Readonly<Record<string, string>>,
   timeoutMs: number,
   externalSignal?: AbortSignal,
-): Promise<Response> {
+): Promise<TimedResponse> {
   if (externalSignal?.aborted) throw createAbortError();
 
   const controller = new AbortController();
@@ -187,16 +196,26 @@ async function fetchWithTimeout(
   });
 
   try {
-    return await Promise.race([
-      fetchImpl(url, {
-        credentials: 'omit',
-        headers,
-        method: 'GET',
-        signal: controller.signal,
-      }),
-      timeout,
-      cancelled,
-    ]);
+    const requestAndReadBody = fetchImpl(url, {
+      credentials: 'omit',
+      headers,
+      method: 'GET',
+      signal: controller.signal,
+    }).then(async (response): Promise<TimedResponse> => {
+      if (!response.ok) return { response, bodyState: 'not-read' };
+
+      try {
+        return {
+          response,
+          bodyState: 'valid',
+          payload: await response.json(),
+        };
+      } catch {
+        return { response, bodyState: 'invalid' };
+      }
+    });
+
+    return await Promise.race([requestAndReadBody, timeout, cancelled]);
   } catch (error) {
     if (externalSignal?.aborted) throw createAbortError();
     if (didTimeout) {
@@ -254,114 +273,102 @@ export async function searchLrclibTracks(
     if (options.signal?.aborted) throw createAbortError();
     options.onAttempt?.(attempt, MAX_ATTEMPTS);
 
-    let response: Response;
+    let failure: LrclibRequestError | null = null;
     try {
-      response = await fetchWithTimeout(
+      const result = await fetchWithTimeout(
         fetchImpl,
         url.toString(),
         headers,
         timeoutMs,
         options.signal,
       );
+      const { response } = result;
+
+      if (!response.ok) {
+        const retryAfterMs = getRetryAfterMs(
+          response.headers.get('Retry-After'),
+          now(),
+        );
+        failure = new LrclibRequestError({
+          reason: response.status === 429 ? 'rate-limited' : 'unavailable',
+          httpStatus: response.status,
+          ...(retryAfterMs !== null ? { retryAfterMs } : {}),
+          attemptCount: attempt,
+        });
+      } else if (result.bodyState === 'invalid') {
+        failure = new LrclibRequestError({
+          reason: 'invalid-response',
+          httpStatus: response.status,
+          attemptCount: attempt,
+        });
+      } else {
+        if (result.bodyState !== 'valid' || !Array.isArray(result.payload)) {
+          failure = new LrclibRequestError({
+            reason: 'invalid-response',
+            httpStatus: response.status,
+            attemptCount: attempt,
+          });
+        } else if (result.payload.length === 0) {
+          return [];
+        } else {
+          const candidates = result.payload
+            .map(parseTrack)
+            .filter((track) => track !== null);
+          if (candidates.length === 0) {
+            failure = new LrclibRequestError({
+              reason: 'invalid-response',
+              httpStatus: response.status,
+              attemptCount: attempt,
+            });
+          } else {
+            return candidates;
+          }
+        }
+      }
     } catch (error) {
       if (error instanceof LrclibRequestCancelledError) throw error;
       if (error instanceof LrclibRequestError) {
-        throw new LrclibRequestError({
+        failure = new LrclibRequestError({
           reason: error.reason,
           httpStatus: error.httpStatus,
           retryAfterMs: error.retryAfterMs,
           attemptCount: attempt,
         });
-      }
-      throw new LrclibRequestError({
-        reason: 'unavailable',
-        attemptCount: attempt,
-      });
-    }
-
-    if (response.status === 503 && attempt < MAX_ATTEMPTS) {
-      const retryAfterMs = getRetryAfterMs(
-        response.headers.get('Retry-After'),
-        now(),
-      );
-      const waitMs = retryAfterMs ?? DEFAULT_RETRY_DELAYS_MS[attempt - 1]!;
-      const retryAt = now() + waitMs;
-      options.onRetryWait?.({
-        nextAttempt: attempt + 1,
-        totalAttempts: MAX_ATTEMPTS,
-        retryAt,
-      });
-      try {
-        await sleep(waitMs, options.signal);
-      } catch {
-        if (options.signal?.aborted) throw createAbortError();
-        throw new LrclibRequestError({
+      } else {
+        failure = new LrclibRequestError({
           reason: 'unavailable',
-          httpStatus: 503,
           attemptCount: attempt,
         });
       }
-      continue;
     }
 
-    if (response.status === 429) {
-      const retryAfterMs = getRetryAfterMs(
-        response.headers.get('Retry-After'),
-        now(),
-      );
-      throw new LrclibRequestError({
-        reason: 'rate-limited',
-        httpStatus: 429,
-        ...(retryAfterMs !== null ? { retryAfterMs } : {}),
-        attemptCount: attempt,
-      });
-    }
+    const attemptFailure =
+      failure ??
+      new LrclibRequestError({ reason: 'unavailable', attemptCount: attempt });
+    if (attempt === MAX_ATTEMPTS) throw attemptFailure;
 
-    if (!response.ok) {
-      const retryAfterMs = getRetryAfterMs(
-        response.headers.get('Retry-After'),
-        now(),
-      );
+    const waitMs =
+      attemptFailure.retryAfterMs ?? DEFAULT_RETRY_DELAYS_MS[attempt - 1]!;
+    const retryAt = now() + waitMs;
+    options.onRetryWait?.({
+      nextAttempt: attempt + 1,
+      totalAttempts: MAX_ATTEMPTS,
+      retryAt,
+      reason: attemptFailure.reason,
+      ...(attemptFailure.httpStatus !== undefined
+        ? { httpStatus: attemptFailure.httpStatus }
+        : {}),
+    });
+    try {
+      await sleep(waitMs, options.signal);
+    } catch {
+      if (options.signal?.aborted) throw createAbortError();
       throw new LrclibRequestError({
         reason: 'unavailable',
-        httpStatus: response.status,
-        ...(retryAfterMs !== null ? { retryAfterMs } : {}),
+        httpStatus: attemptFailure.httpStatus,
         attemptCount: attempt,
       });
     }
-
-    let payload: unknown;
-    try {
-      payload = await response.json();
-    } catch {
-      throw new LrclibRequestError({
-        reason: 'invalid-response',
-        httpStatus: response.status,
-        attemptCount: attempt,
-      });
-    }
-
-    if (!Array.isArray(payload)) {
-      throw new LrclibRequestError({
-        reason: 'invalid-response',
-        httpStatus: response.status,
-        attemptCount: attempt,
-      });
-    }
-
-    if (payload.length === 0) return [];
-    const candidates = payload
-      .map(parseTrack)
-      .filter((track) => track !== null);
-    if (candidates.length === 0) {
-      throw new LrclibRequestError({
-        reason: 'invalid-response',
-        httpStatus: response.status,
-        attemptCount: attempt,
-      });
-    }
-
-    return candidates;
   }
 
   throw new LrclibRequestError({

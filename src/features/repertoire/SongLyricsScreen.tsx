@@ -592,6 +592,9 @@ function SongLyricsScreenSession({ bandId, songId }: SongLyricsScreenProps) {
                       setScrubPreview(null);
                       resumeAutoFollow();
                       timedLyrics.seekTo(positionMs);
+                      if (timedLyrics.status !== 'running') {
+                        timedLyrics.start();
+                      }
                     }
                   : undefined
               }

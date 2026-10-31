@@ -513,7 +513,13 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
                 total,
               });
             },
-            onRetryWait: ({ nextAttempt, totalAttempts, retryAt }) => {
+            onRetryWait: ({
+              nextAttempt,
+              totalAttempts,
+              retryAt,
+              reason,
+              httpStatus,
+            }) => {
               if (operationId !== enrichmentSequence.current) return;
               setEnrichmentClockNow(Date.now());
               setEnrichmentStatus(
@@ -522,6 +528,8 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
                   attempt: nextAttempt,
                   total: totalAttempts,
                   retryAt,
+                  reason,
+                  ...(httpStatus !== undefined ? { httpStatus } : {}),
                 },
                 'retry-wait',
               );
@@ -623,6 +631,10 @@ export function SongEditorScreen({ bandId, songId }: SongEditorScreenProps) {
           {
             status: 'failed',
             reason,
+            ...(error instanceof LrclibRequestError &&
+            error.httpStatus !== undefined
+              ? { httpStatus: error.httpStatus }
+              : {}),
             ...(retryAt ? { retryAt } : {}),
           },
           'failed',

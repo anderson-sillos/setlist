@@ -13,6 +13,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { ScreenRefreshIndicator } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
+import type { LrclibFailureReason } from '@/data/lrclib/types';
 import type {
   EnrichmentCandidate,
   EnrichmentOperationState,
@@ -48,6 +49,35 @@ const activeStatuses = new Set([
   'validating',
   'applying',
 ]);
+
+function describeEnrichmentFailure(
+  reason: LrclibFailureReason,
+  httpStatus?: number,
+): string {
+  const code =
+    reason === 'timeout'
+      ? 'TIMEOUT'
+      : reason === 'invalid-response'
+        ? `INVALID_RESPONSE${httpStatus ? ` (HTTP ${httpStatus})` : ''}`
+        : reason === 'rate-limited'
+          ? `RATE_LIMITED${httpStatus ? ` (HTTP ${httpStatus})` : ''}`
+          : httpStatus
+            ? `HTTP_${httpStatus}`
+            : 'NETWORK_ERROR';
+
+  switch (reason) {
+    case 'timeout':
+      return `A busca fez um solo longo demais: tempo limite excedido. Código: ${code}.`;
+    case 'invalid-response':
+      return `O retorno veio em partitura alienígena: resposta inválida. Código: ${code}.`;
+    case 'rate-limited':
+      return `A busca pegou fila no camarim: limite temporário. Código: ${code}.`;
+    case 'unavailable':
+      return httpStatus
+        ? `O serviço desafinou: falha HTTP. Código: ${code}.`
+        : `O cabo da conexão escapou do palco: falha de rede. Código: ${code}.`;
+  }
+}
 
 export function EnrichmentPopup({
   visible,
@@ -89,10 +119,20 @@ export function EnrichmentPopup({
           <View style={styles.progress} testID="song-enrichment-progress">
             <ScreenRefreshIndicator />
             {state.status === 'retry-wait' ? (
-              <AppText tone="muted" variant="caption">
-                Tentativa {state.attempt} de {state.total} em {remainingSeconds}{' '}
-                s…
-              </AppText>
+              <>
+                <AppText
+                  testID="song-enrichment-retry-error"
+                  tone="muted"
+                  variant="caption"
+                >
+                  Erro:{' '}
+                  {describeEnrichmentFailure(state.reason, state.httpStatus)}
+                </AppText>
+                <AppText tone="muted" variant="caption">
+                  Tentativa {state.attempt} de {state.total} em{' '}
+                  {remainingSeconds} s…
+                </AppText>
+              </>
             ) : null}
           </View>
         ) : null}
@@ -185,6 +225,13 @@ export function EnrichmentPopup({
 
         {state.status === 'failed' ? (
           <View style={styles.retry}>
+            <AppText
+              testID="song-enrichment-retry-error"
+              tone="muted"
+              variant="caption"
+            >
+              Erro: {describeEnrichmentFailure(state.reason, state.httpStatus)}
+            </AppText>
             {cooldownSeconds > 0 ? (
               <AppText tone="muted" variant="caption">
                 Nova tentativa disponível em {cooldownSeconds} s.
