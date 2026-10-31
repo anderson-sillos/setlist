@@ -16,4 +16,7 @@ export interface LrclibRetryWait {
   readonly nextAttempt: number;
   readonly totalAttempts: number;
   readonly retryAt: number;
+  readonly reason: LrclibFailureReason;
+  readonly httpStatus?: number;
+  readonly retryAfterMs?: number;
 }

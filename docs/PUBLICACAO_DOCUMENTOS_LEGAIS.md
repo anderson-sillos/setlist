@@ -9,11 +9,22 @@ As URLs canônicas `/termos/` e `/privacidade/` retornaram HTTP 200 sem
 autenticação e exibiram a versão e a data aprovadas. A tarefa 11.8.9 está
 concluída. Este runbook passa a servir para futuras alterações dos documentos.
 
-O grupo 11.8 permanece aberto: os documentos legais da Web estão publicados e
-as configurações etárias das lojas foram conferidas, mas o app ainda não está
-em distribuição pública nas duas lojas. O Google Play mantém o AAB em teste
-fechado e o App Store Connect solicitou informações adicionais sob a diretriz
-2.1.
+### Atualização de 31/10/2026 — acesso à produção Android
+
+O responsável enviou pelo Google Play Console o formulário de solicitação de
+acesso à produção em 31/10/2026 às 16h41 (America/Sao_Paulo). O Console
+confirmou que a solicitação está em análise, com resposta por e-mail ao
+responsável da conta; o prazo usual informado é de até sete dias, podendo ser
+maior. O AAB `1.1.0 (12)` continua na faixa Alpha. O acesso ainda não foi
+concedido e nenhuma release foi enviada à faixa Produção; são etapas distintas
+da disponibilização pública.
+
+Na situação registrada em 21/10/2026, o grupo 11.8 permanecia aberto: os
+documentos legais da Web estavam publicados e as configurações etárias das
+lojas haviam sido conferidas, mas o app ainda não estava em distribuição
+pública. Naquela data, o Google Play mantinha o AAB em teste fechado e o App
+Store Connect solicitara informações adicionais sob a diretriz 2.1. Consulte a
+atualização de 31/10 acima para o estado posterior do pedido de acesso Android.
 
 ### Candidata de atualização dos Termos preparada em 24/10/2026
 

@@ -13,6 +13,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppText } from '@/components/ui/AppText';
 import { ScreenRefreshIndicator } from '@/components/ui/ScreenDataRefresh';
 import { OptionSheet } from '@/components/ui/list-controls/OptionSheet';
+import type { LrclibFailureReason } from '@/data/lrclib/types';
 import type {
   EnrichmentCandidate,
   EnrichmentOperationState,
@@ -48,6 +49,76 @@ const activeStatuses = new Set([
   'validating',
   'applying',
 ]);
+
+function getEnrichmentFailureFeedback(
+  reason: LrclibFailureReason,
+  httpStatus?: number,
+): { readonly message: string; readonly code: string } {
+  const code =
+    reason === 'timeout'
+      ? 'TIMEOUT'
+      : reason === 'invalid-response'
+        ? `INVALID_RESPONSE${httpStatus ? ` (HTTP ${httpStatus})` : ''}`
+        : reason === 'rate-limited'
+          ? `RATE_LIMITED${httpStatus ? ` (HTTP ${httpStatus})` : ''}`
+          : httpStatus
+            ? `HTTP_${httpStatus}`
+            : 'NETWORK_ERROR';
+
+  let message: string;
+  switch (reason) {
+    case 'timeout':
+      message = 'A busca fez um solo longo demais: o tempo acabou.';
+      break;
+    case 'invalid-response':
+      message = 'O retorno veio em partitura alienígena: resposta inválida.';
+      break;
+    case 'rate-limited':
+      message = 'A busca pegou fila no camarim: limite temporário.';
+      break;
+    case 'unavailable':
+      if (httpStatus === 502) {
+        message =
+          'O mensageiro entre servidores se perdeu no backstage: resposta Bad Gateway.';
+      } else if (httpStatus) {
+        message = 'O serviço desafinou: resposta HTTP indisponível.';
+      } else {
+        message = 'O cabo da conexão escapou do palco: falha de rede.';
+      }
+      break;
+  }
+
+  return { message, code };
+}
+
+function EnrichmentFailureDetails({
+  reason,
+  httpStatus,
+}: {
+  readonly reason: LrclibFailureReason;
+  readonly httpStatus?: number;
+}) {
+  const feedback = getEnrichmentFailureFeedback(reason, httpStatus);
+
+  return (
+    <View style={styles.failureDetails}>
+      <AppText
+        testID="song-enrichment-retry-error"
+        tone="muted"
+        variant="caption"
+      >
+        {feedback.message}
+      </AppText>
+      <AppText
+        testID="song-enrichment-error-code"
+        tone="muted"
+        variant="caption"
+      >
+        Código: {feedback.code}
+      </AppText>
+    </View>
+  );
+}
 
 export function EnrichmentPopup({
   visible,
@@ -89,10 +160,31 @@ export function EnrichmentPopup({
           <View style={styles.progress} testID="song-enrichment-progress">
             <ScreenRefreshIndicator />
             {state.status === 'retry-wait' ? (
-              <AppText tone="muted" variant="caption">
-                Tentativa {state.attempt} de {state.total} em {remainingSeconds}{' '}
-                s…
-              </AppText>
+              <View style={styles.progressDetails}>
+                <EnrichmentFailureDetails
+                  httpStatus={state.httpStatus}
+                  reason={state.reason}
+                />
+                {state.retryAfterMs !== undefined && state.retryAfterMs > 0 ? (
+                  <AppText
+                    testID="song-enrichment-server-wait"
+                    tone="muted"
+                    variant="caption"
+                  >
+                    O serviço pediu um intervalo de{' '}
+                    {Math.ceil(state.retryAfterMs / 1_000)} s antes do próximo
+                    bis.
+                  </AppText>
+                ) : null}
+                <AppText
+                  testID="song-enrichment-retry-countdown"
+                  tone="muted"
+                  variant="caption"
+                >
+                  Tentativa {state.attempt} de {state.total} em{' '}
+                  {remainingSeconds} s…
+                </AppText>
+              </View>
             ) : null}
           </View>
         ) : null}
@@ -185,6 +277,10 @@ export function EnrichmentPopup({
 
         {state.status === 'failed' ? (
           <View style={styles.retry}>
+            <EnrichmentFailureDetails
+              httpStatus={state.httpStatus}
+              reason={state.reason}
+            />
             {cooldownSeconds > 0 ? (
               <AppText tone="muted" variant="caption">
                 Nova tentativa disponível em {cooldownSeconds} s.
@@ -240,6 +336,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: layout.minimumTouchTarget,
+  },
+  progressDetails: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
+  },
+  failureDetails: {
+    gap: spacing.xs,
   },
   candidateScroll: {
     maxHeight: 360,

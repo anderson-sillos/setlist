@@ -1,3 +1,5 @@
+import type { LrclibFailureReason } from '@/data/lrclib/types';
+
 /** Metadados consumidos da busca; lyrics são mantidas apenas no fluxo local. */
 export interface EnrichmentCandidate {
   readonly recordId: number;
@@ -26,6 +28,9 @@ export type EnrichmentOperationState =
       readonly attempt: number;
       readonly total: number;
       readonly retryAt: number;
+      readonly reason: LrclibFailureReason;
+      readonly httpStatus?: number;
+      readonly retryAfterMs?: number;
     }
   | { readonly status: 'ranking' }
   | {
@@ -44,7 +49,7 @@ export type EnrichmentOperationState =
   | { readonly status: 'empty' }
   | {
       readonly status: 'failed';
-      readonly reason:
-        'timeout' | 'invalid-response' | 'rate-limited' | 'unavailable';
+      readonly reason: LrclibFailureReason;
+      readonly httpStatus?: number;
       readonly retryAt?: number;
     };

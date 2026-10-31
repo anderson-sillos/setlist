@@ -1,10 +1,33 @@
 # Histórico de versões
 
-## 1.1.0 — candidata `v1.1.0-rc.1` em preparação
+## 1.1.1 — candidata `v1.1.1-rc.1` em preparação (31/10/2026)
 
-Entrega posterior a `v1.0.2-rc.1`, reunindo as PRs #80, #81, #82, #83 e #84
-e as correções do editor da branch `fix/song-editor-resume-refresh`. A versão
-comum de Android, iOS e Web passa a `1.1.0`, conforme a regra de incremento para
+Atualização da candidata `v1.1.0-rc.1`, sem alterar a tag ou os builds já
+publicados. A versão do aplicativo passa a `1.1.1` para o próximo envio ao
+Google Play. Esta candidata incorpora as melhorias posteriores da PR #86:
+
+- A busca assistida usa timeout de 20 segundos por tentativa e até cinco
+  tentativas, com esperas padrão progressivas de 5, 10, 15 e 20 segundos.
+  Quando o cabeçalho `Retry-After` está disponível e válido, a espera respeita
+  o intervalo indicado pelo serviço. A janela apresenta a mensagem de erro,
+  código HTTP e contagem regressiva; uma busca válida sem resultados não é
+  repetida.
+- Tocar em uma linha de letra sincronizada posiciona o cronômetro no início
+  desse trecho e inicia ou retoma a reprodução se estiver parada ou pausada.
+- No teste de desenvolvimento Android de 31/10, a resposta HTTP 502 não expôs
+  `Retry-After` ao `fetch`; o app usou o intervalo padrão. Essa observação não
+  confirma os cabeçalhos brutos da conexão.
+
+A tag `v1.1.1-rc.1` será criada somente após integrar a PR #86. O Android
+continuará no teste Alpha enquanto o Google Play analisa a solicitação de
+acesso à produção enviada em 31/10. Os contadores, IDs de build e submissões
+serão registrados após a conclusão do EAS. A tag `v1.1.0-rc.1` e seus
+artefatos permanecem imutáveis.
+
+## 1.1.0 — pré-release `v1.1.0-rc.1` (25/10/2026)
+
+Entrega posterior a `v1.0.2-rc.1`, reunindo as PRs #80, #81, #82, #83, #84
+e #85. A versão comum de Android, iOS e Web passa a `1.1.0`, conforme a regra de incremento para
 novas funcionalidades em `docs/RELEASE_PROCESS.md`.
 
 ### Cadastro e edição de músicas
@@ -47,19 +70,28 @@ novas funcionalidades em `docs/RELEASE_PROCESS.md`.
 - A candidata inclui a revisão dos Termos de Uso sobre a busca assistida,
   preservando a responsabilidade sobre os direitos do conteúdo sugerido.
 
-### Preparação da distribuição
+### Distribuição e evidências
 
-- Notas completas e roteiro da candidata em
+- [Release publicada com notas e manifesto](https://github.com/anderson-sillos/setlist/releases/tag/v1.1.0-rc.1),
+  no commit `0862ce6d549c70ac76f901a3bd0eabdda31ade3b`.
+- Android `1.1.0 (12)` enviado à faixa Alpha do Google Play e iOS `1.1.0 (11)`
+  processado pela Apple e disponível no TestFlight interno. As duas submissões
+  EAS estão `FINISHED`; a versão iOS ainda precisa de envio à revisão da loja.
+- Web publicada pelo GitHub Pages a partir da mesma tag; os manifestos de
+  `/release.json` e `/app/release.json` foram conferidos como idênticos ao
+  ativo da Release. Os documentos legais são os da mesma tag.
+- As migrações `20261024100000` e `20261024100100` foram aplicadas em produção,
+  nessa ordem, e conferidas no histórico, enum e constraint em 25/10/2026.
+- Em 31/10/2026 às 16h41 (America/Sao_Paulo), foi solicitado pelo Play Console acesso à faixa
+  Produção. O pedido segue em análise; o AAB `1.1.0 (12)` permanece na Alpha e
+  ainda não foi enviada uma release à faixa Produção.
+- O responsável confirmou a validação manual do cronômetro, da busca assistida
+  e dos últimos ajustes do editor em Web, Android, iPad e iPhone com builds de
+  desenvolvimento. A tarefa 6.3 da busca assistida foi encerrada por essa
+  confirmação; a validação funcional dos novos artefatos de produção permanece
+  pendente no manifesto. Upload não confirma disponibilidade pública nas lojas.
+- IDs, contadores, hashes e estado dos canais em
   [docs/releases/v1.1.0-rc.1.md](docs/releases/v1.1.0-rc.1.md).
-- Antes de salvar músicas instrumentais em produção, conferir as migrações
-  `20261024100000` e `20261024100100` e aplicá-las, nessa ordem, se pendentes.
-- A tag deve apontar para o commit integrado à `main`. Os novos builds AAB/IPA
-  e o export Web deverão usar esse mesmo commit; os contadores serão
-  registrados após sua atribuição real pelo EAS.
-- A validação manual do cronômetro foi confirmada em Web, Android, iPad e
-  iPhone. A tarefa 6.3 da busca assistida permanece pendente no arquivo da
-  change; as últimas correções do editor e os artefatos de produção ainda
-  precisam de conferência. Não foram gerados novos builds nesta preparação.
 
 ## 1.0.2 — pré-release `v1.0.2-rc.1`
 
