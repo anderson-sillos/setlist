@@ -35,8 +35,12 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   clients não substituem esses testes. Não publicar a pré-release como pronta
   até confirmar processamento, validar os artefatos instalados e atualizar o
   manifesto.
-- Registro documental complementar não altera a tag imutável e não exige novos
-  builds. O candidato `v1.1.0-rc.1` permanece inalterado.
+- O registro documental complementar está na PR #87, branch
+  `docs/finalize-v1.1.1-rc.1`; ela permanece aberta e requer revisão. No head
+  `bb2cc29` os três checks passaram. Esta atualização do handoff fará os checks
+  rodarem novamente; não houve bypass nem merge.
+- O registro documental complementar não altera a tag imutável e não exige novos
+  builds. O candidato `v1.1.1-rc.1` permanece inalterado.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
