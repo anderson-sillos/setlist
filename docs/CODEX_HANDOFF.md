@@ -2,6 +2,28 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
+## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
+
+- O responsável enviou pelo Google Play Console o formulário de solicitação de
+  acesso à produção em 31/10/2026 às 16h41 (America/Sao_Paulo). O Console
+  confirmou o recebimento e informou que a análise costuma levar até sete dias,
+  embora possa demorar mais; a resposta será enviada por e-mail ao responsável
+  da conta.
+- O pedido ainda está em análise. Isso é uma solicitação de autorização para
+  usar a faixa Produção, não uma aprovação, publicação ou início de rollout.
+  O AAB Android `1.1.0 (12)` permanece na faixa Alpha; ainda não houve envio de
+  uma release à faixa Produção.
+- Respostas confirmadas para o formulário: recrutamento entre familiares e
+  amigos que participam de bandas, com dificuldade classificada como
+  “Difficult”; participantes usaram o app como parte da rotina de músicos; o
+  feedback foi recebido em conversas e pelo WhatsApp. O responsável confirmou
+  que o feedback do teste motivou correções no teclado, na atualização do
+  editor, nas sugestões de artistas e na leitura das letras. Não foram
+  informados quantidade de participantes nem uso de serviço pago.
+- Próximo passo: aguardar o e-mail do Google Play Console. Se o acesso for
+  concedido, preparar e enviar uma release à faixa Produção separadamente e
+  registrar o estado do rollout; se não, seguir as instruções da resposta.
+
 ## Atualização de 25 de outubro de 2026 — publicação de `v1.1.0-rc.1`
 
 - A PR #85 foi integrada por squash com bypass administrativo autorizado,

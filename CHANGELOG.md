@@ -58,6 +58,9 @@ novas funcionalidades em `docs/RELEASE_PROCESS.md`.
   ativo da Release. Os documentos legais são os da mesma tag.
 - As migrações `20261024100000` e `20261024100100` foram aplicadas em produção,
   nessa ordem, e conferidas no histórico, enum e constraint em 25/10/2026.
+- Em 31/10/2026 às 16h41 (America/Sao_Paulo), foi solicitado pelo Play Console acesso à faixa
+  Produção. O pedido segue em análise; o AAB `1.1.0 (12)` permanece na Alpha e
+  ainda não foi enviada uma release à faixa Produção.
 - O responsável confirmou a validação manual do cronômetro, da busca assistida
   e dos últimos ajustes do editor em Web, Android, iPad e iPhone com builds de
   desenvolvimento. A tarefa 6.3 da busca assistida foi encerrada por essa
