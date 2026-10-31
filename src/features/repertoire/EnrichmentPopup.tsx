@@ -124,14 +124,18 @@ export function EnrichmentPopup({
             <ScreenRefreshIndicator />
             {state.status === 'retry-wait' ? (
               <View style={styles.progressDetails}>
-                <AppText
-                  testID="song-enrichment-retry-error"
-                  tone="muted"
-                  variant="caption"
-                >
-                  Erro:{' '}
-                  {describeEnrichmentFailure(state.reason, state.httpStatus)}
-                </AppText>
+                <View style={styles.failureDetails}>
+                  <AppText tone="muted" variant="caption">
+                    Erro:
+                  </AppText>
+                  <AppText
+                    testID="song-enrichment-retry-error"
+                    tone="muted"
+                    variant="caption"
+                  >
+                    {describeEnrichmentFailure(state.reason, state.httpStatus)}
+                  </AppText>
+                </View>
                 <AppText
                   testID="song-enrichment-retry-countdown"
                   tone="muted"
@@ -233,13 +237,18 @@ export function EnrichmentPopup({
 
         {state.status === 'failed' ? (
           <View style={styles.retry}>
-            <AppText
-              testID="song-enrichment-retry-error"
-              tone="muted"
-              variant="caption"
-            >
-              Erro: {describeEnrichmentFailure(state.reason, state.httpStatus)}
-            </AppText>
+            <View style={styles.failureDetails}>
+              <AppText tone="muted" variant="caption">
+                Erro:
+              </AppText>
+              <AppText
+                testID="song-enrichment-retry-error"
+                tone="muted"
+                variant="caption"
+              >
+                {describeEnrichmentFailure(state.reason, state.httpStatus)}
+              </AppText>
+            </View>
             {cooldownSeconds > 0 ? (
               <AppText tone="muted" variant="caption">
                 Nova tentativa disponível em {cooldownSeconds} s.
@@ -300,6 +309,9 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
     minWidth: 0,
+  },
+  failureDetails: {
+    gap: spacing.xs,
   },
   candidateScroll: {
     maxHeight: 360,
