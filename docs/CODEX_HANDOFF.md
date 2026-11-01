@@ -17,8 +17,9 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   `production-android`, AAB/STORE. O AAB íntegro contém o mapa R8; foi submetido
   pelo EAS ao Google Play na faixa Alpha com status de envio concluído. O
   processamento/visibilidade final ainda deve ser confirmado no Console. O
-  `jarsigner` local não pôde ser executado porque este Mac não tem JRE. O pedido
-  de acesso à Produção continua em análise; não enviar para essa faixa.
+  `jarsigner` local não pôde ser executado porque este Mac não tem JRE. O acesso
+  à faixa Produção foi concedido em 01/11/2026, mas ainda não foi criada nem
+  enviada uma release de produção.
 - iOS `1.1.1 (12)`: build EAS
   `623b0e92-6ba3-4090-bde0-1113ecc52448`, commit `c756139`, perfil `production`,
   IPA/STORE. Bundle ID `com.andersonsillos.setlist`, versão `1.1.1`, build `12`
@@ -42,6 +43,19 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   bypass nem merge.
 - O registro documental complementar não altera a tag imutável e não exige novos
   builds. O candidato `v1.1.1-rc.1` permanece inalterado.
+
+## Atualização de 1º de novembro de 2026 — acesso à Produção Android concedido
+
+- O Google Play Console confirmou que o app recebeu acesso à faixa Produção e
+  também habilitou o uso de testes abertos. A solicitação enviada em 31/10 foi
+  aprovada.
+- A concessão libera o fluxo de publicação, mas não cria, envia para revisão nem
+  publica uma release. Nenhuma disponibilidade pública ou rollout foi iniciado.
+- Próximos passos no Play Console: selecionar países/regiões, criar ou promover
+  a release com o AAB `1.1.1 (13)` se o Console o disponibilizar, revisar e
+  confirmar os detalhes, enviar ao Google para revisão e, após aprovação,
+  publicar/iniciar o rollout. Confirmar no Console o processamento do AAB e o
+  `versionCode` selecionado antes do envio.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
