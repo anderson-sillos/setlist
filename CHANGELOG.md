@@ -21,11 +21,10 @@ A PR #86 foi integrada em `main` com o commit
 ### Builds e distribuição
 
 - Android `1.1.1 (13)`: EAS `b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`, perfil
-  `production-android`, AAB/STORE. Enviado ao Google Play na faixa Alpha; o
-  processamento e a disponibilidade no Console ainda precisam ser conferidos.
-  O acesso à faixa Produção foi concedido em 01/11/2026. Ainda é necessário
-  criar ou promover a release no Console, enviá-la para revisão e concluir a
-  publicação; nenhuma release de produção foi enviada ou publicada.
+  `production-android`, AAB/STORE. O acesso à faixa Produção foi concedido em
+  01/11/2026. O Console enviou a release `1.1.1 (13)` para revisão no mesmo dia
+  (submissão #11), com rollout completo no Brasil; ainda não foi aprovada nem
+  publicada.
 - iOS `1.1.1 (12)`: EAS `623b0e92-6ba3-4090-bde0-1113ecc52448`, perfil
   `production`, IPA/STORE. Enviado ao App Store Connect e em processamento pela
   Apple. A versão ainda não foi enviada à revisão da App Store.

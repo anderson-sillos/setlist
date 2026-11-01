@@ -15,11 +15,11 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - Android `1.1.1 (13)`: build EAS
   `b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`, commit `c756139`, perfil
   `production-android`, AAB/STORE. O AAB íntegro contém o mapa R8; foi submetido
-  pelo EAS ao Google Play na faixa Alpha com status de envio concluído. O
-  processamento/visibilidade final ainda deve ser confirmado no Console. O
-  `jarsigner` local não pôde ser executado porque este Mac não tem JRE. O acesso
-  à faixa Produção foi concedido em 01/11/2026, mas ainda não foi criada nem
-  enviada uma release de produção.
+  pelo EAS ao Google Play na faixa Alpha com status de envio concluído. O acesso
+  à faixa Produção foi concedido em 01/11/2026; no mesmo dia, o Console aceitou
+  o app bundle `13 (1.1.1)` numa release de Produção, submissão #11, rollout
+  completo para o Brasil, atualmente `In review`. O `jarsigner` local não pôde
+  ser executado porque este Mac não tem JRE.
 - iOS `1.1.1 (12)`: build EAS
   `623b0e92-6ba3-4090-bde0-1113ecc52448`, commit `c756139`, perfil `production`,
   IPA/STORE. Bundle ID `com.andersonsillos.setlist`, versão `1.1.1`, build `12`
@@ -49,13 +49,20 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - O Google Play Console confirmou que o app recebeu acesso à faixa Produção e
   também habilitou o uso de testes abertos. A solicitação enviada em 31/10 foi
   aprovada.
-- A concessão libera o fluxo de publicação, mas não cria, envia para revisão nem
-  publica uma release. Nenhuma disponibilidade pública ou rollout foi iniciado.
-- Próximos passos no Play Console: selecionar países/regiões, criar ou promover
-  a release com o AAB `1.1.1 (13)` se o Console o disponibilizar, revisar e
-  confirmar os detalhes, enviar ao Google para revisão e, após aprovação,
-  publicar/iniciar o rollout. Confirmar no Console o processamento do AAB e o
-  `versionCode` selecionado antes do envio.
+- A concessão liberou o fluxo de publicação, mas não criou nem publicou uma
+  release automaticamente. Naquele momento, ainda faltava selecionar a região,
+  criar/promover a release e enviá-la para revisão; essas etapas foram realizadas
+  na submissão #11 registrada abaixo.
+
+## Atualização de 1º de novembro de 2026 — Android enviado à revisão de produção
+
+- O Play Console mostra a submissão #11 para a faixa Produção, versão
+  `1.1.1 (13)`, fonte Play Console, com rollout completo e Brasil como único
+  país/região selecionado. O Console registrou o envio em 01/11/2026 às 17h12
+  (America/Sao_Paulo); status atual: `In review`.
+- A revisão do Google ainda não terminou e o app não está publicado para o
+  público. Acompanhar o resultado; se aprovado, concluir a publicação/início do
+  rollout no Console caso a publicação gerenciada exija ação manual.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
