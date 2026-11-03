@@ -27,13 +27,15 @@ A PR #86 foi integrada em `main` com o commit
   (horário exibido no Console). O track está ativo; a captura mostra 10
   instalações e um país/região selecionado.
 - iOS `1.1.1 (12)`: EAS `623b0e92-6ba3-4090-bde0-1113ecc52448`, perfil
-  `production`, IPA/STORE. Enviado ao App Store Connect e em processamento pela
-  Apple. A versão ainda não foi enviada à revisão da App Store.
-- Web `1.1.1`: não publicada nesta etapa; validação pendente.
+  `production`, IPA/STORE. O responsável confirmou que a versão `1.1.1` está
+  disponível na App Store.
+- Web `1.1.1`: validação confirmada pelo responsável em 03/11/2026; registrar
+  no manifesto a URL e o commit implantado.
 
-Os artefatos nativos e as validações funcionais permanecem pendentes. Upload à
-loja não confirma disponibilidade pública nem aprovação em revisão. O manifesto
-e o estado detalhado estão em
+Os apps Android e iOS estão disponíveis nas lojas, e a validação Web foi
+confirmada pelo responsável. As validações funcionais dos binários nativos de
+produção ainda precisam ser registradas no manifesto, junto da URL e do commit
+Web validados. O estado detalhado está em
 [docs/releases/v1.1.1-rc.1.md](docs/releases/v1.1.1-rc.1.md) e no rascunho da
 pré-release no GitHub.
 

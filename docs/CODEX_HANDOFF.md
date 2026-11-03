@@ -25,24 +25,21 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - iOS `1.1.1 (12)`: build EAS
   `623b0e92-6ba3-4090-bde0-1113ecc52448`, commit `c756139`, perfil `production`,
   IPA/STORE. Bundle ID `com.andersonsillos.setlist`, versão `1.1.1`, build `12`
-  e mínimo iOS `16.4` foram conferidos. O upload ao App Store Connect concluiu
-  e a Apple está processando o build; ainda não foi enviado à revisão da loja.
-  O verificador local `codesign` retornou `CSSMERR_TP_NOT_TRUSTED`; a Apple
-  aceitou o upload e o resultado do processamento permanece pendente.
+  e mínimo iOS `16.4` foram conferidos. O responsável confirmou em 03/11/2026
+  que a versão `1.1.1` está disponível na App Store. O verificador local
+  `codesign` retornou `CSSMERR_TP_NOT_TRUSTED`, mas não impediu a publicação.
 - Os binários foram baixados e conferidos em `/private/tmp`; não foram incluídos
   no Git. Os JSON brutos de build também estão somente em diretório privado.
-  O rascunho `v1.1.1-rc.1` no GitHub contém as notas atualizadas e o manifesto
-  schema 2; o manifesto mantém as validações como `pending`.
-- Não houve novo deploy Web. A validação funcional nos builds nativos de
-  produção e na Web permanece pendente; as validações anteriores com development
-  clients não substituem esses testes. Não publicar a pré-release como pronta
-  até confirmar processamento, validar os artefatos instalados e atualizar o
-  manifesto.
+  O rascunho `v1.1.1-rc.1` no GitHub e o manifesto schema 2 ainda precisam ser
+  sincronizados com os estados atuais das lojas e as validações concluídas.
+- O responsável confirmou em 03/11/2026 que a versão Web foi validada. Registrar
+  no manifesto o resultado, a URL e o commit implantado. As validações funcionais
+  dos builds nativos de produção ainda precisam ser registradas; os testes com
+  development clients não substituem a conferência desses artefatos.
 - O registro documental complementar está na PR #87, branch
-  `docs/finalize-v1.1.1-rc.1`; ela permanece aberta e requer revisão. No head
-  `bb2cc29` os três checks passaram antes da última atualização documental.
-  Confira o estado do CI no head mais recente antes da integração; não houve
-  bypass nem merge.
+  `docs/finalize-v1.1.1-rc.1`; ela permanece aberta e requer revisão. Confira
+  o estado do CI no head mais recente antes da integração; não houve bypass nem
+  merge.
 - O registro documental complementar não altera a tag imutável e não exige novos
   builds. O candidato `v1.1.1-rc.1` permanece inalterado.
 
@@ -76,6 +73,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - A revisão foi concluída e a release está disponível na região selecionada. O
   rollout completo não significa disponibilidade mundial: acompanhar o status e
   as instalações no Console.
+
+## Atualização de 3 de novembro de 2026 — iOS disponível e Web validada
+
+- O responsável confirmou que a versão iOS `1.1.1` está liberada na App Store.
+- O responsável confirmou que a versão Web foi validada. Ainda registrar no
+  manifesto a URL e o commit implantado para deixar a evidência rastreável.
+- A confirmação de disponibilidade nas lojas e da validação Web não preenche,
+  por si só, as evidências de validação dos binários Android/iOS exigidas pelo
+  manifesto de release estável.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
