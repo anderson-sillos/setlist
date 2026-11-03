@@ -32,6 +32,10 @@ ela não remove as cópias antigas de `minimatch` usadas por Jest/ESLint e ampli
 a mudança de compatibilidade sem corrigir toda a árvore. Nenhum override foi
 mantido no manifesto ou lockfile.
 
+Decisão do responsável em 03/11/2026: manter #35, #47 e #48 abertos até que
+correções upstream compatíveis estejam disponíveis. Não dispensar os alertas
+como risco tolerável.
+
 Continuidade: manter #35, #47 e #48 abertos; acompanhar os patches oficiais do
 Expo compatíveis com SDK 57 e reavaliar se a cadeia passar a processar entradas
 controladas por usuários externos. Qualquer dispensa manual dos alertas deve
