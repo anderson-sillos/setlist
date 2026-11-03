@@ -29,13 +29,14 @@ A PR #86 foi integrada em `main` com o commit
 - iOS `1.1.1 (12)`: EAS `623b0e92-6ba3-4090-bde0-1113ecc52448`, perfil
   `production`, IPA/STORE. O responsável confirmou que a versão `1.1.1` está
   disponível na App Store.
-- Web `1.1.1`: validação confirmada pelo responsável em 03/11/2026; registrar
-  no manifesto a URL e o commit implantado.
+- Web `1.1.1`: validação funcional confirmada pelo responsável em 03/11/2026.
+  O manifesto registra `https://setlistbr.app.br` e o commit candidato
+  `c756139`. O deploy estável no Pages ainda está pendente: os manifestos
+  públicos consultados em 03/11 ainda identificam a `1.1.0` (`0862ce6`).
 
 Os apps Android e iOS estão disponíveis nas lojas, e a validação Web foi
 confirmada pelo responsável. As validações funcionais dos binários nativos de
-produção ainda precisam ser registradas no manifesto, junto da URL e do commit
-Web validados. O estado detalhado está em
+produção ainda precisam ser registradas no manifesto. O estado detalhado está em
 [docs/releases/v1.1.1-rc.1.md](docs/releases/v1.1.1-rc.1.md) e no rascunho da
 pré-release no GitHub.
 

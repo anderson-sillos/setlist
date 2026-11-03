@@ -32,10 +32,15 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   no Git. Os JSON brutos de build também estão somente em diretório privado.
   O rascunho `v1.1.1-rc.1` no GitHub e o manifesto schema 2 ainda precisam ser
   sincronizados com os estados atuais das lojas e as validações concluídas.
-- O responsável confirmou em 03/11/2026 que a versão Web foi validada. Registrar
-  no manifesto o resultado, a URL e o commit implantado. As validações funcionais
-  dos builds nativos de produção ainda precisam ser registradas; os testes com
-  development clients não substituem a conferência desses artefatos.
+- O responsável confirmou em 03/11/2026 que a Web `1.1.1` foi validada. O
+  manifesto da candidata já registra `https://setlistbr.app.br` e o commit
+  `c756139de797b045db024cd4c3270c188085b52b`. A publicação estável no Pages
+  ainda não ocorreu: os manifestos públicos `/release.json` e `/app/release.json`
+  consultados em 03/11 ainda indicavam a `1.1.0`, commit
+  `0862ce6d549c70ac76f901a3bd0eabdda31ade3b`. O último deploy Pages bem-sucedido
+  é o [run 40210153328](https://github.com/anderson-sillos/setlist/actions/runs/40210153328).
+  As validações funcionais dos builds nativos de produção ainda precisam ser
+  registradas; os testes com development clients não substituem essa conferência.
 - O registro documental complementar está na PR #87, branch
   `docs/finalize-v1.1.1-rc.1`; ela permanece aberta e requer revisão. Confira
   o estado do CI no head mais recente antes da integração; não houve bypass nem
