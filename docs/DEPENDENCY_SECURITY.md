@@ -1,5 +1,42 @@
 # Acompanhamento de segurança das dependências
 
+## Revisão de segurança de 3 de novembro de 2026
+
+Estado conferido na API de alertas do GitHub em 03/11/2026. A PR #88 foi
+integrada à `main` no commit `df3a290c0a9d871a2c885aa603b1906b05c7b2a0`;
+o alerta #9 (`node-forge`) consta como corrigido. Os alertas #35, #47 e #48
+permanecem `open`. A revisão identificou que não há uma correção upstream
+compatível para aplicar com segurança a toda a árvore atual; nenhum deles foi
+dispensado ou marcado como corrigido.
+
+| Alerta                                                                               | Dependência no lockfile                    | Estado e avaliação em 03/11/2026                                                                                                                                    |
+| ------------------------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#9 `node-forge`](https://github.com/anderson-sillos/setlist/security/dependabot/9)  | `1.4.2` via Expo                           | Corrigido pela PR #88; o GitHub marcou o alerta como `fixed`.                                                                                                       |
+| [#35 `deepmerge`](https://github.com/anderson-sillos/setlist/security/dependabot/35) | `4.3.1` via Expo Config e Jest             | Sem versão corrigida. O relatório foi contestado upstream e precisa de avaliação antes de qualquer dispensa.                                                        |
+| [#47 `glob`](https://github.com/anderson-sillos/setlist/security/dependabot/47)      | `13.0.6` via ferramentas Expo              | Patch disponível em `14.0.2`, mas a dependência Expo 57 declara `^13.0.0`; a mudança atravessa uma versão principal e pode alterar a semântica de padrões `ignore`. |
+| [#48 `minimatch`](https://github.com/anderson-sillos/setlist/security/dependabot/48) | `10.2.6` via Expo; `3.1.5` via Jest/ESLint | Patch disponível em `11.0.1`, mas permanecem cópias da major 3 em dependências antigas. Um override amplo pode quebrar consumidores que usam APIs antigas.          |
+
+A severidade de `deepmerge` está como baixa no GitHub Advisory e não há versão
+corrigida publicada. A issue upstream registra uma contestação: a reprodução
+não modifica o `Object.prototype` global e não demonstra cruzamento de fronteira
+de privilégio. O advisory, contudo, continua publicado e o alerta #35 permanece
+aberto; esta revisão não o descarta como falso positivo.
+
+O Expo informou que as ocorrências de `glob` e `minimatch` afetam ferramentas
+locais de build/desenvolvimento, não os apps produzidos, e iniciou a substituição
+dessas dependências por outras APIs/ferramentas. As PRs upstream em
+acompanhamento são [expo/expo#52790](https://github.com/expo/expo/pull/52790) e
+[expo/expo#52796](https://github.com/expo/expo/pull/52796). Uma tentativa
+isolada de override para `glob@14.0.2` e `minimatch@11.0.1` foi descartada:
+ela não remove as cópias antigas de `minimatch` usadas por Jest/ESLint e amplia
+a mudança de compatibilidade sem corrigir toda a árvore. Nenhum override foi
+mantido no manifesto ou lockfile.
+
+Continuidade: manter #35, #47 e #48 abertos; acompanhar os patches oficiais do
+Expo compatíveis com SDK 57 e reavaliar se a cadeia passar a processar entradas
+controladas por usuários externos. Qualquer dispensa manual dos alertas deve
+aguardar decisão explícita de aceite do risco.
+
 ## Situação confirmada em 25 de outubro de 2026
 
 A API do GitHub confirmou os alertas #33 (`undici`) e #34 (`zod`) como
