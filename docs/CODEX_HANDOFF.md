@@ -2,51 +2,45 @@
 
 Este documento preserva o contexto necessário para que uma nova sessão do Codex continue o projeto sem reconstruir decisões já confirmadas. Ele resume o histórico de trabalho; os artefatos OpenSpec continuam sendo a fonte normativa do produto.
 
-## Atualização de 31 de outubro de 2026 — release candidata `v1.1.1-rc.1`
+## Atualização de 3 de novembro de 2026 — lançamento estável `v1.1.1`
 
-- A PR #86 foi integrada por squash em `main` em
-  `c756139de797b045db024cd4c3270c188085b52b`; os três checks passaram no head
-  final `fa98eb66fa5c7477d017f01bed0b1fb7e449f0d6`. A tag anotada remota
-  `v1.1.1-rc.1` resolve para o mesmo commit da `main`.
-- A versão do produto é `1.1.1`. A candidata inclui busca assistida com timeout
-  de 20 s por tentativa, até cinco tentativas com esperas padrão de 5/10/15/20 s,
-  respeito a `Retry-After` válido e feedback de erro com código/contagem; tocar
-  em verso sincronizado busca seu tempo e inicia ou retoma o cronômetro.
-- Android `1.1.1 (13)`: build EAS
-  `b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`, commit `c756139`, perfil
-  `production-android`, AAB/STORE. O AAB íntegro contém o mapa R8; foi submetido
-  pelo EAS ao Google Play na faixa Alpha com status de envio concluído. O acesso
-  à faixa Produção foi concedido em 01/11/2026; no mesmo dia, o Console aceitou
-  o app bundle `13 (1.1.1)` numa release de Produção, submissão #11, rollout
-  completo para o Brasil. A release ficou ativa no Google Play em 03/11/2026 às
-  03h17 (horário exibido no Console). Na captura, o track aparece Active, com
-  10 instalações, um país/região (Brasil) e 19.546 dispositivos compatíveis.
-  O `jarsigner` local não pôde ser executado porque este Mac não tem JRE.
-- iOS `1.1.1 (12)`: build EAS
-  `623b0e92-6ba3-4090-bde0-1113ecc52448`, commit `c756139`, perfil `production`,
-  IPA/STORE. Bundle ID `com.andersonsillos.setlist`, versão `1.1.1`, build `12`
-  e mínimo iOS `16.4` foram conferidos. O responsável confirmou em 03/11/2026
-  que a versão `1.1.1` está disponível na App Store. O verificador local
-  `codesign` retornou `CSSMERR_TP_NOT_TRUSTED`, mas não impediu a publicação.
-- Os binários foram baixados e conferidos em `/private/tmp`; não foram incluídos
-  no Git. Os JSON brutos de build também estão somente em diretório privado.
-  O rascunho `v1.1.1-rc.1` no GitHub e o manifesto schema 2 ainda precisam ser
-  sincronizados com os estados atuais das lojas e as validações concluídas.
-- O responsável confirmou em 03/11/2026 que a Web `1.1.1` foi validada. O
-  manifesto da candidata já registra `https://setlistbr.app.br` e o commit
-  `c756139de797b045db024cd4c3270c188085b52b`. A publicação estável no Pages
-  ainda não ocorreu: os manifestos públicos `/release.json` e `/app/release.json`
-  consultados em 03/11 ainda indicavam a `1.1.0`, commit
-  `0862ce6d549c70ac76f901a3bd0eabdda31ade3b`. O último deploy Pages bem-sucedido
-  é o [run 40210153328](https://github.com/anderson-sillos/setlist/actions/runs/40210153328).
-  As validações funcionais dos builds nativos de produção ainda precisam ser
-  registradas; os testes com development clients não substituem essa conferência.
-- O registro documental complementar está na PR #87, branch
-  `docs/finalize-v1.1.1-rc.1`; ela permanece aberta e requer revisão. Confira
-  o estado do CI no head mais recente antes da integração; não houve bypass nem
-  merge.
-- O registro documental complementar não altera a tag imutável e não exige novos
-  builds. O candidato `v1.1.1-rc.1` permanece inalterado.
+- A [release estável `v1.1.1`](https://github.com/anderson-sillos/setlist/releases/tag/v1.1.1)
+  foi publicada; não é draft nem pré-release. A tag aponta para
+  `c756139de797b045db024cd4c3270c188085b52b`, o mesmo commit dos builds nativos
+  e da versão Web. O único ativo da release é `release-manifest.json`.
+- Google Play: `1.1.1 (13)` está disponível na faixa Produção no Brasil desde
+  03/11/2026. O Console mostrava 10 instalações na captura compartilhada pelo
+  responsável.
+- App Store: `1.1.1 (12)` está disponível, conforme confirmação do responsável.
+  Build EAS
+  [`623b0e92-6ba3-4090-bde0-1113ecc52448`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/623b0e92-6ba3-4090-bde0-1113ecc52448).
+- Android: build EAS
+  [`b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae).
+  O responsável confirmou a validação funcional em Android e iOS; também
+  confirmou a validação funcional da Web.
+- O workflow do GitHub Pages
+  [41690645632](https://github.com/anderson-silloss/setlist/actions/runs/41690645632)
+  terminou com sucesso. A conferência pública de
+  `https://setlistbr.app.br/release.json` e
+  `https://setlistbr.app.br/app/release.json` confirmou o mesmo manifesto
+  estável: versão `1.1.1`, tag `v1.1.1`, commit acima e as três plataformas com
+  `validation: passed`.
+- A PR #87 foi integrada à `main` em
+  `919a251a31a58e3c7aa92c48d039ce4afa524bd9`. Não há publicação ou envio às
+  lojas pendente para a versão `1.1.1`.
+
+## Histórico de preparação da release `v1.1.1` — iniciado em 31 de outubro
+
+- A PR #86 reuniu timeout de 20 s por tentativa na busca assistida, até cinco
+  tentativas com esperas padrão progressivas de 5/10/15/20 s, respeito a
+  `Retry-After` válido, feedback com código e contagem regressiva, e início ou
+  retomada do cronômetro ao tocar em um verso sincronizado. Foi integrada à
+  `main` no commit `c756139de797b045db024cd4c3270c188085b52b`.
+- O versionamento foi atualizado para `1.1.1`. A tag estável `v1.1.1` e os
+  builds Android `1.1.1 (13)`, iOS `1.1.1 (12)` e Web correspondem ao mesmo
+  commit. A publicação e a validação final constam na atualização do topo.
+- A candidata `v1.1.1-rc.1` é apenas um registro de pré-release e não é a
+  release estável disponível aos usuários.
 
 ## Atualização de 1º de novembro de 2026 — acesso à Produção Android concedido
 
@@ -63,10 +57,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - O Play Console mostra a submissão #11 para a faixa Produção, versão
   `1.1.1 (13)`, fonte Play Console, com rollout completo e Brasil como único
   país/região selecionado. O Console registrou o envio em 01/11/2026 às 17h12
-  (America/Sao_Paulo); status atual: `In review`.
-- A revisão do Google ainda não terminou e o app não está publicado para o
-  público. Acompanhar o resultado; se aprovado, concluir a publicação/início do
-  rollout no Console caso a publicação gerenciada exija ação manual.
+  (America/Sao_Paulo); naquela data, o status era `In review`.
+- A revisão foi concluída e a release foi publicada em 03/11/2026; o estado
+  final está registrado na atualização de lançamento estável no início deste
+  handoff.
 
 ## Atualização de 3 de novembro de 2026 — Android disponível no Google Play
 
@@ -79,14 +73,16 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   rollout completo não significa disponibilidade mundial: acompanhar o status e
   as instalações no Console.
 
-## Atualização de 3 de novembro de 2026 — iOS disponível e Web validada
+## Atualização de 3 de novembro de 2026 — iOS e Web publicados
 
-- O responsável confirmou que a versão iOS `1.1.1` está liberada na App Store.
-- O responsável confirmou que a versão Web foi validada. Ainda registrar no
-  manifesto a URL e o commit implantado para deixar a evidência rastreável.
-- A confirmação de disponibilidade nas lojas e da validação Web não preenche,
-  por si só, as evidências de validação dos binários Android/iOS exigidas pelo
-  manifesto de release estável.
+- O responsável confirmou que o iOS `1.1.1 (12)` está disponível na App Store
+  e validou funcionalmente os builds instalados Android e iOS.
+- O responsável confirmou a validação funcional da Web `1.1.1`. O workflow
+  Pages [41690645632](https://github.com/anderson-sillos/setlist/actions/runs/41690645632)
+  terminou com sucesso; `/release.json` e `/app/release.json` públicos servem
+  o mesmo manifesto estável, com versão `1.1.1`, tag `v1.1.1`, commit
+  `c756139de797b045db024cd4c3270c188085b52b` e validação aprovada nas três
+  plataformas.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
