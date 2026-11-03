@@ -18,8 +18,10 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
   pelo EAS ao Google Play na faixa Alpha com status de envio concluído. O acesso
   à faixa Produção foi concedido em 01/11/2026; no mesmo dia, o Console aceitou
   o app bundle `13 (1.1.1)` numa release de Produção, submissão #11, rollout
-  completo para o Brasil, atualmente `In review`. O `jarsigner` local não pôde
-  ser executado porque este Mac não tem JRE.
+  completo para o Brasil. A release ficou ativa no Google Play em 03/11/2026 às
+  03h17 (horário exibido no Console). Na captura, o track aparece Active, com
+  10 instalações, um país/região (Brasil) e 19.546 dispositivos compatíveis.
+  O `jarsigner` local não pôde ser executado porque este Mac não tem JRE.
 - iOS `1.1.1 (12)`: build EAS
   `623b0e92-6ba3-4090-bde0-1113ecc52448`, commit `c756139`, perfil `production`,
   IPA/STORE. Bundle ID `com.andersonsillos.setlist`, versão `1.1.1`, build `12`
@@ -63,6 +65,17 @@ Este documento preserva o contexto necessário para que uma nova sessão do Code
 - A revisão do Google ainda não terminou e o app não está publicado para o
   público. Acompanhar o resultado; se aprovado, concluir a publicação/início do
   rollout no Console caso a publicação gerenciada exija ação manual.
+
+## Atualização de 3 de novembro de 2026 — Android disponível no Google Play
+
+- O Console mostra a release `13 (1.1.1)` como `Available on Google Play`, ativa
+  na faixa Produção e lançada em 03/11/2026 às 03h17 (horário exibido no Console).
+- A distribuição está configurada para um país/região (Brasil). A captura mostra
+  10 instalações e compatibilidade com 19.546 dispositivos na categoria
+  Phones, Tablets, Desktop/ChromeOS e Android XR.
+- A revisão foi concluída e a release está disponível na região selecionada. O
+  rollout completo não significa disponibilidade mundial: acompanhar o status e
+  as instalações no Console.
 
 ## Atualização de 31 de outubro de 2026 — solicitação de acesso à produção Android
 
