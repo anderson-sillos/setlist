@@ -1,8 +1,9 @@
 # Histórico de versões
 
-## 1.1.1 — candidata `v1.1.1-rc.1` (31/10/2026)
+## 1.1.1 — lançamento estável (03/11/2026)
 
-Candidata posterior a `v1.1.0-rc.1`, com as melhorias da PR #86:
+Release estável publicada na [GitHub Release `v1.1.1`](https://github.com/anderson-sillos/setlist/releases/tag/v1.1.1),
+com as melhorias posteriores à `v1.1.0-rc.1`:
 
 - A busca assistida usa timeout de 20 segundos por tentativa e até cinco
   tentativas, com esperas padrão progressivas de 5, 10, 15 e 20 segundos.
@@ -14,31 +15,32 @@ Candidata posterior a `v1.1.0-rc.1`, com as melhorias da PR #86:
   desse trecho e inicia ou retoma a reprodução se estiver parada ou pausada.
 
 A PR #86 foi integrada em `main` com o commit
-`c756139de797b045db024cd4c3270c188085b52b`. A tag imutável
-`v1.1.1-rc.1` aponta para esse mesmo commit; a candidata anterior
-`v1.1.0-rc.1` e seus artefatos permanecem inalterados.
+`c756139de797b045db024cd4c3270c188085b52b`. A tag estável `v1.1.1` e os
+builds de Android, iOS e Web correspondem a esse commit.
 
 ### Builds e distribuição
 
-- Android `1.1.1 (13)`: EAS `b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`, perfil
-  `production-android`, AAB/STORE. O acesso à faixa Produção foi concedido em
-  01/11/2026. A release foi enviada para revisão como submissão #11, com rollout
-  completo no Brasil, e ficou disponível no Google Play em 03/11/2026 às 03h17
-  (horário exibido no Console). O track está ativo; a captura mostra 10
-  instalações e um país/região selecionado.
-- iOS `1.1.1 (12)`: EAS `623b0e92-6ba3-4090-bde0-1113ecc52448`, perfil
-  `production`, IPA/STORE. O responsável confirmou que a versão `1.1.1` está
-  disponível na App Store.
-- Web `1.1.1`: validação funcional confirmada pelo responsável em 03/11/2026.
-  O manifesto registra `https://setlistbr.app.br` e o commit candidato
-  `c756139`. O deploy estável no Pages ainda está pendente: os manifestos
-  públicos consultados em 03/11 ainda identificam a `1.1.0` (`0862ce6`).
+- Android `1.1.1 (13)`: EAS
+  [`b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/b52ed5a3-ccc9-4d40-8ac3-a7b0a715abae),
+  perfil `production-android`, AAB/STORE. Disponível na faixa Produção no
+  Brasil desde 03/11/2026; o Console mostrava 10 instalações na captura
+  compartilhada pelo responsável.
+- iOS `1.1.1 (12)`: EAS
+  [`623b0e92-6ba3-4090-bde0-1113ecc52448`](https://expo.dev/accounts/anderson-silloss-team/projects/setlist/builds/623b0e92-6ba3-4090-bde0-1113ecc52448),
+  perfil `production`, IPA/STORE. Disponível na App Store, conforme confirmação
+  do responsável.
+- Web `1.1.1`: publicada em `https://setlistbr.app.br`. O workflow Pages
+  [41690645632](https://github.com/anderson-sillos/setlist/actions/runs/41690645632)
+  concluiu com sucesso; `/release.json` e `/app/release.json` servem o manifesto
+  estável associado ao commit `c756139de797b045db024cd4c3270c188085b52b`.
+- O responsável confirmou a validação funcional dos builds instalados Android
+  e iOS e da Web. O manifesto público registra `validation: passed` nas três
+  plataformas.
 
-Os apps Android e iOS estão disponíveis nas lojas, e a validação Web foi
-confirmada pelo responsável. As validações funcionais dos binários nativos de
-produção ainda precisam ser registradas no manifesto. O estado detalhado está em
-[docs/releases/v1.1.1-rc.1.md](docs/releases/v1.1.1-rc.1.md) e no rascunho da
-pré-release no GitHub.
+Android, iOS e Web estão publicados e validados. O estado detalhado, os IDs dos
+builds e as evidências da publicação estão em
+[docs/releases/v1.1.1-rc.1.md](docs/releases/v1.1.1-rc.1.md) e na
+[release estável](https://github.com/anderson-sillos/setlist/releases/tag/v1.1.1).
 
 ## 1.1.0 — pré-release `v1.1.0-rc.1` (25/10/2026)
 
